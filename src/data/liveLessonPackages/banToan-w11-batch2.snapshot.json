@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-27T00:00:00.000Z",
+  "generatedAt": "2026-11-04T19:50:27.182Z",
   "source": {
     "directoryHint": "tasks/giaoan-goc-w11-batch2",
     "files": {
@@ -9354,6 +9354,1713 @@
       ],
       "selfChoice": false,
       "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-17-128",
+      "grade": 10,
+      "week": 17,
+      "period": 128,
+      "title": "Ôn tập HK1: Phương trình quy về phương trình bậc hai",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Phương trình chứa căn dạng √(f(x)) = √(g(x)) và √(f(x)) = ax + b, phương pháp bình phương và đặt ẩn phụ",
+      "formulas": [
+        "\\sqrt{f(x)} = \\sqrt{g(x)} \\iff f(x) = g(x) \\text{ và } f(x) \\ge 0",
+        "\\sqrt{f(x)} = ax + b \\iff ax + b \\ge 0 \\text{ và } f(x) = (ax + b)^2"
+      ],
+      "boardKnowledge": "Trọng tâm: Điều kiện không âm trước khi bình phương; Thử lại nghiệm vào phương trình gốc để loại nghiệm ngoại lai sinh ra do phép biến đổi hệ quả.",
+      "examples": [
+        {
+          "question": "Giải phương trình: \\sqrt{2x^2 - 3} = \\sqrt{x - 1}.",
+          "solution": "Điều kiện x - 1 >= 0 ⇔ x >= 1. Phương trình tương đương 2x^2 - 3 = x - 1 ⇔ 2x^2 - x - 2 = 0 ⇔ x = (1 ± \\sqrt{17})/4. Đối chiếu điều kiện loại nghiệm âm, nhận x = (1 + \\sqrt{17})/4."
+        },
+        {
+          "question": "Giải phương trình: \\sqrt{x^2 - 4x + 3} = x - 1.",
+          "solution": "Điều kiện x - 1 >= 0 ⇔ x >= 1. Bình phương hai vế: x^2 - 4x + 3 = x^2 - 2x + 1 ⇔ 2x = 2 ⇔ x = 1 (thoả mãn)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Phép bình phương hai vế của một phương trình khi hai vế chưa cùng dấu là phép biến đổi gì?",
+          "answer": "Là phép biến đổi hệ quả (có thể làm xuất hiện nghiệm ngoại lai)."
+        },
+        {
+          "level": "NB",
+          "question": "Điều kiện tương đương của phương trình \\sqrt{A} = B là gì?",
+          "answer": "B >= 0 và A = B^2."
+        },
+        {
+          "level": "TH",
+          "question": "Giải phương trình: \\sqrt{3x - 2} = 4.",
+          "answer": "3x - 2 = 16 ⇔ 3x = 18 ⇔ x = 6."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm số nghiệm của phương trình \\sqrt{x - 1} = -2.",
+          "answer": "Phương trình vô nghiệm vì vế trái luôn không âm trong khi vế phải âm."
+        },
+        {
+          "level": "VD",
+          "question": "Giải phương trình: \\sqrt{x^2 - 3x + 2} = \\sqrt{2x - 4}.",
+          "answer": "Điều kiện 2x - 4 >= 0 ⇔ x >= 2. x^2 - 3x + 2 = 2x - 4 ⇔ x^2 - 5x + 6 = 0 ⇔ x = 2 hoặc x = 3 (cả hai đều thoả mãn)."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm m để phương trình \\sqrt{x - 1} = x - m có nghiệm.",
+          "answer": "Đặt t = \\sqrt{x-1} >= 0, phương trình trở thành t^2 - t + 1 - m = 0 có nghiệm t >= 0 ⇔ m >= 3/4."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tại sao khi giải \\sqrt{f(x)} = \\sqrt{g(x)} chỉ cần đặt điều kiện cho một trong hai vế?",
+          "solution": "Vì khi f(x) = g(x), chỉ cần một vế không âm thì vế còn lại tự động không âm."
+        },
+        {
+          "question": "Bước thử lại nghiệm có bắt buộc khi giải phương trình quy về bậc hai bằng phép bình phương không?",
+          "solution": "Bắt buộc nếu không đặt điều kiện tương đương chặt chẽ ở bước đầu."
+        }
+      ],
+      "mistakes": [
+        "Quên đặt điều kiện vế phải ax + b >= 0 trước khi bình phương.",
+        "Nhầm biến đổi tương đương với biến đổi hệ quả.",
+        "Quên thử lại nghiệm để loại bỏ nghiệm ngoại lai."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-17-129",
+      "grade": 10,
+      "week": 17,
+      "period": 129,
+      "title": "Ôn tập HK1: Dấu của tam thức bậc hai và bất phương trình bậc hai",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Định lý về dấu của tam thức bậc hai, giải bất phương trình bậc hai một ẩn và tìm tham số m",
+      "formulas": [
+        "f(x) = ax^2 + bx + c",
+        "\\Delta < 0 \\implies a \\cdot f(x) > 0 \\; \\forall x \\in \\mathbb{R}",
+        "f(x) > 0 \\; \\forall x \\in \\mathbb{R} \\iff a > 0 \\text{ và } \\Delta < 0"
+      ],
+      "boardKnowledge": "Quy tắc xét dấu: \"Trong trái ngoài cùng\" (khi có 2 nghiệm phân biệt); Luôn cùng dấu hệ số a (khi Δ < 0). Tìm m để f(x) > 0 với mọi x: a > 0 và Δ < 0.",
+      "examples": [
+        {
+          "question": "Xét dấu tam thức bậc hai: f(x) = -x^2 + 5x - 6.",
+          "solution": "Nghiệm x = 2, x = 3. Hệ số a = -1 < 0. f(x) > 0 trên (2; 3) (trong trái); f(x) < 0 trên (-∞; 2) và (3; +∞) (ngoài cùng)."
+        },
+        {
+          "question": "Tìm m để bất phương trình x^2 - 2mx + 4 > 0 nghiệm đúng với mọi x thuộc R.",
+          "solution": "Yêu cầu ⇔ a = 1 > 0 (luôn đúng) và Delta' = m^2 - 4 < 0 ⇔ -2 < m < 2."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Quy tắc xét dấu tam thức bậc hai có hai nghiệm phân biệt x1 < x2 là gì?",
+          "answer": "Trong khoảng hai nghiệm trái dấu với hệ số a, ngoài khoảng hai nghiệm cùng dấu với hệ số a."
+        },
+        {
+          "level": "NB",
+          "question": "Khi biệt thức Δ < 0 thì tam thức bậc hai ax² + bx + c có dấu như thế nào?",
+          "answer": "Luôn luôn cùng dấu với hệ số a với mọi số thực x."
+        },
+        {
+          "level": "TH",
+          "question": "Giải bất phương trình: 2x^2 - 5x + 2 <= 0.",
+          "answer": "Nghiệm của tam thức là 1/2 và 2. BPT có a = 2 > 0 nên lấy trong: 1/2 <= x <= 2."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm tập nghiệm của bất phương trình: -x^2 + 4x - 5 >= 0.",
+          "answer": "Delta' = 4 - 5 = -1 < 0, a = -1 < 0 nên f(x) luôn âm. Tập nghiệm là rỗng ∅."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm m để hàm số y = \\sqrt{(m-1)x^2 - 2(m-1)x + 3} có tập xác định là R.",
+          "answer": "TH1: m = 1 ⇒ y = \\sqrt{3} xác định trên R. TH2: m ≠ 1 ⇒ m - 1 > 0 và Delta' = (m-1)^2 - 3(m-1) <= 0 ⇔ 1 < m <= 4. Kết hợp: 1 <= m <= 4."
+        },
+        {
+          "level": "VD",
+          "question": "Một quả bóng được đá lên từ mặt đất với độ cao h(t) = -5t^2 + 20t (m). Trong khoảng thời gian nào quả bóng ở độ cao trên 15m?",
+          "answer": "-5t^2 + 20t > 15 ⇔ 5t^2 - 20t + 15 < 0 ⇔ 1 < t < 3 giây."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi nào cần xét trường hợp hệ số a = 0 trong bài toán tam thức bậc hai chứa tham số?",
+          "solution": "Khi hệ số a có chứa tham số m (chưa khẳng định chắc chắn là bậc hai)."
+        },
+        {
+          "question": "Điều kiện để tam thức bậc hai không âm với mọi x là gì?",
+          "solution": "a > 0 và Δ <= 0."
+        }
+      ],
+      "mistakes": [
+        "Quên xét trường hợp a = 0 khi hệ số chứa tham số m.",
+        "Nhầm điều kiện Δ > 0 khi đề yêu cầu luôn dương hoặc luôn âm.",
+        "Không lấy dấu bằng ở Δ khi bất phương trình có dấu bằng."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-17-130",
+      "grade": 10,
+      "week": 17,
+      "period": 130,
+      "title": "Ôn tập HK1: Số gần đúng, sai số và số đặc trưng xu thế trung tâm",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Sai số tuyệt đối, sai số tương đối, quy tròn số gần đúng và số trung bình, trung vị, tứ phân vị mẫu không ghép nhóm",
+      "formulas": [
+        "\\Delta_a = |\\bar{a} - a| \\le d",
+        "\\delta_a = \\frac{\\Delta_a}{|a|}",
+        "\\bar{x} = \\frac{1}{n}\\sum x_i",
+        "M_e = \\text{trung vị}"
+      ],
+      "boardKnowledge": "Thống kê lớp 10: 1. Số gần đúng a ± d: chữ số chắc, quy tròn đến hàng của độ chính xác d; 2. Số trung bình x̄; 3. Trung vị Me (không bị ảnh hưởng bởi giá trị ngoại lai); 4. Mốt Mo; 5. Tứ phân vị Q1, Q2, Q3.",
+      "examples": [
+        {
+          "question": "Quy tròn số gần đúng a = 314,1592 với độ chính xác d = 0,02.",
+          "solution": "Độ chính xác d = 0,02 thuộc hàng phần trăm, nên quy tròn đến hàng phần mười: số quy tròn là 314,2."
+        },
+        {
+          "question": "Tìm trung vị của mẫu số liệu: 3, 5, 7, 8, 12, 14, 20.",
+          "solution": "Cỡ mẫu n = 7 (lẻ). Giá trị ở chính giữa là số hạng thứ 4: Me = 8."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Sai số tuyệt đối của số gần đúng a được tính bằng công thức nào?",
+          "answer": "Δa = |ā - a|."
+        },
+        {
+          "level": "NB",
+          "question": "Khi nào nên sử dụng số trung vị thay vì số trung bình để đại diện cho mẫu số liệu?",
+          "answer": "Khi mẫu số liệu có giá trị bất thường (quá lớn hoặc quá nhỏ ngoại lai)."
+        },
+        {
+          "level": "TH",
+          "question": "Quy tròn số a = 12567 với độ chính xác d = 200.",
+          "answer": "Hàng trăm có d = 200 nên quy tròn đến hàng nghìn: 13000."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm tứ phân vị Q1, Q2, Q3 của dãy: 2, 4, 6, 8, 10, 12.",
+          "answer": "Q2 = (6+8)/2 = 7; nửa dưới {2, 4, 6} có Q1 = 4; nửa trên {8, 10, 12} có Q3 = 10."
+        },
+        {
+          "level": "VD",
+          "question": "Cho mẫu số liệu điểm kiểm tra: 6, 7, 7, 8, 8, 8, 9, 10. Tính số trung bình và phương sai của mẫu số liệu.",
+          "answer": "x̄ = (6 + 14 + 24 + 9 + 10)/8 = 63/8 = 7,875. s² = (∑(xi - x̄)²)/8 ≈ 1,36."
+        },
+        {
+          "level": "VD",
+          "question": "Xác định giá trị ngoại lai (outlier) của mẫu số liệu bằng quy tắc khoảng tứ phân vị.",
+          "answer": "Giá trị ngoại lai nằm ngoài đoạn [Q1 - 1,5 ΔQ; Q3 + 1,5 ΔQ]."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Quy tắc làm tròn số: nếu chữ số ngay sau hàng quy tròn >= 5 thì làm gì?",
+          "solution": "Cộng thêm 1 vào chữ số hàng quy tròn."
+        },
+        {
+          "question": "Khoảng tứ phân vị ΔQ = Q3 - Q1 đo đại lượng gì?",
+          "solution": "Đo độ phân tán của 50% số liệu ở chính giữa của mẫu."
+        }
+      ],
+      "mistakes": [
+        "Quy tròn nhầm đến hàng của d thay vì hàng liền trước hàng chứa độ chính xác d.",
+        "Quên sắp xếp số liệu theo thứ tự tăng dần trước khi tìm trung vị.",
+        "Nhầm lẫn giữa cỡ mẫu chẵn và cỡ mẫu lẻ khi xác định vị trí trung vị."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-17-131",
+      "grade": 10,
+      "week": 17,
+      "period": 131,
+      "title": "Ôn tập HK1: Tổng hợp hệ thức lượng và giải tam giác thực tế",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Phối hợp định lý sin, côsin, các công thức tính diện tích và bài toán đo đạc địa lý thực tế",
+      "formulas": [
+        "S = \\frac{1}{2}ab\\sin C = \\frac{abc}{4R} = pr = \\sqrt{p(p-a)(p-b)(p-c)}",
+        "c^2 = a^2 + b^2 - 2ab\\cos C"
+      ],
+      "boardKnowledge": "Hệ thống công thức: 5 công thức diện tích tam giác; Bán kính ngoại tiếp R = abc/(4S); Bán kính nội tiếp r = S/p; Ứng dụng đo khoảng cách giữa hai điểm không đến được.",
+      "examples": [
+        {
+          "question": "Tam giác ABC có a=7, b=8, c=9. Tính diện tích tam giác và bán kính đường tròn ngoại tiếp R.",
+          "solution": "Nửa chu vi p = 12. S = \\sqrt{12(5)(4)(3)} = 12\\sqrt{5}. R = abc/(4S) = (7*8*9)/(4*12\\sqrt{5}) = 21\\sqrt{5}/10 ≈ 4,696."
+        },
+        {
+          "question": "Để đo khoảng cách giữa 2 điểm A và B bị ngăn cách bởi hồ nước, người ta chọn điểm C sao cho CA=60m, CB=80m và góc C=60°. Tính khoảng cách AB.",
+          "solution": "AB^2 = 60^2 + 80^2 - 2(60)(80)\\cos 60° = 3600 + 6400 - 4800 = 5200 ⇒ AB = \\sqrt{5200} = 20\\sqrt{13} ≈ 72,11m."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Công thức Heron dùng để tính đại lượng nào của tam giác khi biết độ dài ba cạnh?",
+          "answer": "Tính diện tích tam giác: S = \\sqrt{p(p-a)(p-b)(p-c)}."
+        },
+        {
+          "level": "NB",
+          "question": "Trong tam giác vuông tại A, bán kính đường tròn ngoại tiếp R bằng bao nhiêu?",
+          "answer": "Bằng một nửa cạnh huyền (R = a / 2)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính góc A của tam giác ABC có a = 7, b = 5, c = 3.",
+          "answer": "cos A = (25 + 9 - 49)/(2*5*3) = -15/30 = -1/2 ⇒ A = 120°."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tam giác có S = 30 và p = 10. Tính bán kính đường tròn nội tiếp r.",
+          "answer": "r = S / p = 30 / 10 = 3."
+        },
+        {
+          "level": "VD",
+          "question": "Chứng minh rằng trong mọi tam giác ABC ta có: a = b cos C + c cos B.",
+          "answer": "Chiếu cạnh b và c lên cạnh a hoặc áp dụng định lý côsin rút gọn trực tiếp ra vế trái."
+        },
+        {
+          "level": "VD",
+          "question": "Một ngọn hải đăng cao 40m đặt trên đỉnh vách đá. Từ một chiếc tàu ngoài biển, người ta đo được góc nâng lên chân hải đăng là 25° và lên đỉnh hải đăng là 32°. Tính khoảng cách từ tàu đến chân vách đá.",
+          "answer": "Lập hệ thức tan: d = 40 / (tan 32° - tan 25°) ≈ 252m."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi nào tam giác có góc tù theo định lý côsin?",
+          "solution": "Khi cosin của góc đó mang giá trị âm (b² + c² < a²)."
+        },
+        {
+          "question": "Có bao nhiêu công thức cơ bản tính diện tích tam giác?",
+          "solution": "Có 5 công thức cơ bản (chiều cao, 2 cạnh và góc xen giữa, 3 cạnh với R, chu vi với r, công thức Heron)."
+        }
+      ],
+      "mistakes": [
+        "Quên đổi dấu cosin khi góc lớn hơn 90 độ.",
+        "Nhầm công thức p là chu vi thay vì nửa chu vi trong công thức Heron.",
+        "Tính sai thứ tự phép nhân và chia trong máy tính bỏ túi."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-17-132",
+      "grade": 10,
+      "week": 17,
+      "period": 132,
+      "title": "Ôn tập HK1: Phân tích vectơ và chứng minh ba điểm thẳng hàng",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Phân tích một vectơ theo hai vectơ không cùng phương, điều kiện ba điểm thẳng hàng và trọng tâm",
+      "formulas": [
+        "\\vec{c} = m\\vec{a} + n\\vec{b}",
+        "A, B, C \\text{ thẳng hàng } \\iff \\vec{AB} = k\\vec{AC}"
+      ],
+      "boardKnowledge": "Kỹ thuật vectơ: 1. Quy tắc chèn điểm (hệ thức Chasles); 2. Phân tích vectơ theo hai vectơ cơ sở; 3. Ba điểm A, B, C thẳng hàng ⇔ hai vectơ cùng phương: tọa độ tỉ lệ u1/v1 = u2/v2.",
+      "examples": [
+        {
+          "question": "Cho tam giác ABC có M là trung điểm AB, N trên AC sao cho AN = 2NC. Phân tích vectơ \\vec{MN} theo \\vec{AB} và \\vec{AC}.",
+          "solution": "\\vec{MN} = \\vec{AN} - \\vec{AM} = \\frac{2}{3}\\vec{AC} - \\frac{1}{2}\\vec{AB}."
+        },
+        {
+          "question": "Cho ba điểm A(-1; 3), B(1; 7), C(3; 11). Chứng minh ba điểm A, B, C thẳng hàng.",
+          "solution": "\\vec{AB} = (2; 4), \\vec{AC} = (4; 8). Ta thấy \\vec{AC} = 2\\vec{AB} nên hai vectơ cùng phương, do đó A, B, C thẳng hàng."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Mọi vectơ trong mặt phẳng đều có thể biểu diễn duy nhất qua hai vectơ như thế nào?",
+          "answer": "Hai vectơ không cùng phương."
+        },
+        {
+          "level": "NB",
+          "question": "Hệ thức vectơ biểu diễn trung điểm I của đoạn thẳng AB là gì?",
+          "answer": "\\vec{IA} + \\vec{IB} = \\vec{0} (hoặc \\vec{OI} = (\\vec{OA} + \\vec{OB})/2 với mọi điểm O)."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm k để ba điểm A(1; 2), B(3; 6), C(k; 10) thẳng hàng.",
+          "answer": "\\vec{AB} = (2; 4), \\vec{AC} = (k-1; 8). (k-1)/2 = 8/4 = 2 ⇒ k - 1 = 4 ⇒ k = 5."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tam giác ABC và điểm M thoả mãn \\vec{MA} + 2\\vec{MB} = \\vec{0}. Điểm M nằm ở đâu?",
+          "answer": "M nằm trên đoạn AB sao cho MA = 2MB (M gần B hơn)."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình bình hành ABCD. Gọi I là trung điểm CD, G là trọng tâm tam giác BCD. Phân tích \\vec{AG} theo \\vec{AB} và \\vec{AD}.",
+          "answer": "\\vec{AG} = \\frac{1}{3}(\\vec{AB} + \\vec{AC} + \\vec{AD}) = \\frac{1}{3}(\\vec{AB} + \\vec{AB} + \\vec{AD} + \\vec{AD}) = \\frac{2}{3}\\vec{AB} + \\frac{2}{3}\\vec{AD}."
+        },
+        {
+          "level": "VD",
+          "question": "Chứng minh đường thẳng đi qua hai điểm M, N luôn đi qua trọng tâm G của tam giác ABC.",
+          "answer": "Biểu diễn \\vec{GM} và \\vec{GN} theo các vectơ cơ sở rồi chứng minh \\vec{GM} = k\\vec{GN}."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Điều kiện cần và đủ để hai vectơ cùng phương là gì?",
+          "solution": "Vectơ này bằng k lần vectơ kia (hoặc tích chéo tọa độ bằng 0: u1 v2 - u2 v1 = 0)."
+        },
+        {
+          "question": "Khi biểu diễn \\vec{AM} theo \\vec{AB} và \\vec{AC}, nếu tổng hệ số bằng 1 thì M nằm ở đâu?",
+          "solution": "Điểm M nằm trên đường thẳng BC."
+        }
+      ],
+      "mistakes": [
+        "Chèn nhầm điểm ngược hướng làm sai dấu vectơ.",
+        "Nhầm điều kiện cùng phương (nhân chéo trừ nhau bằng 0) với vuông góc (nhân nhau cộng lại bằng 0).",
+        "Quên điều kiện gốc chung khi kết luận thẳng hàng từ hai vectơ cùng phương."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-17-133",
+      "grade": 10,
+      "week": 17,
+      "period": 133,
+      "title": "Ôn tập HK1: Tích vô hướng và góc giữa hai vectơ",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Biểu thức tọa độ tích vô hướng, tính góc giữa hai vectơ, bài toán chứng minh vuông góc và tìm quỹ tích điểm",
+      "formulas": [
+        "\\cos(\\vec{u}, \\vec{v}) = \\frac{x_1 x_2 + y_1 y_2}{\\sqrt{x_1^2 + y_1^2}\\sqrt{x_2^2 + y_2^2}}",
+        "\\vec{u} \\perp \\vec{v} \\iff x_1 x_2 + y_1 y_2 = 0"
+      ],
+      "boardKnowledge": "Toàn cảnh Tích vô hướng: 1. Định nghĩa hình học: tích độ dài * cosin góc; 2. Biểu thức tọa độ: tổng tích các tọa độ tương ứng; 3. Góc giữa 2 vectơ: từ 0° đến 180°; 4. Vuông góc ⇔ tích vô hướng bằng 0.",
+      "examples": [
+        {
+          "question": "Cho \\vec{a} = (1; \\sqrt{3}) và \\vec{b} = (-1; \\sqrt{3}). Tính góc giữa hai vectơ \\vec{a} và \\vec{b}.",
+          "solution": "\\vec{a}\\cdot\\vec{b} = -1 + 3 = 2. |a| = 2, |b| = 2. cos = 2/(2*2) = 1/2 ⇒ góc = 60°."
+        },
+        {
+          "question": "Tìm tọa độ điểm M trên trục Ox sao cho tam giác MAB vuông tại M với A(1; 3), B(4; 2).",
+          "solution": "M(x; 0). \\vec{MA} = (1-x; 3), \\vec{MB} = (4-x; 2). Tam giác vuông tại M ⇔ \\vec{MA}\\cdot\\vec{MB} = 0 ⇔ (1-x)(4-x) + 6 = 0 ⇔ x^2 - 5x + 10 = 0 (vô nghiệm, không tồn tại M)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Góc giữa hai vectơ có thể nhận giá trị lớn nhất là bao nhiêu độ?",
+          "answer": "180° (khi hai vectơ ngược hướng)."
+        },
+        {
+          "level": "NB",
+          "question": "Bình phương vô hướng \\vec{a}^2 bằng đại lượng nào?",
+          "answer": "Bằng bình phương độ dài |\\vec{a}|^2."
+        },
+        {
+          "level": "TH",
+          "question": "Cho |\\vec{u}| = 4, |\\vec{v}| = 5 và góc giữa chúng bằng 120°. Tính \\vec{u}\\cdot\\vec{v}.",
+          "answer": "4 * 5 * cos 120° = 20 * (-1/2) = -10."
+        },
+        {
+          "level": "TH",
+          "question": "Cho \\vec{u} = (m; 2) và \\vec{v} = (3; -6). Tìm m để hai vectơ vuông góc.",
+          "answer": "3m + 2(-6) = 0 ⇔ 3m = 12 ⇔ m = 4."
+        },
+        {
+          "level": "VD",
+          "question": "Cho tam giác ABC có A(1; 2), B(2; 4), C(5; 1). Tính diện tích tam giác ABC thông qua tích vô hướng.",
+          "answer": "Tính AB, AC và cos A bằng tích vô hướng, suy ra sin A = \\sqrt{1 - \\cos^2 A} rồi tính S = 1/2 AB * AC * sin A = 4,5."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hai điểm cố định A, B có độ dài AB = 2a. Tìm tập hợp điểm M thoả mãn \\vec{MA}\\cdot\\vec{MB} = k^2.",
+          "answer": "Gọi I là trung điểm AB: MI^2 - IA^2 = k^2 ⇔ MI^2 = a^2 + k^2. Tập hợp là đường tròn tâm I bán kính \\sqrt{a^2+k^2}."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Góc giữa hai vectơ cùng hướng bằng bao nhiêu độ?",
+          "solution": "Bằng 0°."
+        },
+        {
+          "question": "Tại sao cosin góc giữa hai vectơ có thể âm trong khi cosin góc giữa hai đường thẳng luôn dương?",
+          "solution": "Vì góc giữa 2 vectơ từ 0° đến 180°, còn góc giữa hai đường thẳng chỉ từ 0° đến 90°."
+        }
+      ],
+      "mistakes": [
+        "Nhầm góc giữa 2 vectơ với góc giữa 2 đường thẳng (tự ý lấy dấu giá trị tuyệt đối trên tử số).",
+        "Bấm máy tính ra góc nhọn khi cos âm do quên dấu trừ.",
+        "Tính sai độ dài vectơ vì quên lấy căn bậc hai của tổng bình phương."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-17-134",
+      "grade": 10,
+      "week": 17,
+      "period": 134,
+      "title": "Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Đại số",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện đề trắc nghiệm Đại số tổng hợp học kỳ 1: Chiến thuật bấm máy, phân bổ thời gian và mẹo giải nhanh",
+      "formulas": [
+        "\\text{Casio: CALC thử nghiệm, Table tìm min max, Solver}"
+      ],
+      "boardKnowledge": "Kỹ năng phòng thi: 1. Đọc lướt toàn bộ đề 1 phút; 2. Câu nhận biết làm trong 30s; 3. Câu thông hiểu dùng CALC loại đáp án; 4. Không để trống bất kỳ câu nào.",
+      "examples": [
+        {
+          "question": "Tìm tập xác định của hàm số y = \\sqrt{x-1} + \\frac{1}{x-3}: Thử nhanh x = 1 (nhận) và x = 3 (loại).",
+          "solution": "D = [1; +∞) \\\\ {3}."
+        },
+        {
+          "question": "Tìm giao điểm của parabol y = 2x^2 - 3x + 1 với trục hoành Ox bằng phím giải phương trình bậc hai.",
+          "solution": "Mode 9-2-2 giải ra x = 1 và x = 1/2. Giao điểm là (1; 0) và (1/2; 0)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Khi làm bài trắc nghiệm Toán, thứ tự ưu tiên làm câu dễ trước hay câu khó trước?",
+          "answer": "Làm câu dễ trước, câu khó làm sau để tối ưu điểm số và tâm lý thi đấu."
+        },
+        {
+          "level": "NB",
+          "question": "Mỗi câu trắc nghiệm nhiều lựa chọn 4 phương án có xác suất đúng ngẫu nhiên là bao nhiêu?",
+          "answer": "25%."
+        },
+        {
+          "level": "TH",
+          "question": "Dùng CALC tìm giá trị nhỏ nhất của y = x^2 - 6x + 10.",
+          "answer": "Min = 1 tại x = 3."
+        },
+        {
+          "level": "TH",
+          "question": "Kiểm tra nhanh tính chẵn lẻ của hàm số y = x^4 - 2x^2 bằng máy tính.",
+          "answer": "Nhập f(x) - f(-x) bấm CALC ra 0 ⇒ hàm số chẵn."
+        },
+        {
+          "level": "VD",
+          "question": "Kỹ thuật gán giá trị đặc biệt m = 0 hoặc m = 1 để loại trừ các đáp án chứa tham số m.",
+          "answer": "Thế giá trị m cụ thể vào phương trình rồi giải kiểm tra tính đúng đắn để loại nhanh 2 phương án sai."
+        },
+        {
+          "level": "VD",
+          "question": "Chiến thuật 10 phút cuối: Kiểm tra phiếu trả lời trắc nghiệm và tô đáp án các câu chưa giải.",
+          "answer": "Dành 5-10 phút cuối rà soát mã đề, số báo danh và chọn phương án hợp lý cho các câu còn lại."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tại sao không nên tô đáp án ngay từng câu vào phiếu trả lời khi vừa đọc đề?",
+          "solution": "Nên đánh dấu vào đề rồi chuyển sang phiếu theo từng trang để tránh nhầm dòng và tiết kiệm thời gian."
+        },
+        {
+          "question": "Chức năng TABLE (Menu 8) hiệu quả nhất trong dạng toán nào?",
+          "solution": "Khảo sát sự biến thiên và tìm giá trị lớn nhất, nhỏ nhất của hàm số trên một đoạn."
+        }
+      ],
+      "mistakes": [
+        "Tô lệch dòng trên phiếu trả lời trắc nghiệm.",
+        "Dành quá 5 phút cho một câu hỏi khó ở 15 câu đầu.",
+        "Không đọc kỹ yêu cầu đề bài hỏi mệnh đề SAI hay ĐÚNG."
+      ],
+      "selfChoice": true,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "10-17-135",
+      "grade": 10,
+      "week": 17,
+      "period": 135,
+      "title": "Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Hình học",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện đề trắc nghiệm Hình học tổng hợp HK1: Kỹ năng vẽ hình chuẩn, tọa độ hóa và dự đoán đáp án",
+      "formulas": [
+        "\\text{Casio: Vector, Norm, Angle, Dot}"
+      ],
+      "boardKnowledge": "Kỹ năng Hình học: 1. Vẽ hình đúng tỉ lệ để dự đoán góc vuông hoặc thẳng hàng; 2. Gán hệ trục tọa độ Oxy cho hình chữ nhật, hình vuông, tam giác đều; 3. Dùng Vector Casio tính tích vô hướng.",
+      "examples": [
+        {
+          "question": "Cho tam giác ABC đều cạnh 2. Tính nhanh tích vô hướng \\vec{AB}\\cdot\\vec{BC}.",
+          "solution": "Góc giữa \\vec{AB} và \\vec{BC} là góc bù với góc B: 180° - 60° = 120°. Tích = 2 * 2 * cos 120° = -2."
+        },
+        {
+          "question": "Dự đoán quỹ tích điểm M bằng hình vẽ chính xác: Điểm cách đều hai đầu mút đoạn thẳng AB.",
+          "solution": "Đường trung trực của đoạn thẳng AB."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tập hợp các điểm M trong mặt phẳng nhìn đoạn thẳng AB dưới một góc 90° là hình gì?",
+          "answer": "Đường tròn đường kính AB (trừ hai điểm A và B)."
+        },
+        {
+          "level": "NB",
+          "question": "Khi gán tọa độ Oxy cho tam giác vuông tại A, ta nên chọn gốc tọa độ O trùng với điểm nào?",
+          "answer": "Trùng với đỉnh góc vuông A."
+        },
+        {
+          "level": "TH",
+          "question": "Gán tọa độ cho tam giác đều ABC cạnh 2 với A trên Oy và BC trên Ox. Tọa độ đỉnh A là gì?",
+          "answer": "A(0; \\sqrt{3})."
+        },
+        {
+          "level": "TH",
+          "question": "Bấm máy tính tính khoảng cách giữa hai điểm A(1; 5) và B(4; 9).",
+          "answer": "Abs(Pol(4-1, 9-5)) = \\sqrt{3^2 + 4^2} = 5."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình vuông ABCD cạnh 4. Gọi M là trung điểm CD. Dùng tọa độ hóa tính cosin góc giữa \\vec{AM} và \\vec{BD}.",
+          "answer": "Gán A(0;4), B(4;4), C(4;0), D(0;0). M(2;0). \\vec{AM}=(2;-4), \\vec{BD}=(-4;-4). cos = (-8+16)/(\\sqrt{20}\\sqrt{32}) = 8/(8\\sqrt{10}) = \\sqrt{10}/10."
+        },
+        {
+          "level": "VD",
+          "question": "Giải bài toán thực tế tìm vị trí đặt trạm biến áp sao cho tổng chiều dài dây dẫn đến ba ngôi nhà là ngắn nhất.",
+          "answer": "Điểm Fermat của tam giác (nhìn ba cạnh dưới góc 120°)."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Góc giữa hai vectơ có thể là góc bẹt 180° khi nào?",
+          "solution": "Khi hai vectơ ngược hướng nhau."
+        },
+        {
+          "question": "Khi nào việc vẽ hình đúng kích thước thước đo có thể giải quyết câu hỏi hình học khó?",
+          "solution": "Khi các đáp án có giá trị độ dài hoặc góc rất cách biệt nhau."
+        }
+      ],
+      "mistakes": [
+        "Xác định nhầm góc xen giữa hai vectơ khi hai vectơ không cùng gốc.",
+        "Gán gốc tọa độ không vuông góc làm sai toàn bộ công thức tọa độ.",
+        "Đo hình vẽ trên đề thi nhưng đề ghi \"hình vẽ mang tính minh họa không đúng tỉ lệ\"."
+      ],
+      "selfChoice": true,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-17-122",
+      "grade": 11,
+      "week": 17,
+      "period": 122,
+      "title": "Ôn tập HK1: Biến đổi biểu thức chứa luỹ thừa và lôgarit",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Phối hợp các công thức luỹ thừa và lôgarit, rút gọn biểu thức và bài toán chứa tham số",
+      "formulas": [
+        "\\log_a(b^c) = c\\log_a b",
+        "a^{\\log_a b} = b",
+        "\\log_a b = \\frac{\\ln b}{\\ln a}",
+        "a^x = b \\iff x = \\log_a b"
+      ],
+      "boardKnowledge": "Toàn cảnh Luỹ thừa - Lôgarit: 1. Đưa về cùng cơ số; 2. Tách thừa số nguyên tố; 3. Dùng ẩn phụ đặt t = a^x hoặc t = log_a x; 4. Bấm máy Casio CALC hoặc gán giá trị a, b để rút gọn.",
+      "examples": [
+        {
+          "question": "Rút gọn biểu thức: P = \\log_3 2 \\cdot \\log_4 3 \\cdot \\log_5 4 \\cdot \\log_6 5.",
+          "solution": "P = \\frac{\\ln 2}{\\ln 3} \\cdot \\frac{\\ln 3}{\\ln 4} \\cdot \\frac{\\ln 4}{\\ln 5} \\cdot \\frac{\\ln 5}{\\ln 6} = \\frac{\\ln 2}{\\ln 6} = \\log_6 2."
+        },
+        {
+          "question": "Cho \\log_2 5 = a. Tính \\log_{20} 50 theo a.",
+          "solution": "\\log_{20} 50 = \\frac{\\log_2 (2 \\cdot 5^2)}{\\log_2 (2^2 \\cdot 5)} = \\frac{1 + 2a}{2 + a}."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Biểu thức a^(1/n) với a > 0 và số nguyên n >= 2 là căn bậc mấy của a?",
+          "answer": "Căn bậc n của a (\\sqrt[n]{a})."
+        },
+        {
+          "level": "NB",
+          "question": "Hằng đẳng thức a^(log_a b) bằng đại lượng nào?",
+          "answer": "Bằng b (với a > 0, a ≠ 1, b > 0)."
+        },
+        {
+          "level": "TH",
+          "question": "Rút gọn: A = 4^{\\log_2 3} + 27^{\\log_3 2}.",
+          "answer": "(2^{\\log_2 3})^2 + (3^{\\log_3 2})^3 = 3^2 + 2^3 = 9 + 8 = 17."
+        },
+        {
+          "level": "TH",
+          "question": "Giải phương trình: 2^{x - 1} = 8.",
+          "answer": "2^{x-1} = 2^3 ⇔ x - 1 = 3 ⇔ x = 4."
+        },
+        {
+          "level": "VD",
+          "question": "Cho a, b > 0 thoả mãn a^2 + 4b^2 = 12ab. Chứng minh \\log (a + 2b) - 2\\log 2 = \\frac{1}{2}(\\log a + \\log b).",
+          "answer": "(a + 2b)^2 = a^2 + 4b^2 + 4ab = 16ab. Lấy log hai vế rồi chia 2 ra đpcm."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm nghiệm nguyên dương của bất phương trình: \\log_2(x^2 - 3x) <= 2.",
+          "answer": "Điều kiện: x^2 - 3x > 0 ⇔ x < 0 hoặc x > 3. BPT ⇔ x^2 - 3x <= 4 ⇔ -1 <= x <= 4. Nghiệm nguyên dương là x = 4."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi nào biểu thức log_a b đổi dấu?",
+          "solution": "Khi a và b nằm về hai phía khác nhau của số 1 (một số > 1, một số thuộc (0; 1))."
+        },
+        {
+          "question": "Có thể bấm máy Casio kiểm tra biểu thức rút gọn lôgarit thế nào?",
+          "solution": "Nhập Biểu thức gốc - Biểu thức rút gọn, bấm CALC gán giá trị bất kỳ (ví dụ a=3, b=5), nếu kết quả ra 0 là đúng."
+        }
+      ],
+      "mistakes": [
+        "Quên đặt điều kiện cho biểu thức trong dấu logarit khi giải phương trình.",
+        "Nhầm log_a(b + c) = log_a b + log_a c.",
+        "Quên đổi chiều bất phương trình lôgarit khi cơ số nhỏ hơn 1."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-17-123",
+      "grade": 11,
+      "week": 17,
+      "period": 123,
+      "title": "Ôn tập HK1: Giới hạn của dãy số và giới hạn của hàm số",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Các giới hạn cơ bản, quy tắc tính giới hạn vô cực, khử các dạng vô định 0/0 và vô cực trừ vô cực",
+      "formulas": [
+        "\\lim_{n \\to \\infty} \\frac{1}{n^k} = 0 (k > 0)",
+        "\\lim_{x \\to x_0} \\frac{f(x)}{g(x)} \\text{ dạng } \\frac{0}{0}",
+        "\\lim_{x \\to +\\infty} (\\sqrt{x^2+ax} - x) = \\frac{a}{2}"
+      ],
+      "boardKnowledge": "Toàn cảnh Giới hạn: 1. Dãy số: chia cho luỹ thừa bậc cao nhất của n; 2. Hàm số tại điểm: thế số trước, nếu ra 0/0 thì phân tích triệt tiêu (x - x0) hoặc nhân liên hợp; 3. Hàm số ở vô cực: chú ý dấu của x khi đưa ra ngoài căn.",
+      "examples": [
+        {
+          "question": "Tính giới hạn dãy số: L = \\lim_{n \\to \\infty} \\frac{2n^2 - 3n + 1}{5n^2 + 4}.",
+          "solution": "Chia cả tử và mẫu cho n^2: L = \\lim \\frac{2 - 3/n + 1/n^2}{5 + 4/n^2} = \\frac{2}{5}."
+        },
+        {
+          "question": "Tính giới hạn: I = \\lim_{x \\to 3} \\frac{x^2 - 9}{\\sqrt{x + 1} - 2}.",
+          "solution": "Dạng 0/0. Nhân liên hợp mẫu: I = \\lim_{x \\to 3} \\frac{(x-3)(x+3)(\\sqrt{x+1}+2)}{x - 3} = \\lim_{x \\to 3} (x+3)(\\sqrt{x+1}+2) = 6 \\cdot 4 = 24."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Giới hạn của q^n khi |q| < 1 bằng bao nhiêu?",
+          "answer": "Bằng 0."
+        },
+        {
+          "level": "NB",
+          "question": "Giới hạn của hàm số f(x) khi x tiến về x0 tồn tại khi và chỉ khi điều kiện gì?",
+          "answer": "Giới hạn bên trái bằng giới hạn bên phải: \\lim_{x \\to x_0^-} f(x) = \\lim_{x \\to x_0^+} f(x)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính giới hạn: \\lim_{x \\to 2} \\frac{x^2 - 4}{x - 2}.",
+          "answer": "\\lim_{x \\to 2} (x + 2) = 4."
+        },
+        {
+          "level": "TH",
+          "question": "Tính giới hạn: \\lim_{n \\to \\infty} \\frac{3^n - 4^n}{3^n + 4^n}.",
+          "answer": "Chia cho 4^n: kết quả = -1."
+        },
+        {
+          "level": "VD",
+          "question": "Tính giới hạn: \\lim_{x \\to -\\infty} (\\sqrt{4x^2 - 2x + 1} + 2x).",
+          "answer": "Nhân liên hợp: tử = -2x + 1, mẫu = -x\\sqrt{4 - 2/x + 1/x^2} - 2x. Giới hạn = -2 / (-2 - 2) = 1/2."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm các giá trị của a để \\lim_{x \\to 1} \\frac{x^2 + ax - 2}{x - 1} hữu hạn và tính giới hạn đó.",
+          "answer": "Tử số triệt tiêu tại x=1: 1 + a - 2 = 0 ⇒ a = 1. Khi đó giới hạn bằng \\lim (x + 2) = 3."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Quy tắc bấm máy tính Casio tính giới hạn khi x tiến về 2+ là gì?",
+          "solution": "CALC x = 2 + 10^-6 (ví dụ 2,000001)."
+        },
+        {
+          "question": "Khi x tiến về âm vô cực, \\sqrt{x^2} bằng gì?",
+          "solution": "Bằng |x| = -x."
+        }
+      ],
+      "mistakes": [
+        "Quên đổi dấu âm khi đưa x ra ngoài căn bậc hai ở âm vô cực.",
+        "Thế cận làm xuất hiện mẫu bằng 0 mà không kiểm tra dạng vô định.",
+        "Nhân liên hợp nhầm dấu giữa hai số hạng."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-17-124",
+      "grade": 11,
+      "week": 17,
+      "period": 124,
+      "title": "Ôn tập HK1: Hàm số liên tục và định lý nghiệm",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Xét tính liên tục tại một điểm, liên tục trên một khoảng, tìm tham số m và định lý giá trị trung gian",
+      "formulas": [
+        "\\lim_{x \\to x_0} f(x) = f(x_0) \\implies f(x) \\text{ liên tục tại } x_0",
+        "f(a)f(b) < 0 \\implies \\exists c \\in (a; b): f(c) = 0"
+      ],
+      "boardKnowledge": "Toàn cảnh Hàm liên tục: 1. Liên tục tại x0: Giới hạn trái = Giới hạn phải = f(x0); 2. Các hàm đa thức, lượng giác liên tục trên từng khoảng xác định; 3. Định lý nghiệm: Nếu f(x) liên tục trên [a; b] và f(a)*f(b) < 0 thì phương trình có ít nhất 1 nghiệm trong (a; b).",
+      "examples": [
+        {
+          "question": "Tìm m để hàm số f(x) = (x^2 - 1)/(x - 1) khi x ≠ 1 và f(1) = 2m + 1 liên tục tại x = 1.",
+          "solution": "\\lim_{x \\to 1} f(x) = \\lim_{x \\to 1} (x + 1) = 2. Để liên tục: 2m + 1 = 2 ⇔ m = 1/2."
+        },
+        {
+          "question": "Chứng minh phương trình x^5 - 3x - 1 = 0 có ít nhất 1 nghiệm trong khoảng (1; 2).",
+          "solution": "f(x) là đa thức nên liên tục trên [1; 2]. f(1) = -3 < 0, f(2) = 32 - 6 - 1 = 25 > 0. f(1)*f(2) < 0 ⇒ có nghiệm trong (1; 2)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Hàm số f(x) liên tục tại x0 khi thoả mãn điều kiện gì?",
+          "answer": "\\lim_{x \\to x_0} f(x) = f(x_0)."
+        },
+        {
+          "level": "NB",
+          "question": "Hàm đa thức bậc n có liên tục trên toàn bộ tập số thực R không?",
+          "answer": "Có, luôn luôn liên tục trên toàn bộ R."
+        },
+        {
+          "level": "TH",
+          "question": "Xét tính liên tục của hàm số y = 1/(x - 2) tại điểm x = 2.",
+          "answer": "Hàm số gián đoạn tại x = 2 vì không xác định tại x = 2."
+        },
+        {
+          "level": "TH",
+          "question": "Chứng minh phương trình x^3 + 2x - 5 = 0 có nghiệm.",
+          "answer": "f(0) = -5 < 0, f(2) = 8 + 4 - 5 = 7 > 0. f(0)*f(2) < 0 nên có nghiệm thuộc (0; 2)."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm m để hàm số f(x) = { (\\sqrt{x+3}-2)/(x-1) khi x > 1; mx + 1 khi x <= 1 } liên tục tại x = 1.",
+          "answer": "\\lim_{x \\to 1^+} = \\lim 1/(\\sqrt{x+3}+2) = 1/4. f(1) = m + 1. m + 1 = 1/4 ⇔ m = -3/4."
+        },
+        {
+          "level": "VD",
+          "question": "Chứng minh phương trình cos x = x có ít nhất một nghiệm thuộc khoảng (0; \\pi/2).",
+          "answer": "Xét f(x) = cos x - x liên tục trên [0; \\pi/2]. f(0) = 1 > 0, f(\\pi/2) = -\\pi/2 < 0. f(0)*f(\\pi/2) < 0 ⇒ có nghiệm."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Hàm số bị gián đoạn tại điểm x0 khi nào?",
+          "solution": "Khi không xác định tại x0, hoặc giới hạn không tồn tại, hoặc giới hạn khác f(x0)."
+        },
+        {
+          "question": "Định lý giá trị trung gian yêu cầu điều kiện tiên quyết nào đối với hàm số?",
+          "solution": "Hàm số phải liên tục trên đoạn kín [a; b]."
+        }
+      ],
+      "mistakes": [
+        "Quên kiểm tra tính liên tục trước khi dùng định lý f(a)*f(b) < 0.",
+        "Tính sai giới hạn một bên khi xét hàm phân nhánh.",
+        "Nhầm lẫn giữa khoảng mở (a; b) và đoạn kín [a; b]."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-17-125",
+      "grade": 11,
+      "week": 17,
+      "period": 125,
+      "title": "Ôn tập HK1: Đường thẳng và mặt phẳng, quan hệ song song",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Các tiên đề hình học không gian, tìm giao tuyến của hai mặt phẳng, giao điểm đường thẳng và mặt phẳng",
+      "formulas": [
+        "(P) \\cap (Q) = d",
+        "d \\cap (P) = M \\iff M \\in d \\text{ và } M \\in (P)"
+      ],
+      "boardKnowledge": "Toàn cảnh Hình không gian HK1: 1. Tìm giao tuyến: Tìm 2 điểm chung phân biệt; 2. Tìm giao điểm của d và (P): Tìm mặt phẳng phụ (Q) chứa d, tìm giao tuyến a = (P) ∩ (Q), giao điểm M = d ∩ a; 3. Thiết diện.",
+      "examples": [
+        {
+          "question": "Cho hình chóp S.ABCD có đáy ABCD là hình thang (AB // CD, AB > CD). Tìm giao tuyến của (SAB) và (SCD).",
+          "solution": "S là điểm chung thứ nhất. AB // CD nên giao tuyến là đường thẳng d đi qua S và song song với AB và CD."
+        },
+        {
+          "question": "Cho tứ diện ABCD. Gọi M, N lần lượt là trung điểm SA, SB. Tìm thiết diện của tứ diện cắt bởi mặt phẳng (MNC) với M, N trên AC, BC.",
+          "solution": "Mặt phẳng cắt các mặt tạo thành tam giác MNC."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Hai mặt phẳng phân biệt có một điểm chung thì chúng có bao nhiêu điểm chung?",
+          "answer": "Có vô số điểm chung cùng thuộc một đường thẳng duy nhất gọi là giao tuyến."
+        },
+        {
+          "level": "NB",
+          "question": "Một đường thẳng và một mặt phẳng có thể có bao nhiêu điểm chung?",
+          "answer": "Có 0 điểm chung (song song), 1 điểm chung (cắt nhau), hoặc vô số điểm chung (nằm trong)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hình chóp S.ABCD có đáy là hình bình hành tâm O. Giao tuyến của (SAC) và (SBD) là đường thẳng nào?",
+          "answer": "Đường thẳng SO."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tứ diện ABCD. Điểm M nằm trong tam giác BCD. Tìm giao tuyến của (ABM) và (ACD).",
+          "answer": "Nối BM cắt CD tại N. Giao tuyến là đường thẳng AN."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình chóp S.ABCD. Gọi M là điểm trên cạnh SD. Tìm giao điểm của đường thẳng BM và mặt phẳng (SAC).",
+          "answer": "Trong mặt đáy, AC cắt BD tại O. Trong (SBD), SO cắt BM tại I. Điểm I chính là giao điểm cần tìm."
+        },
+        {
+          "level": "VD",
+          "question": "Xác định thiết diện của hình chóp S.ABCD đáy tứ giác lồi cắt bởi mặt phẳng đi qua ba điểm trên ba cạnh bên.",
+          "answer": "Tìm các đoạn giao tuyến nối tiếp nhau trên các mặt của hình chóp tạo thành đa giác kín."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi nào giao tuyến của hai mặt phẳng đi qua một điểm chung và song song với hai đường thẳng?",
+          "solution": "Khi hai mặt phẳng lần lượt chứa hai đường thẳng song song với nhau."
+        },
+        {
+          "question": "Quy tắc biểu diễn hình không gian: đường nhìn thấy vẽ nét gì, đường bị che khuất vẽ nét gì?",
+          "solution": "Đường nhìn thấy vẽ nét liền, đường bị che khuất vẽ nét đứt."
+        }
+      ],
+      "mistakes": [
+        "Vẽ nét liền cho đường thẳng bị các mặt phẳng khác che khuất.",
+        "Tìm giao điểm của hai đường thẳng không cùng thuộc một mặt phẳng.",
+        "Kết luận sai thiết diện khi chưa khép kín thành đa giác phẳng."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-17-126",
+      "grade": 11,
+      "week": 17,
+      "period": 126,
+      "title": "Ôn tập HK1: Hai đường thẳng song song và đường thẳng song song mặt phẳng",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Phương pháp chứng minh đường thẳng song song mặt phẳng và định lý giao tuyến ba mặt phẳng",
+      "formulas": [
+        "d \\not\\subset (P), a \\subset (P), d // a \\implies d // (P)",
+        "(P) // (Q), (R) \\cap (P) = a, (R) \\cap (Q) = b \\implies a // b"
+      ],
+      "boardKnowledge": "Trọng tâm: 1. Để chứng minh d // (P): Tìm trong (P) một đường thẳng a sao cho d // a (và d không nằm trong (P)); 2. Hệ quả: Nếu d // (P) thì mọi mp (Q) chứa d mà cắt (P) theo giao tuyến a thì a // d.",
+      "examples": [
+        {
+          "question": "Cho hình chóp S.ABCD đáy hình bình hành. Gọi M, N là trung điểm SA, SB. Chứng minh MN // (SCD).",
+          "solution": "MN là đường trung bình tam giác SAB ⇒ MN // AB. Mà AB // CD nên MN // CD. Vì CD ⊂ (SCD) và MN ⊄ (SCD) nên MN // (SCD)."
+        },
+        {
+          "question": "Mặt phẳng (P) đi qua d (với d // (Q)) cắt (Q) theo giao tuyến c. Mối quan hệ giữa d và c là gì?",
+          "solution": "d song song với c (theo định lý giao tuyến)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Điều kiện để đường thẳng d song song với mặt phẳng (P) là gì?",
+          "answer": "d không nằm trong (P) và d song song với một đường thẳng nằm trong (P)."
+        },
+        {
+          "level": "NB",
+          "question": "Nếu đường thẳng d song song với mặt phẳng (P) thì d có song song với mọi đường trong (P) không?",
+          "answer": "Không, d chỉ song song với các đường thẳng trong (P) có cùng phương với d, chéo nhau với các đường còn lại."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tứ diện ABCD. Gọi M, N là trung điểm AB, AC. Mặt phẳng nào song song với MN?",
+          "answer": "Mặt phẳng (BCD)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hình chóp S.ABCD đáy bình hành. Điểm M trên SC. Mặt phẳng qua M song song với AB cắt SD tại N. MN quan hệ thế nào với CD?",
+          "answer": "MN song song với CD (và AB)."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình chóp S.ABCD đáy bình hành. Gọi G là trọng tâm tam giác SAB, M trên AD sao cho AM = 1/3 AD. Chứng minh GM // (SCD).",
+          "answer": "Dựng tỉ số song song Talet chứng minh GM song song với một đường thẳng thuộc (SCD)."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm thiết diện của hình chóp S.ABCD cắt bởi mặt phẳng (α) đi qua điểm M trên cạnh bên và song song với hai cạnh đối nhau của đáy.",
+          "answer": "Thiết diện là một hình bình hành hoặc hình thang."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Hai đường thẳng không có điểm chung trong không gian có chắc chắn song song không?",
+          "solution": "Không chắc chắn, chúng có thể chéo nhau."
+        },
+        {
+          "question": "Định lý ba đường giao tuyến phát biểu mối quan hệ gì của ba giao tuyến?",
+          "solution": "Hoặc đôi một song song, hoặc đồng quy tại một điểm."
+        }
+      ],
+      "mistakes": [
+        "Quên kiểm tra điều kiện đường thẳng d không nằm trong mặt phẳng (P).",
+        "Khẳng định hai đường thẳng phân biệt không cắt nhau thì song song trong không gian.",
+        "Xác định sai hướng đường song song khi vẽ thiết diện."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-17-127",
+      "grade": 11,
+      "week": 17,
+      "period": 127,
+      "title": "Ôn tập HK1: Hai mặt phẳng song song và định lý Thales trong không gian",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Điều kiện hai mặt phẳng song song, tính chất các đoạn chắn song song và định lý Thales không gian",
+      "formulas": [
+        "a, b \\subset (P), a \\cap b = I, a // (Q), b // (Q) \\implies (P) // (Q)",
+        "\\frac{A_1 B_1}{A_2 B_2} = \\frac{B_1 C_1}{B_2 C_2}"
+      ],
+      "boardKnowledge": "Toàn cảnh mp // mp: 1. Điều kiện: (P) chứa 2 đường thẳng cắt nhau cùng song song với (Q); 2. Tính chất: Hai mp song song chắn trên hai cát tuyến bất kỳ các đoạn thẳng tỉ lệ (Định lý Thales); Các đoạn thẳng song song bị chắn giữa hai mp song song thì bằng nhau.",
+      "examples": [
+        {
+          "question": "Cho hình chóp S.ABCD đáy hình bình hành. Gọi (P) là mặt phẳng qua trung điểm M của SA và song song với đáy (ABCD). Chứng minh (P) cắt các cạnh bên SB, SC, SD tại các trung điểm.",
+          "solution": "Áp dụng định lý Thales hoặc tính chất mặt phẳng song song cắt hình chóp tạo thành các đoạn thẳng tỉ lệ bằng nhau 1/2."
+        },
+        {
+          "question": "Cho hai mặt phẳng song song (P) và (Q). Đường thẳng d cắt (P) tại A, cắt (Q) tại B. Đường thẳng d' song song d cắt (P) tại C, (Q) tại D. So sánh AB và CD.",
+          "solution": "AB = CD (tính chất đoạn thẳng song song bị chắn giữa hai mặt phẳng song song)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Để chứng minh hai mặt phẳng song song, ta cần chỉ ra mặt phẳng này chứa bao nhiêu đường thẳng cắt nhau song song với mặt phẳng kia?",
+          "answer": "Hai đường thẳng cắt nhau."
+        },
+        {
+          "level": "NB",
+          "question": "Hình lăng trụ có các mặt bên là hình gì?",
+          "answer": "Là các hình bình hành."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tứ diện ABCD. Mặt phẳng (P) song song với (ABC) cắt các cạnh DA, DB, DC. Thiết diện là hình gì?",
+          "answer": "Là tam giác đồng dạng với tam giác ABC."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hình hộp ABCD.A'B'C'D'. Mặt phẳng (BDA') song song với mặt phẳng nào?",
+          "answer": "Mặt phẳng (B'D'C)."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình chóp S.ABCD có đáy hình thang (AB // CD, AB = 2CD). Mặt phẳng qua M trên SA song song đáy. Tính tỉ số diện tích thiết diện so với đáy.",
+          "answer": "Dùng tỉ số đồng dạng và phân đoạn diện tích theo tỉ số vị trí của M."
+        },
+        {
+          "level": "VD",
+          "question": "Áp dụng định lý Thales trong không gian để chia một đoạn thẳng trong không gian thành 3 phần bằng nhau.",
+          "answer": "Dựng ba mặt phẳng song song cách đều đi qua các điểm chia."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Hai mặt phẳng cùng song song với mặt phẳng thứ ba thì như thế nào với nhau?",
+          "solution": "Song song với nhau (hoặc trùng nhau)."
+        },
+        {
+          "question": "Thiết diện cắt bởi mặt phẳng song song với hai đáy của hình lăng trụ là hình gì?",
+          "solution": "Là một đa giác bằng với hai đáy."
+        }
+      ],
+      "mistakes": [
+        "Chỉ chứng minh 1 đường thẳng song song rồi vội kết luận hai mặt phẳng song song.",
+        "Nhầm hai đường thẳng song song trong mặt phẳng này song song với mặt phẳng kia mà quên điều kiện cắt nhau.",
+        "Không xác định đúng tỉ số đoạn chắn khi áp dụng định lý Thales."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-17-128",
+      "grade": 11,
+      "week": 17,
+      "period": 128,
+      "title": "Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Phần trắc nghiệm nhiều lựa chọn",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện 12 câu trắc nghiệm nhiều lựa chọn: Kỹ thuật Casio tính giới hạn, giải phương trình lượng giác và dãy số",
+      "formulas": [
+        "\\text{Casio: CALC x } \\to x_0, \\text{ Table Dãy số}"
+      ],
+      "boardKnowledge": "Chiến thuật phần I (3 điểm - 12 câu): Thời gian tối đa 15-20 phút. Đọc kỹ câu hỏi, dùng Casio thử nghiệm phương trình lượng giác, bấm giới hạn kiểm tra kết quả ngay lập tức.",
+      "examples": [
+        {
+          "question": "Nghiệm của phương trình \\sin x = 1/2: Bấm Shift Solve hoặc gán giá trị x ở 4 phương án vào biểu thức.",
+          "solution": "CALC x = \\pi/6 ra kết quả 0,5 ⇒ chọn ngay đáp án chứa \\pi/6."
+        },
+        {
+          "question": "Tìm giới hạn \\lim_{x \\to 1} (x^3 - 1)/(x - 1): CALC x = 1,000001 ra 3,000003.",
+          "solution": "Giới hạn bằng 3."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Phần I đề thi tốt nghiệp THPT/cuối kỳ theo cấu trúc mới gồm bao nhiêu câu trắc nghiệm 4 lựa chọn?",
+          "answer": "12 câu (hoặc tuỳ đề trường 12-20 câu)."
+        },
+        {
+          "level": "NB",
+          "question": "Mỗi câu trắc nghiệm nhiều lựa chọn đúng được bao nhiêu điểm theo thang điểm chuẩn?",
+          "answer": "0,25 điểm/câu."
+        },
+        {
+          "level": "TH",
+          "question": "Bấm máy tính tìm số hạng thứ 10 của cấp số cộng u1 = 5, d = 4.",
+          "answer": "5 + 9(4) = 41."
+        },
+        {
+          "level": "TH",
+          "question": "Bấm máy tính tính tổng 8 số hạng đầu của cấp số nhân u1 = 3, q = 2.",
+          "answer": "3(2^8 - 1) = 3(255) = 765."
+        },
+        {
+          "level": "VD",
+          "question": "Kỹ thuật loại trừ phương án sai trong bài toán hình không gian bằng hình vẽ phản ví dụ.",
+          "answer": "Vẽ hình tứ diện đặc biệt hoặc hình lập phương để kiểm tra tính song song."
+        },
+        {
+          "level": "VD",
+          "question": "Xử lý câu hỏi thực tế về lãi suất và mô hình hàm số mũ bằng phím tính luỹ thừa Casio.",
+          "answer": "Nhập công thức vốn gốc * (1+r)^n rồi CALC các phương án kỳ hạn."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Đơn vị góc trên máy tính Casio khi làm toán lượng giác bắt buộc phải là gì?",
+          "solution": "Radian (chữ R trên màn hình máy tính)."
+        },
+        {
+          "question": "Tại sao nên làm phần I trước tiên trong bài thi?",
+          "solution": "Vì câu hỏi ở mức độ nhận biết - thông hiểu, dễ ghi trọn vẹn điểm số trong thời gian ngắn."
+        }
+      ],
+      "mistakes": [
+        "Để máy tính ở chế độ độ Deg khi tính toán biểu thức lượng giác chứa pi.",
+        "Bấm nhầm dấu ngoặc khi nhập hàm phân thức.",
+        "Đọc lướt bỏ qua chữ \"sai\" trong câu \"mệnh đề nào sau đây sai\"."
+      ],
+      "selfChoice": true,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "11-17-129",
+      "grade": 11,
+      "week": 17,
+      "period": 129,
+      "title": "Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Phần đúng sai và trả lời ngắn",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện 4 câu trắc nghiệm đúng sai (16 ý) và 6 câu trả lời ngắn: Chiến thuật tư duy sâu và tính toán chính xác",
+      "formulas": [
+        "\\text{Điểm Đúng/Sai: 1 ý: 0,1đ; 2 ý: 0,25đ; 3 ý: 0,5đ; 4 ý: 1,0đ}"
+      ],
+      "boardKnowledge": "Chiến thuật phần II & III: Phần Đúng/Sai (4 điểm): Cần chắc chắn từng mệnh đề a, b, c, d vì đúng cả 4 ý mới được 1 điểm; Phần Trả lời ngắn (3 điểm): Điền số thực hoặc phân số tối giản, không đoán mò.",
+      "examples": [
+        {
+          "question": "Cho cấp số cộng có u1 = 2, d = 3. Xét tính đúng sai của ý a) u5 = 14; ý b) S10 = 155.",
+          "solution": "a) u5 = 2 + 4(3) = 14 (ĐÚNG); b) S10 = 10(4 + 27)/2 = 155 (ĐÚNG)."
+        },
+        {
+          "question": "Câu trả lời ngắn: Tính giới hạn L = \\lim_{x \\to 2} (x^2 - 4)/(x - 2). Điền kết quả vào ô trả lời.",
+          "solution": "L = 4. Điền số 4."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Trong phần trắc nghiệm Đúng/Sai, nếu chỉ đúng 1 ý trong 4 ý của một câu thì được bao nhiêu điểm?",
+          "answer": "Được 0,1 điểm."
+        },
+        {
+          "level": "NB",
+          "question": "Trong phần trả lời ngắn, thí sinh có các phương án A, B, C, D để lựa chọn không?",
+          "answer": "Không có, thí sinh phải tự tính toán và điền đáp số vào khung."
+        },
+        {
+          "level": "TH",
+          "question": "Xét tính Đúng/Sai của khẳng định: \"Hàm số y = sin x liên tục trên toàn bộ R\".",
+          "answer": "ĐÚNG."
+        },
+        {
+          "level": "TH",
+          "question": "Điền đáp số câu trả lời ngắn: Cho cấp số nhân có u1 = 1, q = 3. Số hạng u4 bằng bao nhiêu?",
+          "answer": "27."
+        },
+        {
+          "level": "VD",
+          "question": "Chiến lược giải câu hỏi hình không gian trong phần Đúng/Sai: Phân tích tính liên đới giữa 4 ý a, b, c, d.",
+          "answer": "Ý a thường là tìm giao tuyến cơ bản, ý b chứng minh song song, ý c tìm thiết diện, ý d tính tỉ số diện tích."
+        },
+        {
+          "level": "VD",
+          "question": "Cách xử lý kết quả số thập phân trong phần trả lời ngắn khi đề bài yêu cầu làm tròn đến hàng phần trăm.",
+          "answer": "Lấy đúng 2 chữ số sau dấu phẩy và tuân thủ quy tắc làm tròn số học."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu không chắc chắn một ý trong câu Đúng/Sai thì nên làm gì?",
+          "solution": "Vẫn phải chọn Đ hoặc S dựa trên trực giác toán học, không bao giờ bỏ trống phiếu trả lời."
+        },
+        {
+          "question": "Tại sao phần trả lời ngắn được xem là phần phân hóa cao nhất?",
+          "solution": "Vì không thể dùng phương pháp thử đáp án trắc nghiệm hoặc khoanh bừa."
+        }
+      ],
+      "mistakes": [
+        "Tô nhầm cột Đúng sang cột Sai trên phiếu trả lời phần II.",
+        "Điền đáp số kèm đơn vị vào ô trả lời ngắn (chỉ được điền số thuần túy).",
+        "Làm tròn số sai quy định của đề bài."
+      ],
+      "selfChoice": true,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-17-122",
+      "grade": 12,
+      "week": 17,
+      "period": 122,
+      "title": "Ôn tập HK1: Nhận diện đồ thị và bảng biến thiên",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Kỹ năng nhận diện hàm bậc ba, hàm phân thức bậc nhất trên bậc nhất, phân thức bậc hai trên bậc nhất từ đồ thị và BBT",
+      "formulas": [
+        "y = ax^3 + bx^2 + cx + d",
+        "y = \\frac{ax+b}{cx+d}",
+        "y = \\frac{ax^2+bx+c}{px+q}"
+      ],
+      "boardKnowledge": "Toàn cảnh Đồ thị & BBT: 1. Dấu hệ số a qua nhánh cuối bên phải; 2. Giao điểm với Oy xác định tự do d hoặc b/d; 3. Đường tiệm cận đứng, ngang, xiên; 4. Số điểm cực trị và dấu của y'.",
+      "examples": [
+        {
+          "question": "Nhận dạng đồ thị hàm phân thức y = (ax + b)/(cx + d): Nhánh cuối bên phải đi lên hay đi xuống, tiệm cận đứng x = 1, tiệm cận ngang y = 2, cắt Oy tại (0; -1).",
+          "solution": "TCĐ: -d/c = 1; TCN: a/c = 2; Giao Oy: b/d = -1. Suy ra hàm số có dạng y = (2x - 1)/(x - 1)."
+        },
+        {
+          "question": "Hàm số bậc ba có đồ thị hình chữ N ngược thì hệ số a mang dấu gì?",
+          "solution": "Hệ số a < 0 (nhánh cuối bên phải đi xuống)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Đồ thị hàm số bậc nhất trên bậc nhất có bao nhiêu đường tiệm cận?",
+          "answer": "Có 2 đường tiệm cận: 1 tiệm cận đứng và 1 tiệm cận ngang."
+        },
+        {
+          "level": "NB",
+          "question": "Giao điểm của hai đường tiệm cận của hàm số y = (ax+b)/(cx+d) là điểm gì của đồ thị?",
+          "answer": "Là tâm đối xứng của đồ thị."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hàm số có bảng biến thiên: y' đổi dấu từ + sang - tại x = -1, đổi từ - sang + tại x = 2. Tìm điểm cực đại của hàm số.",
+          "answer": "Điểm cực đại là x = -1."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm tiệm cận xiên của đồ thị hàm số y = \\frac{2x^2 - x + 1}{x + 1}.",
+          "answer": "Chia đa thức: y = 2x - 3 + 4/(x + 1). Tiệm cận xiên là y = 2x - 3."
+        },
+        {
+          "level": "VD",
+          "question": "Xác định dấu của các hệ số a, b, c, d của hàm số bậc ba y = ax^3 + bx^2 + cx + d dựa vào đồ thị cho trước.",
+          "answer": "Xét nhánh cuối ⇒ dấu a; Giao Oy ⇒ dấu d; Hai điểm cực trị cùng dương hoặc cùng âm ⇒ dấu b, c qua định lý Viète."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm số nghiệm của phương trình f(x) = m dựa vào đồ thị hàm số y = f(x).",
+          "answer": "Số nghiệm bằng số giao điểm của đồ thị y = f(x) và đường thẳng nằm ngang y = m."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Đồ thị hàm phân thức bậc hai trên bậc nhất có mấy tiệm cận?",
+          "solution": "Có 2 tiệm cận: 1 tiệm cận đứng và 1 tiệm cận xiên (khi tử không chia hết cho mẫu)."
+        },
+        {
+          "question": "Làm thế nào để phân biệt đồ thị f(x) và đồ thị đạo hàm f'(x)?",
+          "solution": "Tại các điểm cực trị của f(x) thì đồ thị f'(x) cắt trục hoành Ox (f'(x) = 0)."
+        }
+      ],
+      "mistakes": [
+        "Nhầm đồ thị hàm số f(x) với đồ thị của đạo hàm f'(x).",
+        "Xác định sai dấu của c và d trong hàm phân thức do quên tỉ số với hệ số khác.",
+        "Đọc nhầm hoành độ điểm cực trị x thành giá trị cực trị y trên bảng biến thiên."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-17-123",
+      "grade": 12,
+      "week": 17,
+      "period": 123,
+      "title": "Ôn tập HK1: Ứng dụng đạo hàm giải bài toán tối ưu thực tế",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Mô hình hóa toán học, tìm GTLN GTNN trong kinh tế, chi phí sản xuất, hình học và kỹ thuật",
+      "formulas": [
+        "Lợi nhuận = Doanh thu - Chi phí",
+        "V = S_{đáy} \\cdot h",
+        "f'(x) = 0 \\implies \\text{điểm tối ưu}"
+      ],
+      "boardKnowledge": "Quy trình giải bài toán tối ưu: 1. Chọn biến x và đặt điều kiện thực tế (x > 0, x < a...); 2. Lập hàm mục tiêu f(x) cần tìm min/max; 3. Tính f'(x), lập BBT hoặc đạo hàm cấp hai; 4. Kết luận giá trị tối ưu kèm đơn vị đo.",
+      "examples": [
+        {
+          "question": "Một người thợ làm một bể cá hình hộp chữ nhật không nắp có thể tích 4 m³, đáy là hình chữ nhật có chiều dài gấp đôi chiều rộng. Tính kích thước bể để diện tích kính dùng ít nhất.",
+          "solution": "Rộng x, dài 2x, cao h. V = 2x^2 h = 4 ⇒ h = 2/x^2. S kính = 2x^2 + 2(x + 2x)h = 2x^2 + 12/x. Đạo hàm S' = 4x - 12/x^2 = 0 ⇔ x^3 = 3 ⇒ x = \\sqrt[3]{3} m."
+        },
+        {
+          "question": "Một doanh nghiệp sản xuất x sản phẩm với chi phí C(x) = x^2 + 40x + 10000 (nghìn đồng). Tìm x để chi phí trung bình trên mỗi sản phẩm là thấp nhất.",
+          "solution": "Chi phí trung bình C̄(x) = C(x)/x = x + 40 + 10000/x. BĐT Cauchy: C̄(x) >= 40 + 2\\sqrt{10000} = 240. Đạt được khi x = 100 sản phẩm."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Mục tiêu của bài toán tối ưu kinh tế thông thường là gì?",
+          "answer": "Tối đa hóa lợi nhuận hoặc tối thiểu hóa chi phí."
+        },
+        {
+          "level": "NB",
+          "question": "Nếu hàm mục tiêu f(x) liên tục và chỉ có một điểm cực trị duy nhất là cực tiểu trên khoảng (0; +∞) thì điểm đó có phải là GTNN không?",
+          "answer": "Đúng, đó chính là giá trị nhỏ nhất trên toàn bộ khoảng."
+        },
+        {
+          "level": "TH",
+          "question": "Một sợi dây dài 20m được uốn thành một hình chữ nhật. Tính diện tích lớn nhất có thể đạt được.",
+          "answer": "Nửa chu vi = 10. S(x) = x(10 - x) lớn nhất khi x = 5m (hình vuông), Smax = 25 m²."
+        },
+        {
+          "level": "TH",
+          "question": "Chi phí xây dựng một hàng rào hình chữ nhật phụ thuộc vào biến chiều rộng x bởi C(x) = 2x + 50/x (triệu đồng). Tìm x để chi phí thấp nhất.",
+          "answer": "x = 5m, Cmin = 20 triệu đồng."
+        },
+        {
+          "level": "VD",
+          "question": "Một lon nước ngọt hình trụ có thể tích 330 ml. Tính tỉ số giữa chiều cao h và bán kính đáy r để diện tích toàn phần của lon là nhỏ nhất.",
+          "answer": "V = \\pi r^2 h ⇒ h = V/(\\pi r^2). Stp = 2\\pi r^2 + 2V/r. Đạo hàm ra h = 2r (chiều cao bằng đường kính đáy), tỉ số h/r = 2."
+        },
+        {
+          "level": "VD",
+          "question": "Bài toán chiếc xe cứu thương: Chọn đường đi kết hợp giữa chạy trên đường nhựa với tốc độ v1 và băng qua đồng cỏ với tốc độ v2 để đến đích nhanh nhất.",
+          "answer": "Lập hàm thời gian t(x) theo khoảng cách x, đạo hàm tìm điểm tới hạn thoả mãn định luật khúc xạ Snell."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tại sao việc đặt điều kiện cho biến số x trong bài toán thực tế là tối quan trọng?",
+          "solution": "Để loại trừ các nghiệm toán học vô lý về mặt thực tế (như độ dài âm, thời gian âm)."
+        },
+        {
+          "question": "Khi khảo sát hàm mục tiêu trên khoảng mở (a; b), nếu hàm không đạt min tại cực trị thì min ở đâu?",
+          "solution": "Hàm số không có giá trị nhỏ nhất trên khoảng đó (tiến về giới hạn vô cực)."
+        }
+      ],
+      "mistakes": [
+        "Quên đặt điều kiện thực tế cho ẩn số (x > 0).",
+        "Lập nhầm hàm diện tích toàn phần không nắp thành có nắp.",
+        "Nhầm lẫn giữa giá trị x tối ưu và giá trị hàm số f(x) tối ưu."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-17-124",
+      "grade": 12,
+      "week": 17,
+      "period": 124,
+      "title": "Ôn tập HK1: Vectơ và tọa độ Oxyz — Tích vô hướng và góc",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Tọa độ điểm, vectơ, tích vô hướng, độ dài, góc giữa hai vectơ và khoảng cách giữa hai điểm trong không gian Oxyz",
+      "formulas": [
+        "\\vec{u}\\cdot\\vec{v} = x_1 x_2 + y_1 y_2 + z_1 z_2",
+        "\\cos(\\vec{u}, \\vec{v}) = \\frac{\\vec{u}\\cdot\\vec{v}}{|\\vec{u}||\\vec{v}|}",
+        "AB = \\sqrt{(x_B-x_A)^2 + (y_B-y_A)^2 + (z_B-z_A)^2}"
+      ],
+      "boardKnowledge": "Toàn cảnh Oxyz HK1: 1. Hệ trục Decartes 3 chiều Oxyz; 2. Tọa độ điểm và vectơ; 3. Tích vô hướng; 4. Góc giữa 2 vectơ: từ 0° đến 180°; 5. Điểm đặc biệt: trung điểm, trọng tâm tam giác, trọng tâm tứ diện.",
+      "examples": [
+        {
+          "question": "Cho A(1; 0; -2) và B(2; 1; -1). Tính độ dài đoạn thẳng AB và tọa độ trung điểm I của AB.",
+          "solution": "AB = \\sqrt{(2-1)^2 + (1-0)^2 + (-1+2)^2} = \\sqrt{1 + 1 + 1} = \\sqrt{3}. I = (3/2; 1/2; -3/2)."
+        },
+        {
+          "question": "Cho hai vectơ \\vec{a} = (1; 2; 2) và \\vec{b} = (-2; 2; -1). Tính cosin góc giữa hai vectơ.",
+          "solution": "\\vec{a}\\cdot\\vec{b} = -2 + 4 - 2 = 0 ⇒ hai vectơ vuông góc nhau, cos = 0, góc = 90°."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Vectơ đơn vị \\vec{k} trên trục Oz có tọa độ là gì?",
+          "answer": "(0; 0; 1)."
+        },
+        {
+          "level": "NB",
+          "question": "Hình chiếu vuông góc của điểm M(2; -3; 5) lên trục Ox có tọa độ là gì?",
+          "answer": "(2; 0; 0)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho \\vec{u} = (2; -1; 3) và \\vec{v} = (1; 4; -2). Tính \\vec{u}\\cdot\\vec{v}.",
+          "answer": "2(1) + (-1)(4) + 3(-2) = 2 - 4 - 6 = -8."
+        },
+        {
+          "level": "TH",
+          "question": "Tìm m để hai vectơ \\vec{a} = (m; 2; 1) và \\vec{b} = (3; -2; 4) vuông góc nhau.",
+          "answer": "3m + 2(-2) + 1(4) = 0 ⇔ 3m = 0 ⇔ m = 0."
+        },
+        {
+          "level": "VD",
+          "question": "Cho tam giác ABC có A(1; 2; 0), B(3; 0; 1), C(0; 1; 2). Tính diện tích tam giác ABC.",
+          "answer": "Tính AB, AC và cos A từ tích vô hướng, suy ra sin A và tính S = 1/2 AB * AC * sin A = \\sqrt{35}/2."
+        },
+        {
+          "level": "VD",
+          "question": "Một chiếc lồng đèn hình bát diện đều được gắn trong hệ tọa độ Oxyz. Tính góc tạo bởi hai sợi dây treo xuất phát từ một đỉnh.",
+          "answer": "Lập tọa độ các đỉnh rồi dùng công thức cosin góc giữa hai vectơ chỉ phương của hai sợi dây."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Điểm đối xứng với M(x; y; z) qua mặt phẳng (Oxy) có tọa độ gì?",
+          "solution": "(x; y; -z) (giữ nguyên x, y và đổi dấu cao độ z)."
+        },
+        {
+          "question": "Khoảng cách từ điểm M(x; y; z) đến gốc tọa độ O là gì?",
+          "solution": "OM = \\sqrt{x^2 + y^2 + z^2}."
+        }
+      ],
+      "mistakes": [
+        "Nhầm công thức trọng tâm tứ diện chia 3 thay vì chia 4.",
+        "Quên dấu âm khi tính bình phương số âm trong căn khoảng cách.",
+        "Lẫn lộn giữa góc giữa hai vectơ và góc giữa hai đường thẳng."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-17-125",
+      "grade": 12,
+      "week": 17,
+      "period": 125,
+      "title": "Ôn tập HK1: Thống kê mô tả — Phân tích mẫu ghép nhóm và độ phân tán",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Khoảng biến thiên, khoảng tứ phân vị, phương sai, độ lệch chuẩn và so sánh mức độ phân tán của hai mẫu số liệu",
+      "formulas": [
+        "R = x_{\\max} - x_{\\min}",
+        "\\Delta_Q = Q_3 - Q_1",
+        "s^2 = \\frac{1}{n}\\sum m_i c_i^2 - \\bar{x}^2",
+        "s = \\sqrt{s^2}"
+      ],
+      "boardKnowledge": "Toàn cảnh Thống kê 12: 1. Bảng ghép nhóm; 2. Giá trị đại diện ci = (ai + ai+1)/2; 3. Số trung bình x̄; 4. Phương sai s² và độ lệch chuẩn s; 5. So sánh: s nhỏ hơn nghĩa là số liệu đồng đều, ổn định hơn.",
+      "examples": [
+        {
+          "question": "Bảng số liệu ghép nhóm có nhóm đầu là [20; 30) và nhóm cuối là [70; 80). Tính khoảng biến thiên R của mẫu số liệu.",
+          "solution": "R = 80 - 20 = 60."
+        },
+        {
+          "question": "Hai nhóm học sinh cùng làm bài kiểm tra: Nhóm 1 có điểm trung bình 7,5 và độ lệch chuẩn 0,8; Nhóm 2 có điểm trung bình 7,5 và độ lệch chuẩn 1,5. Nhận xét về học lực hai nhóm.",
+          "solution": "Hai nhóm có học lực trung bình như nhau, nhưng nhóm 1 có điểm số đồng đều hơn nhóm 2 (vì độ lệch chuẩn nhỏ hơn)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Giá trị đại diện của nhóm số liệu [a; b) được tính như thế nào?",
+          "answer": "ci = (a + b) / 2."
+        },
+        {
+          "level": "NB",
+          "question": "Đại lượng nào đo độ phân tán có cùng đơn vị đo với số liệu gốc?",
+          "answer": "Độ lệch chuẩn s (và khoảng biến thiên, khoảng tứ phân vị)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính số trung bình của mẫu ghép nhóm có 2 nhóm: [0; 10) có 4 giá trị, [10; 20) có 6 giá trị.",
+          "answer": "c1 = 5, c2 = 15. x̄ = (4*5 + 6*15)/10 = 110/10 = 11."
+        },
+        {
+          "level": "TH",
+          "question": "Nếu tất cả các số liệu trong một mẫu ghép nhóm đều được cộng thêm một hằng số k thì độ lệch chuẩn thay đổi thế nào?",
+          "answer": "Độ lệch chuẩn không thay đổi (s không đổi khi tịnh tiến số liệu)."
+        },
+        {
+          "level": "VD",
+          "question": "Tính phương sai và độ lệch chuẩn của thời gian chạy 100m của 30 vận động viên từ bảng tần số ghép nhóm.",
+          "answer": "Lập bảng tính giá trị đại diện ci, cột mi*ci, cột mi*ci², tính x̄ rồi áp dụng s² = (1/n)∑ mi ci² - x̄²."
+        },
+        {
+          "level": "VD",
+          "question": "So sánh mức độ rủi ro giữa hai quỹ đầu tư cổ phiếu dựa trên bảng độ lệch chuẩn suất sinh lời hàng tháng.",
+          "answer": "Quỹ nào có độ lệch chuẩn nhỏ hơn thì mức độ an toàn cao hơn, biến động lợi nhuận ít rủi ro hơn."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khoảng tứ phân vị ΔQ = Q3 - Q1 ít bị ảnh hưởng bởi đại lượng nào?",
+          "solution": "Không bị ảnh hưởng bởi các giá trị ngoại lai bất thường."
+        },
+        {
+          "question": "Nếu nhân tất cả các giá trị của mẫu số liệu với một số dương c thì phương sai thay đổi thế nào?",
+          "solution": "Phương sai được nhân với c² (s² mới = c² * s² cũ)."
+        }
+      ],
+      "mistakes": [
+        "Quên bình phương số trung bình x̄² khi dùng công thức tính nhanh phương sai.",
+        "Nhầm lẫn giữa tần số mi và giá trị đại diện ci.",
+        "Lấy nhầm đầu mút khoảng thay vì giá trị trung điểm khi tính giá trị đại diện."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-17-126",
+      "grade": 12,
+      "week": 17,
+      "period": 126,
+      "title": "Ôn tập HK1: Nguyên hàm tích phân đổi biến số và từng phần",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Phối hợp phương pháp đổi biến số và từng phần, tính tích phân xác định và giải phương trình tích phân",
+      "formulas": [
+        "\\int f(u(x))u'(x)dx = \\int f(u)du",
+        "\\int_a^b u dv = [uv]_a^b - \\int_a^b v du"
+      ],
+      "boardKnowledge": "Toàn cảnh Kỹ thuật Tích phân: 1. Đổi biến số: Đặt t = u(x) ⇒ dt = u'(x)dx (tích phân xác định bắt buộc đổi cận); 2. Từng phần: Đặt u và dv, ưu tiên \"Nhất lô, nhì đa, tam lượng, tứ mũ\"; 3. Phương pháp vi phân nhanh.",
+      "examples": [
+        {
+          "question": "Tính tích phân: I = \\int_0^{\\sqrt{3}} x \\sqrt{x^2 + 1} dx.",
+          "solution": "Đặt t = \\sqrt{x^2+1} ⇒ t^2 = x^2 + 1 ⇒ t dt = x dx. Đổi cận: x=0 ⇒ t=1; x=\\sqrt{3} ⇒ t=2. I = \\int_1^2 t^2 dt = [t^3/3]_1^2 = 7/3."
+        },
+        {
+          "question": "Tính tích phân từng phần: J = \\int_0^1 (2x + 1) e^x dx.",
+          "solution": "u = 2x + 1, dv = e^x dx ⇒ du = 2 dx, v = e^x. J = [(2x+1)e^x]_0^1 - 2\\int_0^1 e^x dx = (3e - 1) - 2(e - 1) = e + 1."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Quy tắc ưu tiên đặt u trong phương pháp tích phân từng phần là gì?",
+          "answer": "Nhất lô (logarit), nhì đa (đa thức), tam lượng (lượng giác), tứ mũ (hàm số mũ)."
+        },
+        {
+          "level": "NB",
+          "question": "Trong tích phân xác định, khi đổi biến số t = u(x) thì thao tác bắt buộc tiếp theo là gì?",
+          "answer": "Đổi cận tương ứng theo biến mới t."
+        },
+        {
+          "level": "TH",
+          "question": "Tính tích phân: \\int_0^1 (3x^2 - 4x + 1) dx.",
+          "answer": "[x^3 - 2x^2 + x]_0^1 = 1 - 2 + 1 = 0."
+        },
+        {
+          "level": "TH",
+          "question": "Tính nguyên hàm: \\int \\frac{1}{2x - 3} dx.",
+          "answer": "1/2 \\ln|2x - 3| + C."
+        },
+        {
+          "level": "VD",
+          "question": "Tính tích phân: K = \\int_1^e \\frac{\\ln x}{x} dx.",
+          "answer": "Đặt t = ln x ⇒ dt = dx/x. Đổi cận 0 đến 1: K = \\int_0^1 t dt = [t^2/2]_0^1 = 1/2."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hàm số f(x) liên tục trên R và \\int_0^4 f(x)dx = 10. Tính I = \\int_0^2 f(2x)dx.",
+          "answer": "Đặt t = 2x ⇒ dx = dt/2. Đổi cận: x=0⇒t=0, x=2⇒t=4. I = 1/2 \\int_0^4 f(t)dt = 1/2 (10) = 5."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tích phân không phụ thuộc vào tên biến số có nghĩa là gì?",
+          "solution": "\\int_a^b f(x)dx = \\int_a^b f(t)dt = \\int_a^b f(u)du."
+        },
+        {
+          "question": "Công thức tích phân của hàm lẻ trên đoạn đối xứng [-a; a] bằng bao nhiêu?",
+          "solution": "Bằng 0."
+        }
+      ],
+      "mistakes": [
+        "Quên đổi cận khi đổi biến số trong tích phân xác định.",
+        "Nhầm dấu trừ thành dấu cộng trong công thức tích phân từng phần.",
+        "Quên hệ số 1/a trong nguyên hàm hàm hợp ax + b."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-17-127",
+      "grade": 12,
+      "week": 17,
+      "period": 127,
+      "title": "Ôn tập HK1: Rèn luyện đề ôn thi HK1 Toán 12 Trắc nghiệm nhiều lựa chọn",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện 12 câu trắc nghiệm nhiều lựa chọn chuẩn cấu trúc Bộ GD&ĐT: Tối ưu thời gian và kỹ thuật Casio",
+      "formulas": [
+        "\\text{Casio: Tích phân số, Table khảo sát, Vector Oxyz}"
+      ],
+      "boardKnowledge": "Chiến thuật Phần I Toán 12 (12 câu - 3 điểm): Thời gian 15-20 phút. 1. Bấm máy tích phân xác định kiểm tra kết quả nguyên hàm; 2. Thử điểm đặc biệt nhận dạng đồ thị; 3. Dùng Menu Vector Oxyz tính góc.",
+      "examples": [
+        {
+          "question": "Tính tích phân I = \\int_0^1 x e^x dx: Bấm trực tiếp trên máy tính ra kết quả = 1.",
+          "solution": "Máy tính tính số ra 1,000000000. Đối chiếu 4 phương án chọn ngay đáp án 1."
+        },
+        {
+          "question": "Tìm tọa độ trọng tâm G của tứ diện ABCD: Cộng tọa độ 4 đỉnh chia 4 trên màn hình máy tính.",
+          "solution": "G = (xA+xB+xC+xD)/4."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Phần trắc nghiệm nhiều lựa chọn trong đề thi tốt nghiệp Toán gồm bao nhiêu phương án cho mỗi câu?",
+          "answer": "Gồm 4 lựa chọn (A, B, C, D) với duy nhất 1 lựa chọn chính xác."
+        },
+        {
+          "level": "NB",
+          "question": "Nguyên hàm của cos x là gì?",
+          "answer": "sin x + C."
+        },
+        {
+          "level": "TH",
+          "question": "Bấm máy tính tìm tiệm cận đứng và tiệm cận ngang của hàm số y = (3x - 1)/(x + 2).",
+          "answer": "TCĐ: x = -2; TCN: y = 3."
+        },
+        {
+          "level": "TH",
+          "question": "Bấm máy tính tính tích phân \\int_1^2 1/x dx.",
+          "answer": "ln 2 ≈ 0,69315."
+        },
+        {
+          "level": "VD",
+          "question": "Kỹ thuật dùng phím d/dx (đạo hàm tại 1 điểm) để kiểm tra công thức nguyên hàm đúng sai.",
+          "answer": "Bấm d/dx(F(x)) tại x = x0 rồi trừ đi f(x0), nếu kết quả xấp xỉ 0 thì F(x) là nguyên hàm đúng."
+        },
+        {
+          "level": "VD",
+          "question": "Chiến thuật phân bổ thời gian: 12 câu phần I nên làm trong bao nhiêu phút để đủ thời gian cho phần II và III?",
+          "answer": "Nên hoàn thành trong 15 đến tối đa 20 phút."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Khi kiểm tra nguyên hàm F(x) bằng phím d/dx, tại sao nên chọn điểm x0 ngẫu nhiên lẻ (ví dụ 1,234)?",
+          "solution": "Để tránh các nghiệm trùng hợp đặc biệt tại các số nguyên như 0, 1."
+        },
+        {
+          "question": "Tốc độ làm bài lý tưởng cho mỗi câu nhận biết ở phần I là bao nhiêu?",
+          "solution": "Khoảng 30 đến 45 giây/câu."
+        }
+      ],
+      "mistakes": [
+        "Nhập sai hàm số vào biểu thức tích phân trên máy tính.",
+        "Quên đóng ngoặc đơn trong biểu thức lượng giác.",
+        "Tô nhầm câu trên phiếu trắc nghiệm khi nhảy cóc thứ tự làm bài."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
+    },
+    {
+      "key": "12-17-128",
+      "grade": 12,
+      "week": 17,
+      "period": 128,
+      "title": "Ôn tập HK1: Rèn luyện đề ôn thi HK1 Toán 12 Đúng sai và trả lời ngắn",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện 4 câu Đúng/Sai (16 ý phân hóa) và 6 câu trả lời ngắn: Chiến thuật kiểm soát sai sót và điền kết quả chuẩn xác",
+      "formulas": [
+        "\\text{Quy tắc điền số: Viết số thập phân hoặc phân số, không điền đơn vị}"
+      ],
+      "boardKnowledge": "Chiến thuật Phần II & III Toán 12: 1. Phần Đúng/Sai (4 câu - 4 điểm): Giải tuần tự các ý a -> b -> c -> d vì ý sau thường kế thừa kết quả của ý trước; 2. Phần Trả lời ngắn (6 câu - 3 điểm): Tính cẩn thận, làm tròn đúng yêu cầu đề bài.",
+      "examples": [
+        {
+          "question": "Cho hàm số y = x^3 - 3x. Xét tính Đúng/Sai: a) Hàm số có 2 cực trị; b) Giá trị cực đại bằng 2; c) Điểm cực tiểu là (1; -2); d) Hàm số đồng biến trên (-1; 1).",
+          "solution": "y' = 3x^2 - 3. Nghiệm x = ±1. a) ĐÚNG; b) y(-1)=2 ĐÚNG; c) ĐÚNG; d) SAI (nghịch biến trên (-1; 1))."
+        },
+        {
+          "question": "Câu trả lời ngắn: Một vật chuyển động với vận tốc v(t) = 3t^2 + 2t (m/s). Tính quãng đường vật đi được từ t = 0 đến t = 3 giây.",
+          "solution": "s = \\int_0^3 (3t^2 + 2t) dt = [t^3 + t^2]_0^3 = 27 + 9 = 36m. Điền số 36."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Mỗi câu trắc nghiệm Đúng/Sai có bao nhiêu lệnh hỏi (mệnh đề) nhỏ?",
+          "answer": "Có 4 ý (a, b, c, d)."
+        },
+        {
+          "level": "NB",
+          "question": "Thang điểm tối đa cho một câu trắc nghiệm Đúng/Sai làm đúng cả 4 ý là bao nhiêu điểm?",
+          "answer": "1,0 điểm."
+        },
+        {
+          "level": "TH",
+          "question": "Xét tính Đúng/Sai của mệnh đề: \"Thể tích khối tròn xoay quanh Ox luôn luôn có nhân tử \\pi ở đằng trước tích phân\".",
+          "answer": "ĐÚNG."
+        },
+        {
+          "level": "TH",
+          "question": "Điền đáp số câu trả lời ngắn: Cho hình lập phương ABCD.A'B'C'D' cạnh 2. Tính tích vô hướng \\vec{AB}\\cdot\\vec{AD}.",
+          "answer": "0 (hai cạnh vuông góc)."
+        },
+        {
+          "level": "VD",
+          "question": "Chiến thuật giải câu hỏi ứng dụng thực tế tối ưu hóa trong phần Đúng/Sai.",
+          "answer": "Ý a kiểm tra điều kiện biến, ý b lập hàm mục tiêu f(x), ý c tính đạo hàm, ý d kết luận giá trị lớn nhất hoặc nhỏ nhất."
+        },
+        {
+          "level": "VD",
+          "question": "Kỹ năng rà soát phiếu trả lời: Kiểm tra dấu âm, dấu phẩy thập phân trong phần trả lời ngắn.",
+          "answer": "Tô đúng ô dấu trừ nếu là số âm, tô đúng vị trí dấu phẩy thập phân theo quy chuẩn của phiếu thi."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có bao giờ được bỏ trống câu hỏi trong phần Đúng/Sai không?",
+          "solution": "Tuyệt đối không bỏ trống, vì chọn Đúng hoặc Sai có 50% xác suất trúng."
+        },
+        {
+          "question": "Tại sao phần Trả lời ngắn đòi hỏi độ chính xác tuyệt đối trong khâu tính toán?",
+          "solution": "Vì chỉ cần sai một chữ số làm tròn là mất trọn vẹn 0,5 điểm của câu đó."
+        }
+      ],
+      "mistakes": [
+        "Tô nhầm vị trí cột Đúng/Sai trên phiếu trả lời trắc nghiệm.",
+        "Điền ký hiệu căn thức hoặc pi vào ô trả lời ngắn (chỉ được điền số thập phân nếu đề yêu cầu làm tròn).",
+        "Quên kiểm tra lại dấu âm trong các câu trả lời ngắn có kết quả âm."
+      ],
+      "selfChoice": false,
+      "timelineKey": "gateD78"
     }
   ],
   "aiErrors": {
@@ -10803,6 +12510,305 @@
       "studentProduct": "Ghi “Lỗi khái niệm: thể tích tròn xoay phải có bình phương hàm số [f(x)]²”, sửa thành π/5.",
       "boardPrompt": "Tại sao trong công thức thể tích khối tròn xoay hàm số f(x) luôn luôn phải được bình phương?",
       "libraryTitle": "Lỗi AI quên bình phương hàm số khi tính thể tích khối tròn xoay quanh Ox"
+    },
+    "10-17-128": {
+      "key": "10-17-128",
+      "mode": "micro",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "Giải √(2x - 3) = x - 3. Bình phương hai vế: 2x - 3 = x² - 6x + 9 ⇔ x² - 8x + 12 = 0 ⇔ x = 2 hoặc x = 6. Vậy phương trình có 2 nghiệm.",
+      "correction": "Điều kiện x - 3 ≥ 0 ⇔ x ≥ 3. Khi đó chỉ nhận nghiệm x = 6, loại nghiệm x = 2.",
+      "proof": "Thế x = 2 vào vế trái √(2(2)-3) = 1, vế phải 2 - 3 = -1, mà 1 ≠ -1 nên x = 2 là nghiệm ngoại lai. Chỉ có x = 6 thoả mãn.",
+      "whyAiError": "Mô hình bình phương hai vế mà quên điều kiện vế phải không âm dẫn đến nhận nghiệm ngoại lai.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: điều kiện cần thiết trước khi bình phương là gì?",
+      "studentProduct": "Phát hiện thiếu x - 3 ≥ 0, loại nghiệm x = 2 và kết luận phương trình chỉ có nghiệm duy nhất x = 6.",
+      "boardPrompt": "AI tìm ra 2 nghiệm. Hãy thử lại x = 2 vào hai vế!",
+      "libraryTitle": "Lỗi bình phương phương trình chứa căn quên điều kiện vế phải"
+    },
+    "10-17-129": {
+      "key": "10-17-129",
+      "mode": "micro",
+      "category": "Lỗi logic",
+      "wrongSolution": "Tìm m để x² - 2mx + 4 > 0 với mọi x ∈ R. AI giải: Δ' = m² - 4 > 0 ⇔ m < -2 hoặc m > 2.",
+      "correction": "Để tam thức bậc hai ax² + bx + c > 0 với mọi x ∈ R thì a > 0 và Δ < 0. Do đó Δ' = m² - 4 < 0 ⇔ -2 < m < 2.",
+      "proof": "Nếu m = 3 (thuộc m > 2) thì x² - 6x + 4 > 0 không đúng với mọi x (ví dụ tại x = 3 thì 9 - 18 + 4 = -5 < 0).",
+      "whyAiError": "Mô hình nhầm lẫn giữa điều kiện f(x) luôn dương (Δ < 0) với điều kiện phương trình có 2 nghiệm phân biệt (Δ > 0).",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: để tam thức luôn mang dấu dương thì biệt thức Δ phải âm hay dương?",
+      "studentProduct": "Sửa điều kiện thành Δ' < 0 và suy ra tập giá trị đúng của tham số: -2 < m < 2.",
+      "boardPrompt": "AI dùng Δ > 0. Thử x = 3 khi m = 3 xem f(x) có dương không?",
+      "libraryTitle": "Lỗi nhầm điều kiện tam thức luôn dương với điều kiện có hai nghiệm phân biệt"
+    },
+    "10-17-130": {
+      "key": "10-17-130",
+      "mode": "micro",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Quy tròn số gần đúng a = 125,786 với độ chính xác d = 0,05. AI quy tròn đến hàng phần trăm: a ≈ 125,79.",
+      "correction": "Độ chính xác d = 0,05 ở hàng phần trăm nên phải quy tròn đến hàng liền trước là hàng phần mười: a ≈ 125,8.",
+      "proof": "Theo quy tắc quy tròn số gần đúng a với độ chính xác d, nếu d ở hàng nào thì ta quy tròn số a đến hàng cao hơn một bậc (hàng liền trước). d = 0,05 ở hàng phần trăm nên quy tròn đến hàng phần mười.",
+      "whyAiError": "Mô hình quy tròn nhầm tại chính hàng của d thay vì hàng liền trước hàng chứa độ chính xác.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: quy tròn số gần đúng theo độ chính xác d cần dừng lại ở hàng nào?",
+      "studentProduct": "Nêu đúng quy tắc xác định hàng quy tròn liền trước hàng của d và viết số quy tròn đúng là 125,8.",
+      "boardPrompt": "AI dừng ở hàng phần trăm. Hàng quy tròn chuẩn của d = 0,05 là hàng nào?",
+      "libraryTitle": "Lỗi quy tròn số gần đúng nhầm hàng theo độ chính xác"
+    },
+    "10-17-131": {
+      "key": "10-17-131",
+      "mode": "micro",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tam giác ABC có a = 7, b = 5, c = 3. Tính góc A: cos A = (5² + 3² - 7²)/(2·5·3) = (25 + 9 - 49)/30 = -15/30 = -1/2. Suy ra góc A = 60°.",
+      "correction": "cos A = -1/2 < 0 nên góc A là góc tù: A = 180° - 60° = 120°.",
+      "proof": "cos 60° = +1/2 ≠ -1/2. Trên đường tròn lượng giác góc có cos bằng -1/2 trong tam giác là 120°.",
+      "whyAiError": "Mô hình bấm máy hoặc suy luận nhầm góc có côsin âm thành góc nhọn, quên tính góc bù.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: khi cos A = -1/2 thì góc A là góc nhọn hay góc tù?",
+      "studentProduct": "Xác định góc A = 120° vì tam giác có côsin góc mang giá trị âm.",
+      "boardPrompt": "cos A = -0,5. Bấm Shift Cos (-0,5) ra bao nhiêu độ?",
+      "libraryTitle": "Lỗi lấy góc nhọn khi côsin góc trong tam giác mang giá trị âm"
+    },
+    "10-17-132": {
+      "key": "10-17-132",
+      "mode": "micro",
+      "category": "Lỗi logic",
+      "wrongSolution": "Chứng minh ba điểm A(1; 2), B(2; 4), C(3; 6) thẳng hàng: Vectơ AB = (1; 2), CD = (2; 4). Vì CD = 2 AB nên A, B, C thẳng hàng.",
+      "correction": "Phải tính vectơ AC = (2; 4). Ta có AC = 2 AB và hai vectơ có chung điểm gốc A nên ba điểm A, B, C thẳng hàng.",
+      "proof": "Vectơ CD không liên quan đến điểm C của hệ nếu không chứng minh có chung gốc. Muốn chứng minh 3 điểm A, B, C thẳng hàng phải chứng minh hai vectơ tạo từ 3 điểm đó (như AB và AC) cùng phương.",
+      "whyAiError": "Mô hình dùng vectơ có điểm D lạ hoặc nhầm tên điểm khi lập luận tính thẳng hàng.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: để chứng minh 3 điểm A, B, C thẳng hàng cần xét hai vectơ nào cùng gốc?",
+      "studentProduct": "Viết lại lời giải dùng cặp vectơ AB và AC chung gốc A để suy ra ba điểm thẳng hàng.",
+      "boardPrompt": "AI tính vectơ có điểm D. Ba điểm A, B, C cần cặp vectơ chung gốc nào?",
+      "libraryTitle": "Lỗi dùng vectơ không chung gốc khi chứng minh ba điểm thẳng hàng"
+    },
+    "10-17-133": {
+      "key": "10-17-133",
+      "mode": "micro",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Cho u = (1; 2) và v = (-2; 1). Tính góc giữa hai vectơ: cos(u, v) = |1·(-2) + 2·1| / (|u|·|v|) = 0/5 = 0. Suy ra góc giữa hai đường thẳng là 90°.",
+      "correction": "Đề bài hỏi góc giữa hai vectơ u và v. Công thức cosin góc giữa hai vectơ không có dấu giá trị tuyệt đối ở tử số: cos(u, v) = (u·v)/(|u|·|v|).",
+      "proof": "Góc giữa hai vectơ có thể tù (từ 0° đến 180°), chỉ có góc giữa hai đường thẳng mới luôn nhọn (từ 0° đến 90°) và dùng dấu giá trị tuyệt đối.",
+      "whyAiError": "Mô hình nhầm công thức góc giữa hai vectơ với công thức góc giữa hai đường thẳng.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: công thức cosin góc giữa hai vectơ có dấu trị tuyệt đối trên tử số không?",
+      "studentProduct": "Phân biệt rõ góc giữa hai vectơ không có trị tuyệt đối, giá trị cosin có thể nhận từ -1 đến 1.",
+      "boardPrompt": "AI dùng |u·v| trên tử. Khi nào mới được lấy giá trị tuyệt đối?",
+      "libraryTitle": "Lỗi nhầm công thức góc giữa hai vectơ với góc giữa hai đường thẳng"
+    },
+    "10-17-134": {
+      "key": "10-17-134",
+      "mode": "micro",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tìm tập nghiệm của bất phương trình (x - 1)/(x - 2) ≥ 0. AI nhân chéo: x - 1 ≥ 0 ⇔ x ≥ 1.",
+      "correction": "Không được khử mẫu số khi chưa biết dấu. Lập bảng xét dấu: x < 1 hoặc x > 2. Tập nghiệm là (-∞; 1] ∪ (2; +∞).",
+      "proof": "Thế x = 1,5: (1,5 - 1)/(1,5 - 2) = 0,5 / (-0,5) = -1 < 0 không thoả mãn, chứng tỏ x ≥ 1 là sai hoàn toàn.",
+      "whyAiError": "Mô hình khử mẫu số chứa ẩn trong bất phương trình mà không xét dấu của mẫu thức.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: có được tự do nhân chéo khử mẫu trong bất phương trình không?",
+      "studentProduct": "Lập bảng xét dấu phân thức hoặc biến đổi (x - 1)(x - 2) ≥ 0 với x ≠ 2 để tìm tập nghiệm đúng.",
+      "boardPrompt": "AI nhân chéo bỏ mẫu (x - 2). Thử x = 1,5 xem có đúng không?",
+      "libraryTitle": "Lỗi tự do nhân chéo khử mẫu trong bất phương trình chứa ẩn ở mẫu"
+    },
+    "10-17-135": {
+      "key": "10-17-135",
+      "mode": "micro",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Tam giác ABC vuông tại A có AB = 3, AC = 4. Tích vô hướng BA·BC: BA·BC = BA · BC · cos B = 3 · 5 · (3/5) = 9. Nhưng AI tính BA·BC = BA · BC · cos A = 3 · 5 · cos 90° = 0.",
+      "correction": "Góc giữa hai vectơ BA và BC là góc B (đỉnh chung B), cos B = AB/BC = 3/5. BA·BC = 3 · 5 · (3/5) = 9.",
+      "proof": "Hai vectơ BA và BC có gốc chung B nên góc giữa chúng là góc B, không phải góc vuông A.",
+      "whyAiError": "Mô hình nhầm đỉnh góc giữa hai vectơ khi xác định góc xen giữa.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: góc giữa hai vectơ BA và BC là góc tại đỉnh nào?",
+      "studentProduct": "Chỉ ra đỉnh chung là B, tính cos B = 3/5 và tính đúng tích vô hướng bằng 9.",
+      "boardPrompt": "AI lấy góc A = 90°. Vectơ BA và BC có chung đỉnh nào?",
+      "libraryTitle": "Lỗi nhầm góc xen giữa hai vectơ sang đỉnh khác của tam giác"
+    },
+    "11-17-122": {
+      "key": "11-17-122",
+      "mode": "micro",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Rút gọn log(a + b). AI viết: log(a + b) = log a + log b.",
+      "correction": "Quy tắc lôgarit của tích là log(a · b) = log a + log b. Biểu thức log(a + b) không thể khai triển thành tổng hai log.",
+      "proof": "Thử a = 10, b = 10: log(10 + 10) = log 20 ≈ 1,301. Trong khi log 10 + log 10 = 1 + 1 = 2 ≠ 1,301.",
+      "whyAiError": "Mô hình nhầm lẫn tính chất tuyến tính vào hàm lôgarit, đồng nhất log của tổng với tổng các log.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: công thức biến đổi lôgarit đúng áp dụng cho tích hay cho tổng?",
+      "studentProduct": "Khẳng định log(a + b) không thể phân phối, công thức đúng là log(ab) = log a + log b.",
+      "boardPrompt": "AI viết log(a+b) = log a + log b. Thử a = b = 10 xem hai vế bằng nhau không?",
+      "libraryTitle": "Lỗi phân phối hàm lôgarit qua phép cộng"
+    },
+    "11-17-123": {
+      "key": "11-17-123",
+      "mode": "micro",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tính giới hạn lim_{x→-∞} (√(x² + x) + x). AI đưa x ra ngoài căn: √(x² + x) = x√(1 + 1/x) nên biểu thức thành x(√(1 + 1/x) + 1) → -∞ · 2 = -∞.",
+      "correction": "Khi x → -∞ thì x < 0 nên √(x²) = |x| = -x. Nhân liên hợp: tử = x, mẫu = √(x² + x) - x = -x√(1 + 1/x) - x = -x(√(1 + 1/x) + 1). Giới hạn = -1/2.",
+      "proof": "Bấm máy tính thử x = -10^6: √(10^12 - 10^6) - 10^6 ≈ -0,50000025, xác nhận giới hạn là -1/2 chứ không phải -∞.",
+      "whyAiError": "Mô hình quên đổi dấu khi đưa biến x ra khỏi căn bậc hai tại âm vô cực: √(x²) = |x| = -x khi x < 0.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: khi x tiến về âm vô cực thì căn bậc hai của x² bằng x hay -x?",
+      "studentProduct": "Sửa thành √(x²) = -x khi x < 0 và dùng phương pháp nhân lượng liên hợp để tìm ra kết quả đúng -1/2.",
+      "boardPrompt": "x → -∞ thì √(x²) bằng bao nhiêu? Thử x = -10⁶ trên Casio!",
+      "libraryTitle": "Lỗi quên đổi dấu căn bậc hai khi x tiến về âm vô cực"
+    },
+    "11-17-124": {
+      "key": "11-17-124",
+      "mode": "micro",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "Chứng minh phương trình 1/(x - 1) = 0 có nghiệm trên (0; 2): f(0) = -1 < 0, f(2) = 1 > 0. Vì f(0)·f(2) < 0 nên phương trình có nghiệm thuộc (0; 2).",
+      "correction": "Định lý giá trị trung gian chỉ áp dụng khi hàm số f(x) liên tục trên đoạn [0; 2]. Ở đây hàm số gián đoạn tại x = 1 nên định lý không áp dụng được (phương trình vô nghiệm).",
+      "proof": "Phương trình 1/(x - 1) = 0 vô nghiệm vì tử số luôn bằng 1 ≠ 0 với mọi x ≠ 1.",
+      "whyAiError": "Mô hình áp dụng định lý Bolzano-Cauchy mà bỏ qua điều kiện tiên quyết là tính liên tục của hàm số trên đoạn.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: hàm số có liên tục trên toàn bộ đoạn [0; 2] không?",
+      "studentProduct": "Chỉ ra hàm số bị gián đoạn tại x = 1, không đủ điều kiện áp dụng định lý nghiệm.",
+      "boardPrompt": "AI thấy f(0)·f(2) < 0. Hàm số có liên tục tại x = 1 không?",
+      "libraryTitle": "Lỗi áp dụng định lý nghiệm khi hàm số không liên tục trên đoạn"
+    },
+    "11-17-125": {
+      "key": "11-17-125",
+      "mode": "micro",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Trong không gian, hai đường thẳng phân biệt không cắt nhau thì song song với nhau.",
+      "correction": "Trong không gian, hai đường thẳng không cắt nhau có thể song song (nếu cùng thuộc một mặt phẳng) hoặc chéo nhau (nếu không cùng thuộc mặt phẳng nào).",
+      "proof": "Xét hình lập phương ABCD.A'B'C'D', hai đường thẳng AB và B'C' không cắt nhau nhưng chúng chéo nhau chứ không song song.",
+      "whyAiError": "Mô hình đem tính chất của hình học phẳng áp dụng trực tiếp vào hình học không gian.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: trong không gian hai đường thẳng không có điểm chung có những vị trí tương đối nào?",
+      "studentProduct": "Bổ sung trường hợp hai đường thẳng chéo nhau trong không gian khi không đồng phẳng.",
+      "boardPrompt": "Hai đường thẳng không cắt nhau trong không gian: có chắc chắn song song không?",
+      "libraryTitle": "Lỗi ngộ nhận hai đường thẳng không cắt nhau trong không gian thì song song"
+    },
+    "11-17-126": {
+      "key": "11-17-126",
+      "mode": "micro",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "Để chứng minh d // (P), ta chỉ cần tìm một đường thẳng a nằm trong (P) sao cho d // a.",
+      "correction": "Cần bổ sung điều kiện d không nằm trong (P) (d ⊄ (P)). Nếu d nằm trong (P) và song song với a thì d không song song với (P).",
+      "proof": "Nếu lấy a ⊂ (P) và d ⊂ (P) với d // a thì quan hệ giữa d và (P) là d chứa trong (P), không phải d song song với (P).",
+      "whyAiError": "Mô hình bỏ sót điều kiện loại trừ d ⊄ (P) trong định lý chứng minh đường thẳng song song mặt phẳng.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: định lý chứng minh đường song song với mặt phẳng cần thêm điều kiện gì của d đối với (P)?",
+      "studentProduct": "Bổ sung điều kiện d ⊄ (P) để định lý chặt chẽ và chính xác.",
+      "boardPrompt": "Nếu d nằm sẵn trong (P) thì d có song song với (P) không?",
+      "libraryTitle": "Lỗi thiếu điều kiện đường thẳng không nằm trong mặt phẳng khi chứng minh song song"
+    },
+    "11-17-127": {
+      "key": "11-17-127",
+      "mode": "micro",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Nếu mặt phẳng (P) chứa hai đường thẳng a và b cùng song song với mặt phẳng (Q) thì (P) song song với (Q).",
+      "correction": "Phải có thêm điều kiện hai đường thẳng a và b cắt nhau tại một điểm. Nếu a // b thì (P) có thể cắt (Q).",
+      "proof": "Xét hai mặt phẳng cắt nhau theo giao tuyến d. Trong (P) lấy hai đường thẳng a và b song song với d. Khi đó cả a và b đều song song với (Q) nhưng (P) vẫn cắt (Q).",
+      "whyAiError": "Mô hình quên điều kiện hai đường thẳng phải cắt nhau, dẫn đến kết luận sai khi hai đường thẳng song song.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: hai đường thẳng trong mặt phẳng này song song với mặt phẳng kia phải có quan hệ gì với nhau?",
+      "studentProduct": "Nêu rõ hai đường thẳng a và b phải cắt nhau trong mặt phẳng (P).",
+      "boardPrompt": "Nếu a // b thì (P) có thể cắt (Q) không? Lấy ví dụ giao tuyến d!",
+      "libraryTitle": "Lỗi thiếu điều kiện cắt nhau của hai đường thẳng khi chứng minh hai mặt phẳng song song"
+    },
+    "11-17-128": {
+      "key": "11-17-128",
+      "mode": "micro",
+      "category": "Lỗi logic",
+      "wrongSolution": "Phương trình sin x = 1/2 có nghiệm x = π/6 + k2π. AI kết luận phương trình có đúng 1 họ nghiệm.",
+      "correction": "Phương trình sin x = 1/2 có hai họ nghiệm: x = π/6 + k2π và x = π - π/6 + k2π = 5π/6 + k2π (k ∈ Z).",
+      "proof": "sin(5π/6) = sin(π - π/6) = sin(π/6) = 1/2. Bỏ sót họ nghiệm thứ hai làm mất một nửa số nghiệm của phương trình.",
+      "whyAiError": "Mô hình quên họ nghiệm bù π - α của phương trình lượng giác cơ bản hàm sin.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: phương trình sin x = sin α có mấy họ nghiệm tổng quát?",
+      "studentProduct": "Bổ sung đầy đủ hai họ nghiệm x = α + k2π và x = π - α + k2π.",
+      "boardPrompt": "sin x = 1/2. Ngoài π/6 còn góc nào trong đường tròn có sin bằng 1/2?",
+      "libraryTitle": "Lỗi bỏ sót họ nghiệm bù của phương trình lượng giác cơ bản sin"
+    },
+    "11-17-129": {
+      "key": "11-17-129",
+      "mode": "micro",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Cấp số nhân có u₁ = 2 và công bội q = -3. Tính tổng 4 số hạng đầu: S₄ = u₁ · (q⁴ - 1)/(q - 1) = 2 · ((-3)⁴ - 1)/(-3 - 1) = 2 · (81 - 1)/(-4) = 2 · 80 / (-4) = -40.",
+      "correction": "Phép tính số học: u₁ = 2, u₂ = -6, u₃ = 18, u₄ = -54. Tổng trực tiếp S₄ = 2 - 6 + 18 - 54 = -40. Nhưng AI lại bấm máy tính nhầm (-3)⁴ thành -81 ra (-81 - 1)/(-4) = +41.",
+      "proof": "(-3)⁴ = (-3)·(-3)·(-3)·(-3) = +81 vì số mũ chẵn. Lũy thừa bậc chẵn của số âm luôn mang dấu dương.",
+      "whyAiError": "Mô hình nhầm (-3)⁴ với -(3⁴) khi bấm máy tính không dùng dấu ngoặc đơn.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: lũy thừa bậc 4 của số âm (-3) mang dấu dương hay dấu âm?",
+      "studentProduct": "Sửa lại dấu của lũy thừa chẵn (-3)⁴ = +81 và ra đúng kết quả tổng S₄ = -40.",
+      "boardPrompt": "(-3)⁴ khác gì -(3⁴)? Bấm ngoặc đơn trên máy tính cẩn thận!",
+      "libraryTitle": "Lỗi nhầm dấu lũy thừa bậc chẵn của số âm do thiếu dấu ngoặc đơn"
+    },
+    "12-17-122": {
+      "key": "12-17-122",
+      "mode": "micro",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Hàm số y = (2x - 1)/(x + 1) có bảng biến thiên với y' > 0 với mọi x ≠ -1. AI kết luận: Hàm số đồng biến trên R \\ {-1}.",
+      "correction": "Không được kết luận hàm số đồng biến trên R \\ {-1} hoặc trên hợp hai khoảng. Phải kết luận: Hàm số đồng biến trên từng khoảng (-∞; -1) và (-1; +∞).",
+      "proof": "Lấy x₁ = -2, x₂ = 0: x₁ < x₂ nhưng y(-2) = (-4 - 1)/(-1) = 5 trong khi y(0) = -1. Ta thấy 5 > -1 (nghịch biến nếu xét trên toàn tập xác định), chứng tỏ định nghĩa đồng biến bị vi phạm.",
+      "whyAiError": "Mô hình kết luận tính đơn điệu trên tập hợp chứa điểm gián đoạn thay vì trên từng khoảng rời nhau.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: kết luận đồng biến của hàm phân thức phải viết trên từng khoảng hay trên hợp các khoảng?",
+      "studentProduct": "Sửa lại thành: hàm số đồng biến trên từng khoảng (-∞; -1) và (-1; +∞).",
+      "boardPrompt": "AI viết đồng biến trên R \\ {-1}. So sánh y(-2) và y(0) xem có tăng không?",
+      "libraryTitle": "Lỗi kết luận tính đơn điệu trên tập hợp chứa điểm gián đoạn"
+    },
+    "12-17-123": {
+      "key": "12-17-123",
+      "mode": "micro",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tìm giá trị nhỏ nhất của f(x) = x + 4/x trên khoảng (0; +∞). AI áp dụng BĐT Cauchy: x + 4/x ≥ 2√(x · 4/x) = 4. Nhưng khi kết luận điểm đạt min AI viết x = 4.",
+      "correction": "Dấu bằng xảy ra khi x = 4/x ⇔ x² = 4 ⇔ x = 2 (vì x > 0). Giá trị nhỏ nhất bằng 4 tại x = 2.",
+      "proof": "Thế x = 4 vào hàm số: f(4) = 4 + 4/4 = 5 ≠ 4. Chỉ khi x = 2 thì f(2) = 2 + 4/2 = 4.",
+      "whyAiError": "Mô hình nhầm giá trị nhỏ nhất min = 4 thành hoành độ điểm đạt cực trị x = 4.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: dấu bằng của bất đẳng thức Cauchy xảy ra tại giá trị x nào?",
+      "studentProduct": "Giải điều kiện dấu bằng a = b ⇔ x = 4/x để tìm ra x = 2 đạt min = 4.",
+      "boardPrompt": "AI kết luận min tại x = 4. Thử tính f(4) xem bằng bao nhiêu?",
+      "libraryTitle": "Lỗi nhầm lẫn giữa giá trị nhỏ nhất của hàm số và điểm đạt giá trị nhỏ nhất"
+    },
+    "12-17-124": {
+      "key": "12-17-124",
+      "mode": "micro",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Cho A(1; 2; 3) và B(3; 0; -1). Tính độ dài đoạn thẳng AB: AB = √((3-1)² + (0-2)² + (-1-3)²) = √(4 - 4 + 16) = √16 = 4.",
+      "correction": "Bình phương của số âm (-2)² là +4, không phải -4: AB = √(4 + 4 + 16) = √24 = 2√6.",
+      "proof": "(-2)² = (-2)·(-2) = +4. Tổng dưới căn là 4 + 4 + 16 = 24.",
+      "whyAiError": "Mô hình tính lũy thừa số âm mang dấu trừ: (yB - yA)² = (-2)² = -4.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: bình phương của số âm (-2) dưới dấu căn bằng bao nhiêu?",
+      "studentProduct": "Sửa (-2)² = +4 và tính đúng độ dài đoạn thẳng AB = √24 = 2√6.",
+      "boardPrompt": "AI tính (-2)² = -4. Bình phương khoảng cách có thể âm không?",
+      "libraryTitle": "Lỗi tính sai bình phương số âm trong công thức khoảng cách không gian Oxyz"
+    },
+    "12-17-125": {
+      "key": "12-17-125",
+      "mode": "micro",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "Tính giá trị đại diện của nhóm số liệu [20; 30). AI lấy hiệu số: c = 30 - 20 = 10.",
+      "correction": "Giá trị đại diện của nhóm [a; b) là trung điểm của hai đầu mút: c = (a + b)/2 = (20 + 30)/2 = 25. Giá trị 10 là độ dài của nhóm số liệu.",
+      "proof": "Giá trị đại diện phải là một số nằm chính giữa nhóm [20; 30) để đại diện cho các số liệu trong nhóm. Số 10 không thuộc khoảng [20; 30).",
+      "whyAiError": "Mô hình nhầm công thức giá trị đại diện (trung bình cộng) với độ dài nhóm (hiệu số).",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: giá trị đại diện của nhóm số liệu ghép nhóm tính bằng công thức nào?",
+      "studentProduct": "Phân biệt độ dài nhóm L = b - a với giá trị đại diện c = (a + b)/2 = 25.",
+      "boardPrompt": "AI tính giá trị đại diện bằng 10. Số 10 có nằm trong [20; 30) không?",
+      "libraryTitle": "Lỗi nhầm giá trị đại diện với độ dài của nhóm số liệu ghép nhóm"
+    },
+    "12-17-126": {
+      "key": "12-17-126",
+      "mode": "micro",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "Tính tích phân I = ∫₀¹ x√(x² + 1) dx. Đặt t = x² + 1 ⇒ dt = 2x dx ⇒ x dx = dt/2. Ta có I = 1/2 ∫ t^(1/2) dt = 1/2 · (2/3) t^(3/2) = 1/3 (1^(3/2) - 0^(3/2)) = 1/3.",
+      "correction": "Khi đổi biến số trong tích phân xác định bắt buộc phải đổi cận: x = 0 ⇒ t = 1; x = 1 ⇒ t = 2. I = 1/2 ∫₁² √t dt = 1/3 [t^(3/2)]₁² = 1/3 (2√2 - 1).",
+      "proof": "Tích phân xác định phụ thuộc vào cận của biến số tương ứng. Giữ nguyên cận của x (0 đến 1) cho biến t là hoàn toàn sai.",
+      "whyAiError": "Mô hình quên thao tác đổi cận khi thực hiện phương pháp đổi biến số trong tích phân xác định.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: khi đổi biến trong tích phân xác định bước bắt buộc tiếp theo là gì?",
+      "studentProduct": "Đổi cận x = 0 → t = 1 và x = 1 → t = 2, tính ra kết quả đúng (2√2 - 1)/3.",
+      "boardPrompt": "AI giữ nguyên cận 0 và 1 cho biến t. Biến t chạy từ mấy đến mấy?",
+      "libraryTitle": "Lỗi quên đổi cận khi đổi biến số trong tích phân xác định"
+    },
+    "12-17-127": {
+      "key": "12-17-127",
+      "mode": "micro",
+      "category": "Lỗi đại số",
+      "wrongSolution": "Tìm nguyên hàm ∫ 1/(2x + 3) dx. AI viết: ln|2x + 3| + C.",
+      "correction": "Nguyên hàm của hàm hợp 1/(ax + b) có hệ số 1/a: ∫ 1/(2x + 3) dx = (1/2) ln|2x + 3| + C.",
+      "proof": "Đạo hàm lại (ln|2x + 3|)' = (2x + 3)' / (2x + 3) = 2 / (2x + 3) ≠ 1 / (2x + 3). Cần nhân thêm 1/2 để triệt tiêu số 2.",
+      "whyAiError": "Mô hình quên chia cho hệ số a = 2 của biểu thức bậc nhất ax + b khi lấy nguyên hàm.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: nguyên hàm của 1/(ax + b) cần nhân thêm hệ số nào?",
+      "studentProduct": "Bổ sung hệ số 1/a = 1/2 vào trước hàm logarit tự nhiên ln|2x + 3| + C.",
+      "boardPrompt": "Đạo hàm lại ln|2x + 3| ra bao nhiêu? Thừa số 2 ở đâu?",
+      "libraryTitle": "Lỗi thiếu hệ số 1/a khi tìm nguyên hàm của hàm hợp bậc nhất"
+    },
+    "12-17-128": {
+      "key": "12-17-128",
+      "mode": "micro",
+      "category": "Lỗi logic",
+      "wrongSolution": "Tính diện tích hình phẳng giới hạn bởi đồ thị y = x³ - x và trục hoành Ox. AI giải: Nghiệm x = -1, x = 0, x = 1. Diện tích S = ∫₋₁¹ (x³ - x) dx = [x⁴/4 - x²/2]₋₁¹ = (1/4 - 1/2) - (1/4 - 1/2) = 0.",
+      "correction": "Diện tích hình phẳng không thể bằng 0. Hàm số đổi dấu qua x = 0 nên phải tách cận và lấy dấu trị tuyệt đối: S = ∫₋₁⁰ (x³ - x) dx + ∫₀¹ -(x³ - x) dx = 1/4 + 1/4 = 1/2.",
+      "proof": "Diện tích là đại lượng hình học luôn dương. Tích phân từ -1 đến 1 triệt tiêu vì hàm lẻ có hai phần diện tích đối xứng nhau qua gốc tọa độ.",
+      "whyAiError": "Mô hình tính trực tiếp tích phân trên toàn đoạn mà không lấy giá trị tuyệt đối dẫn tới các phần diện tích triệt tiêu nhau.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: diện tích hình phẳng có thể bằng 0 được không và cần lấy dấu gì cho hàm số?",
+      "studentProduct": "Tách thành hai tích phân với dấu giá trị tuyệt đối hoặc đổi dấu trên từng khoảng để ra diện tích đúng bằng 1/2.",
+      "boardPrompt": "AI tính diện tích bằng 0! Tại sao hai phần đồ thị lại triệt tiêu nhau?",
+      "libraryTitle": "Lỗi tính tích phân diện tích hình phẳng không có giá trị tuyệt đối làm triệt tiêu diện tích"
     }
   }
 }

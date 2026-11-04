@@ -1,24 +1,24 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 05/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 16 CẢ 3 KHỐI: 171/171 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
+> Cập nhật: 05/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 17 CẢ 3 KHỐI: 194/194 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
 
 ## 1. Trạng thái hiện tại
-- **TOÀN BỘ 171/171 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
-  - Khối 10: **56 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8/8 bài `10-16-120`..`127`).
-  - Khối 11: **58 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8/8 bài `11-16-114`..`121`).
-  - Khối 12: **57 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 7/7 bài `12-16-114`..`120`).
-- **Tuần 16 đã khép kín 100% cả 3 khối (23/23 bài chuẩn PPCT TDS):**
-  - Khối 10: `10-16-120` (Ôn tập HK1: Mệnh đề và tập hợp), `10-16-121` (Ôn tập HK1: Bất phương trình và hệ bất phương trình), `10-16-122` (Ôn tập HK1: Hàm số bậc hai và đồ thị), `10-16-123` (Ôn tập HK1: Hệ thức lượng trong tam giác), `10-16-124` (Ôn tập HK1: Các phép toán vectơ và tọa độ), `10-16-125` (Ôn tập HK1: Tích vô hướng và ứng dụng thực tế), `10-16-126` (Tự chọn: Kỹ năng giải trắc nghiệm ôn thi HK1 Đại số), `10-16-127` (Tự chọn: Kỹ năng giải trắc nghiệm ôn thi HK1 Hình học).
-  - Khối 11: `11-16-114` (Lũy thừa với số mũ thực: Luyện tập biến đổi), `11-16-115` (Khái niệm lôgarit và tính chất cơ bản), `11-16-116` (Quy tắc tính lôgarit và công thức đổi cơ số), `11-16-117` (Luyện tập biến đổi biểu thức lôgarit), `11-16-118` (Ôn tập HK1: Hàm số và phương trình lượng giác), `11-16-119` (Ôn tập HK1: Dãy số và cấp số cộng cấp số nhân), `11-16-120` (Tự chọn: Phương pháp khử dạng vô định của giới hạn), `11-16-121` (Tự chọn: Bài toán thực tế ứng dụng hàm số mũ và lãi kép).
-  - Khối 12: `12-16-114` (Ôn tập HK1: Khảo sát sự biến thiên và đồ thị hàm số), `12-16-115` (Ôn tập HK1: Cực trị, GTLN GTNN và đường tiệm cận), `12-16-116` (Ôn tập HK1: Vectơ trong không gian và tọa độ Oxyz), `12-16-117` (Ôn tập HK1: Các số đặc trưng đo độ phân tán mẫu ghép nhóm), `12-16-118` (Ôn tập HK1: Nguyên hàm và các phương pháp tìm nguyên hàm), `12-16-119` (Ôn tập HK1: Tích phân và ứng dụng diện tích hình phẳng), `12-16-120` (Ôn tập HK1: Ứng dụng tích phân tính thể tích khối tròn xoay).
+- **TOÀN BỘ 194/194 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
+  - Khối 10: **64 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8 bài; Tuần 17: 8/8 bài `10-17-128`..`135`).
+  - Khối 11: **66 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8 bài; Tuần 17: 8/8 bài `11-17-122`..`129`).
+  - Khối 12: **64 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 7 bài; Tuần 17: 7/7 bài `12-17-122`..`128`).
+- **Tuần 17 đã khép kín 100% cả 3 khối (23/23 bài chuẩn PPCT TDS):**
+  - Khối 10: `10-17-128` (Ôn tập HK1: Phương trình quy về phương trình bậc hai), `10-17-129` (Ôn tập HK1: Dấu của tam thức bậc hai và bất phương trình bậc hai), `10-17-130` (Ôn tập HK1: Số gần đúng, sai số và số đặc trưng xu thế trung tâm), `10-17-131` (Ôn tập HK1: Tổng hợp hệ thức lượng và giải tam giác thực tế), `10-17-132` (Ôn tập HK1: Phân tích vectơ và chứng minh ba điểm thẳng hàng), `10-17-133` (Ôn tập HK1: Tích vô hướng và góc giữa hai vectơ), `10-17-134` (Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Đại số), `10-17-135` (Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Hình học).
+  - Khối 11: `11-17-122` (Ôn tập HK1: Biến đổi biểu thức chứa luỹ thừa và lôgarit), `11-17-123` (Ôn tập HK1: Giới hạn của dãy số và giới hạn của hàm số), `11-17-124` (Ôn tập HK1: Hàm số liên tục và định lý nghiệm), `11-17-125` (Ôn tập HK1: Đường thẳng và mặt phẳng, quan hệ song song), `11-17-126` (Ôn tập HK1: Hai đường thẳng song song và đường thẳng song song mặt phẳng), `11-17-127` (Ôn tập HK1: Hai mặt phẳng song song và định lý Thales trong không gian), `11-17-128` (Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Phần trắc nghiệm nhiều lựa chọn), `11-17-129` (Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Phần đúng sai và trả lời ngắn).
+  - Khối 12: `12-17-122` (Ôn tập HK1: Nhận diện đồ thị và bảng biến thiên), `12-17-123` (Ôn tập HK1: Ứng dụng đạo hàm giải bài toán tối ưu thực tế), `12-17-124` (Ôn tập HK1: Vectơ và tọa độ Oxyz — Tích vô hướng và góc), `12-17-125` (Ôn tập HK1: Thống kê mô tả — Phân tích mẫu ghép nhóm và độ phân tán), `12-17-126` (Ôn tập HK1: Nguyên hàm tích phân đổi biến số và từng phần), `12-17-127` (Ôn tập HK1: Rèn luyện đề ôn thi HK1 Toán 12 Trắc nghiệm nhiều lựa chọn), `12-17-128` (Ôn tập HK1: Rèn luyện đề ôn thi HK1 Toán 12 Đúng sai và trả lời ngắn).
 - **Bộ dữ liệu chuẩn hóa:**
   - `src/data/liveLessonPackages/banToan-w5-w6.snapshot.json`: 51 bài.
-  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 120 bài (tổng cộng 171 bài).
-  - Đăng ký đầy đủ 120 bài trong `W11BATCH2` và 123 bài trong `INTERACTIVE_SOURCE_KEYS`.
+  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 143 bài (tổng cộng 194 bài).
+  - Đăng ký đầy đủ 143 bài trong `W11BATCH2` và 146 bài trong `INTERACTIVE_SOURCE_KEYS`.
   - Mọi `aiError` đều đủ 9 trường, thuộc đúng 4 categories chuẩn và `teacherPrompt` chứa "sửa".
-  - Kiểm chứng `displayTitleUnique.test.ts`: 171/171 bài có display title duy nhất trong từng khối lớp (K10: 56 bài, K11: 58 bài, K12: 57 bài).
+  - Kiểm chứng `displayTitleUnique.test.ts`: 194/194 bài có display title duy nhất 100% trong từng khối lớp (K10: 64 bài, K11: 66 bài, K12: 64 bài).
 - **Kiểm định chất lượng:**
-  - Vitest test suite: `src/lib/liveLesson/v4` đạt **652/652 PASS** (28 test files).
+  - Vitest test suite: `src/lib/liveLesson/v4` đạt **721/721 PASS** (28 test files).
   - Production build: `npm run build` thành công, 0 lỗi TypeScript, 0 lỗi bundle.
 - **Đồng bộ mã nguồn:**
   - Đang đồng bộ commit và push cả `feat/nop-bai-da-cham` và `main`.
