@@ -8091,6 +8091,44 @@
     ],
     "tasks": [
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 5^(x - 5) + 0",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 5,
+        "c": 5
+       },
+       "expVerticalShift": 0,
+       "xDomain": [
+        2,
+        8
+       ],
+       "yDomain": [
+        -1,
+        27
+       ],
+       "asymptotes": {
+        "horizontal": [
+         0
+        ]
+       },
+       "points": [
+        {
+         "x": 5,
+         "y": 1,
+         "label": "(5;1)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 6,
+         "y": 5,
+         "label": "(6;5)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-1-1",
       "type": "open",
       "objectiveIds": [
@@ -8138,6 +8176,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 2^(x - 9) + 3",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 2,
+        "c": 9
+       },
+       "expVerticalShift": 3,
+       "xDomain": [
+        6,
+        12
+       ],
+       "yDomain": [
+        2,
+        9
+       ],
+       "asymptotes": {
+        "horizontal": [
+         3
+        ]
+       },
+       "points": [
+        {
+         "x": 9,
+         "y": 4,
+         "label": "(9;4)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 10,
+         "y": 5,
+         "label": "(10;5)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-2-1",
       "type": "open",
       "objectiveIds": [
@@ -8185,6 +8261,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 3^(x - 13) + 0",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 3,
+        "c": 13
+       },
+       "expVerticalShift": 0,
+       "xDomain": [
+        10,
+        16
+       ],
+       "yDomain": [
+        -1,
+        11
+       ],
+       "asymptotes": {
+        "horizontal": [
+         0
+        ]
+       },
+       "points": [
+        {
+         "x": 13,
+         "y": 1,
+         "label": "(13;1)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 14,
+         "y": 3,
+         "label": "(14;3)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-3-1",
       "type": "open",
       "objectiveIds": [
@@ -8232,6 +8346,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 4^(x - 4) + 1",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 4,
+        "c": 4
+       },
+       "expVerticalShift": 1,
+       "xDomain": [
+        1,
+        7
+       ],
+       "yDomain": [
+        0,
+        19
+       ],
+       "asymptotes": {
+        "horizontal": [
+         1
+        ]
+       },
+       "points": [
+        {
+         "x": 4,
+         "y": 2,
+         "label": "(4;2)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 5,
+         "y": 5,
+         "label": "(5;5)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-3-2",
       "type": "open",
       "objectiveIds": [
@@ -8279,6 +8431,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 5^(x - 8) + 3",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 5,
+        "c": 8
+       },
+       "expVerticalShift": 3,
+       "xDomain": [
+        5,
+        11
+       ],
+       "yDomain": [
+        2,
+        30
+       ],
+       "asymptotes": {
+        "horizontal": [
+         3
+        ]
+       },
+       "points": [
+        {
+         "x": 8,
+         "y": 4,
+         "label": "(8;4)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 9,
+         "y": 8,
+         "label": "(9;8)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-4-1",
       "type": "open",
       "objectiveIds": [
@@ -8326,6 +8516,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 2^(x - 12) + 0",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 2,
+        "c": 12
+       },
+       "expVerticalShift": 0,
+       "xDomain": [
+        9,
+        15
+       ],
+       "yDomain": [
+        -1,
+        6
+       ],
+       "asymptotes": {
+        "horizontal": [
+         0
+        ]
+       },
+       "points": [
+        {
+         "x": 12,
+         "y": 1,
+         "label": "(12;1)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 13,
+         "y": 2,
+         "label": "(13;2)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-5-1",
       "type": "open",
       "objectiveIds": [
@@ -8373,6 +8601,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 3^(x - 3) + 1",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 3,
+        "c": 3
+       },
+       "expVerticalShift": 1,
+       "xDomain": [
+        0,
+        6
+       ],
+       "yDomain": [
+        0,
+        12
+       ],
+       "asymptotes": {
+        "horizontal": [
+         1
+        ]
+       },
+       "points": [
+        {
+         "x": 3,
+         "y": 2,
+         "label": "(3;2)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 4,
+         "y": 4,
+         "label": "(4;4)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-5-2",
       "type": "open",
       "objectiveIds": [
@@ -8466,6 +8732,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 5^(x - 11) + 2",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 5,
+        "c": 11
+       },
+       "expVerticalShift": 2,
+       "xDomain": [
+        8,
+        14
+       ],
+       "yDomain": [
+        1,
+        29
+       ],
+       "asymptotes": {
+        "horizontal": [
+         2
+        ]
+       },
+       "points": [
+        {
+         "x": 11,
+         "y": 3,
+         "label": "(11;3)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 12,
+         "y": 7,
+         "label": "(12;7)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-6-1",
       "type": "open",
       "objectiveIds": [
@@ -9310,7 +9614,7 @@
       "group_score"
      ]
     },
-    "contentHash": "96b8db843a1408418f4899d0fd9a00e5c47c174b04549672ffcd71facdc74f0b"
+    "contentHash": "1be96ae3d78b91ed51056015f9e4a869b36e977956d8dbf936e073ba954015fe"
    },
    "citations": [
     {
@@ -132167,6 +132471,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 5^(x - 10) + 0",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 5,
+        "c": 10
+       },
+       "expVerticalShift": 0,
+       "xDomain": [
+        7,
+        13
+       ],
+       "yDomain": [
+        -1,
+        27
+       ],
+       "asymptotes": {
+        "horizontal": [
+         0
+        ]
+       },
+       "points": [
+        {
+         "x": 10,
+         "y": 1,
+         "label": "(10;1)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 11,
+         "y": 5,
+         "label": "(11;5)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-1-2",
       "type": "open",
       "objectiveIds": [
@@ -132280,6 +132622,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 2^(x - 14) + 2",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 2,
+        "c": 14
+       },
+       "expVerticalShift": 2,
+       "xDomain": [
+        11,
+        17
+       ],
+       "yDomain": [
+        1,
+        8
+       ],
+       "asymptotes": {
+        "horizontal": [
+         2
+        ]
+       },
+       "points": [
+        {
+         "x": 14,
+         "y": 3,
+         "label": "(14;3)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 15,
+         "y": 4,
+         "label": "(15;4)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-2-2",
       "type": "open",
       "objectiveIds": [
@@ -132459,6 +132839,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 3^(x - 5) + 0",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 3,
+        "c": 5
+       },
+       "expVerticalShift": 0,
+       "xDomain": [
+        2,
+        8
+       ],
+       "yDomain": [
+        -1,
+        11
+       ],
+       "asymptotes": {
+        "horizontal": [
+         0
+        ]
+       },
+       "points": [
+        {
+         "x": 5,
+         "y": 1,
+         "label": "(5;1)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 6,
+         "y": 3,
+         "label": "(6;3)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-3-3",
       "type": "open",
       "objectiveIds": [
@@ -132506,6 +132924,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 4^(x - 9) + 3",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 4,
+        "c": 9
+       },
+       "expVerticalShift": 3,
+       "xDomain": [
+        6,
+        12
+       ],
+       "yDomain": [
+        2,
+        21
+       ],
+       "asymptotes": {
+        "horizontal": [
+         3
+        ]
+       },
+       "points": [
+        {
+         "x": 9,
+         "y": 4,
+         "label": "(9;4)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 10,
+         "y": 7,
+         "label": "(10;7)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-3-4",
       "type": "open",
       "objectiveIds": [
@@ -132619,6 +133075,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 5^(x - 13) + 2",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 5,
+        "c": 13
+       },
+       "expVerticalShift": 2,
+       "xDomain": [
+        10,
+        16
+       ],
+       "yDomain": [
+        1,
+        29
+       ],
+       "asymptotes": {
+        "horizontal": [
+         2
+        ]
+       },
+       "points": [
+        {
+         "x": 13,
+         "y": 3,
+         "label": "(13;3)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 14,
+         "y": 7,
+         "label": "(14;7)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-4-2",
       "type": "open",
       "objectiveIds": [
@@ -132910,6 +133404,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 5^(x - 3) + 1",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 5,
+        "c": 3
+       },
+       "expVerticalShift": 1,
+       "xDomain": [
+        0,
+        6
+       ],
+       "yDomain": [
+        0,
+        28
+       ],
+       "asymptotes": {
+        "horizontal": [
+         1
+        ]
+       },
+       "points": [
+        {
+         "x": 3,
+         "y": 2,
+         "label": "(3;2)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 4,
+         "y": 6,
+         "label": "(4;6)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-6-2",
       "type": "open",
       "objectiveIds": [
@@ -134227,7 +134759,7 @@
       "group_score"
      ]
     },
-    "contentHash": "7c9bd17f2e577c0ba4d9a469c9e17dabd59476b325398e835701eee0e7addc63"
+    "contentHash": "8298180a1c19f90424bf81ffed9b5bb86ca0d92179829d33336625465aebbc96"
    },
    "citations": [
     {
@@ -312589,6 +313121,44 @@
     ],
     "tasks": [
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 2^(x - 2) + 0",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 2,
+        "c": 2
+       },
+       "expVerticalShift": 0,
+       "xDomain": [
+        -1,
+        5
+       ],
+       "yDomain": [
+        -1,
+        6
+       ],
+       "asymptotes": {
+        "horizontal": [
+         0
+        ]
+       },
+       "points": [
+        {
+         "x": 2,
+         "y": 1,
+         "label": "(2;1)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 3,
+         "y": 2,
+         "label": "(3;2)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-1-1",
       "type": "open",
       "objectiveIds": [
@@ -312683,6 +313253,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 3^(x - 6) + 2",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 3,
+        "c": 6
+       },
+       "expVerticalShift": 2,
+       "xDomain": [
+        3,
+        9
+       ],
+       "yDomain": [
+        1,
+        13
+       ],
+       "asymptotes": {
+        "horizontal": [
+         2
+        ]
+       },
+       "points": [
+        {
+         "x": 6,
+         "y": 3,
+         "label": "(6;3)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 7,
+         "y": 5,
+         "label": "(7;5)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-2-1",
       "type": "open",
       "objectiveIds": [
@@ -312777,6 +313385,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 4^(x - 10) + 0",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 4,
+        "c": 10
+       },
+       "expVerticalShift": 0,
+       "xDomain": [
+        7,
+        13
+       ],
+       "yDomain": [
+        -1,
+        18
+       ],
+       "asymptotes": {
+        "horizontal": [
+         0
+        ]
+       },
+       "points": [
+        {
+         "x": 10,
+         "y": 1,
+         "label": "(10;1)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 11,
+         "y": 4,
+         "label": "(11;4)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-3-1",
       "type": "open",
       "objectiveIds": [
@@ -312824,6 +313470,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 5^(x - 14) + 3",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 5,
+        "c": 14
+       },
+       "expVerticalShift": 3,
+       "xDomain": [
+        11,
+        17
+       ],
+       "yDomain": [
+        2,
+        30
+       ],
+       "asymptotes": {
+        "horizontal": [
+         3
+        ]
+       },
+       "points": [
+        {
+         "x": 14,
+         "y": 4,
+         "label": "(14;4)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 15,
+         "y": 8,
+         "label": "(15;8)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-3-2",
       "type": "open",
       "objectiveIds": [
@@ -312965,6 +313649,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 2^(x - 5) + 2",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 2,
+        "c": 5
+       },
+       "expVerticalShift": 2,
+       "xDomain": [
+        2,
+        8
+       ],
+       "yDomain": [
+        1,
+        8
+       ],
+       "asymptotes": {
+        "horizontal": [
+         2
+        ]
+       },
+       "points": [
+        {
+         "x": 5,
+         "y": 3,
+         "label": "(5;3)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 6,
+         "y": 4,
+         "label": "(6;4)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-4-1",
       "type": "open",
       "objectiveIds": [
@@ -313059,6 +313781,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 3^(x - 9) + 0",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 3,
+        "c": 9
+       },
+       "expVerticalShift": 0,
+       "xDomain": [
+        6,
+        12
+       ],
+       "yDomain": [
+        -1,
+        11
+       ],
+       "asymptotes": {
+        "horizontal": [
+         0
+        ]
+       },
+       "points": [
+        {
+         "x": 9,
+         "y": 1,
+         "label": "(9;1)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 10,
+         "y": 3,
+         "label": "(10;3)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-5-1",
       "type": "open",
       "objectiveIds": [
@@ -313106,6 +313866,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 4^(x - 13) + 3",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 4,
+        "c": 13
+       },
+       "expVerticalShift": 3,
+       "xDomain": [
+        10,
+        16
+       ],
+       "yDomain": [
+        2,
+        21
+       ],
+       "asymptotes": {
+        "horizontal": [
+         3
+        ]
+       },
+       "points": [
+        {
+         "x": 13,
+         "y": 4,
+         "label": "(13;4)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 14,
+         "y": 7,
+         "label": "(14;7)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-5-2",
       "type": "open",
       "objectiveIds": [
@@ -313199,6 +313997,44 @@
       }
      },
      {
+      "visual": {
+       "kind": "function-graph",
+       "title": "Đồ thị hàm số mũ: y = 2^(x - 8) + 1",
+       "fnType": "exponential",
+       "fnParams": {
+        "a": 1,
+        "b": 2,
+        "c": 8
+       },
+       "expVerticalShift": 1,
+       "xDomain": [
+        5,
+        11
+       ],
+       "yDomain": [
+        0,
+        7
+       ],
+       "asymptotes": {
+        "horizontal": [
+         1
+        ]
+       },
+       "points": [
+        {
+         "x": 8,
+         "y": 2,
+         "label": "(8;2)",
+         "color": "#e11d48"
+        },
+        {
+         "x": 9,
+         "y": 3,
+         "label": "(9;3)",
+         "color": "#0284c7"
+        }
+       ]
+      },
       "id": "task-6-1",
       "type": "open",
       "objectiveIds": [
@@ -314563,7 +315399,7 @@
       "group_score"
      ]
     },
-    "contentHash": "8e4da916f23e024d14d4b737517575cd1879b1e5c4b0208db2c00017e0bd6e20"
+    "contentHash": "c237a5616baf83b64057430cc09ff30048080d8f0946d28248f58a1ecb14ff23"
    },
    "citations": [
     {
@@ -332244,7 +333080,7 @@
   "ppctFile": "tasks/r23-hkii/ppct-hkii.json",
   "ppctSha256": "a4e03b10b36cc12e2177d7aa883bc033ccc221ff0e99ad2909f99708058ae35f",
   "hkiBankFile": "tasks/r22/g11-practice-bank.json",
-  "hkiBankSha256": "069405600a1117e5ca5bff7cb29c50144aef67033a7f525b82c34d517eb9cf55",
+  "hkiBankSha256": "632abeadae04291cada2db84bde617c06820169d424a1eac9692ad4fe417614b",
   "frozenHkiGeneratorSha256": "d1951060182d4b4ba6754bf6b25e8837a14d6171bc3296544cef3ea6af16eeab"
  },
  "review": {

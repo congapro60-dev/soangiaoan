@@ -29376,6 +29376,42 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 11)² + (-1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 44,
+                "c": -243
+              },
+              "xDomain": [
+                7,
+                15
+              ],
+              "yDomain": [
+                -11,
+                1
+              ],
+              "points": [
+                {
+                  "x": 11,
+                  "y": -1,
+                  "label": "Đỉnh I(11;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 9,
+                  "y": -9,
+                  "label": "M"
+                },
+                {
+                  "x": 13,
+                  "y": -9,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "open",
             "objectiveIds": [
@@ -29423,6 +29459,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 12)² + (1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -48,
+                "c": 289
+              },
+              "xDomain": [
+                8,
+                16
+              ],
+              "yDomain": [
+                -1,
+                11
+              ],
+              "points": [
+                {
+                  "x": 12,
+                  "y": 1,
+                  "label": "Đỉnh I(12;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 10,
+                  "y": 9,
+                  "label": "M"
+                },
+                {
+                  "x": 14,
+                  "y": 9,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -29470,6 +29542,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 2)² + (3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 8,
+                "c": -5
+              },
+              "xDomain": [
+                -2,
+                6
+              ],
+              "yDomain": [
+                -7,
+                5
+              ],
+              "points": [
+                {
+                  "x": 2,
+                  "y": 3,
+                  "label": "Đỉnh I(2;3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 0,
+                  "y": -5,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": -5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -29517,6 +29625,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 4)² + (-3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -16,
+                "c": 29
+              },
+              "xDomain": [
+                0,
+                8
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "points": [
+                {
+                  "x": 4,
+                  "y": -3,
+                  "label": "Đỉnh I(4;-3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": 5,
+                  "label": "M"
+                },
+                {
+                  "x": 6,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "open",
             "objectiveIds": [
@@ -29564,6 +29708,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 3)² + (-2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -12,
+                "c": 16
+              },
+              "xDomain": [
+                -1,
+                7
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "points": [
+                {
+                  "x": 3,
+                  "y": -2,
+                  "label": "Đỉnh I(3;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": 6,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -29611,6 +29791,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 4)² + (0)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 16,
+                "c": -32
+              },
+              "xDomain": [
+                0,
+                8
+              ],
+              "yDomain": [
+                -10,
+                2
+              ],
+              "points": [
+                {
+                  "x": 4,
+                  "y": 0,
+                  "label": "Đỉnh I(4;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -8,
+                  "label": "M"
+                },
+                {
+                  "x": 6,
+                  "y": -8,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -29658,6 +29874,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 5)² + (2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -20,
+                "c": 52
+              },
+              "xDomain": [
+                1,
+                9
+              ],
+              "yDomain": [
+                0,
+                12
+              ],
+              "points": [
+                {
+                  "x": 5,
+                  "y": 2,
+                  "label": "Đỉnh I(5;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 3,
+                  "y": 10,
+                  "label": "M"
+                },
+                {
+                  "x": 7,
+                  "y": 10,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-6-1",
             "type": "open",
             "objectiveIds": [
@@ -30343,7 +30595,7 @@
             "group_score"
           ]
         },
-        "contentHash": "3d52e7cbeb7ac331aa660f87c35910ea8f9bf4ce60021f27defecb25bce5ab43"
+        "contentHash": "5fd1b2ad6043b39ac1169c6a43ebbe7bacd573a3828d94e9d1570854f1b4a949"
       },
       "citations": [
         {
@@ -31120,6 +31372,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 5)² + (0)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 20,
+                "c": -50
+              },
+              "xDomain": [
+                1,
+                9
+              ],
+              "yDomain": [
+                -10,
+                2
+              ],
+              "points": [
+                {
+                  "x": 5,
+                  "y": 0,
+                  "label": "Đỉnh I(5;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 3,
+                  "y": -8,
+                  "label": "M"
+                },
+                {
+                  "x": 7,
+                  "y": -8,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-2",
             "type": "open",
             "objectiveIds": [
@@ -31214,6 +31502,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 6)² + (2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -24,
+                "c": 74
+              },
+              "xDomain": [
+                2,
+                10
+              ],
+              "yDomain": [
+                0,
+                12
+              ],
+              "points": [
+                {
+                  "x": 6,
+                  "y": 2,
+                  "label": "Đỉnh I(6;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 4,
+                  "y": 10,
+                  "label": "M"
+                },
+                {
+                  "x": 8,
+                  "y": 10,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-2",
             "type": "open",
             "objectiveIds": [
@@ -31355,6 +31679,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 7)² + (-3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 28,
+                "c": -101
+              },
+              "xDomain": [
+                3,
+                11
+              ],
+              "yDomain": [
+                -13,
+                -1
+              ],
+              "points": [
+                {
+                  "x": 7,
+                  "y": -3,
+                  "label": "Đỉnh I(7;-3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 5,
+                  "y": -11,
+                  "label": "M"
+                },
+                {
+                  "x": 9,
+                  "y": -11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-3",
             "type": "open",
             "objectiveIds": [
@@ -31402,6 +31762,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 9)² + (-2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -36,
+                "c": 160
+              },
+              "xDomain": [
+                5,
+                13
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "points": [
+                {
+                  "x": 9,
+                  "y": -2,
+                  "label": "Đỉnh I(9;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 7,
+                  "y": 6,
+                  "label": "M"
+                },
+                {
+                  "x": 11,
+                  "y": 6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-4",
             "type": "open",
             "objectiveIds": [
@@ -31496,6 +31892,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 8)² + (-1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -32,
+                "c": 127
+              },
+              "xDomain": [
+                4,
+                12
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "points": [
+                {
+                  "x": 8,
+                  "y": -1,
+                  "label": "Đỉnh I(8;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 6,
+                  "y": 7,
+                  "label": "M"
+                },
+                {
+                  "x": 10,
+                  "y": 7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-2",
             "type": "open",
             "objectiveIds": [
@@ -31590,6 +32022,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 9)² + (1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 36,
+                "c": -161
+              },
+              "xDomain": [
+                5,
+                13
+              ],
+              "yDomain": [
+                -9,
+                3
+              ],
+              "points": [
+                {
+                  "x": 9,
+                  "y": 1,
+                  "label": "Đỉnh I(9;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 7,
+                  "y": -7,
+                  "label": "M"
+                },
+                {
+                  "x": 11,
+                  "y": -7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -31685,6 +32153,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 10)² + (3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -40,
+                "c": 203
+              },
+              "xDomain": [
+                6,
+                14
+              ],
+              "yDomain": [
+                1,
+                13
+              ],
+              "points": [
+                {
+                  "x": 10,
+                  "y": 3,
+                  "label": "Đỉnh I(10;3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 8,
+                  "y": 11,
+                  "label": "M"
+                },
+                {
+                  "x": 12,
+                  "y": 11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-6-2",
             "type": "open",
             "objectiveIds": [
@@ -32985,7 +33489,7 @@
             "group_score"
           ]
         },
-        "contentHash": "79f179138a0252bb94533ce31a87443b2f757a80298f0499bfae2c1fd392452f"
+        "contentHash": "630fbf8e8779cacb43175427f919d33da9ca1dc9d773806230e318ab1116037a"
       },
       "citations": [
         {
@@ -47334,6 +47838,42 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 4)² + (-1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -16,
+                "c": 31
+              },
+              "xDomain": [
+                0,
+                8
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "points": [
+                {
+                  "x": 4,
+                  "y": -1,
+                  "label": "Đỉnh I(4;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": 7,
+                  "label": "M"
+                },
+                {
+                  "x": 6,
+                  "y": 7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "open",
             "objectiveIds": [
@@ -47381,6 +47921,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 5)² + (1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 20,
+                "c": -49
+              },
+              "xDomain": [
+                1,
+                9
+              ],
+              "yDomain": [
+                -9,
+                3
+              ],
+              "points": [
+                {
+                  "x": 5,
+                  "y": 1,
+                  "label": "Đỉnh I(5;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 3,
+                  "y": -7,
+                  "label": "M"
+                },
+                {
+                  "x": 7,
+                  "y": -7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -47428,6 +48004,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 6)² + (3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -24,
+                "c": 75
+              },
+              "xDomain": [
+                2,
+                10
+              ],
+              "yDomain": [
+                1,
+                13
+              ],
+              "points": [
+                {
+                  "x": 6,
+                  "y": 3,
+                  "label": "Đỉnh I(6;3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 4,
+                  "y": 11,
+                  "label": "M"
+                },
+                {
+                  "x": 8,
+                  "y": 11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -47475,6 +48087,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 8)² + (-3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 32,
+                "c": -131
+              },
+              "xDomain": [
+                4,
+                12
+              ],
+              "yDomain": [
+                -13,
+                -1
+              ],
+              "points": [
+                {
+                  "x": 8,
+                  "y": -3,
+                  "label": "Đỉnh I(8;-3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 6,
+                  "y": -11,
+                  "label": "M"
+                },
+                {
+                  "x": 10,
+                  "y": -11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "open",
             "objectiveIds": [
@@ -47522,6 +48170,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 7)² + (-2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 28,
+                "c": -100
+              },
+              "xDomain": [
+                3,
+                11
+              ],
+              "yDomain": [
+                -12,
+                0
+              ],
+              "points": [
+                {
+                  "x": 7,
+                  "y": -2,
+                  "label": "Đỉnh I(7;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 5,
+                  "y": -10,
+                  "label": "M"
+                },
+                {
+                  "x": 9,
+                  "y": -10,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -47569,6 +48253,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 8)² + (0)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -32,
+                "c": 128
+              },
+              "xDomain": [
+                4,
+                12
+              ],
+              "yDomain": [
+                -2,
+                10
+              ],
+              "points": [
+                {
+                  "x": 8,
+                  "y": 0,
+                  "label": "Đỉnh I(8;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 6,
+                  "y": 8,
+                  "label": "M"
+                },
+                {
+                  "x": 10,
+                  "y": 8,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -47616,6 +48336,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 9)² + (2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 36,
+                "c": -160
+              },
+              "xDomain": [
+                5,
+                13
+              ],
+              "yDomain": [
+                -8,
+                4
+              ],
+              "points": [
+                {
+                  "x": 9,
+                  "y": 2,
+                  "label": "Đỉnh I(9;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 7,
+                  "y": -6,
+                  "label": "M"
+                },
+                {
+                  "x": 11,
+                  "y": -6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-6-1",
             "type": "open",
             "objectiveIds": [
@@ -48301,7 +49057,7 @@
             "group_score"
           ]
         },
-        "contentHash": "b248e969bd033ff3ec7f065f121c5a19742fc7fd22b709b6edfca40812933374"
+        "contentHash": "899f325604f6e0e4443da20aed51bd68dcb2586cd62c15acfef9c52e47bbc925"
       },
       "citations": [
         {
@@ -48955,6 +49711,42 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 3)² + (-3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 12,
+                "c": -21
+              },
+              "xDomain": [
+                -1,
+                7
+              ],
+              "yDomain": [
+                -13,
+                -1
+              ],
+              "points": [
+                {
+                  "x": 3,
+                  "y": -3,
+                  "label": "Đỉnh I(3;-3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -11,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": -11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "open",
             "objectiveIds": [
@@ -49002,6 +49794,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 4)² + (-1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -16,
+                "c": 31
+              },
+              "xDomain": [
+                0,
+                8
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "points": [
+                {
+                  "x": 4,
+                  "y": -1,
+                  "label": "Đỉnh I(4;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": 7,
+                  "label": "M"
+                },
+                {
+                  "x": 6,
+                  "y": 7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -49049,6 +49877,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 5)² + (1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 20,
+                "c": -49
+              },
+              "xDomain": [
+                1,
+                9
+              ],
+              "yDomain": [
+                -9,
+                3
+              ],
+              "points": [
+                {
+                  "x": 5,
+                  "y": 1,
+                  "label": "Đỉnh I(5;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 3,
+                  "y": -7,
+                  "label": "M"
+                },
+                {
+                  "x": 7,
+                  "y": -7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -49096,6 +49960,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 7)² + (2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -28,
+                "c": 100
+              },
+              "xDomain": [
+                3,
+                11
+              ],
+              "yDomain": [
+                0,
+                12
+              ],
+              "points": [
+                {
+                  "x": 7,
+                  "y": 2,
+                  "label": "Đỉnh I(7;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 5,
+                  "y": 10,
+                  "label": "M"
+                },
+                {
+                  "x": 9,
+                  "y": 10,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "open",
             "objectiveIds": [
@@ -49143,6 +50043,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 6)² + (3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -24,
+                "c": 75
+              },
+              "xDomain": [
+                2,
+                10
+              ],
+              "yDomain": [
+                1,
+                13
+              ],
+              "points": [
+                {
+                  "x": 6,
+                  "y": 3,
+                  "label": "Đỉnh I(6;3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 4,
+                  "y": 11,
+                  "label": "M"
+                },
+                {
+                  "x": 8,
+                  "y": 11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -49190,6 +50126,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 7)² + (-2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 28,
+                "c": -100
+              },
+              "xDomain": [
+                3,
+                11
+              ],
+              "yDomain": [
+                -12,
+                0
+              ],
+              "points": [
+                {
+                  "x": 7,
+                  "y": -2,
+                  "label": "Đỉnh I(7;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 5,
+                  "y": -10,
+                  "label": "M"
+                },
+                {
+                  "x": 9,
+                  "y": -10,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -49237,6 +50209,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 8)² + (0)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -32,
+                "c": 128
+              },
+              "xDomain": [
+                4,
+                12
+              ],
+              "yDomain": [
+                -2,
+                10
+              ],
+              "points": [
+                {
+                  "x": 8,
+                  "y": 0,
+                  "label": "Đỉnh I(8;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 6,
+                  "y": 8,
+                  "label": "M"
+                },
+                {
+                  "x": 10,
+                  "y": 8,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-6-1",
             "type": "open",
             "objectiveIds": [
@@ -49922,7 +50930,7 @@
             "group_score"
           ]
         },
-        "contentHash": "eaef93f58380243d5ad24382bca0a3f11a2eaef61b6ea357296d0c63a3febde6"
+        "contentHash": "947bd846ad8991afb205af32127a4355b707e0e09cb12bcfe62203f0d7fc5d22"
       },
       "citations": [
         {
@@ -84224,6 +85232,56 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(9;0), bán kính R = 7",
+              "xDomain": [
+                0,
+                18
+              ],
+              "yDomain": [
+                -9,
+                9
+              ],
+              "circles": [
+                {
+                  "center": [
+                    9,
+                    0
+                  ],
+                  "r": 7,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 9,
+                  "y": 0,
+                  "label": "Tâm I(9;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 16,
+                  "y": 0,
+                  "label": "A(16;0)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    9,
+                    0
+                  ],
+                  "to": [
+                    16,
+                    0
+                  ],
+                  "label": "R = 7"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "open",
             "objectiveIds": [
@@ -84271,6 +85329,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(10;-2), bán kính R = 6",
+              "xDomain": [
+                2,
+                18
+              ],
+              "yDomain": [
+                -10,
+                6
+              ],
+              "circles": [
+                {
+                  "center": [
+                    10,
+                    -2
+                  ],
+                  "r": 6,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 10,
+                  "y": -2,
+                  "label": "Tâm I(10;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 16,
+                  "y": -2,
+                  "label": "A(16;-2)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    10,
+                    -2
+                  ],
+                  "to": [
+                    16,
+                    -2
+                  ],
+                  "label": "R = 6"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -84318,6 +85426,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(11;1), bán kính R = 5",
+              "xDomain": [
+                4,
+                18
+              ],
+              "yDomain": [
+                -6,
+                8
+              ],
+              "circles": [
+                {
+                  "center": [
+                    11,
+                    1
+                  ],
+                  "r": 5,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 11,
+                  "y": 1,
+                  "label": "Tâm I(11;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 16,
+                  "y": 1,
+                  "label": "A(16;1)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    11,
+                    1
+                  ],
+                  "to": [
+                    16,
+                    1
+                  ],
+                  "label": "R = 5"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -84365,6 +85523,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(2;-2), bán kính R = 2",
+              "xDomain": [
+                -2,
+                6
+              ],
+              "yDomain": [
+                -6,
+                2
+              ],
+              "circles": [
+                {
+                  "center": [
+                    2,
+                    -2
+                  ],
+                  "r": 2,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 2,
+                  "y": -2,
+                  "label": "Tâm I(2;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 4,
+                  "y": -2,
+                  "label": "A(4;-2)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    2,
+                    -2
+                  ],
+                  "to": [
+                    4,
+                    -2
+                  ],
+                  "label": "R = 2"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "open",
             "objectiveIds": [
@@ -84412,6 +85620,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(12;-1), bán kính R = 4",
+              "xDomain": [
+                6,
+                18
+              ],
+              "yDomain": [
+                -7,
+                5
+              ],
+              "circles": [
+                {
+                  "center": [
+                    12,
+                    -1
+                  ],
+                  "r": 4,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 12,
+                  "y": -1,
+                  "label": "Tâm I(12;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 16,
+                  "y": -1,
+                  "label": "A(16;-1)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    12,
+                    -1
+                  ],
+                  "to": [
+                    16,
+                    -1
+                  ],
+                  "label": "R = 4"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -84459,6 +85717,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(2;2), bán kính R = 3",
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "circles": [
+                {
+                  "center": [
+                    2,
+                    2
+                  ],
+                  "r": 3,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 2,
+                  "y": 2,
+                  "label": "Tâm I(2;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 5,
+                  "y": 2,
+                  "label": "A(5;2)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    2,
+                    2
+                  ],
+                  "to": [
+                    5,
+                    2
+                  ],
+                  "label": "R = 3"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -84506,6 +85814,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(3;0), bán kính R = 2",
+              "xDomain": [
+                -1,
+                7
+              ],
+              "yDomain": [
+                -4,
+                4
+              ],
+              "circles": [
+                {
+                  "center": [
+                    3,
+                    0
+                  ],
+                  "r": 2,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 3,
+                  "y": 0,
+                  "label": "Tâm I(3;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 5,
+                  "y": 0,
+                  "label": "A(5;0)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    3,
+                    0
+                  ],
+                  "to": [
+                    5,
+                    0
+                  ],
+                  "label": "R = 2"
+                }
+              ]
+            },
             "id": "task-6-1",
             "type": "open",
             "objectiveIds": [
@@ -85191,7 +86549,7 @@
             "group_score"
           ]
         },
-        "contentHash": "8f4c880adedad68823cbc6e1ffb0dcfe20f78aa44e930686f6befb49c0a75dd9"
+        "contentHash": "28c2b5b6bd42155d49db4edc7dc8ed0ee611f10c0b00a4508369f660578c98ce"
       },
       "citations": [
         {
@@ -85845,6 +87203,56 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(8;1), bán kính R = 6",
+              "xDomain": [
+                0,
+                16
+              ],
+              "yDomain": [
+                -7,
+                9
+              ],
+              "circles": [
+                {
+                  "center": [
+                    8,
+                    1
+                  ],
+                  "r": 6,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 8,
+                  "y": 1,
+                  "label": "Tâm I(8;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 14,
+                  "y": 1,
+                  "label": "A(14;1)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    8,
+                    1
+                  ],
+                  "to": [
+                    14,
+                    1
+                  ],
+                  "label": "R = 6"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "open",
             "objectiveIds": [
@@ -85892,6 +87300,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(9;-1), bán kính R = 5",
+              "xDomain": [
+                2,
+                16
+              ],
+              "yDomain": [
+                -8,
+                6
+              ],
+              "circles": [
+                {
+                  "center": [
+                    9,
+                    -1
+                  ],
+                  "r": 5,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 9,
+                  "y": -1,
+                  "label": "Tâm I(9;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 14,
+                  "y": -1,
+                  "label": "A(14;-1)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    9,
+                    -1
+                  ],
+                  "to": [
+                    14,
+                    -1
+                  ],
+                  "label": "R = 5"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -85939,6 +87397,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(10;2), bán kính R = 4",
+              "xDomain": [
+                4,
+                16
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "circles": [
+                {
+                  "center": [
+                    10,
+                    2
+                  ],
+                  "r": 4,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 10,
+                  "y": 2,
+                  "label": "Tâm I(10;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 14,
+                  "y": 2,
+                  "label": "A(14;2)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    10,
+                    2
+                  ],
+                  "to": [
+                    14,
+                    2
+                  ],
+                  "label": "R = 4"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -85986,6 +87494,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(12;-1), bán kính R = 7",
+              "xDomain": [
+                3,
+                21
+              ],
+              "yDomain": [
+                -10,
+                8
+              ],
+              "circles": [
+                {
+                  "center": [
+                    12,
+                    -1
+                  ],
+                  "r": 7,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 12,
+                  "y": -1,
+                  "label": "Tâm I(12;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 19,
+                  "y": -1,
+                  "label": "A(19;-1)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    12,
+                    -1
+                  ],
+                  "to": [
+                    19,
+                    -1
+                  ],
+                  "label": "R = 7"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "open",
             "objectiveIds": [
@@ -86033,6 +87591,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(11;0), bán kính R = 3",
+              "xDomain": [
+                6,
+                16
+              ],
+              "yDomain": [
+                -5,
+                5
+              ],
+              "circles": [
+                {
+                  "center": [
+                    11,
+                    0
+                  ],
+                  "r": 3,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 11,
+                  "y": 0,
+                  "label": "Tâm I(11;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 14,
+                  "y": 0,
+                  "label": "A(14;0)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    11,
+                    0
+                  ],
+                  "to": [
+                    14,
+                    0
+                  ],
+                  "label": "R = 3"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -86080,6 +87688,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(12;-2), bán kính R = 2",
+              "xDomain": [
+                8,
+                16
+              ],
+              "yDomain": [
+                -6,
+                2
+              ],
+              "circles": [
+                {
+                  "center": [
+                    12,
+                    -2
+                  ],
+                  "r": 2,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 12,
+                  "y": -2,
+                  "label": "Tâm I(12;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 14,
+                  "y": -2,
+                  "label": "A(14;-2)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    12,
+                    -2
+                  ],
+                  "to": [
+                    14,
+                    -2
+                  ],
+                  "label": "R = 2"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -86127,6 +87785,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(2;1), bán kính R = 7",
+              "xDomain": [
+                -7,
+                11
+              ],
+              "yDomain": [
+                -8,
+                10
+              ],
+              "circles": [
+                {
+                  "center": [
+                    2,
+                    1
+                  ],
+                  "r": 7,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 2,
+                  "y": 1,
+                  "label": "Tâm I(2;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 9,
+                  "y": 1,
+                  "label": "A(9;1)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    2,
+                    1
+                  ],
+                  "to": [
+                    9,
+                    1
+                  ],
+                  "label": "R = 7"
+                }
+              ]
+            },
             "id": "task-6-1",
             "type": "open",
             "objectiveIds": [
@@ -86812,7 +88520,7 @@
             "group_score"
           ]
         },
-        "contentHash": "e9cae8ceb4783a5eea178158ed2cc0dec60f1061bd3fa268b75f9ec08f719180"
+        "contentHash": "f9f36a49b44a74fd2adfbad4f90f1fd05fae3a7fc7c6d5184ecacb5a3929944c"
       },
       "citations": [
         {
@@ -89291,6 +90999,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 2)² + (-1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -8,
+                "c": 7
+              },
+              "xDomain": [
+                -2,
+                6
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "points": [
+                {
+                  "x": 2,
+                  "y": -1,
+                  "label": "Đỉnh I(2;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 0,
+                  "y": 7,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-2",
             "type": "open",
             "objectiveIds": [
@@ -89705,6 +91449,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 6)² + (0)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -24,
+                "c": 72
+              },
+              "xDomain": [
+                2,
+                10
+              ],
+              "yDomain": [
+                -2,
+                10
+              ],
+              "points": [
+                {
+                  "x": 6,
+                  "y": 0,
+                  "label": "Đỉnh I(6;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 4,
+                  "y": 8,
+                  "label": "M"
+                },
+                {
+                  "x": 8,
+                  "y": 8,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-6-2",
             "type": "open",
             "objectiveIds": [
@@ -91005,7 +92785,7 @@
             "group_score"
           ]
         },
-        "contentHash": "ea5b3865751cd6eb90ff62d14aae26238ce54c67d9426fa6f1a125b0a2fd901e"
+        "contentHash": "6cd50e8b5ee15e3624a013c320e50e1d7e02f27537d67cec15bf762c7f0a269e"
       },
       "citations": [
         {
@@ -104401,6 +106181,56 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(11;-1), bán kính R = 4",
+              "xDomain": [
+                5,
+                17
+              ],
+              "yDomain": [
+                -7,
+                5
+              ],
+              "circles": [
+                {
+                  "center": [
+                    11,
+                    -1
+                  ],
+                  "r": 4,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 11,
+                  "y": -1,
+                  "label": "Tâm I(11;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 15,
+                  "y": -1,
+                  "label": "A(15;-1)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    11,
+                    -1
+                  ],
+                  "to": [
+                    15,
+                    -1
+                  ],
+                  "label": "R = 4"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "open",
             "objectiveIds": [
@@ -104495,6 +106325,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(12;2), bán kính R = 3",
+              "xDomain": [
+                7,
+                17
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "circles": [
+                {
+                  "center": [
+                    12,
+                    2
+                  ],
+                  "r": 3,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 12,
+                  "y": 2,
+                  "label": "Tâm I(12;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 15,
+                  "y": 2,
+                  "label": "A(15;2)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    12,
+                    2
+                  ],
+                  "to": [
+                    15,
+                    2
+                  ],
+                  "label": "R = 3"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -104589,6 +106469,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(2;0), bán kính R = 2",
+              "xDomain": [
+                -2,
+                6
+              ],
+              "yDomain": [
+                -4,
+                4
+              ],
+              "circles": [
+                {
+                  "center": [
+                    2,
+                    0
+                  ],
+                  "r": 2,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 2,
+                  "y": 0,
+                  "label": "Tâm I(2;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 4,
+                  "y": 0,
+                  "label": "A(4;0)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    2,
+                    0
+                  ],
+                  "to": [
+                    4,
+                    0
+                  ],
+                  "label": "R = 2"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -104636,6 +106566,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(4;2), bán kính R = 5",
+              "xDomain": [
+                -3,
+                11
+              ],
+              "yDomain": [
+                -5,
+                9
+              ],
+              "circles": [
+                {
+                  "center": [
+                    4,
+                    2
+                  ],
+                  "r": 5,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 4,
+                  "y": 2,
+                  "label": "Tâm I(4;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 9,
+                  "y": 2,
+                  "label": "A(9;2)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    4,
+                    2
+                  ],
+                  "to": [
+                    9,
+                    2
+                  ],
+                  "label": "R = 5"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "open",
             "objectiveIds": [
@@ -104777,6 +106757,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(3;-2), bán kính R = 7",
+              "xDomain": [
+                -6,
+                12
+              ],
+              "yDomain": [
+                -11,
+                7
+              ],
+              "circles": [
+                {
+                  "center": [
+                    3,
+                    -2
+                  ],
+                  "r": 7,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 3,
+                  "y": -2,
+                  "label": "Tâm I(3;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 10,
+                  "y": -2,
+                  "label": "A(10;-2)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    3,
+                    -2
+                  ],
+                  "to": [
+                    10,
+                    -2
+                  ],
+                  "label": "R = 7"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -104871,6 +106901,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(4;1), bán kính R = 6",
+              "xDomain": [
+                -4,
+                12
+              ],
+              "yDomain": [
+                -7,
+                9
+              ],
+              "circles": [
+                {
+                  "center": [
+                    4,
+                    1
+                  ],
+                  "r": 6,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 4,
+                  "y": 1,
+                  "label": "Tâm I(4;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 10,
+                  "y": 1,
+                  "label": "A(10;1)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    4,
+                    1
+                  ],
+                  "to": [
+                    10,
+                    1
+                  ],
+                  "label": "R = 6"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -104965,6 +107045,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(5;-1), bán kính R = 5",
+              "xDomain": [
+                -2,
+                12
+              ],
+              "yDomain": [
+                -8,
+                6
+              ],
+              "circles": [
+                {
+                  "center": [
+                    5,
+                    -1
+                  ],
+                  "r": 5,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 5,
+                  "y": -1,
+                  "label": "Tâm I(5;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 10,
+                  "y": -1,
+                  "label": "A(10;-1)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    5,
+                    -1
+                  ],
+                  "to": [
+                    10,
+                    -1
+                  ],
+                  "label": "R = 5"
+                }
+              ]
+            },
             "id": "task-6-1",
             "type": "open",
             "objectiveIds": [
@@ -106313,7 +108443,7 @@
             "group_score"
           ]
         },
-        "contentHash": "139a80fc48dda1539e14588fdeef072f1cd3496ccef4a47e12a083ddc75ac588"
+        "contentHash": "e8a7a8a7f185d56adeffcbc29f0c379aea3fd5881d259333d15531e24c932d51"
       },
       "citations": [
         {
@@ -117946,6 +120076,42 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 7)² + (2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -28,
+                "c": 100
+              },
+              "xDomain": [
+                3,
+                11
+              ],
+              "yDomain": [
+                0,
+                12
+              ],
+              "points": [
+                {
+                  "x": 7,
+                  "y": 2,
+                  "label": "Đỉnh I(7;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 5,
+                  "y": 10,
+                  "label": "M"
+                },
+                {
+                  "x": 9,
+                  "y": 10,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "open",
             "objectiveIds": [
@@ -118040,6 +120206,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 8)² + (-3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 32,
+                "c": -131
+              },
+              "xDomain": [
+                4,
+                12
+              ],
+              "yDomain": [
+                -13,
+                -1
+              ],
+              "points": [
+                {
+                  "x": 8,
+                  "y": -3,
+                  "label": "Đỉnh I(8;-3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 6,
+                  "y": -11,
+                  "label": "M"
+                },
+                {
+                  "x": 10,
+                  "y": -11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -118134,6 +120336,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 9)² + (-1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -36,
+                "c": 161
+              },
+              "xDomain": [
+                5,
+                13
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "points": [
+                {
+                  "x": 9,
+                  "y": -1,
+                  "label": "Đỉnh I(9;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 7,
+                  "y": 7,
+                  "label": "M"
+                },
+                {
+                  "x": 11,
+                  "y": 7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -118181,6 +120419,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 11)² + (0)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 44,
+                "c": -242
+              },
+              "xDomain": [
+                7,
+                15
+              ],
+              "yDomain": [
+                -10,
+                2
+              ],
+              "points": [
+                {
+                  "x": 11,
+                  "y": 0,
+                  "label": "Đỉnh I(11;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 9,
+                  "y": -8,
+                  "label": "M"
+                },
+                {
+                  "x": 13,
+                  "y": -8,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "open",
             "objectiveIds": [
@@ -118322,6 +120596,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 10)² + (1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 40,
+                "c": -199
+              },
+              "xDomain": [
+                6,
+                14
+              ],
+              "yDomain": [
+                -9,
+                3
+              ],
+              "points": [
+                {
+                  "x": 10,
+                  "y": 1,
+                  "label": "Đỉnh I(10;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 8,
+                  "y": -7,
+                  "label": "M"
+                },
+                {
+                  "x": 12,
+                  "y": -7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -118416,6 +120726,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 11)² + (3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -44,
+                "c": 245
+              },
+              "xDomain": [
+                7,
+                15
+              ],
+              "yDomain": [
+                1,
+                13
+              ],
+              "points": [
+                {
+                  "x": 11,
+                  "y": 3,
+                  "label": "Đỉnh I(11;3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 9,
+                  "y": 11,
+                  "label": "M"
+                },
+                {
+                  "x": 13,
+                  "y": 11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -118510,6 +120856,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 12)² + (-2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 48,
+                "c": -290
+              },
+              "xDomain": [
+                8,
+                16
+              ],
+              "yDomain": [
+                -12,
+                0
+              ],
+              "points": [
+                {
+                  "x": 12,
+                  "y": -2,
+                  "label": "Đỉnh I(12;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 10,
+                  "y": -10,
+                  "label": "M"
+                },
+                {
+                  "x": 14,
+                  "y": -10,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-6-1",
             "type": "open",
             "objectiveIds": [
@@ -119858,7 +122240,7 @@
             "group_score"
           ]
         },
-        "contentHash": "76601eaf8363ec08af6ead95b3750c2a1063fd9cfad0e6992c6ebab5b941503c"
+        "contentHash": "0dd5ce57f71eb1dc2e57252dd0975708916277702c5242b9111201c85b9bd3e8"
       },
       "citations": [
         {
@@ -139089,6 +141471,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(7;0), bán kính R = 3",
+              "xDomain": [
+                2,
+                12
+              ],
+              "yDomain": [
+                -5,
+                5
+              ],
+              "circles": [
+                {
+                  "center": [
+                    7,
+                    0
+                  ],
+                  "r": 3,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 7,
+                  "y": 0,
+                  "label": "Tâm I(7;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 10,
+                  "y": 0,
+                  "label": "A(10;0)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    7,
+                    0
+                  ],
+                  "to": [
+                    10,
+                    0
+                  ],
+                  "label": "R = 3"
+                }
+              ]
+            },
             "id": "task-2-2",
             "type": "open",
             "objectiveIds": [
@@ -139607,6 +142039,56 @@
             }
           },
           {
+            "visual": {
+              "kind": "coordinate-plane",
+              "title": "Đường tròn (C): tâm I(11;2), bán kính R = 5",
+              "xDomain": [
+                4,
+                18
+              ],
+              "yDomain": [
+                -5,
+                9
+              ],
+              "circles": [
+                {
+                  "center": [
+                    11,
+                    2
+                  ],
+                  "r": 5,
+                  "label": "(C)",
+                  "color": "#38bdf8"
+                }
+              ],
+              "points": [
+                {
+                  "x": 11,
+                  "y": 2,
+                  "label": "Tâm I(11;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 16,
+                  "y": 2,
+                  "label": "A(16;2)",
+                  "color": "#10b981"
+                }
+              ],
+              "segments": [
+                {
+                  "from": [
+                    11,
+                    2
+                  ],
+                  "to": [
+                    16,
+                    2
+                  ],
+                  "label": "R = 5"
+                }
+              ]
+            },
             "id": "task-6-2",
             "type": "open",
             "objectiveIds": [
@@ -140907,7 +143389,7 @@
             "group_score"
           ]
         },
-        "contentHash": "a9c0d8c3f1a68cded1b0cbfe7454002d21478e5000e8b2f87f6a10138d2fe37a"
+        "contentHash": "ae09414fdb6af7a8e9dc6e7e37583c4747bf33f36aab700a7aa3c598a4c1236a"
       },
       "citations": [
         {
@@ -143570,6 +146052,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 5)² + (3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 20,
+                "c": -47
+              },
+              "xDomain": [
+                1,
+                9
+              ],
+              "yDomain": [
+                -7,
+                5
+              ],
+              "points": [
+                {
+                  "x": 5,
+                  "y": 3,
+                  "label": "Đỉnh I(5;3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 3,
+                  "y": -5,
+                  "label": "M"
+                },
+                {
+                  "x": 7,
+                  "y": -5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-2",
             "type": "open",
             "objectiveIds": [
@@ -143664,6 +146182,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 6)² + (-2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -24,
+                "c": 70
+              },
+              "xDomain": [
+                2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "points": [
+                {
+                  "x": 6,
+                  "y": -2,
+                  "label": "Đỉnh I(6;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 4,
+                  "y": 6,
+                  "label": "M"
+                },
+                {
+                  "x": 8,
+                  "y": 6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-2",
             "type": "open",
             "objectiveIds": [
@@ -143805,6 +146359,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 7)² + (0)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 28,
+                "c": -98
+              },
+              "xDomain": [
+                3,
+                11
+              ],
+              "yDomain": [
+                -10,
+                2
+              ],
+              "points": [
+                {
+                  "x": 7,
+                  "y": 0,
+                  "label": "Đỉnh I(7;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 5,
+                  "y": -8,
+                  "label": "M"
+                },
+                {
+                  "x": 9,
+                  "y": -8,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-3",
             "type": "open",
             "objectiveIds": [
@@ -143852,6 +146442,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 9)² + (1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -36,
+                "c": 163
+              },
+              "xDomain": [
+                5,
+                13
+              ],
+              "yDomain": [
+                -1,
+                11
+              ],
+              "points": [
+                {
+                  "x": 9,
+                  "y": 1,
+                  "label": "Đỉnh I(9;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 7,
+                  "y": 9,
+                  "label": "M"
+                },
+                {
+                  "x": 11,
+                  "y": 9,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-4",
             "type": "open",
             "objectiveIds": [
@@ -143946,6 +146572,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 8)² + (2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -32,
+                "c": 130
+              },
+              "xDomain": [
+                4,
+                12
+              ],
+              "yDomain": [
+                0,
+                12
+              ],
+              "points": [
+                {
+                  "x": 8,
+                  "y": 2,
+                  "label": "Đỉnh I(8;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 6,
+                  "y": 10,
+                  "label": "M"
+                },
+                {
+                  "x": 10,
+                  "y": 10,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-2",
             "type": "open",
             "objectiveIds": [
@@ -144040,6 +146702,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 9)² + (-3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 36,
+                "c": -165
+              },
+              "xDomain": [
+                5,
+                13
+              ],
+              "yDomain": [
+                -13,
+                -1
+              ],
+              "points": [
+                {
+                  "x": 9,
+                  "y": -3,
+                  "label": "Đỉnh I(9;-3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 7,
+                  "y": -11,
+                  "label": "M"
+                },
+                {
+                  "x": 11,
+                  "y": -11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -144135,6 +146833,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 10)² + (-1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -40,
+                "c": 199
+              },
+              "xDomain": [
+                6,
+                14
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "points": [
+                {
+                  "x": 10,
+                  "y": -1,
+                  "label": "Đỉnh I(10;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 8,
+                  "y": 7,
+                  "label": "M"
+                },
+                {
+                  "x": 12,
+                  "y": 7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-6-2",
             "type": "open",
             "objectiveIds": [
@@ -145435,7 +148169,7 @@
             "group_score"
           ]
         },
-        "contentHash": "1ca0f6c1d39ba1d791bc65fb4118f77a392d45c28f92cc9badd3a5b8ed2a2b2e"
+        "contentHash": "eec018e2f2efaddcaec57f5730278feafeff63621e1e99bd9d78768612fbacd6"
       },
       "citations": [
         {
@@ -170590,6 +173324,42 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 2)² + (-2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -8,
+                "c": 6
+              },
+              "xDomain": [
+                -2,
+                6
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "points": [
+                {
+                  "x": 2,
+                  "y": -2,
+                  "label": "Đỉnh I(2;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 0,
+                  "y": 6,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "open",
             "objectiveIds": [
@@ -170684,6 +173454,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 3)² + (0)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 12,
+                "c": -18
+              },
+              "xDomain": [
+                -1,
+                7
+              ],
+              "yDomain": [
+                -10,
+                2
+              ],
+              "points": [
+                {
+                  "x": 3,
+                  "y": 0,
+                  "label": "Đỉnh I(3;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -8,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": -8,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -170778,6 +173584,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 4)² + (2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -16,
+                "c": 34
+              },
+              "xDomain": [
+                0,
+                8
+              ],
+              "yDomain": [
+                0,
+                12
+              ],
+              "points": [
+                {
+                  "x": 4,
+                  "y": 2,
+                  "label": "Đỉnh I(4;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": 10,
+                  "label": "M"
+                },
+                {
+                  "x": 6,
+                  "y": 10,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -170825,6 +173667,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 6)² + (3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 24,
+                "c": -69
+              },
+              "xDomain": [
+                2,
+                10
+              ],
+              "yDomain": [
+                -7,
+                5
+              ],
+              "points": [
+                {
+                  "x": 6,
+                  "y": 3,
+                  "label": "Đỉnh I(6;3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 4,
+                  "y": -5,
+                  "label": "M"
+                },
+                {
+                  "x": 8,
+                  "y": -5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "open",
             "objectiveIds": [
@@ -170966,6 +173844,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 5)² + (-3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 20,
+                "c": -53
+              },
+              "xDomain": [
+                1,
+                9
+              ],
+              "yDomain": [
+                -13,
+                -1
+              ],
+              "points": [
+                {
+                  "x": 5,
+                  "y": -3,
+                  "label": "Đỉnh I(5;-3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 3,
+                  "y": -11,
+                  "label": "M"
+                },
+                {
+                  "x": 7,
+                  "y": -11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -171060,6 +173974,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 6)² + (-1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -24,
+                "c": 71
+              },
+              "xDomain": [
+                2,
+                10
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "points": [
+                {
+                  "x": 6,
+                  "y": -1,
+                  "label": "Đỉnh I(6;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 4,
+                  "y": 7,
+                  "label": "M"
+                },
+                {
+                  "x": 8,
+                  "y": 7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -171154,6 +174104,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 7)² + (1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 28,
+                "c": -97
+              },
+              "xDomain": [
+                3,
+                11
+              ],
+              "yDomain": [
+                -9,
+                3
+              ],
+              "points": [
+                {
+                  "x": 7,
+                  "y": 1,
+                  "label": "Đỉnh I(7;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 5,
+                  "y": -7,
+                  "label": "M"
+                },
+                {
+                  "x": 9,
+                  "y": -7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-6-1",
             "type": "open",
             "objectiveIds": [
@@ -172502,7 +175488,7 @@
             "group_score"
           ]
         },
-        "contentHash": "3e068c5a6d2573e3af7c4600239ca356c5267b906638fe133c458579abd70a75"
+        "contentHash": "cdb51d0e612172ca23c9759976bece4830c69270c51370a5fa18919b6d0facb6"
       },
       "citations": [
         {
@@ -299826,6 +302812,42 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 11)² + (-3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -44,
+                "c": 239
+              },
+              "xDomain": [
+                7,
+                15
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "points": [
+                {
+                  "x": 11,
+                  "y": -3,
+                  "label": "Đỉnh I(11;-3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 9,
+                  "y": 5,
+                  "label": "M"
+                },
+                {
+                  "x": 13,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "open",
             "objectiveIds": [
@@ -299920,6 +302942,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 12)² + (-1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 48,
+                "c": -289
+              },
+              "xDomain": [
+                8,
+                16
+              ],
+              "yDomain": [
+                -11,
+                1
+              ],
+              "points": [
+                {
+                  "x": 12,
+                  "y": -1,
+                  "label": "Đỉnh I(12;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 10,
+                  "y": -9,
+                  "label": "M"
+                },
+                {
+                  "x": 14,
+                  "y": -9,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -300014,6 +303072,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 2)² + (1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -8,
+                "c": 9
+              },
+              "xDomain": [
+                -2,
+                6
+              ],
+              "yDomain": [
+                -1,
+                11
+              ],
+              "points": [
+                {
+                  "x": 2,
+                  "y": 1,
+                  "label": "Đỉnh I(2;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 0,
+                  "y": 9,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 9,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -300061,6 +303155,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 4)² + (2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 16,
+                "c": -30
+              },
+              "xDomain": [
+                0,
+                8
+              ],
+              "yDomain": [
+                -8,
+                4
+              ],
+              "points": [
+                {
+                  "x": 4,
+                  "y": 2,
+                  "label": "Đỉnh I(4;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -6,
+                  "label": "M"
+                },
+                {
+                  "x": 6,
+                  "y": -6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "open",
             "objectiveIds": [
@@ -300202,6 +303332,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 3)² + (3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 12,
+                "c": -15
+              },
+              "xDomain": [
+                -1,
+                7
+              ],
+              "yDomain": [
+                -7,
+                5
+              ],
+              "points": [
+                {
+                  "x": 3,
+                  "y": 3,
+                  "label": "Đỉnh I(3;3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -5,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": -5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -300296,6 +303462,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 4)² + (-2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -16,
+                "c": 30
+              },
+              "xDomain": [
+                0,
+                8
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "points": [
+                {
+                  "x": 4,
+                  "y": -2,
+                  "label": "Đỉnh I(4;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": 6,
+                  "label": "M"
+                },
+                {
+                  "x": 6,
+                  "y": 6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -300390,6 +303592,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 5)² + (0)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 20,
+                "c": -50
+              },
+              "xDomain": [
+                1,
+                9
+              ],
+              "yDomain": [
+                -10,
+                2
+              ],
+              "points": [
+                {
+                  "x": 5,
+                  "y": 0,
+                  "label": "Đỉnh I(5;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 3,
+                  "y": -8,
+                  "label": "M"
+                },
+                {
+                  "x": 7,
+                  "y": -8,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-6-1",
             "type": "open",
             "objectiveIds": [
@@ -301738,7 +304976,7 @@
             "group_score"
           ]
         },
-        "contentHash": "99c9383040dd79de9a63917b164c84ab89d1a115d11cf209d5c34a479dadc119"
+        "contentHash": "19f092345d8e7317f34840a8a69c7c32efc3d2714fbd71c1e1771e28070f8760"
       },
       "citations": [
         {
@@ -353205,6 +356443,42 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 5)² + (-2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 20,
+                "c": -52
+              },
+              "xDomain": [
+                1,
+                9
+              ],
+              "yDomain": [
+                -12,
+                0
+              ],
+              "points": [
+                {
+                  "x": 5,
+                  "y": -2,
+                  "label": "Đỉnh I(5;-2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 3,
+                  "y": -10,
+                  "label": "M"
+                },
+                {
+                  "x": 7,
+                  "y": -10,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "open",
             "objectiveIds": [
@@ -353301,6 +356575,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 6)² + (0)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -24,
+                "c": 72
+              },
+              "xDomain": [
+                2,
+                10
+              ],
+              "yDomain": [
+                -2,
+                10
+              ],
+              "points": [
+                {
+                  "x": 6,
+                  "y": 0,
+                  "label": "Đỉnh I(6;0)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 4,
+                  "y": 8,
+                  "label": "M"
+                },
+                {
+                  "x": 8,
+                  "y": 8,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -353397,6 +356707,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 7)² + (2)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 28,
+                "c": -96
+              },
+              "xDomain": [
+                3,
+                11
+              ],
+              "yDomain": [
+                -8,
+                4
+              ],
+              "points": [
+                {
+                  "x": 7,
+                  "y": 2,
+                  "label": "Đỉnh I(7;2)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 5,
+                  "y": -6,
+                  "label": "M"
+                },
+                {
+                  "x": 9,
+                  "y": -6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -353445,6 +356791,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 9)² + (3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -36,
+                "c": 165
+              },
+              "xDomain": [
+                5,
+                13
+              ],
+              "yDomain": [
+                1,
+                13
+              ],
+              "points": [
+                {
+                  "x": 9,
+                  "y": 3,
+                  "label": "Đỉnh I(9;3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 7,
+                  "y": 11,
+                  "label": "M"
+                },
+                {
+                  "x": 11,
+                  "y": 11,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "open",
             "objectiveIds": [
@@ -353589,6 +356971,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 8)² + (-3)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -32,
+                "c": 125
+              },
+              "xDomain": [
+                4,
+                12
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "points": [
+                {
+                  "x": 8,
+                  "y": -3,
+                  "label": "Đỉnh I(8;-3)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 6,
+                  "y": 5,
+                  "label": "M"
+                },
+                {
+                  "x": 10,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -353685,6 +357103,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = -2(x - 9)² + (-1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": -2,
+                "b": 36,
+                "c": -163
+              },
+              "xDomain": [
+                5,
+                13
+              ],
+              "yDomain": [
+                -11,
+                1
+              ],
+              "points": [
+                {
+                  "x": 9,
+                  "y": -1,
+                  "label": "Đỉnh I(9;-1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 7,
+                  "y": -9,
+                  "label": "M"
+                },
+                {
+                  "x": 11,
+                  "y": -9,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -353781,6 +357235,42 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Parabol: y = 2(x - 10)² + (1)",
+              "fnType": "quadratic",
+              "fnParams": {
+                "a": 2,
+                "b": -40,
+                "c": 201
+              },
+              "xDomain": [
+                6,
+                14
+              ],
+              "yDomain": [
+                -1,
+                11
+              ],
+              "points": [
+                {
+                  "x": 10,
+                  "y": 1,
+                  "label": "Đỉnh I(10;1)",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 8,
+                  "y": 9,
+                  "label": "M"
+                },
+                {
+                  "x": 12,
+                  "y": 9,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-6-1",
             "type": "open",
             "objectiveIds": [
@@ -355131,7 +358621,7 @@
             "group_score"
           ]
         },
-        "contentHash": "f7d10de3f2863c634c5b4b0135c1531c3c8c31c23f5ad031bb3bc37f6492bffa"
+        "contentHash": "60ef1e401b6e76a77ef6c4b975f18bf5fe2106ec0d7e486e24c0f8d88f2dc3e8"
       },
       "citations": [
         {

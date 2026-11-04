@@ -28,21 +28,21 @@ function simpson(f, a, b, n = 200) {
   for (let i = 1; i < n; i++) sum += (i % 2 ? 4 : 2) * f(a + i * h);
   return sum * h / 3;
 }
-const qNum = (prompt, answer, solution, check) => {
+const qNum = (prompt, answer, solution, check, visual) => {
   assert.ok(Number.isFinite(answer));
   if (check !== undefined) near(answer, check);
-  return { type: 'closed', prompt, evaluation: { checkerId: 'numeric_exact', answerKey: answer }, solution };
+  return { type: 'closed', prompt, evaluation: { checkerId: 'numeric_exact', answerKey: answer }, solution, ...(visual ? { visual } : {}) };
 };
-const qChoice = (prompt, correct, distractors, solution, seed = 0) => {
+const qChoice = (prompt, correct, distractors, solution, seed = 0, visual) => {
   const labels = [correct, ...distractors];
   assert.equal(new Set(labels).size, labels.length);
   const rotate = seed % labels.length;
   const ordered = [...labels.slice(rotate), ...labels.slice(0, rotate)];
   const options = ordered.map((label, i) => ({ id: String.fromCharCode(65 + i), label }));
-  return { type: 'closed', prompt, inputSchema: { options }, evaluation: { checkerId: 'choice_exact', answerKey: options.find(o => o.label === correct).id }, solution };
+  return { type: 'closed', prompt, inputSchema: { options }, evaluation: { checkerId: 'choice_exact', answerKey: options.find(o => o.label === correct).id }, solution, ...(visual ? { visual } : {}) };
 };
-const qOpen = (prompt, solution, criteria) => ({ type: 'open', prompt, solution,
-  evaluation: { rubric: { criteria: criteria || ['Lập luận đúng theo dữ kiện.', 'Kết quả và điều kiện đúng.'], lookFor: [solution] } } });
+const qOpen = (prompt, solution, criteria, visual) => ({ type: 'open', prompt, solution,
+  evaluation: { rubric: { criteria: criteria || ['Lập luận đúng theo dữ kiện.', 'Kết quả và điều kiện đúng.'], lookFor: [solution] } }, ...(visual ? { visual } : {}) });
 const skill = (title, goal, rule, error, lo, make, hints) => ({ title, goal, rule, error, lo, make, hints });
 // H1 gắn dữ liệu: chiết xuất dữ kiện từ đề; "=" ngay trước số diễn đạt thành "bằng" ngoài công thức để không lộ đáp án theo quy tắc validator.
 const dataAnchor = prompt => {
@@ -211,9 +211,19 @@ const skills = {
     T`Tiệm cận đứng cần giới hạn vô cực tại điểm hữu hạn. Tiệm cận ngang $y=L$ cần giới hạn $L$ khi $x$ tiến ra vô cực. Mẫu bằng không chưa đủ nếu nhân tử bị khử.`,
     'Không coi mọi nghiệm mẫu số là tiệm cận đứng.', '1-04', s=>{
       const a=s%3+1,b=a+2,k=s%5+1;
+      const visual = {
+        kind: 'function-graph',
+        title: `Tiệm cận đồ thị hàm số: y = ${a} + ${k}/(x - ${b})`,
+        fnType: 'rational',
+        fnParams: { a, b: k - a * b, c: 1, d: -b },
+        xDomain: [b - 6, b + 6],
+        yDomain: [a - 6, a + 6],
+        asymptotes: { vertical: [b], horizontal: [a] },
+        points: [{ x: b + 1, y: a + k, label: 'M' }]
+      };
       return qChoice(T`Cho $f(x)=${a}+\dfrac{${k}}{x-${b}}$. Cặp tiệm cận đứng và ngang là`,
         T`$x=${b}$ và $y=${a}$`,[T`$x=${a}$ và $y=${b}$`,T`$x=-${b}$ và $y=${a}$`],
-        T`Khi $x\to${b}^{\pm}$, phần phân thức vô hạn; khi $x\to\pm\infty$, phần phân thức tiến về $0$.`,s);
+        T`Khi $x\to${b}^{\pm}$, phần phân thức vô hạn; khi $x\to\pm\infty$, phần phân thức tiến về $0$.`,s, visual);
     }, ['Xác định điểm loại khỏi miền.', 'Xét giới hạn gần điểm đó.', 'Xét riêng giới hạn khi đối số ra vô cực.', T`Ví dụ khác: $g(x)=\frac{x-1}{x-1}=1$ với $x\ne1$ có điểm khuyết, không có tiệm cận đứng tại $1$.`]),
   asymOblique: skill('Tiệm cận xiên', 'Dùng phép chia đa thức để tìm đường tiệm cận xiên.',
     T`Viết $f(x)=ax+b+r(x)$ với $r(x)\to0$ khi $x\to\pm\infty$; đường $y=ax+b$ là tiệm cận xiên khi $a\ne0$.`,
@@ -281,19 +291,45 @@ Object.assign(skills, {
       const a=s%2+1,b=s%5-2,coeff=[b,-3*a*a,0,1];
       const high=b+2*a**3,low=b-2*a**3;
       near(poly(coeff,-a),high);near(poly(coeff,a),low);
-      if(stage==='precheck') return qChoice(T`Với $f(x)=x^3-${3*a*a}x${sign(b)}$, hệ số bậc ba dương. Khi $x\to+\infty$, $f(x)$ tiến tới đâu?`,T`$+\infty$`,[T`$-\infty$`,`$${b}$`],T`Số hạng $x^3$ chi phối khi $x$ rất lớn.`,s);
+      const visual = {
+        kind: 'function-graph',
+        title: `Đồ thị hàm số bậc ba: y = x³ - ${3*a*a}x ${sign(b)}`,
+        fnType: 'cubic',
+        fnParams: { a: 1, b: 0, c: -3*a*a, d: b },
+        xDomain: [-a - 2, a + 2],
+        yDomain: [low - 2, high + 2],
+        points: [
+          { x: -a, y: high, label: 'CĐ', color: '#e11d48' },
+          { x: a, y: low, label: 'CT', color: '#0284c7' },
+          { x: 0, y: b, label: 'Giao Oy', color: '#16a34a' }
+        ]
+      };
+      if(stage==='precheck') return qChoice(T`Với $f(x)=x^3-${3*a*a}x${sign(b)}$, hệ số bậc ba dương. Khi $x\to+\infty$, $f(x)$ tiến tới đâu?`,T`$+\infty$`,[T`$-\infty$`,`$${b}$`],T`Số hạng $x^3$ chi phối khi $x$ rất lớn.`,s, visual);
       return qOpen(T`Cho $f(x)=x^3-${3*a*a}x${sign(b)}$, $f'(x)=3(x-${a})(x+${a})$. Trên vở, hoàn thiện bảng biến thiên, ghi hai điểm cực trị và phác đồ thị qua $(0;${b})$. Mô tả ngắn chiều của ba nhánh.`,
         T`Miền $\mathbb R$; dấu $f'$ là $+,-,+$ qua $-${a},${a}$. Cực đại $(-${a};${high})$, cực tiểu $(${a};${low})$, qua $(0;${b})$. Đồ thị đi từ dưới trái lên cực đại, xuống cực tiểu, rồi lên trên phải.`,
-        ['Bảng dấu và chiều biến thiên đúng.', 'Hai tọa độ cực trị đúng.', 'Phác thảo liên tục, đi qua điểm đã cho, đúng chiều hai đầu.']);
+        ['Bảng dấu và chiều biến thiên đúng.', 'Hai tọa độ cực trị đúng.', 'Phác thảo liên tục, đi qua điểm đã cho, đúng chiều hai đầu.'], visual);
     }, ['Đặt hai nghiệm đạo hàm lên trục số.', 'Lập ba khoảng và thử dấu.', 'Tính tung độ bằng hàm ban đầu rồi đặt điểm lên hệ trục.', T`Ví dụ khác: $g(x)=x^3$ có hình chữ S tăng, đi qua gốc tọa độ và không có cực trị.`]),
   rational11: skill('Khảo sát phân thức bậc nhất/bậc nhất', 'Kết hợp miền xác định, tính đơn điệu và tiệm cận để phác đồ thị phân thức bậc nhất/bậc nhất.',
     T`Viết hàm dưới dạng $a+k/(x-b)$ để đọc tiệm cận; đạo hàm $-k/(x-b)^2$ cho chiều biến thiên trên từng khoảng. Hai nhánh không nối qua đường tiệm cận đứng.`,
     'Không nối hai nhánh qua điểm loại khỏi miền; không nói nghịch biến trên toàn tập xác định rời nhau.', '1-05', (s,stage)=>{
       const a=s%3+1,b=s%3+2,k=s%4+1;
-      if(stage==='precheck') return qNum(T`Hàm $f(x)=${a}+\dfrac{${k}}{x-${b}}$ không xác định tại giá trị nào của $x$?`,b,T`Mẫu bằng không khi $x=${b}$.`);
+      const visual = {
+        kind: 'function-graph',
+        title: `Phân thức hữu tỉ: y = ${a} + ${k}/(x - ${b})`,
+        fnType: 'rational',
+        fnParams: { a, b: k - a * b, c: 1, d: -b },
+        xDomain: [b - 5, b + 5],
+        yDomain: [a - 5, a + 5],
+        asymptotes: { vertical: [b], horizontal: [a] },
+        points: [
+          { x: b - 1, y: a - k, label: 'M' },
+          { x: b + 1, y: a + k, label: 'N' }
+        ]
+      };
+      if(stage==='precheck') return qNum(T`Hàm $f(x)=${a}+\dfrac{${k}}{x-${b}}$ không xác định tại giá trị nào của $x$?`,b,T`Mẫu bằng không khi $x=${b}$.`, undefined, visual);
       return qOpen(T`Khảo sát và phác nhanh $f(x)=${a}+\dfrac{${k}}{x-${b}}$. Ghi miền xác định, dấu đạo hàm, hai tiệm cận và hai điểm ứng với $x=${b-1}$, $x=${b+1}$.`,
         T`Miền $\mathbb R\setminus\{${b}\}$; $f'=-${k}/(x-${b})^2<0$. Nghịch biến trên từng khoảng $(-\infty;${b})$, $(${b};+\infty)$. Tiệm cận $x=${b},y=${a}$. Hai điểm $(${b-1};${a-k})$, $(${b+1};${a+k})$; hai nhánh hướng xuống riêng rẽ.`,
-        ['Miền và tiệm cận đúng.', 'Dấu đạo hàm, từng khoảng đơn điệu đúng.', 'Hai điểm và hai nhánh phù hợp tiệm cận.']);
+        ['Miền và tiệm cận đúng.', 'Dấu đạo hàm, từng khoảng đơn điệu đúng.', 'Hai điểm và hai nhánh phù hợp tiệm cận.'], visual);
     }, ['Tách hằng số và phân thức đơn.', 'Mẫu bình phương của đạo hàm luôn dương trên miền.', 'Dựng hai tiệm cận trước khi đặt điểm.', T`Ví dụ khác: $g(x)=1/x$ có hai tiệm cận là hai trục tọa độ.`]),
   rational21: skill('Khảo sát phân thức bậc hai/bậc nhất', 'Dùng tiệm cận xiên và bảng biến thiên để phác đồ thị phân thức bậc hai/bậc nhất.',
     T`Chia đa thức, xác định tiệm cận xiên và đứng; giải đạo hàm bằng không rồi lập bảng dấu có tách điểm loại khỏi miền.`,
@@ -576,6 +612,7 @@ function makeEntry(period, focus, eligible) {
     solutions.push({stage,skill:focus[i],branch,prompt:q.prompt,solution:q.solution,evaluation:q.evaluation});
     return {type:q.type,prompt:q.prompt,minutes,participation,branch,objectiveIndexes:[i],source:sources[i],
       ...(q.inputSchema?{inputSchema:q.inputSchema}:{}),evaluation:q.evaluation,
+      ...(q.visual?{visual:q.visual}:{}),
       hints:branch==='support'?[dataAnchor(q.prompt),...spec.hints.slice(1)]:[dataAnchor(q.prompt),...spec.hints.slice(1,3)],requiresFullScaffold:false,isCore:branch==='core'||branch==='shared',
       supportRationale:`Lời giải dành cho GV: ${q.solution} Lỗi cần quan sát: ${spec.error}`};
   };

@@ -25,14 +25,14 @@ const choose = (n, k) => factorial(n) / factorial(k) / factorial(n - k);
 const subsets = (n, k) => range(0, 2 ** n - 1).filter(mask => [...mask.toString(2)].filter(x => x === '1').length === k);
 const pairs = n => range(1, n).flatMap(i => range(1, n).filter(j => j !== i).map(j => [i, j]));
 const polyPower = (a, n) => { let p = [1]; for (let i = 0; i < n; i++) { const q = Array(p.length + 1).fill(0); p.forEach((v, j) => { q[j] += v * a; q[j + 1] += v; }); p = q; } return p; };
-const open = (prompt, solution, hints, criteria) => ({ type: 'open', prompt, solution, hints,
-  evaluation: { rubric: { criteria, lookFor: [solution] } } });
+const open = (prompt, solution, hints, criteria, visual) => ({ type: 'open', prompt, solution, hints,
+  evaluation: { rubric: { criteria, lookFor: [solution] } }, ...(visual ? { visual } : {}) });
 const bank = {};
 function concept(id, title, statement, teach, error, hints, make) {
   assert.equal(hints.length, 4);
   bank[id] = { title, statement, teach, error, make(seed, difficulty) {
     const q = make(seed, difficulty);
-    return open(q.prompt, q.solution, hints, q.criteria || ['Lập đúng mô hình, điều kiện và cách tính được hỏi.', 'Kết quả, giải thích và bước kiểm tra phù hợp với dữ kiện.']);
+    return open(q.prompt, q.solution, hints, q.criteria || ['Lập đúng mô hình, điều kiện và cách tính được hỏi.', 'Kết quả, giải thích và bước kiểm tra phù hợp với dữ kiện.'], q.visual);
   } };
 }
 const k = seed => 2 + seed % 11;
@@ -128,8 +128,22 @@ concept('quadgraph', 'Đồ thị và biến thiên hàm bậc hai', 'Xác đị
   'Đổi dấu sai ở hoành độ đỉnh hoặc cho hàm đồng biến trên toàn trục.', ['Đưa về dạng bình phương của một hiệu.', 'Tìm điểm làm bình phương bằng không.', 'Chọn hai hoành độ đối xứng qua trục để kiểm.', 'Chiều mở quyết định phía nào tăng, phía nào giảm.'], s => {
     const h = k(s), v = s % 7 - 3, a = s % 2 ? -2 : 2;
     equal(a * ((h - 2) - h) ** 2 + v, a * ((h + 2) - h) ** 2 + v);
+    const visual = {
+      kind: 'function-graph',
+      title: `Parabol: y = ${a}(x - ${h})² + (${v})`,
+      fnType: 'quadratic',
+      fnParams: { a, b: -2 * a * h, c: a * h * h + v },
+      xDomain: [h - 4, h + 4],
+      yDomain: [Math.min(v - 2, v + 4 * a - 2), Math.max(v + 2, v + 4 * a + 2)],
+      points: [
+        { x: h, y: v, label: `Đỉnh I(${h};${v})`, color: '#e11d48' },
+        { x: h - 2, y: 4 * a + v, label: 'M' },
+        { x: h + 2, y: 4 * a + v, label: 'N' }
+      ]
+    };
     return { prompt: R`Vẽ phác đồ thị $y=${a}(x-${h})^2+(${v})$: nêu đỉnh, trục đối xứng, chiều mở; tính giá trị tại $x=${h - 2},${h},${h + 2}$; ghi hai khoảng biến thiên.`,
-      solution: R`Đỉnh $I(${h};${v})$, trục $x=${h}$, mở ${a > 0 ? 'lên' : 'xuống'}. Ba tung độ $${4 * a + v};${v};${4 * a + v}$. Trên $(-\infty;${h})$ hàm ${a > 0 ? 'nghịch' : 'đồng'} biến, trên $(${h};+\infty)$ hàm ${a > 0 ? 'đồng' : 'nghịch'} biến.` };
+      solution: R`Đỉnh $I(${h};${v})$, trục $x=${h}$, mở ${a > 0 ? 'lên' : 'xuống'}. Ba tung độ $${4 * a + v};${v};${4 * a + v}$. Trên $(-\infty;${h})$ hàm ${a > 0 ? 'nghịch' : 'đồng'} biến, trên $(${h};+\infty)$ hàm ${a > 0 ? 'đồng' : 'nghịch'} biến.`,
+      visual };
   });
 concept('quadapplication', 'Vận dụng đồ thị bậc hai trên miền xác định', 'Tìm giá trị lớn nhất của mô hình bậc hai trong một đoạn có ý nghĩa thực tế.',
   'GV nêu mô hình chiều cao, ghi ngay miền thời gian. HS tìm đỉnh rồi kiểm đỉnh thuộc miền trước khi kết luận; đơn vị thời gian và chiều cao khác nhau.',
@@ -202,8 +216,25 @@ concept('circle', 'Phương trình đường tròn', 'Lập phương trình từ
   'GV vẽ tâm I và bán kính; mọi điểm cách I một khoảng R thỏa phương trình bình phương. Chốt bán kính dương và đọc dấu tọa độ tâm từ dạng chuẩn.',
   'Đọc tâm cùng dấu với hằng số trong ngoặc thay vì dấu đối.', ['Ghi tâm và bán kính.', 'Viết tổng hai bình phương độ lệch tọa độ.', 'Vế phải là bình phương bán kính.', 'Thay điểm để kiểm khoảng cách tới tâm.'], s => {
     const h = k(s), b = s % 5 - 2, r = 2 + s % 6; equal((h + r - h) ** 2 + (b - b) ** 2, r * r);
+    const visual = {
+      kind: 'coordinate-plane',
+      title: `Đường tròn (C): tâm I(${h};${b}), bán kính R = ${r}`,
+      xDomain: [h - r - 2, h + r + 2],
+      yDomain: [b - r - 2, b + r + 2],
+      circles: [
+        { center: [h, b], r, label: '(C)', color: '#38bdf8' }
+      ],
+      points: [
+        { x: h, y: b, label: `Tâm I(${h};${b})`, color: '#e11d48' },
+        { x: h + r, y: b, label: `A(${h+r};${b})`, color: '#10b981' }
+      ],
+      segments: [
+        { from: [h, b], to: [h + r, b], label: `R = ${r}` }
+      ]
+    };
     return { prompt: R`Đường tròn có tâm $I(${h};${b})$, bán kính $R=${r}$. Viết phương trình dạng chuẩn, dạng khai triển; kiểm điểm $A(${h + r};${b})$ thuộc đường tròn.`,
-      solution: R`$(x-${h})^2+(y-(${b}))^2=${r * r}$. Khai triển $x^2+y^2-${2 * h}x-(${2 * b})y+(${h * h + b * b - r * r})=0$. Với A, tổng hai bình phương bằng ${r * r} nên thuộc đường tròn.` };
+      solution: R`$(x-${h})^2+(y-(${b}))^2=${r * r}$. Khai triển $x^2+y^2-${2 * h}x-(${2 * b})y+(${h * h + b * b - r * r})=0$. Với A, tổng hai bình phương bằng ${r * r} nên thuộc đường tròn.`,
+      visual };
   });
 concept('circlepoints', 'Lập đường tròn biết đường kính', 'Dùng trung điểm và độ dài để lập phương trình đường tròn có đường kính cho trước.',
   'GV nối A,B và dựng trung điểm I; bán kính bằng nửa độ dài đường kính. HS thay hai đầu mút vào phương trình để kiểm.',
@@ -432,8 +463,8 @@ function buildPeriod(period) {
 
       if (!usedPrompts.has(prompt) || attempt === 99) {
         usedPrompts.add(prompt);
-        const { solution: sol, ...rest } = cand;
-        question = { ...rest, prompt };
+        const { solution: sol, visual: vis, ...rest } = cand;
+        question = { ...rest, prompt, ...(vis ? { visual: vis } : {}) };
         solution = sol;
         if (branch === 'extension') {
           question.evaluation.rubric.criteria.push('Giải thích đúng tình huống thay đổi hoặc điều kiện giới hạn, có lập luận.');

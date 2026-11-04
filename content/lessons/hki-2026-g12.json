@@ -49363,6 +49363,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 4/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -4,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 6,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -49419,6 +49453,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 4/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 1,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 5,
+                  "label": "M"
                 }
               ]
             },
@@ -49481,6 +49549,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 5/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 6,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "closed",
             "objectiveIds": [
@@ -49537,6 +49639,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 3/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 4,
+                  "label": "M"
                 }
               ]
             },
@@ -49599,6 +49735,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 2/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -6,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 4,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "closed",
             "objectiveIds": [
@@ -49656,6 +49826,40 @@
                 {
                   "id": "C",
                   "label": "$x=4$ và $y=2$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 5/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -3,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 7,
+                  "label": "M"
                 }
               ]
             },
@@ -49810,6 +50014,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 1/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 2,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "closed",
             "objectiveIds": [
@@ -49866,6 +50104,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 2/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -1,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 3,
+                  "label": "M"
                 }
               ]
             },
@@ -50565,7 +50837,7 @@
             "group_score"
           ]
         },
-        "contentHash": "9ea3c7c46ed86fa66dd1627cb834a4078863b759756d20e1bcf6c6d5370228f3"
+        "contentHash": "cd6b8b6b7bb7da93ff9a0403c0d7c3b53f8f27ca0ea1b9969cea571e337a0f39"
       },
       "citations": [
         {
@@ -51242,6 +51514,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 2/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -1,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 3,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -51298,6 +51604,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 2/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -13,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 5,
+                  "label": "M"
                 }
               ]
             },
@@ -51360,6 +51700,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 3/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -12,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 6,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "closed",
             "objectiveIds": [
@@ -51416,6 +51790,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 1/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -14,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 4,
+                  "label": "M"
                 }
               ]
             },
@@ -51478,6 +51886,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 5/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 6,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "closed",
             "objectiveIds": [
@@ -51535,6 +51977,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 3/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 4,
+                  "label": "M"
                 }
               ]
             },
@@ -51689,6 +52165,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 4/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -11,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 7,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "closed",
             "objectiveIds": [
@@ -51745,6 +52255,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 5/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -10,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 8,
+                  "label": "M"
                 }
               ]
             },
@@ -52444,7 +52988,7 @@
             "group_score"
           ]
         },
-        "contentHash": "7a7b057267bd6aba50bcbab513372a5672445c1c58d05629f72ee4b0204abcb8"
+        "contentHash": "cfb9d9bacd5cefbc9ec7527e8c62eb6984d28acd170d31ee12c7bab255ea1913"
       },
       "citations": [
         {
@@ -60108,6 +60652,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 4/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -11,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 7,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -60223,6 +60801,40 @@
                 {
                   "id": "C",
                   "label": "$x=4$ và $y=2$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 4/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -4,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 6,
+                  "label": "M"
                 }
               ]
             },
@@ -60344,6 +60956,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 5/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -3,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 7,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "closed",
             "objectiveIds": [
@@ -60459,6 +61105,40 @@
                 {
                   "id": "C",
                   "label": "$x=4$ và $y=2$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 3/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -5,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 5,
+                  "label": "M"
                 }
               ]
             },
@@ -60580,6 +61260,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 2/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -13,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 5,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "closed",
             "objectiveIds": [
@@ -60697,6 +61411,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 5/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -10,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 8,
+                  "label": "M"
                 }
               ]
             },
@@ -60956,6 +61704,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 1/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -7,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 3,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "closed",
             "objectiveIds": [
@@ -61071,6 +61853,40 @@
                 {
                   "id": "C",
                   "label": "$x=4$ và $y=2$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 2/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -6,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 4,
+                  "label": "M"
                 }
               ]
             },
@@ -62277,7 +63093,7 @@
             "group_score"
           ]
         },
-        "contentHash": "e679e2b72db770cb6d135334d4c211e75dc4c747b25cc9abe68396d3677042ac"
+        "contentHash": "fc989474d9e4ce5a5ab2451114e0c9ba3b2e3e6bb660666cae73a800d9faf40d"
       },
       "citations": [
         {
@@ -63213,6 +64029,45 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x -2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": -2
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -20,
+                16
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 14,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -18,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -63256,6 +64111,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x -1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": -1
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -19,
+                17
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 15,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -17,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -63302,6 +64196,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x +0",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": 0
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -18,
+                18
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 16,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -16,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -63348,6 +64281,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x -2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": -2
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -20,
+                16
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 14,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -18,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -63394,6 +64366,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 2
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -2,
+                6
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 4,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -63441,6 +64452,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 1
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -3,
+                5
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 3,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -1,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -63579,6 +64629,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x +1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": 1
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -17,
+                19
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 17,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -15,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "open",
             "objectiveIds": [
@@ -63625,6 +64714,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x +2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": 2
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -16,
+                20
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 18,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -14,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-8-1",
             "type": "open",
             "objectiveIds": [
@@ -64324,7 +65452,7 @@
             "group_score"
           ]
         },
-        "contentHash": "8d01df39709b208ef84016fa44b97d40114ab8904493e5587f60fc4534814e2b"
+        "contentHash": "45685436e33f9bf5404c4f13afd391620141335ffec46fe67ec0cdb516884b8d"
       },
       "citations": [
         {
@@ -65001,6 +66129,45 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 1
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -3,
+                5
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 3,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -1,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -65044,6 +66211,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 2
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -2,
+                6
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 4,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -65090,6 +66296,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x -2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -6,
+                2
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 0,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -4,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -65136,6 +66381,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 1
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -3,
+                5
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 3,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -1,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -65182,6 +66466,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x +0",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": 0
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -18,
+                18
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 16,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -16,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -65229,6 +66552,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x -1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": -1
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -19,
+                17
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 15,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -17,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -65367,6 +66729,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x -1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": -1
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -5,
+                3
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 1,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -3,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "open",
             "objectiveIds": [
@@ -65413,6 +66814,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +0",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 0
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -4,
+                4
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 2,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -2,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-8-1",
             "type": "open",
             "objectiveIds": [
@@ -66112,7 +67552,7 @@
             "group_score"
           ]
         },
-        "contentHash": "032046667d8edecaa723c0036dbe93efb3ba8b13d1d3924da6760efef6114390"
+        "contentHash": "be7840e523f10dcb5094bcf8b0afea099920b1f94aa387346079b1cec95482a5"
       },
       "citations": [
         {
@@ -78061,6 +79501,45 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 1 + 4/(x - 2)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 2,
+                "c": 1,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -4,
+                6
+              ],
+              "asymptotes": {
+                "vertical": [
+                  2
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 1,
+                  "y": -3,
+                  "label": "M"
+                },
+                {
+                  "x": 3,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -78099,6 +79578,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 3/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -3,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": -1,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -78145,6 +79663,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 1/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -5,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": 1,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 3,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -78191,6 +79748,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 1 + 2/(x - 2)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": 1,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -4,
+                6
+              ],
+              "asymptotes": {
+                "vertical": [
+                  2
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 1,
+                  "y": -1,
+                  "label": "M"
+                },
+                {
+                  "x": 3,
+                  "y": 3,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -78237,6 +79833,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 4/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -8,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": -1,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -78284,6 +79919,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 2/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -4,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": 0,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 4,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -78422,6 +80096,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 1 + 4/(x - 2)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 2,
+                "c": 1,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -4,
+                6
+              ],
+              "asymptotes": {
+                "vertical": [
+                  2
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 1,
+                  "y": -3,
+                  "label": "M"
+                },
+                {
+                  "x": 3,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "open",
             "objectiveIds": [
@@ -78468,6 +80181,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 1/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -11,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": 2,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 4,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-8-1",
             "type": "open",
             "objectiveIds": [
@@ -79167,7 +80919,7 @@
             "group_score"
           ]
         },
-        "contentHash": "52e2fb231e6ea3e600f5ac49fb154cbb03fe5f7d6c43617c243a83306195bc3b"
+        "contentHash": "9bc2773d69de12702a6dd66c37e139caabe42e4776c523b163b7705611252b44"
       },
       "citations": [
         {
@@ -79828,6 +81580,45 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 1/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -11,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": 2,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 4,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -79866,6 +81657,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 1 + 4/(x - 2)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 2,
+                "c": 1,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -4,
+                6
+              ],
+              "asymptotes": {
+                "vertical": [
+                  2
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 1,
+                  "y": -3,
+                  "label": "M"
+                },
+                {
+                  "x": 3,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -79912,6 +81742,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 1 + 2/(x - 2)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": 1,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -4,
+                6
+              ],
+              "asymptotes": {
+                "vertical": [
+                  2
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 1,
+                  "y": -1,
+                  "label": "M"
+                },
+                {
+                  "x": 3,
+                  "y": 3,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -79958,6 +81827,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 3/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -9,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": 0,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -80004,6 +81912,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 1/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -5,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": 1,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 3,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -80051,6 +81998,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 1 + 3/(x - 2)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 1,
+                "c": 1,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -4,
+                6
+              ],
+              "asymptotes": {
+                "vertical": [
+                  2
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 1,
+                  "y": -2,
+                  "label": "M"
+                },
+                {
+                  "x": 3,
+                  "y": 4,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -80189,6 +82175,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 1/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -11,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": 2,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 4,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "open",
             "objectiveIds": [
@@ -80235,6 +82260,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 2/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -4,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": 0,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 4,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-8-1",
             "type": "open",
             "objectiveIds": [
@@ -80934,7 +82998,7 @@
             "group_score"
           ]
         },
-        "contentHash": "c03347174f6e155efa5e7dfe99040b35c0bc319078d37c9bed7bbe38677549a4"
+        "contentHash": "5dcd27615e64a856656a66aa18f3a63941bde6cf87fbd22cad15d1a19fb2d8d1"
       },
       "citations": [
         {
@@ -103993,6 +106057,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 3/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -12,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 6,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -104108,6 +106206,40 @@
                 {
                   "id": "C",
                   "label": "$x=4$ và $y=2$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 3/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -5,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 5,
+                  "label": "M"
                 }
               ]
             },
@@ -104229,6 +106361,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 4/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -4,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 6,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "closed",
             "objectiveIds": [
@@ -104344,6 +106510,40 @@
                 {
                   "id": "C",
                   "label": "$x=4$ và $y=2$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 2/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -6,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 4,
+                  "label": "M"
                 }
               ]
             },
@@ -104465,6 +106665,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 1/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -14,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 4,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "closed",
             "objectiveIds": [
@@ -104582,6 +106816,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 4/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -11,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 7,
+                  "label": "M"
                 }
               ]
             },
@@ -104841,6 +107109,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 5/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -3,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 7,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "closed",
             "objectiveIds": [
@@ -104956,6 +107258,40 @@
                 {
                   "id": "C",
                   "label": "$x=4$ và $y=2$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 1/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -7,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 3,
+                  "label": "M"
                 }
               ]
             },
@@ -106162,7 +108498,7 @@
             "group_score"
           ]
         },
-        "contentHash": "160bf88a046f5f744fb72788542fd388aac6899284ae5517c39e837c9d8bbd83"
+        "contentHash": "22ee0daef82f788264d44dac48b7706547b0dc844342afba72e57a2a07265933"
       },
       "citations": [
         {
@@ -124037,6 +126373,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 4/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -4,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 6,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -124152,6 +126522,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 4/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 1,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 5,
+                  "label": "M"
                 }
               ]
             },
@@ -124273,6 +126677,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 5/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 6,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "closed",
             "objectiveIds": [
@@ -124388,6 +126826,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 3/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 4,
+                  "label": "M"
                 }
               ]
             },
@@ -124509,6 +126981,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 2/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -6,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 4,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "closed",
             "objectiveIds": [
@@ -124626,6 +127132,40 @@
                 {
                   "id": "C",
                   "label": "$x=4$ và $y=2$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 5/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -3,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 7,
+                  "label": "M"
                 }
               ]
             },
@@ -124885,6 +127425,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 1/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 2,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "closed",
             "objectiveIds": [
@@ -125000,6 +127574,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 2/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -1,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 3,
+                  "label": "M"
                 }
               ]
             },
@@ -126206,7 +128814,7 @@
             "group_score"
           ]
         },
-        "contentHash": "ea879fc2f771b9c09d4226ac52e79f00b260802127c6a81c4ea6e80fd18c285f"
+        "contentHash": "0c490aaa690662889b6fc983b59c789b4dff8a3bf1354af195f3d9e881094003"
       },
       "citations": [
         {
@@ -127141,6 +129749,45 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x -2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -6,
+                2
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 0,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -4,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -127184,6 +129831,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x -1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": -1
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -5,
+                3
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 1,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -3,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -127230,6 +129916,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +0",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 0
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -4,
+                4
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 2,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -2,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -127276,6 +130001,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x -2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -6,
+                2
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 0,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -4,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -127322,6 +130086,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x +2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": 2
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -16,
+                20
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 18,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -14,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -127369,6 +130172,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x +1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": 1
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -17,
+                19
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 17,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -15,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -127507,6 +130349,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 1
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -3,
+                5
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 3,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -1,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "open",
             "objectiveIds": [
@@ -127553,6 +130434,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 2
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -2,
+                6
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 4,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-8-1",
             "type": "open",
             "objectiveIds": [
@@ -128252,7 +131172,7 @@
             "group_score"
           ]
         },
-        "contentHash": "52a424e7d66683f39c1682e9865075f893049b91453ea6fa3ebba144d5df8d54"
+        "contentHash": "d1d63061f3b6ea45097575c60a5732d15798347c79364064aee6ff22a4aa5ba5"
       },
       "citations": [
         {
@@ -128913,6 +131833,45 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 4/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": -2,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -128951,6 +131910,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 3/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -9,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": 0,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -128997,6 +131995,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 1/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -11,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": 2,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 4,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -129043,6 +132080,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 2/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -4,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": 0,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 4,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -129089,6 +132165,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 1 + 4/(x - 2)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 2,
+                "c": 1,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -4,
+                6
+              ],
+              "asymptotes": {
+                "vertical": [
+                  2
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 1,
+                  "y": -3,
+                  "label": "M"
+                },
+                {
+                  "x": 3,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -129136,6 +132251,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 2/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -10,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": 1,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -129274,6 +132428,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 4/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": -2,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 6,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "open",
             "objectiveIds": [
@@ -129320,6 +132513,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 1 + 1/(x - 2)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -1,
+                "c": 1,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -4,
+                6
+              ],
+              "asymptotes": {
+                "vertical": [
+                  2
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 1,
+                  "y": 0,
+                  "label": "M"
+                },
+                {
+                  "x": 3,
+                  "y": 2,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-8-1",
             "type": "open",
             "objectiveIds": [
@@ -130019,7 +133251,7 @@
             "group_score"
           ]
         },
-        "contentHash": "028ea988309b163f3438a99830690eaac48acefb47fb21cf63c9da1bf5c3a3e0"
+        "contentHash": "f304bf5e3df5130df16f8395b7b75e6604d195096f550ed0734335115b6c64e2"
       },
       "citations": [
         {
@@ -146508,6 +149740,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 1/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -7,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 3,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -146623,6 +149889,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 1/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 2,
+                  "label": "M"
                 }
               ]
             },
@@ -146744,6 +150044,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 2/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -1,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 3,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "closed",
             "objectiveIds": [
@@ -146859,6 +150193,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 5/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 6,
+                  "label": "M"
                 }
               ]
             },
@@ -146980,6 +150348,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 4/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -4,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 6,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "closed",
             "objectiveIds": [
@@ -147097,6 +150499,40 @@
                 {
                   "id": "C",
                   "label": "$x=4$ và $y=2$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 2 + 2/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -6,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -2,
+                10
+              ],
+              "yDomain": [
+                -4,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 5,
+                  "y": 4,
+                  "label": "M"
                 }
               ]
             },
@@ -147356,6 +150792,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 3/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 4,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "closed",
             "objectiveIds": [
@@ -147471,6 +150941,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 4/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 1,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 5,
+                  "label": "M"
                 }
               ]
             },
@@ -148677,7 +152181,7 @@
             "group_score"
           ]
         },
-        "contentHash": "d6ce2aa05cbca3ec4f229a88d44e2eb4daab311a25771d92cd43c1a8b830f8e9"
+        "contentHash": "99d55ff5899ab9977236126eaec00ec7d99a3d188a785f163253f323fd927de5"
       },
       "citations": [
         {
@@ -167893,6 +171397,45 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x -2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": -2
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -20,
+                16
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 14,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -18,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -167936,6 +171479,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x -1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": -1
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -19,
+                17
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 15,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -17,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -167982,6 +171564,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x +0",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": 0
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -18,
+                18
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 16,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -16,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -168028,6 +171649,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x -2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": -2
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -20,
+                16
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 14,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -18,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -168074,6 +171734,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 2
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -2,
+                6
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 4,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -168121,6 +171820,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 1
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -3,
+                5
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 3,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -1,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -168259,6 +171997,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x +1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": 1
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -17,
+                19
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 17,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -15,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "open",
             "objectiveIds": [
@@ -168305,6 +172082,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x +2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": 2
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -16,
+                20
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 18,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -14,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-8-1",
             "type": "open",
             "objectiveIds": [
@@ -169004,7 +172820,7 @@
             "group_score"
           ]
         },
-        "contentHash": "69d1f03b46ecc4169886604238511845955d28f509b2bdb61c3290b4eaa56d28"
+        "contentHash": "e8cbb94bc578305d72f27583739f3976bca575489777b31e1ce63d31b1d98303"
       },
       "citations": [
         {
@@ -169665,6 +173481,45 @@
         ],
         "tasks": [
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 3/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -3,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": -1,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -169703,6 +173558,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 2/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -10,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": 1,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -169749,6 +173643,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 4/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -8,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": -1,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 7,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -169795,6 +173728,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 1/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -5,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": 1,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 3,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -169841,6 +173813,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 1 + 3/(x - 2)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 1,
+                "c": 1,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -4,
+                6
+              ],
+              "asymptotes": {
+                "vertical": [
+                  2
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 1,
+                  "y": -2,
+                  "label": "M"
+                },
+                {
+                  "x": 3,
+                  "y": 4,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -169888,6 +173899,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 3 + 1/(x - 4)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -11,
+                "c": 1,
+                "d": -4
+              },
+              "xDomain": [
+                -1,
+                9
+              ],
+              "yDomain": [
+                -2,
+                8
+              ],
+              "asymptotes": {
+                "vertical": [
+                  4
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 3,
+                  "y": 2,
+                  "label": "M"
+                },
+                {
+                  "x": 5,
+                  "y": 4,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -170026,6 +174076,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 2 + 3/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 2,
+                "b": -3,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -2,
+                8
+              ],
+              "yDomain": [
+                -3,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  2
+                ]
+              },
+              "points": [
+                {
+                  "x": 2,
+                  "y": -1,
+                  "label": "M"
+                },
+                {
+                  "x": 4,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "open",
             "objectiveIds": [
@@ -170072,6 +174161,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Phân thức hữu tỉ: y = 1 + 4/(x - 2)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 2,
+                "c": 1,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                7
+              ],
+              "yDomain": [
+                -4,
+                6
+              ],
+              "asymptotes": {
+                "vertical": [
+                  2
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 1,
+                  "y": -3,
+                  "label": "M"
+                },
+                {
+                  "x": 3,
+                  "y": 5,
+                  "label": "N"
+                }
+              ]
+            },
             "id": "task-8-1",
             "type": "open",
             "objectiveIds": [
@@ -170771,7 +174899,7 @@
             "group_score"
           ]
         },
-        "contentHash": "a14a8eb26f2675f963181c80aa1ca389cace46f768e23b4aed1942d9b4298a40"
+        "contentHash": "48a392f3338a1f419217a82facdbc9e81fa0bb752c957529b52553ec1072a722"
       },
       "citations": [
         {
@@ -275041,6 +279169,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 1/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 2,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -275156,6 +279318,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 1/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -14,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 4,
+                  "label": "M"
                 }
               ]
             },
@@ -275277,6 +279473,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 2/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -13,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 5,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "closed",
             "objectiveIds": [
@@ -275392,6 +279622,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 5/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -10,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 8,
+                  "label": "M"
                 }
               ]
             },
@@ -275513,6 +279777,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 4/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 1,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 5,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "closed",
             "objectiveIds": [
@@ -275630,6 +279928,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 2/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -1,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 3,
+                  "label": "M"
                 }
               ]
             },
@@ -275889,6 +280221,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 3/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -12,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 6,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "closed",
             "objectiveIds": [
@@ -276004,6 +280370,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 4/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -11,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 7,
+                  "label": "M"
                 }
               ]
             },
@@ -277210,7 +281610,7 @@
             "group_score"
           ]
         },
-        "contentHash": "e6c70ca22e55748d07c5a4a9fd4e2a069a83ff9126ba39b6d1ab5dd816f5124f"
+        "contentHash": "4ca3c0d1f1790d9bd3987a7980b3130e3b2901ff1f230dabaa0f9112f4151f9a"
       },
       "citations": [
         {
@@ -278145,6 +282545,45 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +0",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 0
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -4,
+                4
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 2,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -2,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-1-1",
             "type": "closed",
             "objectiveIds": [
@@ -278188,6 +282627,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 1
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -3,
+                5
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 3,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -1,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-2-1",
             "type": "open",
             "objectiveIds": [
@@ -278234,6 +282712,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 2
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -2,
+                6
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 4,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": 0,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-3-1",
             "type": "open",
             "objectiveIds": [
@@ -278280,6 +282797,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x +0",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": 0
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -4,
+                4
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 2,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -2,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": 0,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-4-1",
             "type": "open",
             "objectiveIds": [
@@ -278326,6 +282882,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x -1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": -1
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -19,
+                17
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 15,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -17,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-5-1",
             "type": "open",
             "objectiveIds": [
@@ -278373,6 +282968,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 12x -2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -12,
+                "d": -2
+              },
+              "xDomain": [
+                -4,
+                4
+              ],
+              "yDomain": [
+                -20,
+                16
+              ],
+              "points": [
+                {
+                  "x": -2,
+                  "y": 14,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 2,
+                  "y": -18,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "open",
             "objectiveIds": [
@@ -278511,6 +283145,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x -2",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": -2
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -6,
+                2
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 0,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -4,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -2,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-7-1",
             "type": "open",
             "objectiveIds": [
@@ -278557,6 +283230,45 @@
             }
           },
           {
+            "visual": {
+              "kind": "function-graph",
+              "title": "Đồ thị hàm số bậc ba: y = x³ - 3x -1",
+              "fnType": "cubic",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": -3,
+                "d": -1
+              },
+              "xDomain": [
+                -3,
+                3
+              ],
+              "yDomain": [
+                -5,
+                3
+              ],
+              "points": [
+                {
+                  "x": -1,
+                  "y": 1,
+                  "label": "CĐ",
+                  "color": "#e11d48"
+                },
+                {
+                  "x": 1,
+                  "y": -3,
+                  "label": "CT",
+                  "color": "#0284c7"
+                },
+                {
+                  "x": 0,
+                  "y": -1,
+                  "label": "Giao Oy",
+                  "color": "#16a34a"
+                }
+              ]
+            },
             "id": "task-8-1",
             "type": "open",
             "objectiveIds": [
@@ -279256,7 +283968,7 @@
             "group_score"
           ]
         },
-        "contentHash": "645868c14abf92a054e56a5f7c4a4969f905bce960f348ebd22ad64c0825565f"
+        "contentHash": "a8bc2da96a8c8984f4d6fc3e6a6b39f040341c8435552231c136bea8c73285e3"
       },
       "citations": [
         {
@@ -287846,6 +292558,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 3/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 0,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 4,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-1-2",
             "type": "closed",
             "objectiveIds": [
@@ -287940,6 +292686,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 3/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -12,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 6,
+                  "label": "M"
                 }
               ]
             },
@@ -288040,6 +292820,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 4/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -11,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 7,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-3-2",
             "type": "closed",
             "objectiveIds": [
@@ -288134,6 +292948,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 2/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -13,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 5,
+                  "label": "M"
                 }
               ]
             },
@@ -288235,6 +293083,40 @@
                 }
               ]
             },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 1/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": -2,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 2,
+                  "label": "M"
+                }
+              ]
+            },
             "id": "task-5-2",
             "type": "closed",
             "objectiveIds": [
@@ -288330,6 +293212,40 @@
                 {
                   "id": "C",
                   "label": "$x=-3$ và $y=1$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 1 + 4/(x - 3)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 1,
+                "b": 1,
+                "c": 1,
+                "d": -3
+              },
+              "xDomain": [
+                -3,
+                9
+              ],
+              "yDomain": [
+                -5,
+                7
+              ],
+              "asymptotes": {
+                "vertical": [
+                  3
+                ],
+                "horizontal": [
+                  1
+                ]
+              },
+              "points": [
+                {
+                  "x": 4,
+                  "y": 5,
+                  "label": "M"
                 }
               ]
             },
@@ -288565,6 +293481,40 @@
                 {
                   "id": "C",
                   "label": "$x=3$ và $y=5$"
+                }
+              ]
+            },
+            "visual": {
+              "kind": "function-graph",
+              "title": "Tiệm cận đồ thị hàm số: y = 3 + 5/(x - 5)",
+              "fnType": "rational",
+              "fnParams": {
+                "a": 3,
+                "b": -10,
+                "c": 1,
+                "d": -5
+              },
+              "xDomain": [
+                -1,
+                11
+              ],
+              "yDomain": [
+                -3,
+                9
+              ],
+              "asymptotes": {
+                "vertical": [
+                  5
+                ],
+                "horizontal": [
+                  3
+                ]
+              },
+              "points": [
+                {
+                  "x": 6,
+                  "y": 8,
+                  "label": "M"
                 }
               ]
             },
@@ -289809,7 +294759,7 @@
             "group_score"
           ]
         },
-        "contentHash": "d23ca880d18efedd2bcf11678d78b30361690c65e3faff2ca0354224983a118e"
+        "contentHash": "165b2d97685b2a82d9e2fdc1b194cfdcf1cab707ec362b75c24e1e02f485387c"
       },
       "citations": [
         {

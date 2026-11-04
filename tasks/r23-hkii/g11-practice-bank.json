@@ -1874,7 +1874,39 @@
       "Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.",
       "Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.",
       "Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị dao động: y = 2sin(7x)",
+      "fnType": "sin",
+      "fnParams": {
+       "a": 2,
+       "b": 7,
+       "c": 0
+      },
+      "xDomain": [
+       -0.5,
+       1.3975979010256552
+      ],
+      "yDomain": [
+       -3,
+       3
+      ],
+      "points": [
+       {
+        "x": 0.2243994752564138,
+        "y": 2,
+        "label": "Đỉnh",
+        "color": "#e11d48"
+       },
+       {
+        "x": 0.6731984257692414,
+        "y": -2,
+        "label": "Đáy",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-sinCosGraph-2",
@@ -1898,7 +1930,39 @@
       "Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.",
       "Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.",
       "Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị dao động: y = 3sin(11x)",
+      "fnType": "sin",
+      "fnParams": {
+       "a": 3,
+       "b": 11,
+       "c": 0
+      },
+      "xDomain": [
+       -0.5,
+       1.0711986642890534
+      ],
+      "yDomain": [
+       -4,
+       4
+      ],
+      "points": [
+       {
+        "x": 0.14279966607226333,
+        "y": 3,
+        "label": "Đỉnh",
+        "color": "#e11d48"
+       },
+       {
+        "x": 0.42839899821678995,
+        "y": -3,
+        "label": "Đáy",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-sinCosGraph-3",
@@ -1922,7 +1986,39 @@
       "Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.",
       "Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.",
       "Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị dao động: y = 4sin(2x)",
+      "fnType": "sin",
+      "fnParams": {
+       "a": 4,
+       "b": 2,
+       "c": 0
+      },
+      "xDomain": [
+       -0.5,
+       3.641592653589793
+      ],
+      "yDomain": [
+       -5,
+       5
+      ],
+      "points": [
+       {
+        "x": 0.7853981633974483,
+        "y": 4,
+        "label": "Đỉnh",
+        "color": "#e11d48"
+       },
+       {
+        "x": 2.356194490192345,
+        "y": -4,
+        "label": "Đáy",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-sinCosGraph-4",
@@ -1946,7 +2042,39 @@
       "Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.",
       "Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.",
       "Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị dao động: y = 1sin(6x)",
+      "fnType": "sin",
+      "fnParams": {
+       "a": 1,
+       "b": 6,
+       "c": 0
+      },
+      "xDomain": [
+       -0.5,
+       1.5471975511965976
+      ],
+      "yDomain": [
+       -2,
+       2
+      ],
+      "points": [
+       {
+        "x": 0.2617993877991494,
+        "y": 1,
+        "label": "Đỉnh",
+        "color": "#e11d48"
+       },
+       {
+        "x": 0.7853981633974483,
+        "y": -1,
+        "label": "Đáy",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-sinCosGraph-5",
@@ -1970,7 +2098,39 @@
       "Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.",
       "Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.",
       "Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị dao động: y = 2sin(10x)",
+      "fnType": "sin",
+      "fnParams": {
+       "a": 2,
+       "b": 10,
+       "c": 0
+      },
+      "xDomain": [
+       -0.5,
+       1.1283185307179586
+      ],
+      "yDomain": [
+       -3,
+       3
+      ],
+      "points": [
+       {
+        "x": 0.15707963267948966,
+        "y": 2,
+        "label": "Đỉnh",
+        "color": "#e11d48"
+       },
+       {
+        "x": 0.47123889803846897,
+        "y": -2,
+        "label": "Đáy",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-sinCosGraph-6",
@@ -1994,7 +2154,39 @@
       "Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.",
       "Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.",
       "Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị dao động: y = 3sin(14x)",
+      "fnType": "sin",
+      "fnParams": {
+       "a": 3,
+       "b": 14,
+       "c": 0
+      },
+      "xDomain": [
+       -0.5,
+       0.9487989505128276
+      ],
+      "yDomain": [
+       -4,
+       4
+      ],
+      "points": [
+       {
+        "x": 0.1121997376282069,
+        "y": 3,
+        "label": "Đỉnh",
+        "color": "#e11d48"
+       },
+       {
+        "x": 0.3365992128846207,
+        "y": -3,
+        "label": "Đáy",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-sinCosGraph-7",
@@ -2018,7 +2210,39 @@
       "Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.",
       "Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.",
       "Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị dao động: y = 4sin(5x)",
+      "fnType": "sin",
+      "fnParams": {
+       "a": 4,
+       "b": 5,
+       "c": 0
+      },
+      "xDomain": [
+       -0.5,
+       1.7566370614359172
+      ],
+      "yDomain": [
+       -5,
+       5
+      ],
+      "points": [
+       {
+        "x": 0.3141592653589793,
+        "y": 4,
+        "label": "Đỉnh",
+        "color": "#e11d48"
+       },
+       {
+        "x": 0.9424777960769379,
+        "y": -4,
+        "label": "Đáy",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-sinCosGraph-8",
@@ -10066,7 +10290,45 @@
       "Chọn các số mũ âm một, không, một.",
       "Thay giá trị ở giữa để có số mũ bằng không.",
       "Ví dụ khác: với $y=2^{x-37}$, điểm có hoành độ $37$ được tìm bằng cách tính $2^0$."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị hàm số mũ: y = 4^(x - 11) + 0",
+      "fnType": "exponential",
+      "fnParams": {
+       "a": 1,
+       "b": 4,
+       "c": 11
+      },
+      "expVerticalShift": 0,
+      "xDomain": [
+       8,
+       14
+      ],
+      "yDomain": [
+       -1,
+       18
+      ],
+      "asymptotes": {
+       "horizontal": [
+        0
+       ]
+      },
+      "points": [
+       {
+        "x": 11,
+        "y": 1,
+        "label": "(11;1)",
+        "color": "#e11d48"
+       },
+       {
+        "x": 12,
+        "y": 4,
+        "label": "(12;4)",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-exGraph-2",
@@ -10090,7 +10352,45 @@
       "Chọn các số mũ âm một, không, một.",
       "Thay giá trị ở giữa để có số mũ bằng không.",
       "Ví dụ khác: với $y=2^{x-37}$, điểm có hoành độ $37$ được tìm bằng cách tính $2^0$."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị hàm số mũ: y = 5^(x - 2) + 2",
+      "fnType": "exponential",
+      "fnParams": {
+       "a": 1,
+       "b": 5,
+       "c": 2
+      },
+      "expVerticalShift": 2,
+      "xDomain": [
+       -1,
+       5
+      ],
+      "yDomain": [
+       1,
+       29
+      ],
+      "asymptotes": {
+       "horizontal": [
+        2
+       ]
+      },
+      "points": [
+       {
+        "x": 2,
+        "y": 3,
+        "label": "(2;3)",
+        "color": "#e11d48"
+       },
+       {
+        "x": 3,
+        "y": 7,
+        "label": "(3;7)",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-exGraph-3",
@@ -10114,7 +10414,45 @@
       "Chọn các số mũ âm một, không, một.",
       "Thay giá trị ở giữa để có số mũ bằng không.",
       "Ví dụ khác: với $y=2^{x-37}$, điểm có hoành độ $37$ được tìm bằng cách tính $2^0$."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị hàm số mũ: y = 2^(x - 6) + 1",
+      "fnType": "exponential",
+      "fnParams": {
+       "a": 1,
+       "b": 2,
+       "c": 6
+      },
+      "expVerticalShift": 1,
+      "xDomain": [
+       3,
+       9
+      ],
+      "yDomain": [
+       0,
+       7
+      ],
+      "asymptotes": {
+       "horizontal": [
+        1
+       ]
+      },
+      "points": [
+       {
+        "x": 6,
+        "y": 2,
+        "label": "(6;2)",
+        "color": "#e11d48"
+       },
+       {
+        "x": 7,
+        "y": 3,
+        "label": "(7;3)",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-exGraph-4",
@@ -10138,7 +10476,45 @@
       "Chọn các số mũ âm một, không, một.",
       "Thay giá trị ở giữa để có số mũ bằng không.",
       "Ví dụ khác: với $y=2^{x-37}$, điểm có hoành độ $37$ được tìm bằng cách tính $2^0$."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị hàm số mũ: y = 3^(x - 10) + 0",
+      "fnType": "exponential",
+      "fnParams": {
+       "a": 1,
+       "b": 3,
+       "c": 10
+      },
+      "expVerticalShift": 0,
+      "xDomain": [
+       7,
+       13
+      ],
+      "yDomain": [
+       -1,
+       11
+      ],
+      "asymptotes": {
+       "horizontal": [
+        0
+       ]
+      },
+      "points": [
+       {
+        "x": 10,
+        "y": 1,
+        "label": "(10;1)",
+        "color": "#e11d48"
+       },
+       {
+        "x": 11,
+        "y": 3,
+        "label": "(11;3)",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-exGraph-5",
@@ -10162,7 +10538,45 @@
       "Chọn các số mũ âm một, không, một.",
       "Thay giá trị ở giữa để có số mũ bằng không.",
       "Ví dụ khác: với $y=2^{x-37}$, điểm có hoành độ $37$ được tìm bằng cách tính $2^0$."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị hàm số mũ: y = 4^(x - 14) + 2",
+      "fnType": "exponential",
+      "fnParams": {
+       "a": 1,
+       "b": 4,
+       "c": 14
+      },
+      "expVerticalShift": 2,
+      "xDomain": [
+       11,
+       17
+      ],
+      "yDomain": [
+       1,
+       20
+      ],
+      "asymptotes": {
+       "horizontal": [
+        2
+       ]
+      },
+      "points": [
+       {
+        "x": 14,
+        "y": 3,
+        "label": "(14;3)",
+        "color": "#e11d48"
+       },
+       {
+        "x": 15,
+        "y": 6,
+        "label": "(15;6)",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-exGraph-6",
@@ -10186,7 +10600,45 @@
       "Chọn các số mũ âm một, không, một.",
       "Thay giá trị ở giữa để có số mũ bằng không.",
       "Ví dụ khác: với $y=2^{x-37}$, điểm có hoành độ $37$ được tìm bằng cách tính $2^0$."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị hàm số mũ: y = 5^(x - 5) + 1",
+      "fnType": "exponential",
+      "fnParams": {
+       "a": 1,
+       "b": 5,
+       "c": 5
+      },
+      "expVerticalShift": 1,
+      "xDomain": [
+       2,
+       8
+      ],
+      "yDomain": [
+       0,
+       28
+      ],
+      "asymptotes": {
+       "horizontal": [
+        1
+       ]
+      },
+      "points": [
+       {
+        "x": 5,
+        "y": 2,
+        "label": "(5;2)",
+        "color": "#e11d48"
+       },
+       {
+        "x": 6,
+        "y": 6,
+        "label": "(6;6)",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-exGraph-7",
@@ -10210,7 +10662,45 @@
       "Chọn các số mũ âm một, không, một.",
       "Thay giá trị ở giữa để có số mũ bằng không.",
       "Ví dụ khác: với $y=2^{x-37}$, điểm có hoành độ $37$ được tìm bằng cách tính $2^0$."
-     ]
+     ],
+     "visual": {
+      "kind": "function-graph",
+      "title": "Đồ thị hàm số mũ: y = 2^(x - 9) + 0",
+      "fnType": "exponential",
+      "fnParams": {
+       "a": 1,
+       "b": 2,
+       "c": 9
+      },
+      "expVerticalShift": 0,
+      "xDomain": [
+       6,
+       12
+      ],
+      "yDomain": [
+       -1,
+       6
+      ],
+      "asymptotes": {
+       "horizontal": [
+        0
+       ]
+      },
+      "points": [
+       {
+        "x": 9,
+        "y": 1,
+        "label": "(9;1)",
+        "color": "#e11d48"
+       },
+       {
+        "x": 10,
+        "y": 2,
+        "label": "(10;2)",
+        "color": "#0284c7"
+       }
+      ]
+     }
     },
     {
      "id": "r23-g11-bank-exGraph-8",

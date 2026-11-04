@@ -1780,7 +1780,7 @@
     "ppctFile": "tasks/r23-hkii/ppct-hkii.json",
     "ppctSha256": "a4e03b10b36cc12e2177d7aa883bc033ccc221ff0e99ad2909f99708058ae35f",
     "hkiBankFile": "tasks/r22/g11-practice-bank.json",
-    "hkiBankSha256": "069405600a1117e5ca5bff7cb29c50144aef67033a7f525b82c34d517eb9cf55",
+    "hkiBankSha256": "632abeadae04291cada2db84bde617c06820169d424a1eac9692ad4fe417614b",
     "frozenHkiGeneratorSha256": "d1951060182d4b4ba6754bf6b25e8837a14d6171bc3296544cef3ea6af16eeab"
   }
 }

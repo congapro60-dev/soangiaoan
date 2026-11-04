@@ -34,21 +34,21 @@ function simpson(f, a, b, n = 200) {
   for (let i = 1; i < n; i++) sum += (i % 2 ? 4 : 2) * f(a + i * h);
   return sum * h / 3;
 }
-const qNum = (prompt, answer, solution, check) => {
+const qNum = (prompt, answer, solution, check, visual) => {
   assert.ok(Number.isFinite(answer));
   if (check !== undefined) near(answer, check);
-  return { type: 'closed', prompt, evaluation: { checkerId: 'numeric_exact', answerKey: answer }, solution };
+  return { type: 'closed', prompt, evaluation: { checkerId: 'numeric_exact', answerKey: answer }, solution, ...(visual ? { visual } : {}) };
 };
-const qChoice = (prompt, correct, distractors, solution, seed = 0) => {
+const qChoice = (prompt, correct, distractors, solution, seed = 0, visual) => {
   const labels = [correct, ...distractors];
   assert.equal(new Set(labels).size, labels.length);
   const rotate = seed % labels.length;
   const ordered = [...labels.slice(rotate), ...labels.slice(0, rotate)];
   const options = ordered.map((label, i) => ({ id: String.fromCharCode(65 + i), label }));
-  return { type: 'closed', prompt, inputSchema: { options }, evaluation: { checkerId: 'choice_exact', answerKey: options.find(o => o.label === correct).id }, solution };
+  return { type: 'closed', prompt, inputSchema: { options }, evaluation: { checkerId: 'choice_exact', answerKey: options.find(o => o.label === correct).id }, solution, ...(visual ? { visual } : {}) };
 };
-const qOpen = (prompt, solution, criteria) => ({ type: 'open', prompt, solution,
-  evaluation: { rubric: { criteria: criteria || ['Lập luận đúng theo dữ kiện.', 'Kết quả và điều kiện đúng.'], lookFor: [solution] } } });
+const qOpen = (prompt, solution, criteria, visual) => ({ type: 'open', prompt, solution,
+  evaluation: { rubric: { criteria: criteria || ['Lập luận đúng theo dữ kiện.', 'Kết quả và điều kiện đúng.'], lookFor: [solution] } }, ...(visual ? { visual } : {}) });
 const skill = (title, goal, rule, error, lo, make, hints) => ({ title, goal, rule, error, lo, make, hints });
 // H1 gắn dữ liệu: chiết xuất dữ kiện từ đề; "=" ngay trước số diễn đạt thành "bằng" ngoài công thức để không lộ đáp án theo quy tắc validator.
 const dataAnchor = prompt => {
@@ -453,8 +453,27 @@ Object.assign(skills, {
     T`Nếu $f\ge0$ trên $[a;b]$ thì diện tích với trục hoành là $\int_a^bf$. Luôn kiểm tra dấu trước khi áp dụng.`,
     'Không dùng công thức bỏ trị tuyệt đối khi hàm đổi dấu.', '2-16',s=>{
       const a=(s%4)+1,L=(Math.floor(s/4)%4)+1,ans=a*L**3;
+      const visual = {
+        kind: 'coordinate-plane',
+        title: `Diện tích hình thang cong dưới parabol y = ${3*a}x² trên [0; ${L}]`,
+        xDomain: [-0.5, L + 1],
+        yDomain: [-1, 3 * a * L * L + 2],
+        regions: [{
+          polygon: [[0, 0], [L, 0], [L, 3 * a * L * L], [0, 0]],
+          label: `S = ${ans}`,
+          color: '#0284c7'
+        }],
+        points: [
+          { x: 0, y: 0, label: 'O(0;0)' },
+          { x: L, y: 0, label: `x=${L}` },
+          { x: L, y: 3 * a * L * L, label: `(${L};${3*a*L*L})`, color: '#e11d48' }
+        ],
+        segments: [
+          { from: [L, 0], to: [L, 3 * a * L * L], dashed: true }
+        ]
+      };
       return qNum(T`Tính diện tích giới hạn bởi $y=${3*a}x^2$, trục hoành, $x=0$, $x=${L}$.`,ans,
-        T`Hàm không âm nên $S=\int_0^{${L}}${3*a}x^2\,dx=${a}\cdot${L}^3=${ans}$.`,simpson(x=>3*a*x*x,0,L));
+        T`Hàm không âm nên $S=\int_0^{${L}}${3*a}x^2\,dx=${a}\cdot${L}^3=${ans}$.`,simpson(x=>3*a*x*x,0,L), visual);
     }, ['Xác định hai đường thẳng biên.', 'Kiểm tra đồ thị trên hay dưới trục hoành.', 'Lập tích phân diện tích rồi tính nguyên hàm.', T`Ví dụ khác: diện tích dưới $y=2$ trên $[0;3]$ bằng $6$.`]),
   areaSign: skill('Diện tích khi đồ thị đổi dấu', 'Chia khoảng tại giao điểm với trục hoành và tính diện tích bằng trị tuyệt đối.',
     T`Diện tích là $\int_a^b|f(x)|\,dx$. Tách tại các nghiệm làm đổi dấu rồi cộng các phần diện tích dương.`,
@@ -573,13 +592,69 @@ Object.assign(skills, {
     'Chọn hộp đồng khả năng khác với chọn một viên từ gộp hai hộp.',null,s=>{
       const a=2+s%5,b=3+s%6,c=4+s%7,d=2+s%4,den=2*(a+b)*(c+d);let good=0;
       for(let box=0;box<2;box++)for(let i=0;i<a+b;i++)for(let j=0;j<c+d;j++)if(box===0?i<a:j<c)good++;
-      return qNum(T`Chọn một trong hai hộp với xác suất bằng nhau, rồi chọn ngẫu nhiên một viên từ hộp ấy. Hộp I có ${a} đỏ, ${b} xanh; hộp II có ${c} đỏ, ${d} xanh. Tính xác suất lấy viên đỏ.`,.5*a/(a+b)+.5*c/(c+d),T`$P(\text{Đ})=\frac12\frac{${a}}{${a+b}}+\frac12\frac{${c}}{${c+d}}$. Không được gộp toàn bộ viên của hai hộp vì cơ chế chọn bắt đầu bằng chọn hộp.`,good/den);
+      const visual = {
+        kind: 'probability-tree',
+        title: 'Cây xác suất phân nhánh — Chọn hộp I / II và màu bi',
+        tree: {
+          id: 'root',
+          label: 'Gốc',
+          children: [
+            {
+              id: 'box1',
+              label: 'Hộp I',
+              prob: '1/2',
+              children: [
+                { id: 'b1-red', label: `Đỏ (${a})`, prob: `${a}/${a+b}` },
+                { id: 'b1-blue', label: `Xanh (${b})`, prob: `${b}/${a+b}` }
+              ]
+            },
+            {
+              id: 'box2',
+              label: 'Hộp II',
+              prob: '1/2',
+              children: [
+                { id: 'b2-red', label: `Đỏ (${c})`, prob: `${c}/${c+d}` },
+                { id: 'b2-blue', label: `Xanh (${d})`, prob: `${d}/${c+d}` }
+              ]
+            }
+          ]
+        }
+      };
+      return qNum(T`Chọn một trong hai hộp với xác suất bằng nhau, rồi chọn ngẫu nhiên một viên từ hộp ấy. Hộp I có ${a} đỏ, ${b} xanh; hộp II có ${c} đỏ, ${d} xanh. Tính xác suất lấy viên đỏ.`,.5*a/(a+b)+.5*c/(c+d),T`$P(\text{Đ})=\frac12\frac{${a}}{${a+b}}+\frac12\frac{${c}}{${c+d}}$. Không được gộp toàn bộ viên của hai hộp vì cơ chế chọn bắt đầu bằng chọn hộp.`,good/den, visual);
     },h4('Đọc cơ chế chọn hộp trước khi tính.','Gắn trọng số cho nhánh hộp I và hộp II.','Tính xác suất đỏ ở từng nhánh rồi cộng.','Bốc một phong bì trước rồi lấy thẻ trong phong bì khác với gộp tất cả thẻ để bốc.')),
   bayes: skill('Đảo điều kiện bằng Bayes', 'Tính xác suất nguồn gốc khi đã biết kết quả bằng công thức Bayes.',
     T`$P(B\mid A)=\dfrac{P(B)P(A\mid B)}{P(B)P(A\mid B)+P(\overline B)P(A\mid\overline B)}$. Mẫu số là xác suất của kết quả đã biết.`,
     'Không coi tỉ lệ đạt trong một nhóm là xác suất thuộc nhóm khi đã đạt.',null,s=>{
       const a=4+s%8,b=6+s%7,c=2+s%5,d=7+s%9,n=a+b+c+d,rows=population(a,b,c,d);
-      return qNum(T`Nhà máy có ${a+b} sản phẩm từ máy A, trong đó ${a} lỗi; có ${c+d} sản phẩm từ máy B, trong đó ${c} lỗi. Chọn ngẫu nhiên một sản phẩm và biết nó lỗi. Xác suất nó từ máy A bằng bao nhiêu?`,a/(a+c),T`Theo Bayes, $P(A\mid L)=\frac{(${a+b}/${n})(${a}/${a+b})}{(${a+b}/${n})(${a}/${a+b})+(${c+d}/${n})(${c}/${c+d})}=\frac{${a}}{${a+c}}$.`,conditional(rows,r=>r[0],r=>r[1]));
+      const visual = {
+        kind: 'probability-tree',
+        title: 'Mô hình suy diễn Bayes — Phân tích nguồn gốc sản phẩm lỗi',
+        tree: {
+          id: 'root',
+          label: 'Nhà máy',
+          children: [
+            {
+              id: 'm-A',
+              label: 'Máy A',
+              prob: `${a+b}/${n}`,
+              children: [
+                { id: 'mA-err', label: 'Lỗi', prob: `${a}/${a+b}` },
+                { id: 'mA-ok', label: 'Tốt', prob: `${b}/${a+b}` }
+              ]
+            },
+            {
+              id: 'm-B',
+              label: 'Máy B',
+              prob: `${c+d}/${n}`,
+              children: [
+                { id: 'mB-err', label: 'Lỗi', prob: `${c}/${c+d}` },
+                { id: 'mB-ok', label: 'Tốt', prob: `${d}/${c+d}` }
+              ]
+            }
+          ]
+        }
+      };
+      return qNum(T`Nhà máy có ${a+b} sản phẩm từ máy A, trong đó ${a} lỗi; có ${c+d} sản phẩm từ máy B, trong đó ${c} lỗi. Chọn ngẫu nhiên một sản phẩm và biết nó lỗi. Xác suất nó từ máy A bằng bao nhiêu?`,a/(a+c),T`Theo Bayes, $P(A\mid L)=\frac{(${a+b}/${n})(${a}/${a+b})}{(${a+b}/${n})(${a}/${a+b})+(${c+d}/${n})(${c}/${c+d})}=\frac{${a}}{${a+c}}$.`,conditional(rows,r=>r[0],r=>r[1]), visual);
     },h4('Xác định kết quả đã biết và nguồn cần truy ngược.','Tính xác suất đồng thời đi qua nguồn cần tìm và đạt kết quả.','Chia xác suất nhánh đó cho tổng xác suất mọi nhánh đạt kết quả.','Biết thư bị bộ lọc đánh dấu chưa đủ để kết luận thư rác; cần xét cả thư thường bị đánh dấu.')),
   bayesBox: skill('Bayes khi chọn hộp trước', 'Đảo xác suất trong mô hình chọn hộp đồng khả năng.',
     T`Tính xác suất đỏ từ từng hộp theo cơ chế chọn. Khi đã thấy viên đỏ, tỉ lệ nguồn bằng xác suất nhánh tương ứng chia tổng các nhánh đỏ.`,
@@ -844,6 +919,7 @@ function makeEntry(period, focus, eligible) {
     solutions.push({stage,skill:focus[i],branch,prompt:q.prompt,solution:q.solution,evaluation:q.evaluation});
     return {type:q.type,prompt:q.prompt,minutes,participation,branch,objectiveIndexes:[i],source:sources[i],
       ...(q.inputSchema?{inputSchema:q.inputSchema}:{}),evaluation:q.evaluation,
+      ...(q.visual?{visual:q.visual}:{}),
       hints:branch==='support'?[dataAnchor(q.prompt),...spec.hints.slice(1)]:[dataAnchor(q.prompt),...spec.hints.slice(1,3)],requiresFullScaffold:false,isCore:branch==='core'||branch==='shared',
       supportRationale:`Lời giải dành cho GV: ${q.solution} Lỗi cần quan sát: ${spec.error}`};
   };

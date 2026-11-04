@@ -1119,7 +1119,39 @@
             "Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.",
             "Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.",
             "Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm."
-          ]
+          ],
+          "visual": {
+            "kind": "function-graph",
+            "title": "Đồ thị dao động sóng: y = 4sin(10x)",
+            "fnType": "sin",
+            "fnParams": {
+              "a": 4,
+              "b": 10,
+              "c": 0
+            },
+            "xDomain": [
+              -0.5,
+              1.1283185307179586
+            ],
+            "yDomain": [
+              -5,
+              5
+            ],
+            "points": [
+              {
+                "x": 0.15707963267948966,
+                "y": 4,
+                "label": "Đỉnh",
+                "color": "#e11d48"
+              },
+              {
+                "x": 0.47123889803846897,
+                "y": -4,
+                "label": "Đáy",
+                "color": "#0284c7"
+              }
+            ]
+          }
         },
         {
           "id": "r22-g11-bank-sinCosGraph-2",
@@ -1143,7 +1175,39 @@
             "Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.",
             "Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.",
             "Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm."
-          ]
+          ],
+          "visual": {
+            "kind": "function-graph",
+            "title": "Đồ thị dao động sóng: y = 3sin(4x)",
+            "fnType": "sin",
+            "fnParams": {
+              "a": 3,
+              "b": 4,
+              "c": 0
+            },
+            "xDomain": [
+              -0.5,
+              2.0707963267948966
+            ],
+            "yDomain": [
+              -4,
+              4
+            ],
+            "points": [
+              {
+                "x": 0.39269908169872414,
+                "y": 3,
+                "label": "Đỉnh",
+                "color": "#e11d48"
+              },
+              {
+                "x": 1.1780972450961724,
+                "y": -3,
+                "label": "Đáy",
+                "color": "#0284c7"
+              }
+            ]
+          }
         },
         {
           "id": "r22-g11-bank-sinCosGraph-3",
@@ -1167,7 +1231,39 @@
             "Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.",
             "Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.",
             "Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm."
-          ]
+          ],
+          "visual": {
+            "kind": "function-graph",
+            "title": "Đồ thị dao động sóng: y = 2sin(11x)",
+            "fnType": "sin",
+            "fnParams": {
+              "a": 2,
+              "b": 11,
+              "c": 0
+            },
+            "xDomain": [
+              -0.5,
+              1.0711986642890534
+            ],
+            "yDomain": [
+              -3,
+              3
+            ],
+            "points": [
+              {
+                "x": 0.14279966607226333,
+                "y": 2,
+                "label": "Đỉnh",
+                "color": "#e11d48"
+              },
+              {
+                "x": 0.42839899821678995,
+                "y": -2,
+                "label": "Đáy",
+                "color": "#0284c7"
+              }
+            ]
+          }
         },
         {
           "id": "r22-g11-bank-sinCosGraph-4",

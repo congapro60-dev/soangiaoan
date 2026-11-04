@@ -334,7 +334,41 @@
         "checkerId": "choice_exact",
         "answerKey": "C"
       },
-      "solution": "Khi $x\\to4^{\\pm}$, phần phân thức vô hạn; khi $x\\to\\pm\\infty$, phần phân thức tiến về $0$."
+      "solution": "Khi $x\\to4^{\\pm}$, phần phân thức vô hạn; khi $x\\to\\pm\\infty$, phần phân thức tiến về $0$.",
+      "visual": {
+        "kind": "function-graph",
+        "title": "Tiệm cận đồ thị hàm số: y = 2 + 4/(x - 4)",
+        "fnType": "rational",
+        "fnParams": {
+          "a": 2,
+          "b": -4,
+          "c": 1,
+          "d": -4
+        },
+        "xDomain": [
+          -2,
+          10
+        ],
+        "yDomain": [
+          -4,
+          8
+        ],
+        "asymptotes": {
+          "vertical": [
+            4
+          ],
+          "horizontal": [
+            2
+          ]
+        },
+        "points": [
+          {
+            "x": 5,
+            "y": 6,
+            "label": "M"
+          }
+        ]
+      }
     }
   },
   {
@@ -542,6 +576,45 @@
             "Miền $\\mathbb R$; dấu $f'$ là $+,-,+$ qua $-2,2$. Cực đại $(-2;15)$, cực tiểu $(2;-17)$, qua $(0;-1)$. Đồ thị đi từ dưới trái lên cực đại, xuống cực tiểu, rồi lên trên phải."
           ]
         }
+      },
+      "visual": {
+        "kind": "function-graph",
+        "title": "Đồ thị hàm số bậc ba: y = x³ - 12x -1",
+        "fnType": "cubic",
+        "fnParams": {
+          "a": 1,
+          "b": 0,
+          "c": -12,
+          "d": -1
+        },
+        "xDomain": [
+          -4,
+          4
+        ],
+        "yDomain": [
+          -19,
+          17
+        ],
+        "points": [
+          {
+            "x": -2,
+            "y": 15,
+            "label": "CĐ",
+            "color": "#e11d48"
+          },
+          {
+            "x": 2,
+            "y": -17,
+            "label": "CT",
+            "color": "#0284c7"
+          },
+          {
+            "x": 0,
+            "y": -1,
+            "label": "Giao Oy",
+            "color": "#16a34a"
+          }
+        ]
       }
     }
   },
@@ -565,6 +638,45 @@
             "Miền $\\mathbb R\\setminus\\{3\\}$; $f'=-3/(x-3)^2<0$. Nghịch biến trên từng khoảng $(-\\infty;3)$, $(3;+\\infty)$. Tiệm cận $x=3,y=2$. Hai điểm $(2;-1)$, $(4;5)$; hai nhánh hướng xuống riêng rẽ."
           ]
         }
+      },
+      "visual": {
+        "kind": "function-graph",
+        "title": "Phân thức hữu tỉ: y = 2 + 3/(x - 3)",
+        "fnType": "rational",
+        "fnParams": {
+          "a": 2,
+          "b": -3,
+          "c": 1,
+          "d": -3
+        },
+        "xDomain": [
+          -2,
+          8
+        ],
+        "yDomain": [
+          -3,
+          7
+        ],
+        "asymptotes": {
+          "vertical": [
+            3
+          ],
+          "horizontal": [
+            2
+          ]
+        },
+        "points": [
+          {
+            "x": 2,
+            "y": -1,
+            "label": "M"
+          },
+          {
+            "x": 4,
+            "y": 5,
+            "label": "N"
+          }
+        ]
       }
     }
   },

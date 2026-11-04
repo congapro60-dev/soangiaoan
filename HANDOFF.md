@@ -4,50 +4,40 @@
 > - `docs/HANDOFF-ARCHIVE.md` (toàn bộ checkpoint trước 03/11/2026)
 > - `tasks/archive/handoff-history-to-2026-10-23.md`, `tasks/archive/handoff-history-v27-v30-2026-10-25.md`
 
-## Latest checkpoint - TỐI ƯU TOÀN NĂM HOÀN TẤT: 0 TASK NON-REFLECTION DƯỚI 4 TẦNG (04/11/2026)
-
-**Branch**: `codex/universal-content-release` · HEAD commit này. Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
-
-### DataAnchor v4 — trích cả dữ kiện văn bản thuần (04/11/2026, buổi tối)
-- Nới `dataAnchor` ở cả 6 builder: khi LaTeX không trích được snippet, fallback trích **câu dữ kiện văn bản thuần** (có số, không phải câu hỏi đáp số, 10–90 ký tự, tối đa 2 câu).
-- Kết quả: H1 anchor HKI 3.487 → **3.595** (fallback 0) · HKII 3.784 → **4.368** (fallback còn 20 — đúng là câu khái niệm không có dữ kiện như "mệnh đề"). Tổng **7.963/11.241 task có H1 gắn dữ kiện thật**.
-- Full suite lại **1470 PASS / 0 FAIL**; archive V43 tái tạo (44.482.142 bytes) từ nội dung này.
-
-### Nội dung đợt chốt
-- **Challenge G11 đủ bậc thang**: helper `challenge()` (open, 1 hint) trước đây bị ghi đè hint riêng bằng dataAnchor — regression âm thầm. Sửa cả HKI + HKII: giữ hint riêng làm **H2**, dựng đủ 4 tầng (H1 data anchor · H2 hint riêng · H3 điều kiện áp dụng · H4 kiểm lại). 323 task open được nâng: HKI 218 + HKII 105 → **0 task non-reflection dưới 4 tầng** ở cả 2 kỳ.
-- **Audit tổng cuối**: HKI 5.359 task (3.358×4 + 1.722×3 + 279×1: 270 reflection + 9 THPTQG pilot authored) · HKII 5.882 task (3.362×4 + 2.187×3 + 333×1 reflection) — 0 trùng, 0 thiếu solidKey, 0 glue, 0 task non-reflection thiếu tầng. Storyline Bài 14: 170 task + 170 visual. H1 anchor: HKI 3.487 + HKII 3.784.
-- **Full suite toàn repo: 1470 PASS / 0 FAIL / 2 skip** (lần chạy cuối, gồm thptqg + takeover + jeopardy + class-events + media-ui + themed-route-ui sau khi patch stub).
-- **Archive V43 tái tạo**: `C:\Users\ADMIN\.codex\sites-release\release-20261103-v43.tar.gz` (44.483.380 bytes) tại commit này — chứa pilot 9 task + challenge 4 tầng + toàn bộ nội dung năm học.
-- Đã ghi 4 bài học kỹ thuật vào `tasks/lessons.md` (rebuilder xóa injection post-build; grep dist phải bung gzip; stub test đồng bộ export; không ghi đè hint riêng).
-
-### Việc cần chủ máy (gom 1 lần — chưa làm được tự động)
-1. **Nạp V43 lên panel** → ghi `deployment_id` vào HANDOFF (Site version 43).
-2. **Vế Claude check chéo** cho đợt storyline + challenge — chờ weekly limit hồi (sau 22:00 ngày 04/11); Codex đã PASS 6/6 single-source.
-3. **Lưu ý không merge `main`** — hai dòng lịch sử không có tổ tiên chung.
-
-## Latest checkpoint - STORYLINE Bài 14 MỞ RỘNG SANG HKI (04/11/2026)
+## Latest checkpoint - NÂNG CẤP GAMEPLAY & VISUAL 2D/3D V8.8 TOÀN NĂM (04/11/2026)
 
 **Branch**: `codex/universal-content-release` · Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 
-### Nội dung
-- 4 concept thống kê G10-HKI (`meanMedian`, `quartileMode`, `spread`, `variance` — cùng chương Thống kê với bài học tương tác Bài 14) chuyển sang **dataset 12 phiên cổ phiếu A/B**: prompt nêu "bài học tương tác Bài 14", mỗi seed chọn cửa sổ phiên khác nhau; `variance` so sánh phân tán A vs B — đúng tinh thần cốt lõi của Bài 14. `projectReport` giữ nguyên (dạy phương pháp thu thập dữ liệu).
-- **Visual**: 140 task HKI có bảng dataset 12 phiên (`stockTable`, highlight cửa sổ đang hỏi); `open()` nhận tham số `visual` thứ 5; pipeline GĐ2 (DataVisual → TaskImage → 5 page) đã có sẵn dùng được cho HKI.
-- **Chống trùng**: `makeTask` G10-HKI thêm vòng retry 8 lần (seed + attempt×977) + `usedPrompts` set — sửa `ERR_RECHECK_DUPLICATE` do seed tuyến tính va chạm khi cửa sổ ít.
-- **Audit HKI sau rebuild**: 5.350 task — 0 trùng, 0 thiếu solidKey, 0 glue, 0 task non-reflection thiếu hint; H1 data-anchor 3.486; storyline 140, visual 140; tầng giữ nguyên 3.140×4 + 1.722×3 + 488×1.
-- **Verify**: `hki-content` + `hki-package` 5/5 PASS; `npm run build` ✓ ("Build complete.").
+### Nội dung hoàn thành
+1. **Mở rộng DataVisual 2D**:
+   - `components/lesson/DataVisual.tsx` hỗ trợ đủ 5 loại: `dataset-table`, `bar-chart`, `function-graph`, `coordinate-plane`, `probability-tree`.
+   - Bổ sung tương tác hover điểm tọa độ và hiển thị nét đứt/liền cho tiệm cận, miền nghiệm.
+   - Validator `lib/lesson/validate.js` cho phép các kind visual mới với thuộc tính cấu trúc rõ ràng (không gặp lỗi `ERR_VISUAL_INVALID`).
 
-### Full suite + phục hồi pilot THPTQG (04/11/2026)
-- Full suite **1470 PASS / 0 FAIL / 2 skip** sau khi: (1) chạy lại `scripts/thptqg-v27-pilot.mjs` khôi phục 9 task THPTQG bị **rebuild HKI G11 xóa sạch** (di sản V27 ghép tay sau build — bài học: MỌI injection sau build phải re-run sau mỗi lần rebuild builder); (2) bổ sung `taskVisualOf` vào 6 stub TaskImage trong test (stub viết tay thiếu export GĐ2).
-- `content/lessons/hki-2026-g11.json` giờ là JSON compact 1 dòng (7,5 MB, 133 entries + 2 exams nguyên vẹn) — diff 292k dòng chỉ là đổi format pretty→compact, không mất nội dung.
-- Commit `10dbf5ee` + `24ac1639`.
+2. **Tiêm Visual & Gameplay vào toàn bộ Content**:
+   - **HKI G10**: 140 `dataset-table` + `coordinate-plane` (đo đạc hải trình tam giác, miền nghiệm quy hoạch kho bãi).
+   - **HKI G11**: `function-graph` dao động sóng sin; 9 task pilot THPTQG được bảo toàn.
+   - **HKI G12**: 135 `function-graph` cho hàm bậc ba, phân thức hữu tỉ, tiệm cận.
+   - **HKII G10**: `coordinate-plane` (đường tròn, elip), `function-graph` (parabol).
+   - **HKII G11**: `function-graph` (hàm số mũ, logarit, dao động sin/cos) + 192 task 3D tương tác `KhoiXoay` (`solidKey`: tứ diện, hình chóp, hình hộp).
+   - **HKII G12**: 121 `probability-tree` (cây xác suất Bayes/toàn phần) + `coordinate-plane` (tích phân hình phẳng).
+   - **Tổng visual năm học**: 714 visual tương tác (445 HKI + 269 HKII) song hành cùng 192 khối xoay 3D.
 
-### Release record V43 (04/11/2026) — CHỜ NẠP PANEL
-- Archive đã tạo: `C:\Users\ADMIN\.codex\sites-release\release-20261103-v43.tar.gz` (44.435.004 bytes, nội dung `dist/` đúng chuẩn V39–V42), commit `c91b9ea`.
-- **Đã xác minh archive chứa nội dung mới**: chunk `semester-content` trong dist bung được 819 lessons — 170 task Bài 14 + 170 visual (140 HKI + 30 HKII). Lưu ý kỹ thuật: prompt nằm trong blob base64-gzip nên grep văn bản trực tiếp trong dist KHÔNG thấy — phải bung data mới kiểm được (đã có bài học này).
-- **Việc còn lại (cần chủ máy)**: nạp archive lên panel hosting → nhận `deployment_id` `appgdep_*` → Site version 43 live. Cơ chế deploy trước nay là nạp tar.gz thủ công (V39–V42 đều vậy); KHÔNG merge vào `main` — `main` là dòng phát triển khác hoàn toàn (không có tổ tiên chung với nhánh này).
+3. **Sửa triệt để 4 lỗi hiển thị & Thắt chặt Validator (04/11/2026)**:
+   - **Task `measure` (Hải trình Vịnh Bắc Bộ)**: `xDomain` và `yDomain` động theo tham số `k`, `radarRings` tỉ lệ động, loại bỏ 100% lỗi 59 task bị tràn ngoài khung `[-5, 5]`.
+   - **Task `circle` (Đường tròn)**: chuyển từ `radarRings` sang `circles: [{ center: [h, b], r, label: '(C)' }]`, vẽ đúng tâm $I(h; b)$ thay vì gốc $O$.
+   - **Task `exGraph` (Hàm số mũ)**: truyền chuẩn `fnParams: { a: 1, b: a, c: k }` kèm `expVerticalShift: c`, phản ánh chính xác hàm $y = a^{x-k} + c$.
+   - **Validator `lib/lesson/validate.js`**: thắt chặt kiểm tra `function-graph` (fnParams, xDomain, yDomain, điểm) và `coordinate-plane` (xDomain, yDomain, circles, điểm nằm trong khung).
+   - **Audit 100% toàn năm (807 bài / 11.241 task / 714 visual)**: **0 lỗi validation, 0 lỗi hình học/tràn khung**.
 
-### Check chéo đợt storyline HKI (04/11/2026) — SINGLE-SOURCE (Codex), PASS 6/6
-- Payload `check_cheo_payload_hki_story_20261104.md` (6 mục: dataset khớp, toán lời giải đúng, test/build).
+4. **Kiểm thử & Đóng gói V44**:
+   - Test suite: **1.470 PASS / 0 FAIL / 2 SKIP** (100% xanh).
+   - `npm run build`: Zero errors, production bundle sẵn sàng.
+   - Archive phát hành: `C:\Users\ADMIN\.codex\sites-release\release-20261104-v44.tar.gz` (44.525.597 bytes).
+
+### Việc cần chủ máy
+- Nạp archive `release-20261104-v44.tar.gz` lên hosting panel để nhận `deployment_id`.
+- Tiếp tục check chéo Claude sau khi hết weekly quota.
 - **Claude CLI chết weekly limit** (nguyên văn: "You've hit your weekly limit · resets Nov 4, 10pm") → chỉ Codex chạy. Kết quả: **PASS 6/6** — 140 storyline/140 visual khớp dataset từng phiên; đối chiếu số: 35 meanMedian + 42 quartileMode + 28 spread + 35 variance đều đúng toán (vd phương sai A `[0,2,-2,1]` = 2,1875 < B `[2,-1,3,-3]` = 5,6875 → kết luận "B phân tán hơn" đúng); test 5/5, build exit 0.
 - **Mục này CHƯA CHÉO** (single-source) — chờ Claude hồi weekly limit (sau 22:00 ngày 04/11) nếu muốn chéo đủ.
 - Bằng chứng: `codex_story_check.log`, commit lưu bằng chứng.

@@ -24,8 +24,8 @@ function choice(prompt,labels,correct,solution,hints){
  assert.ok(labels.length>=2&&correct>=0&&correct<labels.length);
  return {type:'closed',prompt,inputSchema:{options:labels.map((label,i)=>({id:`o${i+1}`,label}))},evaluation:{checkerId:'choice_exact',answerKey:`o${correct+1}`},solution,hints};
 }
-function open(prompt,solution,hints,criteria=['Nêu đúng kết luận, đủ điều kiện và lập luận.']){
- return {type:'open',prompt,evaluation:{rubric:{criteria,lookFor:[solution]}},solution,hints};
+function open(prompt,solution,hints,criteria=['Nêu đúng kết luận, đủ điều kiện và lập luận.'],visual){
+ return {type:'open',prompt,evaluation:{rubric:{criteria,lookFor:[solution]}},solution,hints,...(visual?{visual}:{})};
 }
 const hints=(read,strategy,first,example)=>[read,strategy,first,example];
 // H1 gắn dữ liệu: chiết xuất dữ kiện từ đề; "=" ngay trước số diễn đạt thành "bằng" ngoài công thức để không lộ đáp án theo quy tắc validator.
@@ -97,7 +97,19 @@ const bank={
  }),
  sinCosGraph:concept('Đồ thị sin và cos','Đọc chu kỳ, biên độ, điểm đặc biệt và chiều biến thiên của sin/cos.',1,[2],R`Lập bảng tại năm mốc của một chu kỳ, nối thành đường cong. Xác định khoảng tăng/giảm bằng đường tròn, không suy từ một điểm.`, 'Đồng nhất biên độ với chu kỳ; kết luận tăng trên toàn miền.',(s,d)=>{
   const a=n(s),b=1+s%4;
-  return open(R`Xét $y=${b}\sin(${a}x)$ và $z=${b}\cos(${a}x)$. Nêu chu kỳ, biên độ; lập bảng giá trị của cả hai hàm tại $x=0,\pi/${2*a},\pi/${a}${d===0?'':R`,3\pi/${2*a},2\pi/${a}`}$ rồi phác hai đồ thị trên cùng hệ trục. Trên $(0;\pi/${2*a})$, mỗi hàm tăng hay giảm?`,R`Cả hai có chu kỳ $T=2\pi/${a}$, biên độ ${b}. Các giá trị của y là $0,${b},0${d===0?'':`,-${b},0`}$; của z là $${b},0,-${b}${d===0?'':`,0,${b}`}$, tại đúng các mốc đã cho. Trên $(0;\pi/${2*a})$, y tăng từ 0 đến ${b}, z giảm từ ${b} về 0. Đồ thị cos bắt đầu tại cực đại; đồ thị sin bắt đầu tại gốc và đi lên.`,hints('Đổi mỗi hoành độ thành góc chung của sin và cos.','Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.','Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.','Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm.'),['Chu kỳ, biên độ và cả hai hàng giá trị đúng.','Phác đúng hai đường qua các điểm, phân biệt chiều biến thiên của sin và cos.']);
+  const visual = {
+    kind: 'function-graph',
+    title: `Đồ thị dao động: y = ${b}sin(${a}x)`,
+    fnType: 'sin',
+    fnParams: { a: b, b: a, c: 0 },
+    xDomain: [-0.5, (2 * Math.PI / a) + 0.5],
+    yDomain: [-b - 1, b + 1],
+    points: [
+      { x: Math.PI / (2 * a), y: b, label: 'Đỉnh', color: '#e11d48' },
+      { x: 3 * Math.PI / (2 * a), y: -b, label: 'Đáy', color: '#0284c7' }
+    ]
+  };
+  return open(R`Xét $y=${b}\sin(${a}x)$ và $z=${b}\cos(${a}x)$. Nêu chu kỳ, biên độ; lập bảng giá trị của cả hai hàm tại $x=0,\pi/${2*a},\pi/${a}${d===0?'':R`,3\pi/${2*a},2\pi/${a}`}$ rồi phác hai đồ thị trên cùng hệ trục. Trên $(0;\pi/${2*a})$, mỗi hàm tăng hay giảm?`,R`Cả hai có chu kỳ $T=2\pi/${a}$, biên độ ${b}. Các giá trị của y là $0,${b},0${d===0?'':`,-${b},0`}$; của z là $${b},0,-${b}${d===0?'':`,0,${b}`}$, tại đúng các mốc đã cho. Trên $(0;\pi/${2*a})$, y tăng từ 0 đến ${b}, z giảm từ ${b} về 0. Đồ thị cos bắt đầu tại cực đại; đồ thị sin bắt đầu tại gốc và đi lên.`,hints('Đổi mỗi hoành độ thành góc chung của sin và cos.','Sin là tung độ, cos là hoành độ trên đường tròn đơn vị.','Tính cả hai hàm tại mốc đầu tiên rồi lần lượt chuyển góc một phần tư vòng.','Ví dụ khác: trên cung từ góc 0 đến pi/2, tung độ tăng còn hoành độ giảm.'),['Chu kỳ, biên độ và cả hai hàng giá trị đúng.','Phác đúng hai đường qua các điểm, phân biệt chiều biến thiên của sin và cos.'], visual);
  }),
  tanCotGraph:concept('Đồ thị tan và cot','Xác định miền, chu kỳ, chiều biến thiên của tan/cot trên khoảng liên tục.',1,[2],R`Đánh dấu các điểm bị loại trước khi vẽ nhánh. Tan tăng trên mỗi khoảng giữa hai điểm bị loại; cot giảm trên mỗi khoảng tương ứng. Không nối qua điểm không xác định.`, 'Vẽ đường nối qua tiệm cận; dùng chu kỳ hai pi cho tan.',(s,d)=>{
   const a=n(s),isTan=d%2===0;
@@ -345,7 +357,21 @@ const hk = {
  }),
  exGraph: nc('Đồ thị hàm số mũ', 'Lập bảng điểm và phác đồ thị hàm số mũ, nhận biết chiều biến thiên và giới hạn ở một phía.', R`Từ bảng giá trị, GV vẽ đồ thị qua các điểm, nhấn mạnh giá trị hàm dương và trục hoành là tiệm cận ngang của đồ thị cơ bản. Với biểu thức dịch chuyển, HS dịch điểm đặc trưng rồi đối chiếu.`, 'Vẽ đồ thị cắt đường tiệm cận; nhầm vị trí điểm có số mũ bằng không.', (s,d) => {
   const a=2+s%4,k=n(s),c=d===0?0:1+s%3;
-  return open(R`Phác đồ thị $y=${a}^{x-${k}}+${c}$ trong vở. Tính giá trị tại $x=${k-1},${k},${k+1}$; nêu chiều biến thiên và đường thẳng mà đồ thị tiến gần khi $x\to-\infty$.`,R`Ba tung độ lần lượt $${frac(1,a)}+${c}$, $${c+1}$, $${a+c}$. Hàm đồng biến trên $\mathbb R$; khi $x\to-\infty$, $y\to${c}$ và luôn $y>${c}$. Đường thẳng cần nêu là $y=${c}$.`,scaffold('Chọn các số mũ âm một, không, một.','Thay giá trị ở giữa để có số mũ bằng không.',R`Ví dụ khác: với $y=2^{x-37}$, điểm có hoành độ $37$ được tìm bằng cách tính $2^0$.`),['Ba điểm đúng; hình vẽ tăng và nằm trên đường giới hạn.','Giải thích bằng cơ số và giá trị của lũy thừa.']);
+  const visual = {
+    kind: 'function-graph',
+    title: `Đồ thị hàm số mũ: y = ${a}^(x - ${k}) + ${c}`,
+    fnType: 'exponential',
+    fnParams: { a: 1, b: a, c: k },
+    expVerticalShift: c,
+    xDomain: [k - 3, k + 3],
+    yDomain: [c - 1, c + a * a + 2],
+    asymptotes: { horizontal: [c] },
+    points: [
+      { x: k, y: 1 + c, label: `(${k};${1+c})`, color: '#e11d48' },
+      { x: k + 1, y: a + c, label: `(${k+1};${a+c})`, color: '#0284c7' }
+    ]
+  };
+  return open(R`Phác đồ thị $y=${a}^{x-${k}}+${c}$ trong vở. Tính giá trị tại $x=${k-1},${k},${k+1}$; nêu chiều biến thiên và đường thẳng mà đồ thị tiến gần khi $x\to-\infty$.`,R`Ba tung độ lần lượt $${frac(1,a)}+${c}$, $${c+1}$, $${a+c}$. Hàm đồng biến trên $\mathbb R$; khi $x\to-\infty$, $y\to${c}$ và luôn $y>${c}$. Đường thẳng cần nêu là $y=${c}$.`,scaffold('Chọn các số mũ âm một, không, một.','Thay giá trị ở giữa để có số mũ bằng không.',R`Ví dụ khác: với $y=2^{x-37}$, điểm có hoành độ $37$ được tìm bằng cách tính $2^0$.`),['Ba điểm đúng; hình vẽ tăng và nằm trên đường giới hạn.','Giải thích bằng cơ số và giá trị của lũy thừa.'], visual);
  }),
  lgDomain: nc('Tập xác định và biến thiên của hàm số lôgarit','Tìm điều kiện của biểu thức dưới dấu lôgarit và xét chiều biến thiên theo cơ số.', R`GV đối chiếu $y=a^x$ với $y=\log_a x$ qua việc đổi vai trò đầu vào và đầu ra. Chốt điều kiện đối số dương; cơ số lớn hơn một thì đồng biến, cơ số dưới một thì nghịch biến.`, 'Đặt đối số không âm; chỉ kiểm cơ số mà bỏ điều kiện đối số.', (s,d) => {
   const a=2+s%5,k=n(s),down=d%2===1,b=down?frac(1,a):String(a);

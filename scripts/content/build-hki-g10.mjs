@@ -262,9 +262,28 @@ const bank = {
     R`GV vẽ hai trạm A,B và điểm C bên kia vật cản. HS chỉ ra dữ kiện đo được, góc tại trạm và khoảng cách cần tìm. Chốt mô hình phẳng, đo góc chính xác, không cộng độ dài khi đường đi gấp khúc.`,
     'Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong.', (s, d) => {
       const k = n(s);
+      const maxVal = Math.ceil(k * 1.73 + 2);
+      const yPad = Math.max(2, Math.round(k * 0.25));
+      const visual = {
+        kind: 'coordinate-plane',
+        title: 'Hải trình Vịnh Bắc Bộ — Đo đạc trinh sát hải đảo',
+        xDomain: [-maxVal, maxVal],
+        yDomain: [-yPad, maxVal],
+        radarRings: [Math.round(maxVal * 0.35), Math.round(maxVal * 0.7), maxVal],
+        points: [
+          { x: -k, y: 0, label: 'Trạm A' },
+          { x: k, y: 0, label: 'Trạm B' },
+          { x: 0, y: Number((k * 1.73).toFixed(2)), label: 'Mục tiêu C', color: '#10b981' }
+        ],
+        segments: [
+          { from: [-k, 0], to: [k, 0], label: `AB = ${2 * k}m` },
+          { from: [-k, 0], to: [0, Number((k * 1.73).toFixed(2))], label: 'AC' },
+          { from: [k, 0], to: [0, Number((k * 1.73).toFixed(2))], label: 'BC' }
+        ]
+      };
       return open(R`Hai trạm A,B cách nhau $${2 * k}$ m. Điểm C cùng phía với AB; đo được $\widehat{CAB}=30^\circ$, $\widehat{CBA}=60^\circ$. Em vẽ mô hình, tính góc C và khoảng cách ${d % 2 ? 'BC' : 'AC'}. Kết quả có thể viết dưới dạng căn.`,
         R`Góc C bằng $90^\circ$. Theo định lí sin, $BC=AB\sin30^\circ=${k}$ m, $AC=AB\sin60^\circ=${k}\sqrt3$ m. Khoảng cách hỏi là ${d % 2 ? R`$${k}$ m` : R`$${k}\sqrt3$ m`}; không lấy tổng hai đoạn.`,
-        h('AB đối diện góc C.', 'Tìm góc còn lại trước rồi ghép cặp cạnh-góc.', 'Viết tỉ số của cạnh cần tìm với sin góc đối diện.', 'Ví dụ khác: trong tam giác vuông, cạnh huyền đối diện góc 90 độ.'), ['Mô hình và góc đúng.', 'Công thức, kết quả căn và đơn vị đúng.']);
+        h('AB đối diện góc C.', 'Tìm góc còn lại trước rồi ghép cặp cạnh-góc.', 'Viết tỉ số của cạnh cần tìm với sin góc đối diện.', 'Ví dụ khác: trong tam giác vuông, cạnh huyền đối diện góc 90 độ.'), ['Mô hình và góc đúng.', 'Công thức, kết quả căn và đơn vị đúng.'], visual);
     }),
   inequality: concept('Bất phương trình bậc nhất hai ẩn', 'Nhận dạng bất phương trình bậc nhất hai ẩn và kiểm tra một cặp số có phải nghiệm.', 'r22-g10-u1-lo02',
     R`GV đối chiếu $2x+y\le5$ với $x^2+y\le5$ và $xy<4$. Chốt dạng $ax+by<c$ hoặc các dấu còn lại, a,b không đồng thời bằng 0. Một nghiệm là cả cặp số, không phải một giá trị x rời rạc.`,
@@ -302,9 +321,26 @@ const bank = {
     R`GV vẽ từng đường biên một, chỉ giữ vùng thỏa tất cả điều kiện. Giao của hai đường chưa tự là đỉnh khả thi: thế vào mọi bất phương trình để kiểm.`,
     'Giữ cả giao điểm nằm ngoài miền; chỉ tô từng miền riêng.', s => {
       const k = n(s), a = 6 * k;
+      const visual = {
+        kind: 'coordinate-plane',
+        title: 'Quy hoạch kho bãi Logistics — Miền nghiệm khả thi',
+        xDomain: [-1, 3 * k + 2],
+        yDomain: [-1, 3 * k + 2],
+        regions: [{
+          polygon: [[0, 0], [3 * k, 0], [2 * k, 2 * k], [0, 3 * k]],
+          label: 'Miền nghiệm S',
+          color: '#0284c7'
+        }],
+        points: [
+          { x: 0, y: 0, label: 'O(0;0)' },
+          { x: 3 * k, y: 0, label: `A(${3 * k};0)` },
+          { x: 2 * k, y: 2 * k, label: `B(${2 * k};${2 * k})`, color: '#e11d48' },
+          { x: 0, y: 3 * k, label: `C(0;${3 * k})` }
+        ]
+      };
       return open(R`Vẽ miền $x\ge0,\ y\ge0,\ x+2y\le${a},\ 2x+y\le${a}$. Tìm các đỉnh, kiểm giao điểm hai đường xiên.`,
         R`Miền tứ giác có đỉnh $(0;0),(${3 * k};0),(${2 * k};${2 * k}),(0;${3 * k})$. Hai đường xiên cho x=y rồi $3x=${a}$, nên giao là $(${2 * k};${2 * k})$, thỏa tất cả điều kiện.`,
-        h('Miền nằm trong góc phần tư thứ nhất, kể cả trục.', 'Tìm các giao điểm rồi kiểm tính khả thi.', 'Trừ hai phương trình đường xiên để liên hệ x,y.', 'Ví dụ khác: giao điểm ngoài góc phần tư thứ nhất bị loại khi cả hai biến phải không âm.'), ['Đúng bốn đỉnh.', 'Hình vùng giao và kiểm điều kiện nhất quán.']);
+        h('Miền nằm trong góc phần tư thứ nhất, kể cả trục.', 'Tìm các giao điểm rồi kiểm tính khả thi.', 'Trừ hai phương trình đường xiên để liên hệ x,y.', 'Ví dụ khác: giao điểm ngoài góc phần tư thứ nhất bị loại khi cả hai biến phải không âm.'), ['Đúng bốn đỉnh.', 'Hình vùng giao và kiểm điều kiện nhất quán.'], visual);
     }),
   optimize: concept('Lập mô hình và tối ưu tuyến tính', 'Lập hệ ràng buộc từ tài nguyên, so sánh hàm mục tiêu tại các đỉnh khả thi.', 'r22-g10-u1-lo02',
     R`GV dùng hai sản phẩm tiêu thụ hai tài nguyên; HS nêu đơn vị của biến, điều kiện không âm và hàm lợi nhuận. Sau khi dựng đa giác, tính giá trị tại mọi đỉnh, không chọn chỉ theo hình đẹp.`,
