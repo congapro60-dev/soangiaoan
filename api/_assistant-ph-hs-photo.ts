@@ -482,13 +482,22 @@ export const openPhotoSession = async (
     return null;
   });
   if (blocked) return blocked;
-  const lines = [`Bài: ${session.assignmentTitle}${assist ? ` — nộp hộ bạn ${assist.targetName}` : ''}`];
-  // Thêm link file đính kèm (nếu có)
-  if (assignment.attachments?.length) {
+  return openSessionReply(session.assignmentTitle, assignment.attachments, assist?.targetName);
+};
+
+/**
+ * Câu trả lời khi mở phiên nộp — hàm THUẦN (tách ra để xuất ví dụ/test dùng đúng
+ * chuỗi production, không chép tay).
+ */
+export const openSessionReply = (
+  title: string,
+  attachments?: AssignmentAttachment[],
+  assistTargetName?: string,
+): string => {
+  const lines = [`Bài: ${title}${assistTargetName ? ` — nộp hộ bạn ${assistTargetName}` : ''}`];
+  if (attachments?.length) {
     lines.push('📎 File đề bài:');
-    assignment.attachments.forEach(f => {
-      lines.push(`   ${fileIcon(f.type)} ${f.name}: ${f.url}`);
-    });
+    attachments.forEach(f => lines.push(`   ${fileIcon(f.type)} ${f.name}: ${f.url}`));
   }
   lines.push(
     `📤 HƯỚNG DẪN NỘP BÀI:`,
@@ -503,6 +512,34 @@ export const openPhotoSession = async (
     '', MENU_HINT,
   );
   return lines.join('\n');
+};
+
+/**
+ * Câu xác nhận đã nhận 1 ảnh — hàm THUẦN (dùng chung cho production và ví dụ).
+ * Cho biết số ảnh đã nhận, dung lượng, và còn được gửi mấy ảnh.
+ */
+export const photoAcceptedReply = (count: number, bytes: number): string => {
+  const remaining = MAX_PHOTOS - count;
+  return [`✅ Đã nhận ảnh ${count}/${MAX_PHOTOS} (${(bytes / 1024 / 1024).toFixed(1)}MB).`,
+    remaining > 0
+      ? `📤 Gửi tiếp ${remaining} ảnh nữa hoặc nhắn: xong để máy chấm.`
+      : '📤 Nhắn: xong để máy chấm.',
+    `⚠️ LƯU Ý: Ảnh phải rõ nét, không mờ, không cắt xén.`,
+    '', MENU_HINT].join('\n');
+};
+
+/**
+ * Câu thông báo điểm sau khi chấm xong — hàm THUẦN (dùng chung production + ví dụ).
+ */
+export const gradedReply = (
+  title: string, score: number, maxScore: number, approved: boolean, assistTargetName?: string,
+): string => {
+  const baiCua = assistTargetName ? ` của ${assistTargetName}` : '';
+  return [`📝 Chấm xong bài "${title}"${baiCua}: ${score}/${maxScore} điểm`,
+    approved ? '✅ Thầy cô đã duyệt — điểm chính thức.' : '⏳ Máy chấm trước, thầy cô duyệt sau rồi điểm mới chính thức.',
+    assistTargetName ? `Điểm và nhận xét hiện trên tài khoản của ${assistTargetName}.` : '👉 Xem chi tiết từng câu: nhắn 2.',
+    ...(approved || assistTargetName ? [] : ['💡 Thấy điểm chưa đúng? Nhắn: chấm lại']),
+    '', MENU_HINT].join('\n');
 };
 
 /** Nhắn 0 (xem lại menu) → hủy phiên ảnh đang mở nếu có. Không có phiên thì vô hại. */
@@ -589,13 +626,7 @@ export const photoReceivedReply = async (botId: string, userId: string, photoUrl
     if (current.photos.length >= MAX_PHOTOS) return PHOTO_REPLIES.max;
     const photos = [...current.photos, { url, name: `zalo-${String(current.photos.length + 1).padStart(2, '0')}.${mimeType.split('/')[1] || 'jpg'}`, mimeType, size: buffer.byteLength }];
     tx.update(ref, { photos, expiresAt: Date.now() + SESSION_MS });
-    const remaining = MAX_PHOTOS - photos.length;
-    return [`✅ Đã nhận ảnh ${photos.length}/${MAX_PHOTOS} (${(buffer.byteLength / 1024 / 1024).toFixed(1)}MB).`,
-      remaining > 0
-        ? `📤 Gửi tiếp ${remaining} ảnh nữa hoặc nhắn: xong để máy chấm.`
-        : '📤 Nhắn: xong để máy chấm.',
-      `⚠️ LƯU Ý: Ảnh phải rõ nét, không mờ, không cắt xén.`,
-      '', MENU_HINT].join('\n');
+    return photoAcceptedReply(photos.length, buffer.byteLength);
   });
 };
 
@@ -734,13 +765,7 @@ const gradeAndNotify = async (token: string, chatId: string, submissionId: strin
       // như người thật, không lạm dụng. Sticker lỗi thì bỏ qua, không chặn tin điểm.
       const msg = isCongratulation(fresh.grade.score, fresh.grade.maxScore, approved) ? CONGRATS_STICKER() : '';
       if (msg) await sendSticker(token, chatId, msg).catch(() => false);
-      await sendStyled(token, chatId, [`📝 Chấm xong bài "${s.assignmentTitle}"${baiCua}: ${fresh.grade.score}/${fresh.grade.maxScore} điểm`,
-        approved ? '✅ Thầy cô đã duyệt — điểm chính thức.' : '⏳ Máy chấm trước, thầy cô duyệt sau rồi điểm mới chính thức.',
-        // A3: người nộp hộ không xem được bài của bạn qua mục 2 — dẫn đúng nơi xem.
-        s.assist ? `Điểm và nhận xét hiện trên tài khoản của ${s.assist.targetName}.` : '👉 Xem chi tiết từng câu: nhắn 2.',
-        // Chấm lại (29/10): HS tự xin được 1 lần/bài nếu thấy máy đọc sai.
-        ...(approved || s.assist ? [] : ['💡 Thấy điểm chưa đúng? Nhắn: chấm lại']),
-        '', MENU_HINT].join('\n'));
+      await sendStyled(token, chatId, gradedReply(s.assignmentTitle, fresh.grade.score, fresh.grade.maxScore, approved, s.assist?.targetName));
       return;
     }
     if (fresh?.status === 'error' && fresh.errorMessage) { await khongChamDuoc(String(fresh.errorMessage).slice(0, 200)); return; }
