@@ -462,6 +462,16 @@ export const INTERACTIVE_SOURCE_KEYS: ReadonlySet<string> = new Set([
   '12-12-85',
   '12-12-86',
   '12-12-87',
+  '10-12-89',
+  '10-12-90',
+  '10-12-91',
+  '10-12-92',
+  '10-12-93',
+  '11-12-83',
+  '11-12-84',
+  '11-12-85',
+  '11-12-86',
+  '11-12-87',
 ]);
 
 export interface SequentialPublicationOptions {  /** Existing lessons indexed by sourceKey (curriculumRef.lessonCode). */

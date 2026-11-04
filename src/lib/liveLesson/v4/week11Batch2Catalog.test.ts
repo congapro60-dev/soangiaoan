@@ -10,8 +10,13 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
   });
 
   it('Cổng chốt catalog batch2 — đủ đúng key mới nghiệm thu đợt (Task 11 Step 1b)', () => {
-    expect(W11BATCH2).toHaveLength(15);
-    expect(W11BATCH2.map((e) => e.key)).toEqual(['10-11-80', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79', '10-12-88', '11-12-82', '12-12-82', '12-12-83', '12-12-84', '12-12-85', '12-12-86', '12-12-87']);
+    expect(W11BATCH2).toHaveLength(25);
+    expect(W11BATCH2.map((e) => e.key)).toEqual([
+      '10-11-80', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79',
+      '10-12-88', '11-12-82', '12-12-82', '12-12-83', '12-12-84', '12-12-85', '12-12-86', '12-12-87',
+      '10-12-89', '10-12-90', '10-12-91', '10-12-92', '10-12-93',
+      '11-12-83', '11-12-84', '11-12-85', '11-12-86', '11-12-87',
+    ]);
   });
 
   it('merge batch2 không làm mất gói gốc', () => {
@@ -32,7 +37,7 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
 
   it.each(W11BATCH2)('$key có metadata packageId khớp quy ước', ({ key, grade, period, title }) => {
     const metadata = getBanToanV4PackageMetadata().find(item => item.sourceKey === key);
-    const week = (key === '10-12-88' || key === '11-12-82' || key.startsWith('12-12-')) ? 12 : 11;
+    const week = key.includes('-12-') ? 12 : 11;
     expect(metadata?.packageId).toBe(`g${grade}_w${week}_p${period}_v4`);
     expect(metadata?.title).toBe(title);
     expect(getBanToanV4ContractByPackageId(metadata!.packageId)?.sourceKey).toBe(key);

@@ -1,21 +1,25 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 04/11/2026 — **TOÀN DIỆN 66/66 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER 100%**
+> Cập nhật: 04/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 12 CẢ 3 KHỐI: 76/76 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
 
 ## 1. Trạng thái hiện tại
-- **TOÀN BỘ 66/66 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
-  - Khối 10: 19/19 bài (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 1 bài).
-  - Khối 11: 21/21 bài (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 1 bài).
-  - Khối 12: 26/26 bài (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài).
+- **TOÀN BỘ 76/76 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
+  - Khối 10: **24 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6/6 bài `10-12-88`..`93`).
+  - Khối 11: **26 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6/6 bài `11-12-82`..`87`).
+  - Khối 12: **26 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6/6 bài `12-12-82`..`87`).
+- **Tuần 12 đã khép kín 100% cả 3 khối (18/18 bài):**
+  - Khối 10: `10-12-88` (Tứ phân vị, mốt), `10-12-89` (Luyện tập xu thế trung tâm), `10-12-90` (Mức độ phân tán), `10-12-91` (Ôn tập chương V), `10-12-92` (Tổng hiệu vectơ), `10-12-93` (Tích vectơ với số).
+  - Khối 11: `11-12-82` (Tứ phân vị và mốt ghép nhóm), `11-12-83` (Luyện tập ghép nhóm), `11-12-84` (Giới hạn dãy số P1), `11-12-85` (Quy tắc giới hạn & CSN lùi vô hạn), `11-12-86` (Hình lăng trụ và hình hộp), `11-12-87` (Luyện tập 2 mp song song).
+  - Khối 12: `12-12-82`..`87` (Nguyên hàm và ứng dụng độ lệch chuẩn).
 - **Bộ dữ liệu chuẩn hóa:**
-  - `src/data/liveLessonPackages/banToan-w5-w6.snapshot.json` (51 bài): đồng bộ 100% specs + AI Error 9 trường.
-  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json` (15 bài): đồng bộ 100% specs + AI Error 9 trường.
-  - Toàn bộ 66 file `tasks/gate-d-*.md` và `tasks/giaoan-goc-*.md` khớp chuẩn V8.8.
+  - `src/data/liveLessonPackages/banToan-w5-w6.snapshot.json`: 51 bài.
+  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 25 bài.
+  - Toàn bộ 76 file `tasks/gate-d-*.md` và `tasks/giaoan-goc-*.md` đầy đủ, chuẩn V8.8 và AI Error 9 trường.
 - **Kiểm định chất lượng:**
-  - Vitest test suite: `src/lib/liveLesson/` đạt **442/442 PASS** (39 test files).
+  - Vitest test suite: `src/lib/liveLesson/` đạt **472/472 PASS** (39 test files).
   - Production build: `npm run build` thành công, 0 lỗi TypeScript, 0 lỗi bundle.
 - **Đồng bộ mã nguồn:**
-  - Đã commit và push đồng bộ lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
+  - Sẵn sàng đồng bộ commit và push cả `feat/nop-bai-da-cham` và `main`.
 
   - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-10-12-88.md` và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-10-12-88.md` (commit `8482b87`). Thầy đã duyệt.
   - Pha B: Đã nạp thành công `newSpec10_12_88` và `newAiError10_12_88` vào `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json` (tổng 8 specs) và timeline `gateD101288` vào `src/lib/liveLesson/v4/lessonAdapter.ts`.
