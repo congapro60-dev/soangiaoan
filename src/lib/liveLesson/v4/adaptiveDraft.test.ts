@@ -43,7 +43,7 @@ describe('V4 Ban Toán adaptive lesson draft', () => {
     expect(buildBanToanV4AdaptiveLessonDraft('10-11-80', 'teacher-1').curriculumRef?.chapter).toBe('Ban Toán · W11');
   });
 
-  it('keeps all 51 generated drafts content-complete enough for the existing editor gate', () => {
+  it('keeps all generated drafts content-complete enough for the existing editor gate', () => {
     for (const contract of getAllBanToanV4Contracts()) {
       const lesson = buildBanToanV4AdaptiveLessonDraft(contract.sourceKey, 'teacher-qa');
       const codes = new Set(validateAdaptiveLessonPublishReadiness(lesson).map((issue) => issue.code));
