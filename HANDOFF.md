@@ -1,22 +1,24 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 04/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 12 CẢ 3 KHỐI: 76/76 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
+> Cập nhật: 04/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 13 CẢ 3 KHỐI: 100/100 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
 
 ## 1. Trạng thái hiện tại
-- **TOÀN BỘ 76/76 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
-  - Khối 10: **24 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6/6 bài `10-12-88`..`93`).
-  - Khối 11: **26 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6/6 bài `11-12-82`..`87`).
-  - Khối 12: **26 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6/6 bài `12-12-82`..`87`).
-- **Tuần 12 đã khép kín 100% cả 3 khối (18/18 bài):**
-  - Khối 10: `10-12-88` (Tứ phân vị, mốt), `10-12-89` (Luyện tập xu thế trung tâm), `10-12-90` (Mức độ phân tán), `10-12-91` (Ôn tập chương V), `10-12-92` (Tổng hiệu vectơ), `10-12-93` (Tích vectơ với số).
-  - Khối 11: `11-12-82` (Tứ phân vị và mốt ghép nhóm), `11-12-83` (Luyện tập ghép nhóm), `11-12-84` (Giới hạn dãy số P1), `11-12-85` (Quy tắc giới hạn & CSN lùi vô hạn), `11-12-86` (Hình lăng trụ và hình hộp), `11-12-87` (Luyện tập 2 mp song song).
-  - Khối 12: `12-12-82`..`87` (Nguyên hàm và ứng dụng độ lệch chuẩn).
+- **TOÀN BỘ 100/100 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
+  - Khối 10: **32 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8/8 bài `10-13-96`..`103`).
+  - Khối 11: **34 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8/8 bài `11-13-90`..`97`).
+  - Khối 12: **34 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8/8 bài `12-13-90`..`97`).
+- **Tuần 13 đã khép kín 100% cả 3 khối (24/24 bài):**
+  - Khối 10: `10-13-96` (Dự án thống kê 1), `10-13-97` (Dự án thống kê 2), `10-13-98` (Luyện tập tích vectơ với số), `10-13-99` (Tọa độ của vectơ), `10-13-100` (Biểu thức tọa độ và độ dài), `10-13-101` (Luyện tập tọa độ vectơ), `10-13-102` (Tự chọn: Ứng dụng tọa độ), `10-13-103` (Tự chọn: Định vị và chuyển động).
+  - Khối 11: `11-13-90` (Giới hạn vô cực của dãy số), `11-13-91` (Luyện tập giới hạn dãy số), `11-13-92` (Giới hạn hữu hạn tại một điểm), `11-13-93` (Giới hạn một bên của hàm số), `11-13-94` (Phép chiếu song song và hình biểu diễn), `11-13-95` (Luyện tập phép chiếu song song), `11-13-96` (Tự chọn: Khử dạng vô định), `11-13-97` (Tự chọn: Hình biểu diễn đa diện).
+  - Khối 12: `12-13-90` (Luyện tập đổi biến nguyên hàm), `12-13-91` (Luyện tập nguyên hàm từng phần), `12-13-92` (Diện tích hình thang cong & tích phân), `12-13-93` (Định nghĩa tích phân & công thức Newton), `12-13-94` (Tính chất tuyến tính & cộng đoạn), `12-13-95` (Tính chất đổi cận & hàm chẵn lẻ), `12-13-96` (Luyện tập tính tích phân cơ bản), `12-13-97` (Tự chọn: Kỹ thuật tính nhanh tích phân).
 - **Bộ dữ liệu chuẩn hóa:**
   - `src/data/liveLessonPackages/banToan-w5-w6.snapshot.json`: 51 bài.
-  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 25 bài.
-  - Toàn bộ 76 file `tasks/gate-d-*.md` và `tasks/giaoan-goc-*.md` đầy đủ, chuẩn V8.8 và AI Error 9 trường.
+  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 49 bài (tổng cộng 100 bài).
+  - Đăng ký đầy đủ 49 bài trong `W11BATCH2` và 52 bài trong `INTERACTIVE_SOURCE_KEYS`.
+  - Mọi `aiError` đều đủ 9 trường, thuộc đúng 4 categories chuẩn và `teacherPrompt` chứa "sửa".
+  - Kiểm chứng `displayTitleUnique.test.ts`: 100/100 bài có display title duy nhất trong từng khối lớp.
 - **Kiểm định chất lượng:**
-  - Vitest test suite: `src/lib/liveLesson/` đạt **472/472 PASS** (39 test files).
+  - Vitest test suite: `src/lib/liveLesson/v4` đạt **439/439 PASS** (28 test files).
   - Production build: `npm run build` thành công, 0 lỗi TypeScript, 0 lỗi bundle.
 - **Đồng bộ mã nguồn:**
   - Sẵn sàng đồng bộ commit và push cả `feat/nop-bai-da-cham` và `main`.

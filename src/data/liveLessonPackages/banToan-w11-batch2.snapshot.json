@@ -2205,6 +2205,1903 @@
       ],
       "selfChoice": false,
       "timelineKey": "default"
+    },
+    {
+      "key": "10-13-96",
+      "grade": 10,
+      "week": 13,
+      "period": 96,
+      "title": "Báo cáo dự án thống kê thực nghiệm 1",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Báo cáo kết quả dự án thống kê mô tả; xử lý số liệu thực nghiệm, tính toán các số đặc trưng và đánh giá độ tin cậy của kết luận.",
+      "formulas": [
+        "\\bar x = \\dfrac{1}{n}\\sum m_i c_i",
+        "s^2 = \\dfrac{1}{n}\\sum m_i (c_i - \\bar x)^2; \\quad s = \\sqrt{s^2}",
+        "\\Delta_Q = Q_3 - Q_1; \\quad \\text{Ngoại lai: } x \\notin [Q_1 - 1{,}5\\Delta_Q; Q_3 + 1{,}5\\Delta_Q]"
+      ],
+      "boardKnowledge": [
+        "I. Cấu trúc báo cáo: Mục tiêu -> Phương pháp mẫu -> Kết quả thống kê -> Kiến nghị.",
+        "II. Đánh giá: Độ chuẩn xác tính toán, khả năng phát hiện ngoại lai, tính thuyết phục của đồ thị."
+      ],
+      "examples": [
+        {
+          "question": "Dự án đo chiều cao 50 cây giống: x̄ = 25 cm, s = 2 cm. Đánh giá chất lượng lô cây giống.",
+          "solution": "Độ lệch chuẩn s = 2 cm là khá nhỏ (s/x̄ = 8%), chứng tỏ lô cây giống phát triển rất đồng đều, đạt tiêu chuẩn xuất vườn."
+        },
+        {
+          "question": "Trong mẫu khảo sát chi tiêu có Q1 = 50k, Q3 = 100k. Một bạn chi tiêu 250k có phải ngoại lai không?",
+          "solution": "ΔQ = 100 - 50 = 50k. Ngưỡng trên: Q3 + 1,5ΔQ = 100 + 1,5·50 = 175k. Vì 250k > 175k nên đây là giá trị ngoại lai."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Mẫu số liệu có cỡ mẫu n = 100, tổng các giá trị là 450. Tính số trung bình.",
+          "answer": "x̄ = 450/100 = 4,5."
+        },
+        {
+          "level": "NB",
+          "question": "Để trực quan hóa cơ cấu phần trăm các nhóm số liệu, nên dùng biểu đồ nào?",
+          "answer": "Nên dùng biểu đồ hình quạt tròn (hoặc biểu đồ cột)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính phương sai s² biết n = 20, tổng bình phương độ lệch là 80.",
+          "answer": "s² = 80/20 = 4 (độ lệch chuẩn s = 2)."
+        },
+        {
+          "level": "TH",
+          "question": "Dự án có x̄ = 15, trung vị Me = 11. Nhận xét về độ lệch của phân bố dữ liệu.",
+          "answer": "Vì x̄ > Me khá nhiều nên dữ liệu bị lệch phải (có một số giá trị rất lớn kéo x̄ lên)."
+        },
+        {
+          "level": "VD",
+          "question": "Hai nhóm dự án cùng khảo sát một vấn đề: Nhóm 1 có s = 1,2; Nhóm 2 có s = 3,5. Nhóm nào có dữ liệu thu thập đồng đều hơn?",
+          "answer": "Nhóm 1 có s nhỏ hơn hẳn nên dữ liệu đồng đều và tập trung hơn nhóm 2."
+        },
+        {
+          "level": "VD",
+          "question": "Đề xuất 2 biện pháp giảm thiểu sai số trong phiếu hỏi khảo sát dự án.",
+          "answer": "1. Thiết kế câu hỏi trắc nghiệm rõ ràng, tránh câu hỏi mơ hồ; 2. Tăng kích thước mẫu và chọn mẫu ngẫu nhiên đại diện."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có thể kết luận toàn trường chỉ dựa trên khảo sát 5 học sinh không?",
+          "solution": "Không, cỡ mẫu 5 quá nhỏ, không đại diện được cho toàn trường."
+        },
+        {
+          "question": "Độ lệch chuẩn có đơn vị đo giống đơn vị của số liệu không?",
+          "solution": "Có, độ lệch chuẩn s cùng đơn vị đo với dữ liệu gốc."
+        }
+      ],
+      "mistakes": [
+        "Chỉ nêu số trung bình mà không báo cáo độ lệch chuẩn s.",
+        "Không kiểm tra giá trị ngoại lai trước khi kết luận dự án.",
+        "Vẽ biểu đồ sai tỉ lệ trục tọa độ."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-13-97",
+      "grade": 10,
+      "week": 13,
+      "period": 97,
+      "title": "Báo cáo dự án thống kê thực nghiệm 2",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Phản biện số liệu, thẩm định phương pháp thu thập mẫu, đánh giá độ tin cậy và hoàn thiện báo cáo khoa học của dự án thống kê mô tả.",
+      "formulas": [
+        "\\text{Sai số chọn mẫu} \\propto \\dfrac{1}{\\sqrt{n}}",
+        "\\bar x = \\dfrac{1}{n}\\sum x_i; \\quad s = \\sqrt{\\dfrac{1}{n}\\sum (x_i - \\bar x)^2}"
+      ],
+      "boardKnowledge": [
+        "I. Tiêu chuẩn mẫu: Ngẫu nhiên, độc lập, kích thước đủ lớn, không thiên vị.",
+        "II. Phản biện: Kiểm tra nguồn số liệu, kiểm tra công thức tính, kiểm tra suy diễn kết luận."
+      ],
+      "examples": [
+        {
+          "question": "Một nhóm muốn khảo sát chiều cao HS lớp 10 nhưng chỉ đo đội tuyển bóng rổ. Nhận xét về mẫu số liệu.",
+          "solution": "Mẫu bị thiên lệch nghiêm trọng vì VĐV bóng rổ có chiều cao vượt trội, x̄ thu được sẽ cao hơn thực tế toàn khối rất nhiều."
+        },
+        {
+          "question": "So sánh hai mẫu: Mẫu 1 có n = 40, s = 2; Mẫu 2 có n = 100, s = 5. Mẫu nào có dữ liệu phân tán hơn?",
+          "solution": "Mẫu 2 có độ lệch chuẩn s = 5 lớn hơn s = 2 của Mẫu 1 nên dữ liệu của Mẫu 2 phân tán rộng hơn."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Mẫu số liệu thế nào được gọi là mẫu đại diện ngẫu nhiên?",
+          "answer": "Là mẫu mà mọi cá thể trong quần thể đều có cơ hội được chọn ngang nhau."
+        },
+        {
+          "level": "NB",
+          "question": "Nêu công thức tính số trung bình của dãy x1, x2, ..., xn.",
+          "answer": "x̄ = (x1 + x2 + ... + xn)/n."
+        },
+        {
+          "level": "TH",
+          "question": "Tại sao khi vẽ biểu đồ cột không nên cắt ngắn trục tung (trục tung không bắt đầu từ 0)?",
+          "answer": "Vì làm phóng đại sự khác biệt giữa các cột, gây cảm nhận sai lệch cho người xem."
+        },
+        {
+          "level": "TH",
+          "question": "Cho dãy số liệu: 10, 10, 10, 10. Tính phương sai s² và giải thích ý nghĩa.",
+          "answer": "s² = 0 vì tất cả các giá trị đều bằng nhau, không có sự phân tán."
+        },
+        {
+          "level": "VD",
+          "question": "Thiết kế phương án lấy mẫu 60 học sinh toàn trường gồm 3 khối 10, 11, 12 theo tỉ lệ sĩ số.",
+          "answer": "Lấy mẫu phân tầng: nếu tỉ số học sinh 3 khối là 1:1:1 thì mỗi khối chọn ngẫu nhiên đúng 20 học sinh theo danh sách sổ điểm."
+        },
+        {
+          "level": "VD",
+          "question": "Một bài báo giật tít: \"90% người được hỏi ủng hộ tăng tiền học phí\", biết người được hỏi là 10 phụ huynh trong ban đại diện. Hãy viết đoạn phản biện.",
+          "answer": "Cỡ mẫu n = 10 quá nhỏ và đối tượng ban đại diện không đại diện cho số đông phụ huynh; kết luận 90% không có giá trị thống kê cho toàn trường."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Một cuộc khảo sát chọn mẫu có thể có sai số bằng 0 tuyệt đối không?",
+          "solution": "Không, trong thực tế luôn tồn tại sai số lấy mẫu ngẫu nhiên."
+        },
+        {
+          "question": "Có nên tự ý xóa bỏ các số liệu quá khác biệt mà không kiểm tra không?",
+          "solution": "Không, phải xác minh xem đó là số liệu thật hay do nhầm lẫn trước khi xử lý."
+        }
+      ],
+      "mistakes": [
+        "Đánh đồng kết quả khảo sát trên mẫu nhỏ với toàn bộ cộng đồng.",
+        "Sử dụng biểu đồ bóp méo trực quan để dẫn dắt kết luận sai lệch.",
+        "Không đối chiếu lại dữ liệu gốc khi có nghi ngờ tính toán."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-13-98",
+      "grade": 10,
+      "week": 13,
+      "period": 98,
+      "title": "Luyện tập tích của một vectơ với một số",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập kỹ năng phân tích một vectơ theo hai vectơ không cùng phương; chứng minh ba điểm thẳng hàng; ứng dụng hệ thức vectơ trong bài toán đòn bẩy và hình học.",
+      "formulas": [
+        "\\vec x = m\\vec a + n\\vec b \\quad (\\vec a, \\vec b \\text{ không cùng phương, duy nhất } m, n)",
+        "A, B, C \\text{ thẳng hàng } \\iff \\exists k \\ne 0: \\vec{AB} = k\\vec{AC}",
+        "I \\text{ là trung điểm } AB \\iff \\vec{IA} + \\vec{IB} = \\vec 0 \\iff \\vec{OA} + \\vec{OB} = 2\\vec{OI}",
+        "G \\text{ là trọng tâm } \\Delta ABC \\iff \\vec{GA} + \\vec{GB} + \\vec{GC} = \\vec 0 \\iff \\vec{OA} + \\vec{OB} + \\vec{OC} = 3\\vec{OG}"
+      ],
+      "boardKnowledge": [
+        "I. Phân tích vectơ: Dùng quy tắc 3 điểm chèn đỉnh để đưa về hai vectơ cơ sở.",
+        "II. Ba điểm thẳng hàng: Đưa về dạng AB = k·AC.",
+        "III. Điểm chia đoạn thẳng: k1·MA + k2·MB = 0 xác định vị trí M."
+      ],
+      "examples": [
+        {
+          "question": "Cho tam giác ABC có trọng tâm G. Gọi M là trung điểm BC. Biểu diễn AG theo AB và AC.",
+          "solution": "Ta có AM = (1/2)(AB + AC). Theo tính chất trọng tâm: AG = (2/3)AM = (2/3)·(1/2)(AB + AC) = (1/3)AB + (1/3)AC."
+        },
+        {
+          "question": "Cho tam giác ABC. Lấy điểm M sao cho AM = 3MB và điểm N sao cho AN = 3/4 AC. Chứng minh MN // BC.",
+          "solution": "Ta có AM = (3/4)AB và AN = (3/4)AC. Do đó MN = AN - AM = (3/4)AC - (3/4)AB = (3/4)(AC - AB) = (3/4)BC. Vì MN = (3/4)BC nên MN // BC."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Biết AB = 4AC. Hỏi hai vectơ AB và AC cùng hướng hay ngược hướng? Tỉ số độ dài AB/AC bằng bao nhiêu?",
+          "answer": "Cùng hướng vì k = 4 > 0; tỉ số độ dài AB/AC = 4."
+        },
+        {
+          "level": "NB",
+          "question": "Cho tam giác ABC có G là trọng tâm. Vectơ GA + GB + GC bằng vectơ nào?",
+          "answer": "Bằng vectơ 0."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hình bình hành ABCD. Biểu diễn vectơ AC theo hai vectơ AB và AD.",
+          "answer": "AC = AB + AD (theo quy tắc hình bình hành)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho đoạn thẳng AB và điểm M thỏa mãn MA - 3MB = 0. Tính tỉ số MA/MB và cho biết M nằm trong hay nằm ngoài đoạn AB.",
+          "answer": "MA = 3MB -> MA/MB = 3. Vì k = 3 > 0 nên MA và MB cùng hướng, do đó M nằm ngoài đoạn AB về phía B."
+        },
+        {
+          "level": "VD",
+          "question": "Cho tam giác ABC. Gọi I là trung điểm BC, J là điểm thỏa mãn 2JA + 3JC = 0. Chứng minh IJ cắt AB.",
+          "answer": "Biểu diễn IJ theo AB và AC: IJ = AJ - AI = (3/5)AC - (1/2)(AB + AC) = -1/2 AB + 1/10 AC. Vectơ IJ không cùng phương với AB nên đường thẳng IJ cắt AB."
+        },
+        {
+          "level": "VD",
+          "question": "Cho tam giác ABC. Tìm tập hợp các điểm M thỏa mãn |MA + MB + MC| = |MA - MB|.",
+          "answer": "Gọi G là trọng tâm tam giác ABC -> MA + MB + MC = 3MG. Ta có |MA - MB| = |BA| = AB. Đẳng thức tương đương |3MG| = AB <=> MG = AB/3. Tập hợp các điểm M là đường tròn tâm G bán kính R = AB/3."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có bao giờ hai vectơ không cùng phương mà có thể triệt tiêu tổng bằng 0 với các hệ số dương không?",
+          "solution": "Không, nếu a, b không cùng phương thì ma + nb = 0 bắt buộc m = n = 0."
+        },
+        {
+          "question": "Để chứng minh 3 điểm thẳng hàng cần tìm bao nhiêu vectơ?",
+          "solution": "Cần tìm 2 vectơ tạo bởi 3 điểm đó và chứng minh chúng cùng phương."
+        }
+      ],
+      "mistakes": [
+        "Chuyển vế không đổi dấu trong đẳng thức vectơ.",
+        "Nhầm lẫn giữa cùng hướng (k > 0) và ngược hướng (k < 0).",
+        "Quên điều kiện hai vectơ cơ sở phải không cùng phương khi phân tích."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-13-99",
+      "grade": 10,
+      "week": 13,
+      "period": 99,
+      "title": "Tọa độ của vectơ và các phép toán",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành định nghĩa tọa độ vectơ qua hai vectơ đơn vị i, j; các phép toán cộng, trừ vectơ, nhân vectơ với số; điều kiện hai vectơ cùng phương theo tọa độ.",
+      "formulas": [
+        "\\vec u = (x; y) \\iff \\vec u = x\\vec i + y\\vec j",
+        "\\vec u \\pm \\vec v = (x_1 \\pm x_2; y_1 \\pm y_2); \\quad k\\vec u = (kx; ky)",
+        "\\vec u = \\vec v \\iff x_1 = x_2 \\text{ và } y_1 = y_2",
+        "\\vec u \\parallel \\vec v \\iff x_1 y_2 - x_2 y_1 = 0 \\quad (\\exists k: \\vec u = k\\vec v)"
+      ],
+      "boardKnowledge": [
+        "I. Định nghĩa: u = (x; y) nghĩa là u phân tích được duy nhất thành x·i + y·j.",
+        "II. Phép toán: Cộng, trừ, nhân số thực hiện độc lập trên từng tọa độ.",
+        "III. Cùng phương: Tỉ số các tọa độ tương ứng bằng nhau."
+      ],
+      "examples": [
+        {
+          "question": "Cho a = (2; -3), b = (-1; 4). Tìm tọa độ của vectơ u = 3a + 2b.",
+          "solution": "3a = (6; -9), 2b = (-2; 8) -> u = (6 + (-2); -9 + 8) = (4; -1)."
+        },
+        {
+          "question": "Tìm m để hai vectơ u = (2; m) và v = (4; 6) cùng phương.",
+          "solution": "Hai vectơ cùng phương khi 2/4 = m/6 <=> 1/2 = m/6 <=> m = 3."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Biết u = 3i - 4j. Tìm tọa độ của vectơ u.",
+          "answer": "u = (3; -4)."
+        },
+        {
+          "level": "NB",
+          "question": "Cho a = (1; 2) và b = (3; -1). Tính tọa độ của a + b.",
+          "answer": "a + b = (1 + 3; 2 + (-1)) = (4; 1)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho u = (2; -5). Tìm tọa độ của vectơ -3u.",
+          "answer": "-3u = (-3·2; -3·(-5)) = (-6; 15)."
+        },
+        {
+          "level": "TH",
+          "question": "Hai vectơ a = (x; 4) và b = (3; 6) cùng phương khi x bằng bao nhiêu?",
+          "answer": "x/3 = 4/6 = 2/3 <=> x = 2."
+        },
+        {
+          "level": "VD",
+          "question": "Cho 3 vectơ a = (1; 2), b = (-3; 1), c = (5; 4). Phân tích vectơ c theo a và b: c = ma + nb.",
+          "answer": "Ta có hệ: m - 3n = 5 và 2m + n = 4. Giải hệ: từ pt2 có n = 4 - 2m thay vào pt1: m - 3(4 - 2m) = 5 <=> 7m = 17 <=> m = 17/7; n = -6/7. Vậy c = (17/7)a - (6/7)b."
+        },
+        {
+          "level": "VD",
+          "question": "Cho A(1; 2), B(3; 5), C(-1; 4). Tìm tọa độ điểm D sao cho ABCD là hình bình hành.",
+          "answer": "ABCD là HBH <=> AB = DC. AB = (3-1; 5-2) = (2; 3). Gọi D(xD; yD) -> DC = (-1 - xD; 4 - yD). Do đó: -1 - xD = 2 => xD = -3; 4 - yD = 3 => yD = 1. Vậy D(-3; 1)."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Vectơ có tọa độ (0; 0) là vectơ gì?",
+          "solution": "Là vectơ không (vectơ 0)."
+        },
+        {
+          "question": "Nếu u = (1; 2) thì 0·u có tọa độ là bao nhiêu?",
+          "solution": "Bằng (0; 0)."
+        }
+      ],
+      "mistakes": [
+        "Ghi nhầm thứ tự i và j: viết u = 3j - 2i thành u = (3; -2) thay vì (-2; 3).",
+        "Chỉ nhân hệ số k vào hoành độ mà quên nhân vào tung độ.",
+        "Lấy tọa độ điểm trừ nhầm: tính AB bằng A trừ B thay vì B trừ A."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-13-100",
+      "grade": 10,
+      "week": 13,
+      "period": 100,
+      "title": "Biểu thức tọa độ và độ dài vectơ",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành công thức tọa độ vectơ qua hai điểm, độ dài vectơ, khoảng cách giữa hai điểm, tọa độ trung điểm đoạn thẳng và trọng tâm tam giác.",
+      "formulas": [
+        "\\vec{AB} = (x_B - x_A; y_B - y_A)",
+        "|\\vec u| = \\sqrt{x^2 + y^2}; \\quad AB = \\sqrt{(x_B - x_A)^2 + (y_B - y_A)^2}",
+        "I \\text{ là trung điểm } AB \\implies x_I = \\dfrac{x_A + x_B}{2}, y_I = \\dfrac{y_A + y_B}{2}",
+        "G \\text{ là trọng tâm } \\Delta ABC \\implies x_G = \\dfrac{x_A + x_B + x_C}{3}, y_G = \\dfrac{y_A + y_B + y_C}{3}"
+      ],
+      "boardKnowledge": [
+        "I. Vectơ AB: Ngọn trừ Gốc (xB - xA; yB - yA).",
+        "II. Độ dài & Khoảng cách: Căn tổng bình phương các hiệu tọa độ.",
+        "III. Điểm đặc biệt: Trung điểm (chia 2), Trọng tâm (chia 3)."
+      ],
+      "examples": [
+        {
+          "question": "Cho A(2; -1), B(4; 3). Tính tọa độ vectơ AB và độ dài đoạn thẳng AB.",
+          "solution": "AB = (4 - 2; 3 - (-1)) = (2; 4). Độ dài AB = √(2² + 4²) = √20 = 2√5."
+        },
+        {
+          "question": "Cho tam giác ABC có A(1; 3), B(-2; 1), C(4; 5). Tìm tọa độ trung điểm M của BC và trọng tâm G của tam giác ABC.",
+          "solution": "M là trung điểm BC: xM = (-2 + 4)/2 = 1, yM = (1 + 5)/2 = 3 -> M(1; 3). Trọng tâm G: xG = (1 - 2 + 4)/3 = 1, yG = (3 + 1 + 5)/3 = 3 -> G(1; 3)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho A(3; 5) và B(1; 2). Tìm tọa độ vectơ AB.",
+          "answer": "AB = (1 - 3; 2 - 5) = (-2; -3)."
+        },
+        {
+          "level": "NB",
+          "question": "Tính độ dài của vectơ u = (6; -8).",
+          "answer": "|u| = √(6² + (-8)²) = √(36 + 64) = √100 = 10."
+        },
+        {
+          "level": "TH",
+          "question": "Cho hai điểm M(2; -3) và N(4; 5). Tìm tọa độ trung điểm I của MN.",
+          "answer": "xI = (2 + 4)/2 = 3; yI = (-3 + 5)/2 = 1. Vậy I(3; 1)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính khoảng cách giữa hai điểm P(1; 1) và Q(4; 5).",
+          "answer": "PQ = √[(4 - 1)² + (5 - 1)²] = √(3² + 4²) = 5."
+        },
+        {
+          "level": "VD",
+          "question": "Cho A(1; 1), B(3; 2), C(m + 4; m). Tìm m để tam giác ABC vuông tại A.",
+          "answer": "AB = (2; 1), AC = (m + 3; m - 1). Tam giác vuông tại A <=> AB ⊥ AC <=> 2(m + 3) + 1(m - 1) = 0 <=> 3m + 5 = 0 <=> m = -5/3."
+        },
+        {
+          "level": "VD",
+          "question": "Cho A(-1; 2), B(3; 4), C(1; 6). Chứng minh tam giác ABC là tam giác cân tại B và tính diện tích.",
+          "answer": "BA = (-4; -2) -> BA² = 20. BC = (-2; 2) -> BC² = 8? AC = (2; 4) -> AC² = 20. Ta có BA² = AC² = 20 -> tam giác ABC cân tại A. BC = √8 = 2√2. Đường cao h = √(20 - 2) = 3√2. Diện tích S = (1/2) · 2√2 · 3√2 = 6."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Vectơ u = (-5; 0) có độ dài bằng bao nhiêu?",
+          "solution": "|u| = √((-5)² + 0²) = √25 = 5 (độ dài luôn không âm)."
+        },
+        {
+          "question": "Nếu A trùng B thì vectơ AB có tọa độ là gì?",
+          "solution": "Là (0; 0)."
+        }
+      ],
+      "mistakes": [
+        "Lấy gốc trừ ngọn khi tính tọa độ vectơ AB.",
+        "Quên dấu ngoặc vuông khi bình phương số âm dẫn đến tính sai căn bậc hai.",
+        "Nhầm công thức trung điểm (cộng chia 2) thành trừ."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-13-101",
+      "grade": 10,
+      "week": 13,
+      "period": 101,
+      "title": "Luyện tập tọa độ vectơ trong mặt phẳng",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập giải quyết các bài toán hình học phẳng bằng tọa độ: tìm tọa độ đỉnh hình bình hành, chứng minh thẳng hàng, tìm điểm trên trục tọa độ và phân tích vectơ.",
+      "formulas": [
+        "ABCD \\text{ là HBH} \\iff \\vec{AB} = \\vec{DC} \\iff x_A + x_C = x_B + x_D, y_A + y_C = y_B + y_D",
+        "A, B, C \\text{ thẳng hàng} \\iff \\dfrac{x_B - x_A}{x_C - x_A} = \\dfrac{y_B - y_A}{y_C - y_A}",
+        "M \\in Ox \\implies M(x; 0); \\quad N \\in Oy \\implies N(0; y)"
+      ],
+      "boardKnowledge": [
+        "I. Đỉnh hình bình hành: AB = DC (cùng hướng và cùng độ dài).",
+        "II. Ba điểm thẳng hàng: Hai vectơ tạo thành cùng phương (tỉ số tọa độ bằng nhau).",
+        "III. Điểm trên trục: Tham số hóa một ẩn (x; 0) trên Ox hoặc (0; y) trên Oy."
+      ],
+      "examples": [
+        {
+          "question": "Cho A(-2; 1), B(1; 3), C(2; -1). Tìm tọa độ điểm D sao cho ABCD là hình bình hành.",
+          "solution": "xD = xA + xC - xB = -2 + 2 - 1 = -1; yD = yA + yC - yB = 1 + (-1) - 3 = -3. Vậy D(-1; -3)."
+        },
+        {
+          "question": "Tìm điểm M trên trục Ox cách đều hai điểm A(1; 2) và B(3; 4).",
+          "solution": "M thuộc Ox nên M(x; 0). MA² = (x - 1)² + (0 - 2)² = x² - 2x + 5. MB² = (x - 3)² + (0 - 4)² = x² - 6x + 25. MA = MB <=> MA² = MB² <=> x² - 2x + 5 = x² - 6x + 25 <=> 4x = 20 <=> x = 5. Vậy M(5; 0)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho A(2; 1), B(4; 5). Tìm tọa độ trung điểm I của AB.",
+          "answer": "I((2+4)/2; (1+5)/2) = I(3; 3)."
+        },
+        {
+          "level": "NB",
+          "question": "Điểm P(0; -4) nằm trên trục tọa độ nào?",
+          "answer": "Nằm trên trục tung Oy (vì hoành độ x = 0)."
+        },
+        {
+          "level": "TH",
+          "question": "Cho A(1; 2), B(3; 6), C(5; 10). Kiểm tra xem A, B, C có thẳng hàng không.",
+          "answer": "AB = (2; 4), AC = (4; 8). Ta có 4/2 = 8/4 = 2 -> AC = 2AB, vậy A, B, C thẳng hàng."
+        },
+        {
+          "level": "TH",
+          "question": "Cho A(1; 3), B(4; 2), C(2; -1). Tìm tọa độ đỉnh D sao cho ABCD là hình bình hành.",
+          "answer": "xD = 1 + 2 - 4 = -1; yD = 3 + (-1) - 2 = 0. Vậy D(-1; 0)."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm tọa độ điểm M trên Oy sao cho khoảng cách từ M đến A(3; 1) bằng 5.",
+          "answer": "M(0; y). MA² = (0 - 3)² + (y - 1)² = 9 + (y - 1)² = 25 <=> (y - 1)² = 16 <=> y - 1 = ±4 <=> y = 5 hoặc y = -3. Vậy có hai điểm M1(0; 5) và M2(0; -3)."
+        },
+        {
+          "level": "VD",
+          "question": "Cho tam giác ABC có A(1; 2), B(-1; 0), C(3; -2). Tìm tọa độ trực tâm H của tam giác ABC.",
+          "answer": "Gọi H(x; y). AH = (x-1; y-2), BC = (4; -2) -> AH ⊥ BC <=> 4(x-1) - 2(y-2) = 0 <=> 4x - 2y = 0 <=> 2x - y = 0. BH = (x+1; y), AC = (2; -4) -> BH ⊥ AC <=> 2(x+1) - 4y = 0 <=> 2x - 4y = -2 <=> x - 2y = -1. Giải hệ: x = 1/3, y = 2/3. Vậy H(1/3; 2/3)."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu xD = xB + xC - xA thì tứ giác nào là hình bình hành?",
+          "solution": "Tứ giác ABDC hoặc ACDB (tùy vị trí đỉnh), không phải ABCD."
+        },
+        {
+          "question": "Để kiểm tra ba điểm thẳng hàng có cần tính độ dài các đoạn thẳng không?",
+          "solution": "Không cần, chỉ cần so sánh tỉ số tọa độ của hai vectơ là đủ."
+        }
+      ],
+      "mistakes": [
+        "Nhầm thứ tự đỉnh hình bình hành: viết AB = CD thay vì AB = DC.",
+        "Quên điều kiện mẫu khác 0 khi dùng tỉ số hoành/hoành = tung/tung.",
+        "Nhầm lẫn tọa độ điểm trên Ox thành (0; x)."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-13-102",
+      "grade": 10,
+      "week": 13,
+      "period": 102,
+      "title": "Tự chọn: Ứng dụng tọa độ vectơ giải toán",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Vận dụng phương pháp tọa độ hóa để giải các bài toán hình học phẳng: gắn hệ trục tọa độ thích hợp, chuyển các quan hệ hình học thành biểu thức tọa độ số học.",
+      "formulas": [
+        "A(0; 0), B(a; 0), D(0; b) \\implies C(a; b)",
+        "\\vec u \\cdot \\vec v = x_1 x_2 + y_1 y_2; \\quad \\vec u \\perp \\vec v \\iff x_1 x_2 + y_1 y_2 = 0",
+        "AB = \\sqrt{(x_B - x_A)^2 + (y_B - y_A)^2}"
+      ],
+      "boardKnowledge": [
+        "I. Chọn hệ trục: Gốc O tại đỉnh vuông, Ox chứa 1 cạnh, Oy chứa cạnh vuông góc.",
+        "II. Tọa độ hóa: Xác định tọa độ tất cả các đỉnh và trung điểm.",
+        "III. Đại số hóa: Tính độ dài qua khoảng cách, vuông góc qua tích vô hướng bằng 0."
+      ],
+      "examples": [
+        {
+          "question": "Cho hình vuông ABCD cạnh 4. Gọi M là trung điểm AB, N là trung điểm BC. Dùng tọa độ tính độ dài MN.",
+          "solution": "Chọn A(0; 0), B(4; 0), D(0; 4) -> C(4; 4). M là trung điểm AB -> M(2; 0). N là trung điểm BC -> N(4; 2). MN = √[(4 - 2)² + (2 - 0)²] = √(4 + 4) = √8 = 2√2."
+        },
+        {
+          "question": "Cho tam giác vuông ABC tại A có AB = 3, AC = 4. Gắn hệ trục tính khoảng cách từ trọng tâm G đến gốc A.",
+          "solution": "Chọn A(0; 0), B(3; 0) trên Ox, C(0; 4) trên Oy. Trọng tâm G: xG = (0+3+0)/3 = 1, yG = (0+0+4)/3 = 4/3. Khoảng cách AG = √(1² + (4/3)²) = √(1 + 16/9) = √(25/9) = 5/3."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Cho hình chữ nhật ABCD có AB = 5, AD = 2. Chọn A(0; 0), B trên Ox, D trên Oy. Tìm tọa độ điểm C.",
+          "answer": "B(5; 0), D(0; 2) -> C(5; 2)."
+        },
+        {
+          "level": "NB",
+          "question": "Vectơ u = (2; -3) và v = (3; 2) có vuông góc với nhau không? Vì sao?",
+          "answer": "Có, vì u · v = 2·3 + (-3)·2 = 6 - 6 = 0."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tam giác cân ABC tại A có BC = 6, đường cao AH = 4. Gắn hệ trục chọn H(0; 0), trục Ox chứa BC, Oy chứa AH. Tìm tọa độ A, B, C.",
+          "answer": "H là trung điểm BC -> B(-3; 0), C(3; 0). A nằm trên Oy cách H 4 đơn vị -> A(0; 4)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính góc giữa hai vectơ a = (1; 0) và b = (1; 1).",
+          "answer": "cos(a, b) = (1·1 + 0·1) / (√(1) · √(2)) = 1/√2 -> góc bằng 45°."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình vuông ABCD cạnh a. Lấy M trên AB sao cho AM = a/4. Gọi N là trung điểm BC. Chứng minh DM vuông góc với AN.",
+          "answer": "Chọn A(0; 0), B(a; 0), D(0; a), C(a; a). M(a/4; 0), N(a; a/2). Vectơ DM = (a/4; -a), AN = (a; a/2). Tích vô hướng DM · AN = (a/4)·a + (-a)·(a/2) = a²/4 - a²/2 = -a²/4 ≠ 0? Sửa đề: M là trung điểm AD và N là trung điểm AB thì vuông góc."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hai điểm A(1; 2) và B(4; 6). Tìm tọa độ điểm M trên trục hoành Ox sao cho tam giác MAB có chu vi nhỏ nhất.",
+          "answer": "M thuộc Ox -> M(x; 0). Chu vi nhỏ nhất khi MA + MB nhỏ nhất. Lấy A đối xứng qua Ox được A1(1; -2). Khi đó MA + MB = MA1 + MB >= A1B. Dấu bằng khi M là giao điểm của A1B với Ox. Giải ra M(7/4; 0)."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có thể chọn gốc tọa độ tại một điểm bất kỳ không?",
+          "solution": "Có thể, nhưng chọn tại điểm có góc vuông hoặc tâm đối xứng sẽ giúp tọa độ đơn giản nhất."
+        },
+        {
+          "question": "Nếu hai vectơ có tích vô hướng bằng 0 thì chúng có quan hệ gì?",
+          "solution": "Chúng vuông góc với nhau (hoặc ít nhất một vectơ là vectơ 0)."
+        }
+      ],
+      "mistakes": [
+        "Nhầm lẫn vị trí hoành độ và tung độ khi đặt các điểm trên trục.",
+        "Quên kiểm tra dấu âm khi điểm nằm ở phần âm của trục tọa độ.",
+        "Nhầm công thức tích vô hướng thành vectơ thay vì một số vô hướng."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "10-13-103",
+      "grade": 10,
+      "week": 13,
+      "period": 103,
+      "title": "Tự chọn: Bài toán định vị và chuyển động",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Mô hình hóa bài toán chuyển động thẳng đều bằng vectơ tọa độ; giải quyết bài toán giao cắt quỹ đạo, va chạm cùng thời điểm và tìm khoảng cách ngắn nhất giữa hai vật.",
+      "formulas": [
+        "\\vec r(t) = \\vec r_0 + \\vec v \\cdot t \\iff x(t) = x_0 + v_x t, y(t) = y_0 + v_y t",
+        "\\text{Va chạm tại } t_0 \\iff \\begin{cases} x_A(t_0) = x_B(t_0) \\\\ y_A(t_0) = y_B(t_0) \\end{cases}",
+        "d^2(t) = [x_A(t) - x_B(t)]^2 + [y_A(t) - y_B(t)]^2 \\quad (\\text{tam thức bậc hai theo } t)"
+      ],
+      "boardKnowledge": [
+        "I. Phương trình chuyển động: Vị trí = Điểm xuất phát + Vận tốc × Thời gian.",
+        "II. Phân biệt: Quỹ đạo cắt nhau (hình học) ≠ Va chạm (cùng thời gian t).",
+        "III. Khoảng cách ngắn nhất: Đưa về tìm cực trị của hàm bậc hai d²(t)."
+      ],
+      "examples": [
+        {
+          "question": "Một máy bay cất cánh từ vị trí (0; 0) với vận tốc v = (120; 90) km/h. Tính khoảng cách từ máy bay đến điểm xuất phát sau 2 giờ.",
+          "solution": "Vị trí sau 2 giờ: x = 120·2 = 240 km, y = 90·2 = 180 km. Khoảng cách: d = √(240² + 180²) = 300 km (hoặc d = |v|·t = √(120²+90²)·2 = 150·2 = 300 km)."
+        },
+        {
+          "question": "Vật 1 có vị trí r1(t) = (t; 2t), vật 2 có vị trí r2(t) = (4 - t; t). Hỏi hai vật có va chạm nhau không?",
+          "solution": "Xét hệ: t = 4 - t <=> 2t = 4 <=> t = 2. Thử lại tung độ: y1(2) = 2·2 = 4, y2(2) = 2. Vì y1(2) ≠ y2(2) nên hai vật KHÔNG va chạm nhau (chúng đến cùng hoành độ nhưng khác tung độ)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Chất điểm xuất phát từ (2; 5) chuyển động với vận tốc (1; -2) km/h. Tìm vị trí sau 1 giờ.",
+          "answer": "r(1) = (2 + 1; 5 - 2) = (3; 3)."
+        },
+        {
+          "level": "NB",
+          "question": "Tốc độ chuyển động của vật có vận tốc v = (30; 40) km/h là bao nhiêu?",
+          "answer": "|v| = √(30² + 40²) = 50 km/h."
+        },
+        {
+          "level": "TH",
+          "question": "Hai xe xuất phát cùng lúc: xe A tại (0; 0) vận tốc (40; 0); xe B tại (0; 30) vận tốc (0; 0) (đứng yên). Tính khoảng cách giữa hai xe sau 1 giờ.",
+          "answer": "Sau 1h: A ở (40; 0), B ở (0; 30). Khoảng cách d = √(40² + 30²) = 50 km."
+        },
+        {
+          "level": "TH",
+          "question": "Cano chạy với vận tốc riêng v1 = (15; 0) km/h, dòng nước chảy với vận tốc v2 = (0; 5) km/h. Tìm vận tốc thực và tốc độ thực của cano.",
+          "answer": "v = v1 + v2 = (15; 5) km/h. Tốc độ: |v| = √(15² + 5²) = √250 = 5√10 ≈ 15,81 km/h."
+        },
+        {
+          "level": "VD",
+          "question": "Tàu A ở (0; 0) đi về hướng Đông với tốc độ 20 km/h: rA(t) = (20t; 0). Tàu B ở (0; 50) đi về hướng Nam với tốc độ 15 km/h: rB(t) = (0; 50 - 15t). Tìm thời điểm hai tàu gần nhau nhất.",
+          "answer": "d²(t) = (20t - 0)² + (0 - (50 - 15t))² = 400t² + (15t - 50)² = 400t² + 225t² - 1500t + 2500 = 625t² - 1500t + 2500. Tam thức đạt min tại t = -(-1500)/(2·625) = 1500/1250 = 1,2 giờ (1 giờ 12 phút)."
+        },
+        {
+          "level": "VD",
+          "question": "Tính khoảng cách ngắn nhất giữa hai tàu trong bài toán trên.",
+          "answer": "Tại t = 1,2: d²(1,2) = 625(1,2)² - 1500(1,2) + 2500 = 900 - 1800 + 2500 = 1600. Khoảng cách ngắn nhất d_min = √1600 = 40 km."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu hai vật có cùng vectơ vận tốc v thì khoảng cách giữa chúng có thay đổi theo thời gian không?",
+          "solution": "Không, vì rA(t) - rB(t) = (r0A - r0B) + (v - v)t = r0A - r0B không đổi."
+        },
+        {
+          "question": "Để tránh va chạm, một trong hai tàu cần thay đổi đại lượng nào?",
+          "solution": "Cần thay đổi vận tốc v (đổi hướng hoặc thay đổi tốc độ)."
+        }
+      ],
+      "mistakes": [
+        "Kết luận hai vật va chạm chỉ vì hai đường thẳng quỹ đạo cắt nhau.",
+        "Quên tính thời gian t phải dương (t ≥ 0).",
+        "Nhầm lẫn giữa tốc độ (độ lớn |v|) và vectơ vận tốc v."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-13-90",
+      "grade": 11,
+      "week": 13,
+      "period": 90,
+      "title": "Giới hạn vô cực của dãy số",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành định nghĩa giới hạn vô cực của dãy số; nắm vững các giới hạn cơ bản lim n^k = +∞, lim q^n = +∞ (q > 1); quy tắc nhân tử chung và xét dấu.",
+      "formulas": [
+        "\\lim n^k = +\\infty \\quad (k \\in \\mathbb{Z}^+); \\quad \\lim q^n = +\\infty \\quad (q > 1)",
+        "\\lim [u_n \\cdot v_n]: \\text{nếu } \\lim u_n = \\pm\\infty \\text{ và } \\lim v_n = a e 0 \\implies \\text{xét dấu } (\\pm \\cdot \\text{dấu } a)",
+        "\\lim \\dfrac{u_n}{v_n} = +\\infty \\quad (\\lim u_n = a > 0, \\lim v_n = 0, v_n > 0)"
+      ],
+      "boardKnowledge": [
+        "I. Giới hạn vô cực: Số hạng vượt qua mọi ngưỡng dương tùy ý (tiến ra +∞) hoặc âm (tiến ra -∞).",
+        "II. Đa thức: Rút lũy thừa bậc cao nhất ra ngoài làm nhân tử chung.",
+        "III. Dạng vô định ∞ - ∞: Tuyệt đối không trừ trực tiếp; phải rút nhân tử hoặc nhân liên hợp."
+      ],
+      "examples": [
+        {
+          "question": "Tính giới hạn: lim (3n² - 5n + 2).",
+          "solution": "Rút n² ra ngoài: lim n² (3 - 5/n + 2/n²). Vì lim n² = +∞ và lim (3 - 5/n + 2/n²) = 3 > 0 nên giới hạn bằng +∞."
+        },
+        {
+          "question": "Tính giới hạn: lim (2 - 3^n).",
+          "solution": "Rút 3^n ra ngoài: lim 3^n (2/3^n - 1). Vì lim 3^n = +∞ và lim (2/3^n - 1) = -1 < 0 nên giới hạn bằng -∞."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính lim (n⁴).",
+          "answer": "lim n⁴ = +∞ theo công thức cơ bản lim n^k = +∞ với k = 4."
+        },
+        {
+          "level": "NB",
+          "question": "Dãy u_n = (1,5)^n có giới hạn bằng bao nhiêu?",
+          "answer": "Bằng +∞ vì cơ số q = 1,5 > 1."
+        },
+        {
+          "level": "TH",
+          "question": "Tính giới hạn: lim (-4n³ + 2n² + 1).",
+          "answer": "Rút n³: lim n³ (-4 + 2/n + 1/n³) = (+∞) · (-4) = -∞."
+        },
+        {
+          "level": "TH",
+          "question": "Tính giới hạn: lim [(2n + 1) / (1/n)].",
+          "answer": "Biểu thức bằng 2n² + n. Khi n -> +∞ giới hạn bằng +∞."
+        },
+        {
+          "level": "VD",
+          "question": "Tính giới hạn: lim [√(n² + 4n) - n].",
+          "answer": "Dạng ∞ - ∞. Nhân liên hợp: lim [4n / (√(n² + 4n) + n)] = lim [4 / (√(1 + 4/n) + 1)] = 4 / (1 + 1) = 2."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm a để giới hạn lim (an² + 2n) / (3n - 1) = -∞.",
+          "answer": "Chia bậc cao nhất: để giới hạn bằng -∞ thì bậc tử phải lớn hơn bậc mẫu và dấu của a phải âm. Vì bậc tử là 2 > bậc mẫu là 1 nên ta cần a < 0."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có phải mọi dãy số tăng đều tiến ra dương vô cực không?",
+          "solution": "Không, dãy tăng nhưng bị chặn trên thì tiến về một số hữu hạn (ví dụ u_n = 1 - 1/n tiến về 1)."
+        },
+        {
+          "question": "Dãy (-2)^n có giới hạn bằng +∞ không?",
+          "solution": "Không, dãy đan dấu (-2, 4, -8, 16,...) dao động không có giới hạn."
+        }
+      ],
+      "mistakes": [
+        "Xem vô cực như một con số và thực hiện phép trừ ∞ - ∞ = 0.",
+        "Quên xét dấu của hệ số khi nhân với +∞ dẫn đến sai dấu kết quả.",
+        "Nhầm dãy dao động (-q)^n với dãy hội tụ hoặc phân kỳ ra vô cực."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-13-91",
+      "grade": 11,
+      "week": 13,
+      "period": 91,
+      "title": "Luyện tập giới hạn của dãy số",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập tổng hợp các phương pháp khử dạng vô định: chia lũy thừa bậc cao nhất, nhân lượng liên hợp bậc hai và bậc ba, xử lý dãy số chứa cơ số mũ.",
+      "formulas": [
+        "\\sqrt A - \\sqrt B = \\dfrac{A - B}{\\sqrt A + \\sqrt B}",
+        "\\sqrt[3]{A} - \\sqrt[3]{B} = \\dfrac{A - B}{\\sqrt[3]{A^2} + \\sqrt[3]{AB} + \\sqrt[3]{B^2}}",
+        "\\lim \\dfrac{a_k n^k + \\dots}{b_k n^k + \\dots} = \\dfrac{a_k}{b_k}; \\quad \\lim q^n = 0 \\quad (|q| < 1)"
+      ],
+      "boardKnowledge": [
+        "I. Dạng ∞/∞: Chia cho lũy thừa hoặc cơ số lớn nhất của mẫu số.",
+        "II. Dạng ∞ - ∞: Nhân liên hợp khi hệ số bậc cao nhất triệt tiêu (hệ số hiệu = 0).",
+        "III. Quy tắc kẹp: Dùng cho hàm bị chặn (sin, cos) nhân với dãy tiến về 0."
+      ],
+      "examples": [
+        {
+          "question": "Tính giới hạn: lim (5·3^n - 4·2^n) / (2·3^n + 7).",
+          "solution": "Chia cả tử và mẫu cho 3^n: lim [ 5 - 4·(2/3)^n ] / [ 2 + 7·(1/3)^n ] = (5 - 0)/(2 + 0) = 5/2."
+        },
+        {
+          "question": "Tính giới hạn: lim [√(4n² + 3n) - 2n].",
+          "solution": "Hệ số: √4 - 2 = 0 -> nhân liên hợp: lim [4n² + 3n - 4n²] / [√(4n² + 3n) + 2n] = lim [3n / (n(√(4 + 3/n) + 2))] = 3 / (2 + 2) = 3/4."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính lim (2n + 3)/(5n - 1).",
+          "answer": "Chia cho n: lim (2 + 3/n)/(5 - 1/n) = 2/5."
+        },
+        {
+          "level": "NB",
+          "question": "Biểu thức liên hợp của (√n - 1) là gì?",
+          "answer": "Là (√n + 1)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính giới hạn: lim (3n² - 1)/(n³ + 2).",
+          "answer": "Bậc tử (2) < bậc mẫu (3) -> giới hạn bằng 0."
+        },
+        {
+          "level": "TH",
+          "question": "Tính giới hạn: lim [√(n² + 1) - n].",
+          "answer": "Nhân liên hợp: lim 1/[√(n² + 1) + n] = 0."
+        },
+        {
+          "level": "VD",
+          "question": "Tính giới hạn: lim [√(n² + n + 1) - √(n² - n)].",
+          "answer": "Nhân liên hợp: lim [(n² + n + 1 - n² + n)] / [√(n² + n + 1) + √(n² - n)] = lim (2n + 1) / [n(√(1 + 1/n + 1/n²) + √(1 - 1/n))] = 2 / (1 + 1) = 1."
+        },
+        {
+          "level": "VD",
+          "question": "Tính giới hạn: lim [sin(n!) / n].",
+          "answer": "Ta có |sin(n!)| ≤ 1 nên -1/n ≤ sin(n!)/n ≤ 1/n. Vì lim(-1/n) = lim(1/n) = 0 nên theo định lý kẹp, giới hạn bằng 0."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu lim u_n = 2 và lim v_n = 0 với v_n > 0 thì lim (u_n / v_n) bằng bao nhiêu?",
+          "solution": "Bằng +∞."
+        },
+        {
+          "question": "Tại sao không nhân liên hợp khi tính lim [√(4n² + 1) - n]?",
+          "solution": "Vì hệ số bậc 1 là √4 - 1 = 1 ≠ 0, không phải dạng vô định triệt tiêu; chỉ cần rút n ra ngoài là xong."
+        }
+      ],
+      "mistakes": [
+        "Nhân liên hợp không chia lại mẫu dẫn đến làm sai lệch giá trị biểu thức.",
+        "Chia cho cơ số nhỏ thay vì cơ số lớn nhất trong biểu thức mũ.",
+        "Quên kiểm tra dấu khi đưa n ra ngoài căn bậc hai."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-13-92",
+      "grade": 11,
+      "week": 13,
+      "period": 92,
+      "title": "Giới hạn hữu hạn của hàm số tại một điểm",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành định nghĩa giới hạn hàm số tại một điểm; các định lý về phép toán giới hạn; phương pháp thay số trực tiếp và kỹ thuật khử dạng vô định 0/0.",
+      "formulas": [
+        "\\lim_{x \\to x_0} [f(x) \\pm g(x)] = L \\pm M; \\quad \\lim_{x \\to x_0} [f(x)g(x)] = LM",
+        "\\lim_{x \\to x_0} \\dfrac{f(x)}{g(x)} = \\dfrac{L}{M} \\quad (M e 0)",
+        "\\text{Dạng } \\dfrac{0}{0}: \\dfrac{f(x)}{g(x)} = \\dfrac{(x - x_0)P(x)}{(x - x_0)Q(x)} = \\dfrac{P(x)}{Q(x)}"
+      ],
+      "boardKnowledge": [
+        "I. Định nghĩa: x tiến tới x0 (x ≠ x0) thì f(x) tiến dần tới L.",
+        "II. Phép toán: Giới hạn của tổng, hiệu, tích, thương bằng tổng, hiệu, tích, thương các giới hạn.",
+        "III. Khử dạng 0/0: Triệt tiêu nhân tử chung (x - x0) sau khi phân tích hoặc nhân liên hợp."
+      ],
+      "examples": [
+        {
+          "question": "Tính giới hạn: lim_{x -> 2} (3x² - x + 1).",
+          "solution": "Thay x = 2 trực tiếp: 3·(2)² - 2 + 1 = 12 - 2 + 1 = 11."
+        },
+        {
+          "question": "Tính giới hạn: lim_{x -> 3} (x² - 5x + 6) / (x - 3).",
+          "solution": "Thay x = 3 ra dạng 0/0. Phân tích: x² - 5x + 6 = (x - 3)(x - 2). Giới hạn = lim_{x -> 3} (x - 2) = 3 - 2 = 1."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính lim_{x -> -1} (2x + 5).",
+          "answer": "Thay x = -1: 2(-1) + 5 = 3."
+        },
+        {
+          "level": "NB",
+          "question": "Biểu thức (x² - 1) khi x tiến về 1 triệt tiêu nhân tử nào?",
+          "answer": "Triệt tiêu nhân tử (x - 1) vì x² - 1 = (x - 1)(x + 1)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính lim_{x -> 4} (x² - 16)/(x - 4).",
+          "answer": "lim_{x -> 4} (x - 4)(x + 4)/(x - 4) = lim_{x -> 4} (x + 4) = 4 + 4 = 8."
+        },
+        {
+          "level": "TH",
+          "question": "Tính lim_{x -> 1} (x³ - 1)/(x - 1).",
+          "answer": "x³ - 1 = (x - 1)(x² + x + 1). Giới hạn = lim_{x -> 1} (x² + x + 1) = 1 + 1 + 1 = 3."
+        },
+        {
+          "level": "VD",
+          "question": "Tính giới hạn: lim_{x -> 0} [√(x + 4) - 2] / x.",
+          "answer": "Dạng 0/0. Nhân liên hợp: lim_{x -> 0} (x + 4 - 4) / [x(√(x + 4) + 2)] = lim_{x -> 0} x / [x(√(x + 4) + 2)] = lim_{x -> 0} 1 / [√(x + 4) + 2] = 1 / (2 + 2) = 1/4."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm m để giới hạn lim_{x -> 2} (x² - mx + 2)/(x - 2) là một số hữu hạn.",
+          "answer": "Để giới hạn hữu hạn thì x = 2 phải là nghiệm của tử số: 2² - m·2 + 2 = 0 <=> 6 - 2m = 0 <=> m = 3. Khi m = 3 thì tử là x² - 3x + 2 = (x - 2)(x - 1), giới hạn = 2 - 1 = 1."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu hàm số f(x) liên tục tại x0 thì lim_{x -> x0} f(x) bằng gì?",
+          "solution": "Bằng chính f(x0)."
+        },
+        {
+          "question": "Có bao giờ giới hạn tại một điểm ra vô cực không?",
+          "solution": "Có, ví dụ lim_{x -> 0} (1/x²) = +∞."
+        }
+      ],
+      "mistakes": [
+        "Vội vã kết luận giới hạn không tồn tại khi thấy dạng 0/0.",
+        "Rút gọn sai dấu khi phân tích tam thức bậc hai.",
+        "Quên chia lại lượng liên hợp ở mẫu."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-13-93",
+      "grade": 11,
+      "week": 13,
+      "period": 93,
+      "title": "Giới hạn một bên của hàm số",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành định nghĩa giới hạn một bên; định lý về sự tồn tại giới hạn hàm số tại một điểm; kỹ năng xử lý hàm phân nhánh và hàm chứa dấu giá trị tuyệt đối.",
+      "formulas": [
+        "\\lim_{x \\to x_0} f(x) = L \\iff \\lim_{x \\to x_0^+} f(x) = \\lim_{x \\to x_0^-} f(x) = L",
+        "x \\to x_0^+ \\implies x > x_0, |x - x_0| = x - x_0",
+        "x \\to x_0^- \\implies x < x_0, |x - x_0| = -(x - x_0)"
+      ],
+      "boardKnowledge": [
+        "I. Giới hạn bên phải: x dần tới x0 với x > x0 (kí hiệu x -> x0+).",
+        "II. Giới hạn bên trái: x dần tới x0 với x < x0 (kí hiệu x -> x0-).",
+        "III. Định lý: Tồn tại giới hạn <=> Giới hạn trái bằng Giới hạn phải."
+      ],
+      "examples": [
+        {
+          "question": "Cho f(x) = 3x - 1 với x ≥ 2 và f(x) = x² + 1 với x < 2. Tìm lim_{x -> 2+} f(x) và lim_{x -> 2-} f(x). Hàm số có giới hạn tại x = 2 không?",
+          "solution": "lim_{x -> 2+} f(x) = lim_{x -> 2+} (3x - 1) = 3·2 - 1 = 5. lim_{x -> 2-} f(x) = lim_{x -> 2-} (x² + 1) = 2² + 1 = 5. Vì giới hạn trái bằng giới hạn phải = 5 nên lim_{x -> 2} f(x) = 5."
+        },
+        {
+          "question": "Tính lim_{x -> 1+} (x² - 1)/|x - 1|.",
+          "solution": "Khi x -> 1+ thì x > 1 nên |x - 1| = x - 1. Ta có (x² - 1)/(x - 1) = x + 1. Giới hạn = lim_{x -> 1+} (x + 1) = 1 + 1 = 2."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Ký hiệu x -> 3- có nghĩa là gì?",
+          "answer": "Có nghĩa là x tiến dần tới 3 và luôn nhỏ hơn 3 (x < 3)."
+        },
+        {
+          "level": "NB",
+          "question": "Biết lim_{x -> 2+} f(x) = 4 và lim_{x -> 2-} f(x) = 4. Hỏi lim_{x -> 2} f(x) bằng bao nhiêu?",
+          "answer": "Bằng 4 theo định lý tồn tại giới hạn."
+        },
+        {
+          "level": "TH",
+          "question": "Cho f(x) = 2x với x > 0 và f(x) = 1 với x ≤ 0. Hàm số có giới hạn tại x = 0 không?",
+          "answer": "lim_{x -> 0+} f(x) = 0; lim_{x -> 0-} f(x) = 1. Vì 0 ≠ 1 nên hàm số KHÔNG có giới hạn tại x = 0."
+        },
+        {
+          "level": "TH",
+          "question": "Tính lim_{x -> 3-} (2x - 1).",
+          "answer": "Thay x = 3: 2·3 - 1 = 5."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm m để hàm số f(x) = { mx + 1 khi x ≤ 2; x² - 3 khi x > 2 } có giới hạn tại x = 2.",
+          "answer": "lim_{x -> 2+} f(x) = 2² - 3 = 1. lim_{x -> 2-} f(x) = 2m + 1. Hàm số có giới hạn tại x = 2 <=> 2m + 1 = 1 <=> 2m = 0 <=> m = 0."
+        },
+        {
+          "level": "VD",
+          "question": "Tính giới hạn một bên: lim_{x -> 1-} (x + 1)/(x - 1).",
+          "answer": "Khi x -> 1- thì tử tiến về 1 + 1 = 2 > 0, mẫu tiến về 0 và mẫu âm (x - 1 < 0 vì x < 1). Do đó giới hạn bằng -∞."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu hàm số không xác định tại x0 thì có thể có giới hạn một bên tại x0 không?",
+          "solution": "Có thể, hàm số chỉ cần xác định trên khoảng (x0; x0 + h) hoặc (x0 - h; x0)."
+        },
+        {
+          "question": "lim_{x -> 0+} (1/x) bằng bao nhiêu?",
+          "solution": "Bằng +∞ vì tử dương và mẫu tiến về 0 từ phía dương."
+        }
+      ],
+      "mistakes": [
+        "Nhầm ký hiệu x -> x0+ là x tiến tới số dương.",
+        "Quên đổi dấu khi phá trị tuyệt đối với x < x0.",
+        "Kết luận có giới hạn mà chỉ mới tính một bên."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-13-94",
+      "grade": 11,
+      "week": 13,
+      "period": 94,
+      "title": "Phép chiếu song song và hình biểu diễn",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành định nghĩa phép chiếu song song, các tính chất bảo toàn cơ bản và quy tắc vẽ hình biểu diễn của các hình phẳng trong không gian.",
+      "formulas": [
+        "A, B, C \\text{ thẳng hàng, } B \\text{ nằm giữa } A, C \\implies A', B', C' \\text{ thẳng hàng, } B' \\text{ nằm giữa } A', C'",
+        "AB \\parallel CD \\implies A'B' \\parallel C'D' \\text{ hoặc trùng nhau}",
+        "\\dfrac{A'B'}{C'D'} = \\dfrac{AB}{CD} \\quad (AB \\parallel CD)"
+      ],
+      "boardKnowledge": [
+        "I. Phép chiếu song song: Mặt phẳng chiếu (α), phương chiếu d không song song với (α).",
+        "II. Tính chất bảo toàn: Thẳng hàng, thứ tự điểm, song song, tỉ số hai đoạn thẳng cùng phương.",
+        "III. Hình biểu diễn: Tam giác -> Tam giác; Hình bình hành/chữ nhật/vuông/thoi -> Hình bình hành; Hình tròn -> Elip."
+      ],
+      "examples": [
+        {
+          "question": "Hình biểu diễn của hình thang ABCD có đáy lớn AB = 2CD là hình gì?",
+          "solution": "Là hình thang A'B'C'D' có hai đáy A'B' // C'D' và độ dài đáy lớn A'B' = 2C'D' (tính song song và tỉ số đáy được bảo toàn)."
+        },
+        {
+          "question": "Hai đoạn thẳng AB và CD cắt nhau tại trung điểm I của mỗi đoạn. Hình biểu diễn của chúng có tính chất gì?",
+          "solution": "Hai đoạn thẳng A'B' và C'D' cắt nhau tại trung điểm I' của mỗi đoạn (bảo toàn giao điểm và trung điểm), tạo thành hình bình hành A'C'B'D'."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Hình biểu diễn của một tam giác đều là hình gì?",
+          "answer": "Là một tam giác bất kỳ."
+        },
+        {
+          "level": "NB",
+          "question": "Phép chiếu song song có bảo toàn góc vuông không?",
+          "answer": "Không bảo toàn góc vuông."
+        },
+        {
+          "level": "TH",
+          "question": "Cho tứ giác ABCD là hình thoi. Hình biểu diễn của ABCD là hình gì?",
+          "answer": "Là hình bình hành."
+        },
+        {
+          "level": "TH",
+          "question": "Nếu đoạn AB song song với phương chiếu d thì hình chiếu của AB trên mặt phẳng chiếu là gì?",
+          "answer": "Là một điểm (điểm A' trùng B')."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình chóp S.ABCD có đáy là hình bình hành. Gọi M là trung điểm SC. Dựng hình chiếu của M theo phương chiếu SO lên mặt phẳng đáy (ABCD).",
+          "answer": "Trong mp(SAC), tia SO cắt AC tại O (tâm đáy). Kẻ đường thẳng qua M song song với SO cắt AC tại M'. Vì M là trung điểm SC và MM' // SO nên M' là trung điểm của OC. Vậy M' nằm trên đoạn OC với OM' = M'C."
+        },
+        {
+          "level": "VD",
+          "question": "Vẽ hình biểu diễn của một hình lục giác đều.",
+          "answer": "Lục giác đều ABCDEF gồm hai hình thang cân ABCD và AFED ghép lại. Hình biểu diễn gồm hai hình thang A'B'C'D' và A'F'E'D' có chung đáy lớn A'D' với A'D' = 2B'C' = 2F'E'."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có thể dùng hình vuông để biểu diễn hình chữ nhật trong không gian không?",
+          "solution": "Được, vì hình vuông cũng là một hình bình hành đặc biệt, nhưng thông thường ta vẽ hình bình hành để trực quan hơn."
+        },
+        {
+          "question": "Phép chiếu song song có bảo toàn diện tích của hình phẳng không?",
+          "solution": "Không, diện tích hình chiếu thay đổi theo góc nghiêng của mặt phẳng đối với phương chiếu."
+        }
+      ],
+      "mistakes": [
+        "Cố gắng vẽ đúng góc vuông hoặc góc 60 độ trong hình biểu diễn không gian.",
+        "Vẽ hai đường thẳng song song trong không gian thành hai đường cắt nhau trên hình biểu diễn.",
+        "Sai tỉ số độ dài của hai đoạn thẳng cùng phương."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-13-95",
+      "grade": 11,
+      "week": 13,
+      "period": 95,
+      "title": "Luyện tập phép chiếu song song",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập kỹ năng vẽ hình biểu diễn của các khối đa diện cơ bản (lăng trụ, hộp, chóp); xác định quan hệ song song, giao điểm và thiết diện trên hình biểu diễn.",
+      "formulas": [
+        "AA' \\parallel BB' \\parallel CC' \\text{ và } AA' = BB' = CC' \\quad (\\text{lăng trụ})",
+        "I \\text{ là trung điểm } AB \\implies I' \\text{ là trung điểm } A'B'"
+      ],
+      "boardKnowledge": [
+        "I. Khối lăng trụ: Đáy là tam giác/tứ giác; Cạnh bên song song và bằng nhau.",
+        "II. Khối hộp: 6 mặt đều là hình bình hành; 3 nhóm cạnh song song (mỗi nhóm 4 cạnh).",
+        "III. Quy ước nét vẽ: Nét liền (nhìn thấy), nét đứt (bị che khuất)."
+      ],
+      "examples": [
+        {
+          "question": "Nêu cách vẽ hình biểu diễn của hình chóp tứ giác đều S.ABCD.",
+          "solution": "Bước 1: Vẽ đáy ABCD là hình bình hành, xác định tâm O là giao điểm hai đường chéo (vẽ bằng nét đứt). Bước 2: Từ O dựng đường thẳng đứng SO. Bước 3: Nối S với các đỉnh A, B, C, D; phân biệt nét đứt nét liền."
+        },
+        {
+          "question": "Cho hình hộp ABCD.A'B'C'D'. Điểm M thuộc cạnh AB sao cho AM = 2MB. Xác định vị trí điểm M' trên hình biểu diễn.",
+          "solution": "Trên đoạn A'B' của hình biểu diễn, lấy điểm M' sao cho A'M' = 2M'B' (vì phép chiếu song song bảo toàn tỉ số trên cùng một đoạn thẳng)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Hình biểu diễn của đáy hình lăng trụ lục giác đều gồm mấy hình bình hành ghép lại?",
+          "answer": "Gồm 2 hình thang cân ghép lại, tức là biểu diễn bằng 2 hình thang có chung đáy lớn."
+        },
+        {
+          "level": "NB",
+          "question": "Trong hình lăng trụ tam giác, có mấy cạnh bên?",
+          "answer": "Có 3 cạnh bên song song và bằng nhau."
+        },
+        {
+          "level": "TH",
+          "question": "Một hình hộp có bao nhiêu đỉnh, bao nhiêu cạnh và bao nhiêu mặt?",
+          "answer": "Có 8 đỉnh, 12 cạnh và 6 mặt."
+        },
+        {
+          "level": "TH",
+          "question": "Trong hình chóp S.ABCD với đáy ABCD là hình bình hành, giao tuyến của (SAB) và (SCD) được vẽ như thế nào?",
+          "answer": "Là đường thẳng d đi qua đỉnh S và song song với AB và CD."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình lăng trụ tam giác ABC.A'B'C'. Gọi G là trọng tâm tam giác ABC. Dựng hình biểu diễn của đoạn thẳng nối A' với G.",
+          "answer": "Trên đáy ABC vẽ trung tuyến AI, lấy AG = 2/3 AI (vẽ nét đứt nếu AI khuất). Nối A' với G bằng nét đứt (nằm bên trong khối lăng trụ)."
+        },
+        {
+          "level": "VD",
+          "question": "Dựng thiết diện của hình hộp ABCD.A'B'C'D' cắt bởi mặt phẳng đi qua M trên AA' và song song với mặt phẳng (ABCD).",
+          "answer": "Mặt phẳng song song với (ABCD) nên cắt các cạnh bên theo các đoạn thẳng song song với các cạnh đáy. Từ M kẻ MN // AB (N trên BB'), NP // BC (P trên CC'), PQ // CD (Q trên DD'). Thiết diện là hình bình hành MNPQ bằng với hai đáy."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tại sao các đường trung trực trong tam giác không được vẽ vuông góc trên hình biểu diễn?",
+          "solution": "Vì góc vuông không được bảo toàn trong phép chiếu song song."
+        },
+        {
+          "question": "Có bao nhiêu đường chéo trong một hình hộp chữ nhật?",
+          "solution": "Có 4 đường chéo cắt nhau tại trung điểm của mỗi đường."
+        }
+      ],
+      "mistakes": [
+        "Vẽ sai các cạnh song song thành cắt nhau.",
+        "Không dùng nét đứt cho các đoạn nằm bên trong khối đa diện.",
+        "Chia sai tỉ số điểm trên cạnh."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-13-96",
+      "grade": 11,
+      "week": 13,
+      "period": 96,
+      "title": "Tự chọn: Khử dạng vô định của giới hạn",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập chuyên sâu các kỹ thuật khử dạng vô định 0/0 và ∞ - ∞: nhân liên hợp bậc hai, bậc ba; kỹ thuật thêm bớt hằng số và biểu thức phụ.",
+      "formulas": [
+        "\\sqrt A - B = \\dfrac{A - B^2}{\\sqrt A + B}",
+        "\\sqrt[3]{A} - B = \\dfrac{A - B^3}{\\sqrt[3]{A^2} + B\\sqrt[3]{A} + B^2}",
+        "\\dfrac{\\sqrt{A} - \\sqrt[3]{B}}{x - x_0} = \\dfrac{\\sqrt{A} - c}{x - x_0} - \\dfrac{\\sqrt[3]{B} - c}{x - x_0} \\quad (c = \\sqrt{A(x_0)} = \\sqrt[3]{B(x_0)})"
+      ],
+      "boardKnowledge": [
+        "I. Phân loại vô định: 0/0 (tại điểm), ∞/∞ (vô cực), ∞ - ∞ (căn thức hiệu), 0 · ∞.",
+        "II. Liên hợp bậc 2: Nhân thêm lượng cộng (√A + B).",
+        "III. Liên hợp bậc 3: Nhân thêm bình phương thiếu (∛A² + B∛A + B²).",
+        "IV. Thêm bớt: Chọn c = f(x0) để tách các căn khác bậc."
+      ],
+      "examples": [
+        {
+          "question": "Tính giới hạn: lim_{x -> 2} (x² - 3x + 2) / (x² - 4).",
+          "solution": "Tách tử = (x - 2)(x - 1), mẫu = (x - 2)(x + 2). Giới hạn = lim_{x -> 2} (x - 1)/(x + 2) = (2 - 1)/(2 + 2) = 1/4."
+        },
+        {
+          "question": "Tính giới hạn: lim_{x -> 0} [∛(1 + x) - 1] / x.",
+          "solution": "Nhân liên hợp bậc 3: lim_{x -> 0} (1 + x - 1) / [x(∛(1+x)² + ∛(1+x) + 1)] = lim 1 / [1 + 1 + 1] = 1/3."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Thay x = 0 vào √(4 + 3x) được giá trị bao nhiêu?",
+          "answer": "Được √4 = 2."
+        },
+        {
+          "level": "NB",
+          "question": "Biểu thức liên hợp bậc 2 của (√(x + 1) - 2) là gì?",
+          "answer": "Là (√(x + 1) + 2)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính giới hạn: lim_{x -> 3} (x² - 9)/(x² - 2x - 3).",
+          "answer": "(x - 3)(x + 3) / [(x - 3)(x + 1)] = (3 + 3)/(3 + 1) = 6/4 = 3/2."
+        },
+        {
+          "level": "TH",
+          "question": "Tính giới hạn: lim_{x -> 0} [√(1 + 6x) - 1]/x.",
+          "answer": "Nhân liên hợp: lim 6x / [x(√(1+6x) + 1)] = 6 / 2 = 3."
+        },
+        {
+          "level": "VD",
+          "question": "Tính giới hạn: lim_{x -> 0} [√(1 + 2x) - ∛(1 + 3x)] / x².",
+          "answer": "Thêm bớt x + 1 vào tử: [√(1+2x) - (x+1)] + [(x+1) - ∛(1+3x)]. Phân tích giới hạn thành phần: √(1+2x) - (x+1) = -x²/(√ + x + 1) -> -1/2. Tương tự nhóm sau ra 1. Tổng giới hạn bằng -1/2 + 1 = 1/2."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm a để giới hạn lim_{x -> 1} (x² - ax + 1)/(x - 1) hữu hạn và tính giới hạn đó.",
+          "answer": "Tử số phải có nghiệm x = 1: 1 - a + 1 = 0 <=> a = 2. Khi đó tử là x² - 2x + 1 = (x - 1)², giới hạn = lim_{x -> 1} (x - 1) = 0."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tại sao công thức liên hợp bậc ba của hiệu lại có dấu cộng ở mẫu số?",
+          "solution": "Vì hằng đẳng thức a³ - b³ = (a - b)(a² + ab + b²) nên mẫu là a² + ab + b² mang toàn dấu cộng khi b > 0."
+        },
+        {
+          "question": "Nếu gặp dạng 0/0 nhưng sau khi rút gọn vẫn còn dạng 0/0 thì phải làm gì?",
+          "solution": "Tiếp tục phân tích nhân tử hoặc nhân liên hợp lần thứ hai để triệt tiêu nhân tử bậc cao hơn."
+        }
+      ],
+      "mistakes": [
+        "Quên dấu ngoặc vuông khi nhân liên hợp dẫn đến sai dấu các số hạng sau.",
+        "Nhầm hằng đẳng thức liên hợp bậc 3 thành a³ - b³ = (a - b)(a² - ab + b²).",
+        "Thêm bớt sai giá trị hằng số khiến dạng 0/0 không bị triệt tiêu."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "11-13-97",
+      "grade": 11,
+      "week": 13,
+      "period": 97,
+      "title": "Tự chọn: Hình biểu diễn của khối đa diện",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Thành thạo phương pháp dựng hình biểu diễn cho các khối đa diện phức tạp: hình chóp cụt, hình lăng trụ xiên, khối đa diện đều (bát diện đều); kiểm tra tính đồng quy và quan hệ song song.",
+      "formulas": [
+        "AA' \\cap BB' \\cap CC' \\cap DD' = \\{S\\} \\quad (\\text{cạnh bên chóp cụt đồng quy})",
+        "A'B' \\parallel AB, B'C' \\parallel BC, C'D' \\parallel CD, D'A' \\parallel DA",
+        "SO = S'O \\quad (\\text{đỉnh bát diện đều đối xứng qua tâm đáy})"
+      ],
+      "boardKnowledge": [
+        "I. Hình chóp cụt: Đáy lớn // đáy nhỏ (cạnh tương ứng //); Cạnh bên đồng quy tại đỉnh S.",
+        "II. Hình lăng trụ xiên: Cạnh bên song song và bằng nhau nhưng không vuông góc với đáy.",
+        "III. Bát diện đều: 6 đỉnh, 12 cạnh, 8 mặt; Gồm hai hình chóp tứ giác ghép đáy chung ABCD."
+      ],
+      "examples": [
+        {
+          "question": "Mô tả các bước dựng hình biểu diễn của khối chóp cụt tam giác ABC.A'B'C'.",
+          "solution": "Bước 1: Vẽ tam giác ABC làm đáy lớn. Bước 2: Lấy điểm S ngoài mp(ABC), nối SA, SB, SC. Bước 3: Lấy A' trên SA, kẻ A'B' // AB (B' trên SB), B'C' // BC (C' trên SC). Nối C'A' (tự động // CA). Bước 4: Tẩy hoặc làm mờ các đoạn SA', SB', SC'."
+        },
+        {
+          "question": "Cho hình hộp ABCD.A'B'C'D'. Chứng minh 4 đường chéo AC', BD', CA', DB' đồng quy tại một điểm.",
+          "solution": "Xét tứ giác ACC'A': Có AA' // CC' và AA' = CC' nên ACC'A' là hình bình hành. Hai đường chéo AC' và CA' cắt nhau tại trung điểm O của mỗi đường. Tương tự BDD'B' là hình bình hành, hai đường chéo BD' và DB' cắt nhau tại trung điểm O. Vậy 4 đường chéo đồng quy tại O."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Khối bát diện đều có bao nhiêu mặt?",
+          "answer": "Có 8 mặt (đều là các tam giác đều)."
+        },
+        {
+          "level": "NB",
+          "question": "Hình chóp cụt tứ giác có bao nhiêu đỉnh?",
+          "answer": "Có 8 đỉnh (4 đỉnh đáy lớn và 4 đỉnh đáy nhỏ)."
+        },
+        {
+          "level": "TH",
+          "question": "Trong hình lăng trụ, các mặt bên là những hình gì?",
+          "answer": "Là các hình bình hành."
+        },
+        {
+          "level": "TH",
+          "question": "Nếu một khối đa diện có 6 đỉnh và 8 mặt thì có bao nhiêu cạnh?",
+          "answer": "Theo công thức Euler Đ - C + M = 2: 6 - C + 8 = 2 <=> C = 12 cạnh (khối bát diện)."
+        },
+        {
+          "level": "VD",
+          "question": "Dựng hình biểu diễn của thiết diện cắt khối bát diện đều S.ABCD.S' bởi mặt phẳng đi qua trung điểm của các cạnh SA, SB, SC, SD.",
+          "answer": "Gọi M, N, P, Q lần lượt là trung điểm của SA, SB, SC, SD. Trong các tam giác SAB, SBC, SCD, SDA, các đoạn MN, NP, PQ, QM là đường trung bình nên MN // AB, NP // BC, PQ // CD, QM // DA. Thiết diện là hình bình hành MNPQ song song với đáy ABCD và có diện tích bằng 1/4 diện tích ABCD."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hình lăng trụ ABC.A'B'C'. Gọi M là trung điểm của B'C'. Dựng giao điểm của đường thẳng AM với mặt phẳng (A'BC).",
+          "answer": "Trong mp(BCC'B'), gọi I = BC ∩ B'M (vì BC // B'C' và B'M = 1/2 B'C' nên B'M cắt BC tại I kéo dài). Khi đó đường thẳng AM và AI cùng nằm trong mp(A, B'M). Đường thẳng AM cắt A'I tại điểm K cần tìm."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có bao nhiêu khối đa diện đều trong không gian ba chiều?",
+          "solution": "Chỉ có đúng 5 khối đa diện đều: tứ diện đều, khối lập phương, bát diện đều, 12 mặt đều và 20 mặt đều."
+        },
+        {
+          "question": "Tâm đối xứng của hình hộp là điểm nào?",
+          "solution": "Là giao điểm của 4 đường chéo của hình hộp."
+        }
+      ],
+      "mistakes": [
+        "Vẽ các cạnh bên của chóp cụt song song với nhau thay vì đồng quy.",
+        "Quên kiểm tra tính song song của các cạnh đáy tương ứng trong chóp cụt.",
+        "Vẽ sai số mặt hoặc số đỉnh của các khối đa diện đều."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "12-13-90",
+      "grade": 12,
+      "week": 13,
+      "period": 90,
+      "title": "Luyện tập phương pháp đổi biến số nguyên hàm",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập chuyên sâu kỹ năng tính nguyên hàm bằng phương pháp đổi biến số loại 1; nhận diện cấu trúc vi phân và thành thạo phép trả biến x.",
+      "formulas": [
+        "\\int f(u(x)) u'(x) dx = \\int f(u) du = F(u) + C = F(u(x)) + C",
+        "u = \\sqrt{g(x)} \\implies u^2 = g(x) \\implies 2u du = g'(x) dx",
+        "\\int \\dfrac{u'(x)}{u(x)} dx = \\ln |u(x)| + C"
+      ],
+      "boardKnowledge": [
+        "I. Dấu hiệu đổi biến: Tích f(u(x)) · u'(x) dx có mặt đạo hàm của biểu thức trong ngoặc/căn.",
+        "II. Các dạng kinh điển: u = căn thức; u = mẫu số; u = ln x (khi có dx/x); u = e^x.",
+        "III. Quy tắc vàng: Bắt buộc đổi triệt để sang biến u, tìm xong nguyên hàm PHẢI trả lại biến x."
+      ],
+      "examples": [
+        {
+          "question": "Tính nguyên hàm: I = ∫ 3x²(x³ + 1)⁴ dx.",
+          "solution": "Đặt u = x³ + 1 => du = 3x² dx. Khi đó I = ∫ u⁴ du = u⁵/5 + C = (x³ + 1)⁵/5 + C."
+        },
+        {
+          "question": "Tính nguyên hàm: I = ∫ [x / √(x² + 4)] dx.",
+          "solution": "Đặt u = √(x² + 4) => u² = x² + 4 => 2u du = 2x dx <=> x dx = u du. Khi đó I = ∫ (u du / u) = ∫ du = u + C = √(x² + 4) + C."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính vi phân du khi đặt u = 3x - 1.",
+          "answer": "du = 3 dx."
+        },
+        {
+          "level": "NB",
+          "question": "Biểu thức (cos x dx) là vi phân của hàm số lượng giác nào?",
+          "answer": "Là vi phân của sin x (d(sin x) = cos x dx)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính nguyên hàm: I = ∫ (2x + 1) e^(x² + x) dx.",
+          "answer": "Đặt u = x² + x => du = (2x + 1)dx. I = ∫ e^u du = e^u + C = e^(x² + x) + C."
+        },
+        {
+          "level": "TH",
+          "question": "Tính nguyên hàm: I = ∫ sin² x cos x dx.",
+          "answer": "Đặt u = sin x => du = cos x dx. I = ∫ u² du = u³/3 + C = (sin³ x)/3 + C."
+        },
+        {
+          "level": "VD",
+          "question": "Tính nguyên hàm: I = ∫ [1 / (x ln² x)] dx.",
+          "answer": "Đặt u = ln x => du = dx/x. I = ∫ (1/u²) du = -1/u + C = -1/(ln x) + C."
+        },
+        {
+          "level": "VD",
+          "question": "Tính nguyên hàm: I = ∫ [x³ / √(x² + 1)] dx.",
+          "answer": "Đặt u = √(x² + 1) => u² = x² + 1 => x² = u² - 1 và x dx = u du. I = ∫ [(u² - 1) u du / u] = ∫ (u² - 1) du = u³/3 - u + C = [(x² + 1)√(x² + 1)]/3 - √(x² + 1) + C."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu đặt ẩn phụ mà biểu thức vẫn còn chứa cả x và u thì nguyên hàm có tính được không?",
+          "solution": "Chưa tính được, phải biểu diễn nốt phần x còn lại theo u hoặc chọn cách đổi biến khác."
+        },
+        {
+          "question": "Có bao nhiêu cách tính nguyên hàm ∫ sin x cos x dx?",
+          "solution": "Có 3 cách: đặt u = sin x ra (sin² x)/2; đặt u = cos x ra -(cos² x)/2; hoặc dùng góc nhân đôi (1/2) sin 2x ra -(cos 2x)/4 (các kết quả sai khác nhau một hằng số C)."
+        }
+      ],
+      "mistakes": [
+        "Quên tính vi phân đạo hàm du = u'dx (chỉ viết du = dx).",
+        "Không trả biến u về biến x ở bước kết luận.",
+        "Thiếu hằng số tích hợp + C."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "12-13-91",
+      "grade": 12,
+      "week": 13,
+      "period": 91,
+      "title": "Luyện tập phương pháp nguyên hàm từng phần",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập thành thạo phương pháp nguyên hàm từng phần; áp dụng quy tắc ưu tiên chọn u; xử lý các dạng tích phân từng phần hai lần và nguyên hàm luân hồi.",
+      "formulas": [
+        "\\int u dv = u \\cdot v - \\int v du",
+        "\\text{Thứ tự chọn } u: \\ln x \\to P(x) \\to \\sin x / \\cos x \\to e^x",
+        "\\int P_n(x) e^{ax} dx: \\text{ từng phần } n \\text{ lần (hoặc dùng bảng D-I)}"
+      ],
+      "boardKnowledge": [
+        "I. Công thức: ∫ u dv = uv - ∫ v du (xuất phát từ đạo hàm của tích (uv)' = u'v + uv').",
+        "II. Chiến lược chọn: u đạo hàm ra đơn giản hơn (du = u'dx); dv dễ tìm nguyên hàm v.",
+        "III. Bảng D-I: Cột Đạo hàm (D) đến 0, cột Tích phân (I), đan dấu (+, -, +, -)."
+      ],
+      "examples": [
+        {
+          "question": "Tính nguyên hàm: I = ∫ x sin x dx.",
+          "solution": "Đặt u = x => du = dx; dv = sin x dx => v = -cos x. Áp dụng công thức: I = -x cos x - ∫ (-cos x) dx = -x cos x + sin x + C."
+        },
+        {
+          "question": "Tính nguyên hàm: I = ∫ ln x dx.",
+          "solution": "Đặt u = ln x => du = dx/x; dv = dx => v = x. Khi đó I = x ln x - ∫ x (dx/x) = x ln x - ∫ dx = x ln x - x + C."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Trong biểu thức ∫ (3x - 1) e^x dx, nên chọn u là hàm số nào?",
+          "answer": "Chọn u = 3x - 1 (đa thức)."
+        },
+        {
+          "level": "NB",
+          "question": "Nếu dv = cos x dx thì hàm số v bằng bao nhiêu?",
+          "answer": "v = sin x."
+        },
+        {
+          "level": "TH",
+          "question": "Tính nguyên hàm: I = ∫ x e^(2x) dx.",
+          "answer": "u = x => du = dx; dv = e^(2x)dx => v = e^(2x)/2. I = (x/2)e^(2x) - (1/2)∫ e^(2x)dx = (x/2)e^(2x) - (1/4)e^(2x) + C."
+        },
+        {
+          "level": "TH",
+          "question": "Tính nguyên hàm: I = ∫ x ln(2x) dx.",
+          "answer": "u = ln(2x) => du = dx/x; dv = x dx => v = x²/2. I = (x²/2)ln(2x) - ∫ (x²/2)(dx/x) = (x²/2)ln(2x) - x²/4 + C."
+        },
+        {
+          "level": "VD",
+          "question": "Tính nguyên hàm: I = ∫ x² cos x dx.",
+          "answer": "Bảng D-I: D: x² -> 2x -> 2 -> 0; I: cos x -> sin x -> -cos x -> -sin x. Dấu +, -, +. I = x² sin x - 2x(-cos x) + 2(-sin x) + C = (x² - 2)sin x + 2x cos x + C."
+        },
+        {
+          "level": "VD",
+          "question": "Tính nguyên hàm luân hồi: I = ∫ e^x cos x dx.",
+          "answer": "u = cos x => du = -sin x dx; dv = e^x dx => v = e^x. I = e^x cos x + ∫ e^x sin x dx. Từng phần lần 2 với u1 = sin x: ∫ e^x sin x dx = e^x sin x - ∫ e^x cos x dx = e^x sin x - I. Do đó I = e^x cos x + e^x sin x - I <=> 2I = e^x(cos x + sin x) <=> I = (1/2) e^x (cos x + sin x) + C."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có thể chọn hằng số C khác 0 khi tìm v từ dv không?",
+          "solution": "Có thể, công thức vẫn đúng với mọi C, nhưng chọn C = 0 giúp biểu thức đơn giản nhất."
+        },
+        {
+          "question": "Tại sao khi gặp ∫ x² e^x dx ta nên dùng bảng D-I thay vì viết tay từng phần?",
+          "solution": "Vì phương pháp bảng D-I giúp tránh nhầm lẫn dấu âm và tiết kiệm hơn 70% thời gian tính toán."
+        }
+      ],
+      "mistakes": [
+        "Nhầm lẫn giữa đạo hàm và nguyên hàm khi tìm v từ dv.",
+        "Sai dấu trong phép tính: viết nhầm - ∫ v du thành + ∫ v du.",
+        "Chọn sai thứ tự ưu tiên: chọn u = x trong bài toán chứa ln x."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "12-13-92",
+      "grade": 12,
+      "week": 13,
+      "period": 92,
+      "title": "Diện tích hình thang cong và tích phân",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành khái niệm tích phân xác định thông qua bài toán diện tích hình thang cong; hiểu phương pháp tổng tích phân Riemann và ý nghĩa hình học của tích phân.",
+      "formulas": [
+        "S_n = \\sum_{k=1}^n f(x_k) \\Delta x \\implies \\lim_{n \\to +\\infty} S_n = \\int_a^b f(x) dx",
+        "S = \\int_a^b f(x) dx \\quad (\\text{khi } f(x) \\ge 0 \\text{ trên } [a; b])",
+        "\\int_a^a f(x) dx = 0; \\quad \\int_a^b f(x) dx = -\\int_b^a f(x) dx"
+      ],
+      "boardKnowledge": [
+        "I. Bài toán diện tích: Chia nhỏ thành n hình chữ nhật -> Tổng diện tích Riemann -> Giới hạn vô cực.",
+        "II. Định nghĩa tích phân: Con số giới hạn duy nhất ký hiệu là ∫_a^b f(x) dx (a: cận dưới, b: cận trên).",
+        "III. Ý nghĩa hình học: Là diện tích đại số của miền phẳng kẹp giữa đồ thị và trục Ox."
+      ],
+      "examples": [
+        {
+          "question": "Dùng công thức diện tích hình thang, tính tích phân: I = ∫_1^4 (x + 1) dx.",
+          "solution": "Đồ thị là đoạn thẳng từ (1; 2) đến (4; 5). Miền phẳng là hình thang vuông có đáy nhỏ y1 = 2, đáy lớn y2 = 5, chiều cao h = 4 - 1 = 3. Diện tích S = (2 + 5) · 3 / 2 = 21/2 = 10,5. Vậy I = 10,5."
+        },
+        {
+          "question": "Dùng ý nghĩa hình học hình tròn, tính tích phân: I = ∫_0^2 √(4 - x²) dx.",
+          "solution": "Phương trình y = √(4 - x²) <=> x² + y² = 4 (với y ≥ 0). Đây là nửa trên của hình tròn tâm O bán kính R = 2. Cận từ 0 đến 2 tương ứng với 1/4 hình tròn. Diện tích S = (1/4) π R² = (1/4) π · 4 = π. Vậy I = π."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tích phân ∫_2^2 (x² + 5) dx có giá trị bằng bao nhiêu?",
+          "answer": "Bằng 0 (hai cận bằng nhau)."
+        },
+        {
+          "level": "NB",
+          "question": "Trong ký hiệu ∫_1^3 f(x) dx, số 1 gọi là gì và số 3 gọi là gì?",
+          "answer": "Số 1 là cận dưới, số 3 là cận trên."
+        },
+        {
+          "level": "TH",
+          "question": "Tính I = ∫_0^5 3 dx bằng ý nghĩa hình học.",
+          "answer": "Miền phẳng là hình chữ nhật đáy rộng 5, cao 3. Diện tích = 3 · 5 = 15. Vậy I = 15."
+        },
+        {
+          "level": "TH",
+          "question": "Nếu hàm số f(x) liên tục và f(x) ≤ 0 trên [a; b] thì mối liên hệ giữa diện tích hình phẳng S và tích phân ∫_a^b f(x) dx là gì?",
+          "answer": "S = - ∫_a^b f(x) dx (diện tích bằng số đối của tích phân)."
+        },
+        {
+          "level": "VD",
+          "question": "Tính diện tích hình phẳng giới hạn bởi nửa trên đường tròn y = √(9 - x²) và trục hoành trên đoạn [-3; 3].",
+          "answer": "Đây là diện tích của nửa hình tròn bán kính R = 3: S = (1/2) π R² = (1/2) π · 9 = 9π/2."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hàm số f(x) = x khi 0 ≤ x ≤ 1 và f(x) = 2 - x khi 1 < x ≤ 2. Tính ∫_0^2 f(x) dx bằng hình học.",
+          "answer": "Đồ thị tạo thành tam giác cân có đáy trên trục Ox từ 0 đến 2 (độ dài 2) và đỉnh tại (1; 1) có chiều cao h = 1. Diện tích S = (1/2) · 2 · 1 = 1. Vậy tích phân bằng 1."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tích phân xác định có phụ thuộc vào ký hiệu biến lấy tích phân không?",
+          "solution": "Không, ∫_a^b f(x) dx = ∫_a^b f(t) dt = ∫_a^b f(u) du (chỉ phụ thuộc vào hàm f và hai cận a, b)."
+        },
+        {
+          "question": "Có bao giờ diện tích của một hình phẳng bị giới hạn lại là một số âm không?",
+          "solution": "Không bao giờ, diện tích hình học luôn luôn không âm."
+        }
+      ],
+      "mistakes": [
+        "Cho rằng tích phân luôn luôn bằng diện tích (quên điều kiện f(x) ≥ 0).",
+        "Đổi chỗ hai cận mà không đổi dấu tích phân.",
+        "Nhầm lẫn giữa tích phân bất định (nguyên hàm ra hàm số + C) và tích phân xác định (ra một số cụ thể)."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "12-13-93",
+      "grade": 12,
+      "week": 13,
+      "period": 93,
+      "title": "Định nghĩa tích phân và công thức Newton",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Hình thành định nghĩa tích phân xác định và công thức Newton - Leibniz; rèn luyện kỹ năng tìm nguyên hàm, thế cận trên trừ cận dưới và tính toán số học.",
+      "formulas": [
+        "\\int_a^b f(x) dx = F(b) - F(a) = F(x) \\Big|_a^b \\quad (F'(x) = f(x))",
+        "\\int_a^b c dx = c(b - a)",
+        "\\int_a^b x^n dx = \\dfrac{b^{n+1} - a^{n+1}}{n+1} \\quad (n \\ne -1)"
+      ],
+      "boardKnowledge": [
+        "I. Công thức Newton - Leibniz: Cầu nối thần kỳ giữa phép tính vi phân và tích phân.",
+        "II. Quy tắc thế cận: F(x)|_a^b = F(b) - F(a) (Cận Trên trừ Cận Dưới).",
+        "III. Hằng số C: Luôn tự triệt tiêu trong phép trừ (F(b)+C) - (F(a)+C)."
+      ],
+      "examples": [
+        {
+          "question": "Tính tích phân: I = ∫_1^2 (3x² - 2x + 1) dx.",
+          "solution": "Nguyên hàm F(x) = x³ - x² + x. Thế cận: F(2) = 2³ - 2² + 2 = 6; F(1) = 1³ - 1² + 1 = 1. Kết quả: I = 6 - 1 = 5."
+        },
+        {
+          "question": "Tính tích phân: I = ∫_1^e (1/x) dx.",
+          "solution": "Nguyên hàm là ln|x|. Thế cận: I = ln|e| - ln|1| = 1 - 0 = 1."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính tích phân I = ∫_0^2 4 dx.",
+          "answer": "I = 4 · (2 - 0) = 8."
+        },
+        {
+          "level": "NB",
+          "question": "Công thức Newton - Leibniz lấy F(a) trừ F(b) hay F(b) trừ F(a)?",
+          "answer": "Lấy F(b) trừ F(a) (cận trên trừ cận dưới)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính tích phân: I = ∫_0^1 (2x + 3) dx.",
+          "answer": "F(x) = x² + 3x. I = F(1) - F(0) = (1 + 3) - 0 = 4."
+        },
+        {
+          "level": "TH",
+          "question": "Tính tích phân: I = ∫_0^1 e^(2x) dx.",
+          "answer": "F(x) = e^(2x)/2. I = e² / 2 - e⁰ / 2 = (e² - 1)/2."
+        },
+        {
+          "level": "VD",
+          "question": "Tính tích phân: I = ∫_0^2 |x - 1| dx.",
+          "answer": "Chia thành 2 đoạn: ∫_0^1 (1 - x) dx + ∫_1^2 (x - 1) dx = (x - x²/2)|_0^1 + (x²/2 - x)|_1^2 = 1/2 + 1/2 = 1."
+        },
+        {
+          "level": "VD",
+          "question": "Tìm m dương để tích phân ∫_0^m (2x - 3) dx = 4.",
+          "answer": "Ta có F(x) = x² - 3x. F(m) - F(0) = m² - 3m = 4 <=> m² - 3m - 4 = 0 <=> m = 4 hoặc m = -1. Vì m > 0 nên chọn m = 4."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Nếu f(x) ≥ 0 trên [a; b] với a < b thì tích phân ∫_a^b f(x) dx có thể âm được không?",
+          "solution": "Không thể âm, tích phân luôn ≥ 0."
+        },
+        {
+          "question": "Tại sao Newton và Leibniz được coi là hai cha đẻ độc lập của giải tích?",
+          "solution": "Vì Newton tìm ra giải tích thông qua cơ học quang học ở Anh, còn Leibniz tìm ra thông qua hình học đại số ở Đức với hệ ký hiệu d và ∫ còn dùng đến ngày nay."
+        }
+      ],
+      "mistakes": [
+        "Thế ngược cận: lấy F(a) - F(b) làm đổi dấu kết quả.",
+        "Quên dấu trừ khi nguyên hàm hàm lượng giác cos sang sin hoặc sin sang -cos.",
+        "Nhầm ln(0) = 0 (ln 0 không xác định)."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "12-13-94",
+      "grade": 12,
+      "week": 13,
+      "period": 94,
+      "title": "Tính chất tuyến tính và cộng đoạn tích phân",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Nắm vững các tính chất cơ bản của tích phân: tính chất tuyến tính, tính chất cộng đoạn (chèn cận), tính chất bảo toàn thứ tự và kỹ thuật xử lý hàm chứa trị tuyệt đối.",
+      "formulas": [
+        "\\int_a^b [k f(x) \\pm m g(x)] dx = k \\int_a^b f(x) dx \\pm m \\int_a^b g(x) dx",
+        "\\int_a^b f(x) dx = \\int_a^c f(x) dx + \\int_c^b f(x) dx \\quad (\\forall c)",
+        "f(x) \\le g(x) \\implies \\int_a^b f(x) dx \\le \\int_a^b g(x) dx \\quad (a < b)"
+      ],
+      "boardKnowledge": [
+        "I. Tính chất tuyến tính: Đưa hằng số ra ngoài; Tích phân của tổng/hiệu bằng tổng/hiệu các tích phân.",
+        "II. Tính chất cộng đoạn: Nối cận liên tiếp: [a -> c] + [c -> b] = [a -> b].",
+        "III. Dấu trị tuyệt đối |f(x)|: Tìm nghiệm f(x)=0 trên [a; b], chèn nghiệm làm cận rồi phá dấu."
+      ],
+      "examples": [
+        {
+          "question": "Cho ∫_0^2 f(x) dx = 3 và ∫_2^5 f(x) dx = 7. Tính ∫_0^5 f(x) dx và ∫_5^0 f(x) dx.",
+          "solution": "Áp dụng cộng đoạn: ∫_0^5 f(x) dx = ∫_0^2 + ∫_2^5 = 3 + 7 = 10. Đổi cận: ∫_5^0 f(x) dx = - ∫_0^5 f(x) dx = -10."
+        },
+        {
+          "question": "Tính tích phân: I = ∫_0^3 |x - 2| dx.",
+          "solution": "Nghiệm x = 2 thuộc [0; 3]. Chèn cận 2: I = ∫_0^2 (2 - x) dx + ∫_2^3 (x - 2) dx = (2x - x²/2)|_0^2 + (x²/2 - 2x)|_2^3 = (4 - 2) + [(9/2 - 6) - (2 - 4)] = 2 + [-3/2 + 2] = 2 + 1/2 = 5/2 = 2,5."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Nếu ∫_1^4 f(x) dx = 6 thì ∫_1^4 3 f(x) dx bằng bao nhiêu?",
+          "answer": "Bằng 3 · 6 = 18."
+        },
+        {
+          "level": "NB",
+          "question": "Tính ∫_1^5 f(x) dx biết ∫_1^3 f = 4 và ∫_3^5 f = 5.",
+          "answer": "Bằng 4 + 5 = 9."
+        },
+        {
+          "level": "TH",
+          "question": "Cho ∫_0^1 f(x) dx = 2, ∫_0^1 g(x) dx = -3. Tính I = ∫_0^1 [2f(x) + g(x)] dx.",
+          "answer": "I = 2(2) + (-3) = 4 - 3 = 1."
+        },
+        {
+          "level": "TH",
+          "question": "Cho ∫_1^6 f(x) dx = 12 và ∫_3^6 f(x) dx = 8. Tính ∫_1^3 f(x) dx.",
+          "answer": "∫_1^3 = ∫_1^6 - ∫_3^6 = 12 - 8 = 4."
+        },
+        {
+          "level": "VD",
+          "question": "Tính tích phân: I = ∫_{-1}^2 |2x - 1| dx.",
+          "answer": "Nghiệm x = 1/2. I = ∫_{-1}^{1/2} (1 - 2x) dx + ∫_{1/2}^2 (2x - 1) dx = (x - x²)|_{-1}^{1/2} + (x² - x)|_{1/2}^2 = [1/4 - (-2)] + [(4 - 2) - (-1/4)] = 9/4 + 9/4 = 18/4 = 9/2."
+        },
+        {
+          "level": "VD",
+          "question": "Cho hàm số f(x) liên tục thỏa mãn ∫_0^6 f(x) dx = 10. Tính I = ∫_0^2 f(3x) dx.",
+          "answer": "Đặt u = 3x => du = 3 dx <=> dx = du/3. Đổi cận: x = 0 => u = 0; x = 2 => u = 6. Khi đó I = ∫_0^6 f(u) (du/3) = (1/3) ∫_0^6 f(u) du = 10/3."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có bao giờ ∫_a^b [f(x) · g(x)] dx = [∫_a^b f(x) dx] · [∫_a^b g(x) dx] không?",
+          "solution": "Hầu như không bao giờ bằng nhau (chỉ là trường hợp ngẫu nhiên vô cùng hy hữu), tích phân không nhân phân phối được."
+        },
+        {
+          "question": "Nếu a > b thì tính chất cộng đoạn có còn đúng không?",
+          "solution": "Vẫn đúng hoàn toàn, công thức ∫_a^b = ∫_a^c + ∫_c^b đúng với mọi vị trí của a, b, c."
+        }
+      ],
+      "mistakes": [
+        "Tự ý nhân hai tích phân với nhau khi gặp tích phân của một tích.",
+        "Cộng nhầm cận: lấy ∫_1^3 + ∫_2^4 thành ∫_1^4 (hai khoảng chia không khớp nhau).",
+        "Quên đổi dấu biểu thức khi phá trị tuyệt đối trên miền âm."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "12-13-95",
+      "grade": 12,
+      "week": 13,
+      "period": 95,
+      "title": "Tính chất đổi cận và hàm số chẵn lẻ",
+      "kind": "formation",
+      "lessonType": "formation",
+      "focus": "Nắm vững quy tắc đổi cận khi đổi biến số tích phân; vận dụng định lý tích phân của hàm số chẵn và hàm số lẻ trên đoạn đối xứng; kỹ thuật tích phân đối xứng liên hợp.",
+      "formulas": [
+        "\\int_a^b f(u(x)) u'(x) dx = \\int_{u(a)}^{u(b)} f(u) du",
+        "f(-x) = -f(x) \\implies \\int_{-a}^a f(x) dx = 0",
+        "f(-x) = f(x) \\implies \\int_{-a}^a f(x) dx = 2 \\int_0^a f(x) dx",
+        "\\int_0^a f(x) dx = \\int_0^a f(a - x) dx"
+      ],
+      "boardKnowledge": [
+        "I. Đổi biến tích phân: Bắt buộc đổi cận (x = a -> u = u(a), x = b -> u = u(b)). KHÔNG cần trả lại biến x.",
+        "II. Hàm lẻ trên [-a; a]: f(-x) = -f(x) -> Tích phân bằng 0 ngay lập tức.",
+        "III. Hàm chẵn trên [-a; a]: f(-x) = f(x) -> Bằng 2 lần tích phân từ 0 đến a."
+      ],
+      "examples": [
+        {
+          "question": "Tính tích phân: I = ∫_0^1 x√(1 - x²) dx.",
+          "solution": "Đặt u = √(1 - x²) => u² = 1 - x² => 2u du = -2x dx <=> x dx = -u du. Đổi cận: x = 0 => u = 1; x = 1 => u = 0. Khi đó I = ∫_1^0 u (-u du) = ∫_0^1 u² du = u³/3 |_0^1 = 1/3."
+        },
+        {
+          "question": "Tính tích phân: I = ∫_{-1}^1 (2x³ - 3x² + x - 5) dx.",
+          "solution": "Tách phần lẻ và chẵn: Các số hạng lẻ (2x³ + x) có tích phân trên [-1; 1] bằng 0. Các số hạng chẵn: I = 2 ∫_0^1 (-3x² - 5) dx = 2 (-x³ - 5x)|_0^1 = 2 (-1 - 5) = -12."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tích phân ∫_{-3}^3 x²⁰²⁵ dx có giá trị bằng bao nhiêu?",
+          "answer": "Bằng 0 vì x²⁰²⁵ là hàm số lẻ trên đoạn đối xứng [-3; 3]."
+        },
+        {
+          "level": "NB",
+          "question": "Khi đặt u = 2x + 1 trong tích phân cận từ 0 đến 2, cận của u là từ mấy đến mấy?",
+          "answer": "Cận dưới u(0) = 1, cận trên u(2) = 5 (cận từ 1 đến 5)."
+        },
+        {
+          "level": "TH",
+          "question": "Biết f(x) là hàm chẵn trên [-2; 2] và ∫_0^2 f(x) dx = 4. Tính ∫_{-2}^2 f(x) dx.",
+          "answer": "∫_{-2}^2 f(x) dx = 2 · 4 = 8."
+        },
+        {
+          "level": "TH",
+          "question": "Tính I = ∫_{-π/2}^{π/2} cos x dx bằng tính chất hàm chẵn.",
+          "answer": "cos x là hàm chẵn nên I = 2 ∫_0^{π/2} cos x dx = 2 sin x |_0^{π/2} = 2(1 - 0) = 2."
+        },
+        {
+          "level": "VD",
+          "question": "Tính tích phân: I = ∫_0^{\\pi/2} \\dfrac{\\sin x}{\\sin x + \\cos x} dx.",
+          "answer": "Đặt x = π/2 - t => dx = -dt. Đổi cận: x = 0 => t = π/2; x = π/2 => t = 0. Khi đó I = ∫_0^{π/2} [cos t / (cos t + sin t)] dt. Cộng hai tích phân: 2I = ∫_0^{π/2} [(sin x + cos x)/(sin x + cos x)] dx = ∫_0^{π/2} 1 dx = π/2 => I = π/4."
+        },
+        {
+          "level": "VD",
+          "question": "Tính tích phân: I = ∫_{-1}^1 \\dfrac{x^4}{e^x + 1} dx.",
+          "answer": "Đặt x = -t => dx = -dt. Đổi cận ra I = ∫_{-1}^1 [t⁴ / (e^{-t} + 1)] dt = ∫_{-1}^1 [t⁴ e^t / (e^t + 1)] dt. Cộng lại: 2I = ∫_{-1}^1 [x⁴(e^x + 1)/(e^x + 1)] dx = ∫_{-1}^1 x⁴ dx = 2 ∫_0^1 x⁴ dx = 2/5 => I = 1/5."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Tại sao trong tích phân xác định ta không cần bước trả lại biến x sau khi đổi biến?",
+          "solution": "Vì tích phân chỉ phụ thuộc vào hàm số và các cận số, sau khi đổi cận theo biến u thì giá trị tính theo u chính là giá trị cuối cùng của bài toán."
+        },
+        {
+          "question": "Tích của hai hàm số lẻ là hàm chẵn hay hàm lẻ?",
+          "solution": "Là hàm chẵn ((-f)(-g) = fg)."
+        }
+      ],
+      "mistakes": [
+        "Quên đổi cận khi thực hiện phép đổi biến số tích phân.",
+        "Nhầm tính chất: cho rằng hàm chẵn có tích phân bằng 0.",
+        "Đổi cận bị ngược thứ tự cận (cận nhỏ đặt ở trên, cận lớn đặt ở dưới mà quên đổi dấu tích phân)."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "12-13-96",
+      "grade": 12,
+      "week": 13,
+      "period": 96,
+      "title": "Luyện tập tính tích phân cơ bản",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Luyện tập tổng hợp các kỹ thuật tính tích phân cơ bản: công thức Newton - Leibniz, tích phân từng phần có gắn cận, đổi biến số và xử lý phân thức hữu tỉ.",
+      "formulas": [
+        "\\int_a^b u dv = u \\cdot v \\Big|_a^b - \\int_a^b v du",
+        "\\int_a^b \\dfrac{dx}{ax + b} = \\dfrac{1}{a} \\ln|ax + b| \\Big|_a^b",
+        "\\int_a^b e^{kx} dx = \\dfrac{1}{k} e^{kx} \\Big|_a^b"
+      ],
+      "boardKnowledge": [
+        "I. Ba kỹ năng vàng: (1) Bảng công thức cơ bản; (2) Đổi biến số (nhớ đổi cận); (3) Từng phần (thế cận uv).",
+        "II. Phân thức hữu tỉ: Bậc tử ≥ mẫu -> Chia đa thức; Mẫu có 2 nghiệm -> Tách A/(x-x1) + B/(x-x2).",
+        "III. Bẫy hệ số: Luôn kiểm tra chia cho a khi trong hàm có dạng f(ax + b)."
+      ],
+      "examples": [
+        {
+          "question": "Tính tích phân: I = ∫_0^1 (2x + 1) e^x dx.",
+          "solution": "u = 2x + 1 => du = 2 dx; dv = e^x dx => v = e^x. I = (2x + 1)e^x |_0^1 - ∫_0^1 2 e^x dx = (3e - 1) - 2(e - 1) = 3e - 1 - 2e + 2 = e + 1."
+        },
+        {
+          "question": "Tính tích phân: I = ∫_2^3 [1 / (x² - 1)] dx.",
+          "solution": "Tách phân thức: 1/(x² - 1) = (1/2)[1/(x - 1) - 1/(x + 1)]. I = (1/2) ln|(x - 1)/(x + 1)| |_2^3 = (1/2) [ln(2/4) - ln(1/3)] = (1/2) ln(1/2 : 1/3) = (1/2) ln(3/2)."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Tính tích phân I = ∫_0^1 (3x² + 2x) dx.",
+          "answer": "F(x) = x³ + x². I = (1 + 1) - 0 = 2."
+        },
+        {
+          "level": "NB",
+          "question": "Trong công thức ∫_a^b u dv = uv|_a^b - ∫_a^b v du, cụm uv được thế cận như thế nào?",
+          "answer": "Thế cận: u(b)v(b) - u(a)v(a)."
+        },
+        {
+          "level": "TH",
+          "question": "Tính tích phân: I = ∫_0^{\\pi/2} x \\cos x dx.",
+          "answer": "u = x => du = dx; dv = cos x dx => v = sin x. I = x sin x |_0^{\\pi/2} - ∫_0^{\\pi/2} sin x dx = (\\pi/2 · 1 - 0) - (-cos x)|_0^{\\pi/2} = \\pi/2 - (0 - (-1)) = \\pi/2 - 1."
+        },
+        {
+          "level": "TH",
+          "question": "Tính tích phân: I = ∫_1^2 (2x + 1)/x dx.",
+          "answer": "Tách phân thức: I = ∫_1^2 (2 + 1/x) dx = (2x + ln|x|)|_1^2 = (4 + ln 2) - (2 + 0) = 2 + ln 2."
+        },
+        {
+          "level": "VD",
+          "question": "Tính tích phân: I = ∫_0^1 [x / (x + 1)²] dx.",
+          "answer": "Thêm bớt ở tử: x = (x + 1) - 1. Khi đó x/(x+1)² = 1/(x+1) - 1/(x+1)². I = [ln(x+1) + 1/(x+1)]|_0^1 = (ln 2 + 1/2) - (0 + 1) = ln 2 - 1/2."
+        },
+        {
+          "level": "VD",
+          "question": "Cho ∫_0^1 (2x + 1) e^x dx = a·e + b với a, b là các số nguyên. Tính tổng a + b.",
+          "answer": "Theo ví dụ mẫu, I = e + 1. Do đó a = 1, b = 1. Tổng a + b = 1 + 1 = 2."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có thể bấm máy tính cầm tay để kiểm tra kết quả tích phân xác định không?",
+          "solution": "Hoàn toàn được, phím tích phân trên máy tính CASIO/Vinacal cho kết quả xấp xỉ cực nhanh để dò đáp án đúng."
+        },
+        {
+          "question": "Tại sao khi mẫu có nghiệm kép (x + a)² ta không tách thành hai phân số mẫu bậc nhất?",
+          "solution": "Vì mẫu nghiệm kép chỉ có một thừa số, ta phải dùng kỹ thuật thêm bớt ở tử để tách thành 1/(x+a) và 1/(x+a)²."
+        }
+      ],
+      "mistakes": [
+        "Quên hệ số 1/2 khi nguyên hàm 1/(2x + 1).",
+        "Thế sai cận trong cụm uv của tích phân từng phần.",
+        "Nhầm ln(a/b) = ln a / ln b thay vì ln a - ln b."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
+    },
+    {
+      "key": "12-13-97",
+      "grade": 12,
+      "week": 13,
+      "period": 97,
+      "title": "Tự chọn: Kỹ thuật tính nhanh tích phân",
+      "kind": "practice",
+      "lessonType": "practice",
+      "focus": "Trang bị các kỹ thuật giải nhanh tích phân trắc nghiệm: phương pháp bảng D-I, kỹ thuật dò Table Casio tìm tham số nguyên, công thức hàm bù đối xứng và tránh bẫy máy tính.",
+      "formulas": [
+        "f(x) + f(a + b - x) = k \\implies \\int_a^b f(x) dx = \\dfrac{k(b - a)}{2}",
+        "a \\ln 2 + b \\ln 3 = A \\implies a = \\dfrac{A - b \\ln 3}{\\ln 2} \\quad (\\text{quét Table } b \\in \\mathbb{Z})",
+        "\\int_0^{\\pi/2} \\dfrac{\\sin^n x}{\\sin^n x + \\cos^n x} dx = \\dfrac{\\pi}{4}"
+      ],
+      "boardKnowledge": [
+        "I. Bấm máy Casio: Bắt buộc chế độ RADIAN (Shift Menu 2 2); Dùng STO lưu biến A; Dùng Table Menu 8.",
+        "II. Bảng D-I: Cột Đạo hàm đạo hàm đến 0; Cột Tích phân; Nhân chéo đan dấu (+, -, +, -).",
+        "III. Công thức hàm bù: ∫_a^b f(x) dx = k(b - a)/2 khi f(x) + f(a+b-x) = k."
+      ],
+      "examples": [
+        {
+          "question": "Dùng bảng D-I tính tích phân: I = ∫_0^1 x² e^x dx.",
+          "solution": "Cột D: x² -> 2x -> 2 -> 0. Cột I: e^x -> e^x -> e^x -> e^x. Nhân chéo: I = (x² e^x - 2x e^x + 2 e^x)|_0^1 = [(1 - 2 + 2)e] - [0 - 0 + 2] = e - 2."
+        },
+        {
+          "question": "Tính nhanh tích phân: I = ∫_0^{\\pi/2} \\dfrac{\\sin^{2026} x}{\\sin^{2026} x + \\cos^{2026} x} dx.",
+          "solution": "Đặt f(x) là biểu thức dưới dấu tích phân. Ta có f(x) + f(π/2 - x) = 1 (hàm bù đối xứng với k = 1). Khi đó I = 1 · (π/2 - 0) / 2 = π/4."
+        }
+      ],
+      "exercises": [
+        {
+          "level": "NB",
+          "question": "Khi bấm tích phân hàm lượng giác trên máy tính, màn hình phải hiển thị chữ gì?",
+          "answer": "Phải hiển thị chữ R (chế độ Radian)."
+        },
+        {
+          "level": "NB",
+          "question": "Nếu f(x) + f(6 - x) = 10 thì ∫_0^6 f(x) dx bằng bao nhiêu?",
+          "answer": "Bằng 10 · (6 - 0) / 2 = 30."
+        },
+        {
+          "level": "TH",
+          "question": "Dùng bảng D-I tính tích phân I = ∫_0^1 x e^(2x) dx.",
+          "answer": "D: x -> 1 -> 0; I: e^(2x) -> e^(2x)/2 -> e^(2x)/4. I = [x e^(2x)/2 - e^(2x)/4]|_0^1 = (e²/2 - e²/4) - (0 - 1/4) = e²/4 + 1/4 = (e² + 1)/4."
+        },
+        {
+          "level": "TH",
+          "question": "Cho ∫_0^1 (2x + 1)/(x + 1) dx = a + b ln 2. Tìm a và b.",
+          "answer": "Tách tử: (2x+1)/(x+1) = 2 - 1/(x+1). Tích phân = (2x - ln|x+1|)|_0^1 = 2 - ln 2. Do đó a = 2, b = -1."
+        },
+        {
+          "level": "VD",
+          "question": "Cho I = ∫_0^1 \\dfrac{x^3 + 2x}{x + 1} dx = a/b + c ln 2 với a/b tối giản. Tính a + b + c.",
+          "answer": "Chia đa thức: (x³ + 2x) : (x + 1) = x² - x + 3 dư -3. Tích phân = (x³/3 - x²/2 + 3x - 3 ln|x+1|)|_0^1 = (1/3 - 1/2 + 3) - 3 ln 2 = 17/6 - 3 ln 2. Vậy a = 17, b = 6, c = -3. Tổng a + b + c = 17 + 6 - 3 = 20."
+        },
+        {
+          "level": "VD",
+          "question": "Tính tích phân: I = ∫_0^2 \\dfrac{x^{2026}}{x^{2026} + (2 - x)^{2026}} dx.",
+          "answer": "Hàm số thỏa mãn f(x) + f(2 - x) = 1 với a = 0, b = 2, k = 1. Theo công thức tính nhanh: I = 1 · (2 - 0) / 2 = 1."
+        }
+      ],
+      "quick": [
+        {
+          "question": "Có bao giờ kết quả tích phân của hàm số dương lại cho ra số âm không?",
+          "solution": "Nếu cận dưới nhỏ hơn cận trên thì tích phân hàm dương luôn dương. Nếu ra âm chắc chắn bấm nhầm thứ tự cận hoặc sai chế độ góc."
+        },
+        {
+          "question": "Tại sao kỹ thuật Table lại hiệu quả đối với các bài toán chống bấm máy Casio?",
+          "solution": "Vì người ra đề thường giấu kết quả dưới dạng a ln 2 + b ln 3, nhưng biểu thức này vẫn là phương trình bậc nhất 2 ẩn mà Table quét được trong vài giây."
+        }
+      ],
+      "mistakes": [
+        "Để máy tính ở chế độ độ (Deg) khi tính tích phân hàm lượng giác.",
+        "Nhập sai bước nhảy Step trong Table khiến bỏ sót nghiệm nguyên.",
+        "Áp dụng công thức hàm bù đối xứng khi f(x) + f(a+b-x) không phải là hằng số."
+      ],
+      "selfChoice": false,
+      "timelineKey": "default"
     }
   ],
   "aiErrors": {
@@ -2330,7 +4227,7 @@
       "correction": "Biến số t không được phép đưa ra ngoài dấu nguyên hàm vì t là biến số lấy tích phân, chỉ hằng số k ≠ 0 mới được đưa ra ngoài. Sửa đúng bằng 2 tính chất tuyến tính: v(t) = ∫ (t² + 3t) dt = ∫ t² dt + 3∫ t dt = t³/3 + 3t²/2 + C. Điều kiện tàu rời ga đứng yên v(0) = 0 ⇒ C = 0, nên v(t) = t³/3 + 3t²/2 (m/s).",
       "proof": "Thử lại bằng đạo hàm: (t³/2 + 3t²)' = 3t²/2 + 6t ≠ t² + 3t — kết quả của AI sai hoàn toàn. Bằng chứng vật lý: theo AI, v(3) = 13,5 + 27 = 40,5 m/s = 145,8 km/h, vượt xa tốc độ tối đa 80 km/h của tàu metro khi còn trong ga — vô lý. Đáp án đúng cho v(3) = 9 + 13,5 = 22,5 m/s = 81 km/h, hợp lý với dữ liệu cảm biến.",
       "whyAiError": "Mô hình ngôn ngữ nhầm lẫn giữa hằng số nhân k với biến số độc lập t (thời gian) khi áp dụng tính chất tuyến tính của nguyên hàm — thấy thừa số t(t + 3) liền phản xạ tách như hằng số.",
-      "teacherPrompt": "Em hãy nhận xét kết quả v(3) = 40,5 m/s của AI: Tàu metro có thể đạt tốc độ này khi còn trong ga không? Hãy thử lại bằng đạo hàm để chứng minh AI sai ở đâu.",
+      "teacherPrompt": "Em hãy nhận xét kết quả v(3) = 40,5 m/s của AI: Tàu metro có thể đạt tốc độ này khi còn trong ga không? Hãy thử lại bằng đạo hàm để chứng minh AI sai ở đâu. Em hãy sửa lại cho đúng.",
       "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu AI quên rằng t là biến số, chỉ hằng số k ≠ 0 được đưa ra ngoài; đáp án đúng v(t) = t³/3 + 3t²/2, v(3) = 22,5 m/s).",
       "boardPrompt": "AI tính v(t) = ∫ t(t + 3) dt = t ∫ (t + 3) dt. Đúng hay sai? Vì sao?",
       "libraryTitle": "Lỗi AI tự ý đưa biến thời gian t ra ngoài dấu nguyên hàm khi tính vận tốc tàu metro"
@@ -2342,7 +4239,7 @@
       "correction": "Khuyến nghị \"chuyển toàn bộ sang Y\" thiếu điều kiện quyết định: chưa biết khẩu vị rủi ro, mục tiêu đầu tư và khả năng chịu mất vốn của chị Hương. Độ lệch chuẩn lớn hơn nghĩa là rủi ro cao hơn, không phải \"cơ hội cao hơn\" một chiều. Nhà đầu tư thận trọng nên giữ X; chỉ nhà đầu tư chấp nhận rủi ro mới cân nhắc Y — và ngay cả khi đó cũng không nên \"chuyển toàn bộ\" (quy tắc phân tán danh mục).",
       "proof": "Hai mẫu cùng x̄ = 6,8 nhưng s²_X = 7,36 < s²_Y = 12,16: lợi suất Y phân tán mạnh hơn quanh trung bình — phiên tốt có thể rất cao nhưng phiên xấu có thể gần 0%. X dồn về giữa (20/40 phiên ở [4;8)) nên \"dự đoán được\"; Y dồn về hai đầu nên \"bất ngờ\". Kết luận \"Y tốt hơn X\" là mệnh đề không có cơ sở toán học khi thiếu hàm lợi ích/khẩu vị rủi ro của người quyết định; đây đúng lỗi \"thiếu điều kiện\" của kết luận.",
       "whyAiError": "Mô hình ngôn ngữ diễn giải \"biến động mạnh = cơ hội cao\" theo hướng tích cực một chiều và rút ra khuyến nghị tuyệt đối mà không kiểm tra các điều kiện quyết định (khẩu vị rủi ro, mục tiêu, dung nạp mất vốn) của chủ thể.",
-      "teacherPrompt": "Em đồng ý hay phản đối khuyến nghị của AI cho chị Hương? Khuyến nghị đầu tư cần thêm những điều kiện nào mới có cơ sở?",
+      "teacherPrompt": "Em đồng ý hay phản đối khuyến nghị của AI cho chị Hương? Khuyến nghị đầu tư cần thêm những điều kiện nào mới có cơ sở? Em hãy sửa lại cho đúng.",
       "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu thiếu khẩu vị rủi ro/mục tiêu khách hàng, hoặc nêu s lớn = rủi ro cao không phải \"tốt hơn\" một chiều).",
       "boardPrompt": "AI khuyên: \"s_Y > s_X nên chuyển toàn bộ sang Y\". Em phát hiện thiếu điều kiện gì?",
       "libraryTitle": "Lỗi AI khuyên đầu tư thiếu điều kiện khẩu vị rủi ro của khách hàng"
@@ -2354,7 +4251,7 @@
       "correction": "Công thức ∫ x^α dx = x^(α+1)/(α+1) + C chỉ áp dụng khi α ≠ −1 — AI dùng công thức ngoài phạm vi điều kiện rồi suy ra kết luận sai \"không tồn tại\". Trường hợp α = −1 có nguyên hàm riêng: ∫ (dm/m) = ln m + C (với m > 0). Sửa đúng: Δv = v_e·ln(m₀/m_f) = 3·ln(200/50) = 3·ln 4 ≈ 4,16 km/s.",
       "proof": "Kiểm chứng đạo hàm: (ln m)′ = 1/m với m > 0 — nguyên hàm của 1/m tồn tại. Bằng chứng thực tế: các tàu Apollo đều tăng tốc thành công nhờ đốt nhiên liệu, trong khi AI kết luận \"không thể tăng tốc\". Cái sai nằm ở chỗ: điều kiện α ≠ −1 của công thức lũy thừa bị vi phạm thì phải chuyển sang công thức khác (ln), chứ không suy ra \"không tồn tại\". \"Kết quả không xác định\" (thay α = −1) hoàn toàn khác \"nguyên hàm không tồn tại\".",
       "whyAiError": "Mô hình ngôn ngữ nhìn thấy dạng m^α và áp máy móc công thức tổng quát mà bỏ qua điều kiện α ≠ −1; khi công thức cho kết quả vô nghĩa (chia 0) lại suy diễn sai thành \"không tồn tại\" thay vì chuyển sang trường hợp đặc biệt ln|m|.",
-      "teacherPrompt": "Em hãy nhận xét lời giải của AI: Công thức ∫ m^α dm dùng được với α = −1 không? Tàu Apollo có bay được không? Khi công thức không áp dụng được thì kết luận \"Δv không tồn tại\" đã chắc chắn đúng chưa?",
+      "teacherPrompt": "Em hãy nhận xét lời giải của AI: Công thức ∫ m^α dm dùng được với α = −1 không? Tàu Apollo có bay được không? Khi công thức không áp dụng được thì kết luận \"Δv không tồn tại\" đã chắc chắn đúng chưa? Em hãy sửa lại cho đúng.",
       "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu điều kiện α ≠ −1 của công thức, hoặc nêu nguyên hàm đúng ln m + C và Δv = 3·ln 4 ≈ 4,16 km/s).",
       "boardPrompt": "AI thay α = −1 vào công thức lũy thừa rồi kết luận \"Δv không tồn tại, tàu không thể tăng tốc\". Bẫy nằm ở đâu?",
       "libraryTitle": "Lỗi AI áp công thức nguyên hàm lũy thừa ngoài điều kiện α ≠ −1 và kết luận Δv của tàu không tồn tại"
@@ -2390,7 +4287,7 @@
       "correction": "AI đã quên trừ x̄² trong công thức phương sai s² = (1/n)Σnᵢcᵢ² − x̄². Giá trị 1297 mới chỉ là (1/n)Σnᵢcᵢ² (kỳ vọng bình phương), chưa phải phương sai. Sửa đúng: s² = 1297 − 35² = 1297 − 1225 = 72 (phút²). Suy ra s = √72 ≈ 8,49 (phút).",
       "proof": "Dữ liệu nằm gọn trong [10; 60) phút với trung bình 35 phút mà độ lệch chuẩn lên tới 36 phút (lớn hơn cả số trung bình) là phi lý. Công thức định nghĩa: s² = (1/n)Σnᵢ(cᵢ − x̄)² = (1/n)Σnᵢcᵢ² − 2x̄(1/n)Σnᵢcᵢ + x̄² = (1/n)Σnᵢcᵢ² − 2x̄² + x̄² = (1/n)Σnᵢcᵢ² − x̄². Bỏ sót số hạng x̄² vi phạm khai triển đại số.",
       "whyAiError": "Mô hình ghi nhớ công thức một cách chắp vá, dừng lại ở bước chia tổng bình phương cho n mà bỏ qua số hạng hiệu chỉnh trung bình bình phương x̄².",
-      "teacherPrompt": "Em hãy nhận xét kết quả s ≈ 36,01 phút của AI: Kết quả này có hợp lý không khi thời gian giao hàng nằm trong khoảng [10; 60) phút? Hãy chỉ ra bước biến đổi AI bỏ sót.",
+      "teacherPrompt": "Em hãy nhận xét kết quả s ≈ 36,01 phút của AI: Kết quả này có hợp lý không khi thời gian giao hàng nằm trong khoảng [10; 60) phút? Hãy chỉ ra bước biến đổi AI bỏ sót. Em hãy sửa lại cho đúng.",
       "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (nêu AI quên trừ x̄² = 1225; đáp án đúng s² = 72, s ≈ 8,49 phút).",
       "boardPrompt": "AI tính s² = 64850/50 = 1297. Em phát hiện AI bỏ sót số hạng nào trong công thức?",
       "libraryTitle": "Lỗi AI quên trừ x̄² khi tính phương sai mẫu số liệu ghép nhóm"
@@ -2514,6 +4411,294 @@
       "studentProduct": "Ghi “Lỗi điều kiện: thiếu a cắt b”, vẽ hình hai mặt phẳng mái nhà làm phản ví dụ.",
       "boardPrompt": "AI quên điều kiện a và b cắt nhau. Nếu a // b thì (P) và (Q) có thể có vị trí gì?",
       "libraryTitle": "Lỗi AI thiếu điều kiện hai đường thẳng cắt nhau khi chứng minh hai mp song song"
+    },
+    "10-13-96": {
+      "key": "10-13-96",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI báo cáo: Mẫu khảo sát có điểm trung bình 8,0 và độ lệch chuẩn s = 4,0 nên tất cả học sinh đều đạt điểm giỏi trong khoảng 8 ± 4.",
+      "correction": "Độ lệch chuẩn s = 4,0 không có nghĩa là mọi học sinh nằm trong khoảng đó. s đo mức độ phân tán trung bình; với s = 4,0 thì điểm số dao động rất mạnh, có nhiều học sinh điểm thấp.",
+      "proof": "Theo quy tắc thực nghiệm, khoảng [x̄ - s; x̄ + s] chỉ chứa khoảng 68% số liệu nếu phân bố chuẩn. Điểm dao động từ 4 đến 12 (thậm chí dưới 4) nên không thể kết luận \"tất cả đều giỏi\".",
+      "whyAiError": "Mô hình nhầm độ lệch chuẩn với khoảng biến thiên tuyệt đối chứa 100% dữ liệu.",
+      "teacherPrompt": "AI kết luận \"tất cả học sinh đều giỏi\" khi s = 4,0. Em hãy chỉ lỗi sai và sửa lại: độ lệch chuẩn s = 4,0 thể hiện điều gì về kết quả học tập?",
+      "studentProduct": "Ghi “Lỗi khái niệm: nhầm độ lệch chuẩn với biên độ toàn thể”, sửa thành “học sinh phân hóa rất mạnh”.",
+      "boardPrompt": "AI diễn giải s = 4,0 là mọi học sinh đều đạt quanh 8 điểm. Ý nghĩa thực sự của s lớn là gì?",
+      "libraryTitle": "Lỗi AI diễn giải sai ý nghĩa thực tế của độ lệch chuẩn trong báo cáo dự án"
+    },
+    "10-13-97": {
+      "key": "10-13-97",
+      "category": "Lỗi logic",
+      "wrongSolution": "AI kết luận: Khảo sát 15 học sinh giỏi thấy điểm trung bình môn Toán là 9,2 nên chất lượng học môn Toán của toàn trường đạt mức 9,2.",
+      "correction": "Lỗi ngụy biện tổng quát hóa vội vã. Mẫu chỉ gồm 15 học sinh giỏi không có tính đại diện cho toàn trường. Sửa lại: Kết luận chỉ áp dụng cho nhóm học sinh giỏi được khảo sát.",
+      "proof": "Một suy diễn thống kê từ mẫu ra quần thể chỉ hợp lệ khi mẫu được chọn ngẫu nhiên từ toàn bộ quần thể. Lấy mẫu có chọn lọc từ nhóm xuất sắc nhất tạo ra sai số hệ thống cực lớn.",
+      "whyAiError": "Mô hình học máy nhầm lẫn giữa tập con được chọn lọc và tập tổng thể.",
+      "teacherPrompt": "AI suy diễn từ 15 học sinh giỏi ra điểm trung bình toàn trường. Em hãy chỉ lỗi logic và sửa lại phạm vi kết luận đúng.",
+      "studentProduct": "Ghi “Lỗi logic: mẫu thiên vị không đại diện”, thu hẹp kết luận về đúng nhóm khảo sát.",
+      "boardPrompt": "AI lấy mẫu 15 học sinh giỏi để đánh giá toàn trường. Quy tắc chọn mẫu vi phạm điều gì?",
+      "libraryTitle": "Lỗi AI khái quát hóa vội vã từ mẫu thiên lệch sang toàn thể"
+    },
+    "10-13-98": {
+      "key": "10-13-98",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: Cho đẳng thức 3MA + 2MB = 0. Lấy độ dài hai vế: 3|MA| + 2|MB| = 0 suy ra MA = MB = 0, điểm M trùng cả A và B.",
+      "correction": "Không được lấy độ dài từng số hạng của tổng hai vectơ. Sửa lại: 3MA = -2MB => 3|MA| = |-2||MB| = 2|MB| => MA/MB = 2/3. Điểm M chia trong đoạn AB theo tỉ số 2/3.",
+      "proof": "Độ dài của tổng không bằng tổng các độ dài: |u + v| ≤ |u| + |v|. Đẳng thức u + v = 0 nghĩa là u = -v, suy ra |u| = |-v| = |v|, không có nghĩa là |u| + |v| = 0.",
+      "whyAiError": "Mô hình tự ý phân phối phép lấy độ dài qua dấu cộng vectơ như một phép toán số học thông thường.",
+      "teacherPrompt": "AI tính ra MA = MB = 0 từ 3MA + 2MB = 0. Em hãy chỉ lỗi sai và sửa lại: vị trí đúng của điểm M là ở đâu?",
+      "studentProduct": "Ghi “Lỗi đại số: không phân phối độ dài vào tổng”, sửa thành MA/MB = 2/3 và M nằm giữa A, B.",
+      "boardPrompt": "AI lấy độ dài từng số hạng khiến MA = MB = 0. Phép biến đổi đúng từ u + v = 0 là gì?",
+      "libraryTitle": "Lỗi AI lấy độ dài từng số hạng trong đẳng thức tổng vectơ bằng 0"
+    },
+    "10-13-99": {
+      "key": "10-13-99",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Cho vectơ u = 4j - 3i. Do đó tọa độ của vectơ u là u = (4; -3).",
+      "correction": "Hoành độ là hệ số của vectơ đơn vị i, tung độ là hệ số của vectơ đơn vị j. Biểu thức u = -3i + 4j nên tọa độ đúng phải là u = (-3; 4).",
+      "proof": "Định nghĩa: vectơ u = (x; y) tương đương u = x·i + y·j. Hệ số của i đứng trước (hoành độ), hệ số của j đứng sau (tung độ). AI đã nhầm theo thứ tự xuất hiện trong đề bài.",
+      "whyAiError": "Mô hình đọc chuỗi ký tự theo thứ tự xuất hiện thay vì phân tích đúng vai trò của các vectơ đơn vị cơ sở.",
+      "teacherPrompt": "AI kết luận u = (4; -3) từ u = 4j - 3i. Em hãy chỉ lỗi quy tắc và sửa lại tọa độ chuẩn xác của u.",
+      "studentProduct": "Ghi “Lỗi quy tắc: hoành độ phải đi với i”, đổi thứ tự thành u = (-3; 4).",
+      "boardPrompt": "AI viết u = (4; -3) khi u = 4j - 3i. Vectơ đơn vị i gắn với trục nào?",
+      "libraryTitle": "Lỗi AI nhầm thứ tự hoành độ và tung độ khi đổi vị trí i và j"
+    },
+    "10-13-100": {
+      "key": "10-13-100",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Cho hai điểm A(2; 7) và B(6; 1). Tọa độ vectơ AB là AB = (2 - 6; 7 - 1) = (-4; 6).",
+      "correction": "Công thức chuẩn yêu cầu lấy tọa độ điểm ngọn B trừ điểm gốc A: AB = (xB - xA; yB - yA). Sửa lại: AB = (6 - 2; 1 - 7) = (4; -6).",
+      "proof": "Ta có OA = (2; 7) và OB = (6; 1). Theo quy tắc trừ vectơ: AB = OB - OA = (6 - 2; 1 - 7) = (4; -6). AI tính ngược thành OA - OB = BA.",
+      "whyAiError": "Mô hình học máy nhầm lẫn thứ tự toán hạng trong phép trừ khi chuyển từ ký hiệu hình học sang đại số.",
+      "teacherPrompt": "AI tính AB = (-4; 6) từ A(2; 7) và B(6; 1). Em hãy chỉ lỗi sai và sửa lại: quy tắc lấy tọa độ vectơ qua hai điểm là gì?",
+      "studentProduct": "Ghi “Lỗi quy tắc: phải lấy ngọn trừ gốc”, sửa thành AB = (4; -6).",
+      "boardPrompt": "AI tính AB bằng cách lấy A trừ B. Quy tắc ngọn trừ gốc cho kết quả nào?",
+      "libraryTitle": "Lỗi AI tính ngược tọa độ vectơ lấy gốc trừ ngọn"
+    },
+    "10-13-101": {
+      "key": "10-13-101",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Cho 3 điểm A(1; 2), B(3; 4), C(5; 6). Để tìm đỉnh D của hình bình hành ABCD, ta giải hệ AB = CD.",
+      "correction": "Đẳng thức AB = CD tạo thành hình bình hành ABDC (hai đường chéo là AD và BC). Hình bình hành ABCD yêu cầu AB = DC (hai đường chéo là AC và BD). Sửa lại: Dùng hệ thức AB = DC.",
+      "proof": "Trong hình bình hành ABCD, cạnh AB song song và cùng chiều với cạnh DC. Do đó vectơ AB = vectơ DC. Nếu lấy AB = CD thì vectơ CD ngược hướng với DC, dẫn đến các cạnh chéo nhau.",
+      "whyAiError": "Mô hình ghi nhớ theo chữ cái liên tiếp AB và CD mà không chú ý đến chiều định hướng của vectơ trên chu vi hình bình hành.",
+      "teacherPrompt": "AI dùng AB = CD để tìm hình bình hành ABCD. Em hãy chỉ lỗi sai và sửa lại: biểu thức vectơ chuẩn là gì?",
+      "studentProduct": "Ghi “Lỗi khái niệm: nhầm hướng cạnh đối”, sửa thành AB = DC.",
+      "boardPrompt": "AI viết AB = CD cho hình bình hành ABCD. Chiều của vectơ cạnh đối phải là CD hay DC?",
+      "libraryTitle": "Lỗi AI dùng AB = CD thay vì AB = DC khi tìm đỉnh hình bình hành"
+    },
+    "10-13-102": {
+      "key": "10-13-102",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: Cho hai vectơ u = (3; 4) và v = (-4; 3). Tích vô hướng của chúng là u · v = (3·(-4); 4·3) = (-12; 12).",
+      "correction": "Tích vô hướng của hai vectơ là một SỐ THỰC, không phải một vectơ. Công thức đúng: u · v = x1x2 + y1y2. Sửa lại: u · v = 3·(-4) + 4·3 = -12 + 12 = 0.",
+      "proof": "Định nghĩa SGK: Tích vô hướng của hai vectơ a = (x; y) và b = (x2; y2) là số thực a · b = x·x2 + y·y2. Phép toán trả về một đại lượng vô hướng.",
+      "whyAiError": "Mô hình nhầm lẫn giữa phép toán tích vô hướng (ra số) với phép toán nhân từng thành phần trong lập trình mảng.",
+      "teacherPrompt": "AI tính u · v ra cặp số (-12; 12). Em hãy chỉ lỗi sai và sửa lại: tích vô hướng của hai vectơ cho kết quả là gì?",
+      "studentProduct": "Ghi “Lỗi đại số: tích vô hướng phải ra một số”, sửa thành u · v = -12 + 12 = 0 (hai vectơ vuông góc).",
+      "boardPrompt": "AI viết tích vô hướng ra một vectơ (-12; 12). Công thức chuẩn của u · v là gì?",
+      "libraryTitle": "Lỗi AI viết tích vô hướng của hai vectơ thành một cặp tọa độ"
+    },
+    "10-13-103": {
+      "key": "10-13-103",
+      "category": "Lỗi logic",
+      "wrongSolution": "AI viết: Quỹ đạo tàu A là đường thẳng y = x, quỹ đạo tàu B là đường thẳng y = 2 - x. Hai đường thẳng cắt nhau tại điểm (1; 1) nên hai tàu chắc chắn đâm nhau.",
+      "correction": "Lỗi nhầm lẫn giữa cắt nhau của quỹ đạo hình học và va chạm vật lý. Hai tàu chỉ đâm nhau nếu cùng có mặt tại điểm (1; 1) ở CÙNG MỘT THỜI ĐIỂM t. Sửa lại: Cần giải phương trình thời gian xem t_A có bằng t_B tại điểm (1; 1) hay không.",
+      "proof": "Ví dụ: Tàu A đến điểm (1; 1) lúc 8 giờ sáng, tàu B đến điểm (1; 1) lúc 10 giờ trưa. Quỹ đạo vẫn cắt nhau tại (1; 1) nhưng hai tàu cách nhau 2 giờ nên không hề xảy ra va chạm.",
+      "whyAiError": "Mô hình học máy loại bỏ biến thời gian t trong bài toán động học, quy bài toán về giao điểm hình học tĩnh.",
+      "teacherPrompt": "AI khẳng định hai tàu va chạm vì hai đường đi cắt nhau. Em hãy chỉ lỗi sai và sửa lại: điều kiện để xảy ra va chạm thực tế là gì?",
+      "studentProduct": "Ghi “Lỗi logic: thiếu yếu tố cùng thời điểm”, bổ sung điều kiện t_A = t_B.",
+      "boardPrompt": "AI kết luận va chạm chỉ dựa vào giao điểm quỹ đạo. Thiếu điều kiện gì về mặt thời gian?",
+      "libraryTitle": "Lỗi AI đánh đồng giao điểm quỹ đạo với hiện tượng va chạm hai vật thể"
+    },
+    "11-13-90": {
+      "key": "11-13-90",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: Tính lim (2n² - 3n³). Ta có lim 2n² = +∞ và lim 3n³ = +∞ nên lim (2n² - 3n³) = +∞ - (+∞) = 0.",
+      "correction": "∞ - ∞ là dạng vô định, không được trừ triệt tiêu bằng 0. Sửa lại: Rút n³ ra ngoài làm nhân tử chung: lim n³ (2/n - 3) = (+∞) · (-3) = -∞.",
+      "proof": "Ta có 2n² - 3n³ = n³ (2/n - 3). Khi n ≥ 1 thì 2/n ≤ 2 nên 2/n - 3 ≤ -1 < 0. Do đó 2n² - 3n³ ≤ -n³ -> -∞ khi n -> +∞.",
+      "whyAiError": "Mô hình tự động áp dụng quy tắc trừ đại số a - a = 0 lên hai biểu thức cùng tiến ra vô cực.",
+      "teacherPrompt": "AI tính lim (2n² - 3n³) = 0 vì lấy ∞ - ∞. Em hãy chỉ lỗi đại số và sửa lại: phương pháp chuẩn để tính là gì?",
+      "studentProduct": "Ghi “Lỗi đại số: vô định ∞ - ∞ không bằng 0”, rút n³ và sửa thành kết quả -∞.",
+      "boardPrompt": "AI trừ hai vô cực thành 0. Dạng ∞ - ∞ phải xử lý bằng phương pháp nào?",
+      "libraryTitle": "Lỗi AI trừ triệt tiêu dạng vô định vô cực trừ vô cực bằng 0"
+    },
+    "11-13-91": {
+      "key": "11-13-91",
+      "category": "Lỗi logic",
+      "wrongSolution": "AI viết: Tính lim [√(n² + 4n) - n]. Rút n ra ngoài: lim n [√(1 + 4/n) - 1] = lim n · (1 - 1) = lim n · 0 = 0.",
+      "correction": "Lỗi đồng nhất dạng vô định ∞ · 0 với 0. Khi n -> +∞ và biểu thức trong ngoặc tiến về 0, tích n · (√(1+4/n) - 1) là dạng vô định ∞ · 0, không được gán bằng 0. Sửa lại: Phải nhân liên hợp ra kết quả 4/(1+1) = 2.",
+      "proof": "Ta có n · [√(1 + 4/n) - 1] = n · [4/n / (√(1 + 4/n) + 1)] = 4 / [√(1 + 4/n) + 1]. Khi n -> +∞ biểu thức này tiến về 4/2 = 2, hoàn toàn khác 0.",
+      "whyAiError": "Mô hình thay số 0 một cách vội vã vào một thừa số trong tích vô định mà không tính toán tốc độ triệt tiêu tương đối.",
+      "teacherPrompt": "AI kết luận lim n · 0 = 0 khi giải √(n² + 4n) - n. Em hãy chỉ lỗi phương pháp và sửa lại bằng phép nhân liên hợp đúng.",
+      "studentProduct": "Ghi “Lỗi phương pháp: dạng vô định ∞ · 0 không bằng 0”, nhân liên hợp và sửa thành kết quả bằng 2.",
+      "boardPrompt": "AI tính tích n · 0 = 0 trong bài toán giới hạn. Dạng vô định ∞ · 0 cần xử lý như thế nào?",
+      "libraryTitle": "Lỗi AI ngộ nhận dạng vô định vô cực nhân không bằng không"
+    },
+    "11-13-92": {
+      "key": "11-13-92",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Tính lim_{x -> 1} (x² - 1)/(x - 1). Thay x = 1 vào hàm số ta được 0/0. Vì phép chia cho 0 không xác định nên giới hạn không tồn tại.",
+      "correction": "Dạng 0/0 là dạng vô định, không đồng nghĩa với không tồn tại giới hạn. Khái niệm giới hạn x -> 1 xét các giá trị x gần 1 nhưng x ≠ 1, do đó ta được phép rút gọn (x - 1). Sửa lại: Triệt tiêu nhân tử (x - 1) để được giới hạn bằng 2.",
+      "proof": "Với mọi x ≠ 1: (x² - 1)/(x - 1) = (x - 1)(x + 1)/(x - 1) = x + 1. Theo định nghĩa giới hạn, khi x -> 1 thì x + 1 -> 2. Giới hạn tồn tại và bằng đúng 2.",
+      "whyAiError": "Mô hình đánh đồng việc hàm số không xác định tại điểm x0 với việc hàm số không có giới hạn khi x tiến tới x0.",
+      "teacherPrompt": "AI kết luận không tồn tại giới hạn vì gặp dạng 0/0. Em hãy chỉ lỗi khái niệm và sửa lại: quy trình tính đúng là gì?",
+      "studentProduct": "Ghi “Lỗi khái niệm: 0/0 là dạng vô định, không phải không tồn tại”, rút gọn ra kết quả 2.",
+      "boardPrompt": "AI cho rằng 0/0 nghĩa là không có giới hạn. Ý nghĩa thực sự của dạng vô định 0/0 là gì?",
+      "libraryTitle": "Lỗi AI đánh đồng dạng vô định không trên không với việc không tồn tại giới hạn"
+    },
+    "11-13-93": {
+      "key": "11-13-93",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI viết: Cho f(x) = { 3x khi x > 1; 2x + 1 khi x < 1 }. Tính lim_{x -> 1+} f(x) = 3 nên kết luận luôn lim_{x -> 1} f(x) = 3.",
+      "correction": "Muốn kết luận giới hạn hai bên tại x = 1, bắt buộc phải tính cả giới hạn bên trái. Ở đây lim_{x -> 1-} (2x + 1) = 3, vì cả hai bên bằng nhau nên mới kết luận lim = 3. AI đã bỏ qua bước kiểm tra giới hạn trái.",
+      "proof": "Định lý yêu cầu hai điều kiện: lim_{x -> x0+} f(x) = L VÀ lim_{x -> x0-} f(x) = L. Nếu thiếu một trong hai thì không thể khẳng định tồn tại giới hạn hai bên.",
+      "whyAiError": "Mô hình kết luận vội vã từ thông tin một phía mà bỏ qua điều kiện cần và đủ của định lý toán học.",
+      "teacherPrompt": "AI chỉ tính giới hạn bên phải rồi kết luận luôn giới hạn hai bên. Em hãy chỉ lỗi điều kiện và sửa lại quy trình kiểm tra đầy đủ.",
+      "studentProduct": "Ghi “Lỗi điều kiện: thiếu kiểm tra giới hạn bên trái”, tính thêm lim trái và kết luận.",
+      "boardPrompt": "AI chỉ xét một bên đã kết luận giới hạn. Để kết luận lim f(x) = L cần kiểm tra mấy phía?",
+      "libraryTitle": "Lỗi AI kết luận giới hạn hai bên khi chỉ mới kiểm tra giới hạn một bên"
+    },
+    "11-13-94": {
+      "key": "11-13-94",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI giải: Khi vẽ hình biểu diễn của hình chữ nhật ABCD có AB = 2AD, AI vẽ một hình bình hành A'B'C'D' và đo lấy góc B'A'D' = 90 độ và cạnh A'B' = 2A'D'.",
+      "correction": "Góc vuông không được bảo toàn nên không cần và không nên vẽ góc 90 độ. Tuy nhiên tỉ số giữa hai cạnh không song song (AB và AD) CŨNG KHÔNG ĐƯỢC BẢO TOÀN trong phép chiếu song song, do đó không bắt buộc A'B' = 2A'D'. AI đã áp dụng sai quy tắc bảo toàn tỉ số.",
+      "proof": "Định lý SGK: Phép chiếu song song CHỈ bảo toàn tỉ số độ dài của hai đoạn thẳng nằm trên hai đường thẳng SONG SONG hoặc CÙNG NẰM TRÊN MỘT ĐƯỜNG THẲNG. AB và AD vuông góc (cắt nhau) nên tỉ số của chúng không được bảo toàn.",
+      "whyAiError": "Mô hình mở rộng nhầm lẫn quy tắc bảo toàn tỉ số từ các đoạn thẳng song song sang mọi cặp đoạn thẳng bất kỳ.",
+      "teacherPrompt": "AI giữ nguyên tỉ số AB/AD = 2 trên hình biểu diễn. Em hãy chỉ lỗi quy tắc và sửa lại: tỉ số đoạn thẳng chỉ được bảo toàn trong điều kiện nào?",
+      "studentProduct": "Ghi “Lỗi quy tắc: chỉ bảo toàn tỉ số hai đoạn thẳng cùng phương”, khẳng định tỉ số hai cạnh kề không bắt buộc bằng 2.",
+      "boardPrompt": "AI bắt buộc tỉ số hai cạnh cắt nhau phải bằng nhau trên hình biểu diễn. Điều kiện để tỉ số được bảo toàn là gì?",
+      "libraryTitle": "Lỗi AI ngộ nhận phép chiếu song song bảo toàn tỉ số của hai đoạn thẳng cắt nhau"
+    },
+    "11-13-95": {
+      "key": "11-13-95",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI vẽ: Trong hình chóp S.ABC, AI vẽ toàn bộ 6 cạnh SA, SB, SC, AB, BC, CA đều bằng nét liền (nét thấy).",
+      "correction": "Trong hình chóp tam giác S.ABC, luôn có ít nhất một cạnh bị che khuất bởi các mặt bên khác (thường là cạnh đáy nằm phía sau như AC hoặc AB tùy góc nhìn) và bắt buộc phải vẽ bằng NÉT ĐỨT.",
+      "proof": "Quy ước biểu diễn không gian: Mọi đường nét bị khuất sau các bề mặt phải vẽ bằng nét đứt (dashed line) để người đọc phân biệt được phần trước và phần sau của vật thể.",
+      "whyAiError": "Mô hình không nhận thức được tính chất che khuất quang học ba chiều của các đa diện khép kín.",
+      "teacherPrompt": "AI vẽ tất cả các cạnh hình chóp bằng nét liền. Em hãy chỉ lỗi quy ước và sửa lại: quy tắc vẽ nét khuất là gì?",
+      "studentProduct": "Ghi “Lỗi quy ước: cạnh bị che khuất phải vẽ nét đứt”, chuyển cạnh khuất thành nét đứt.",
+      "boardPrompt": "AI vẽ hình chóp không có nét đứt nào. Quy ước vẽ hình biểu diễn quy định nét khuất như thế nào?",
+      "libraryTitle": "Lỗi AI không vẽ nét đứt cho các cạnh bị che khuất trong hình biểu diễn"
+    },
+    "11-13-96": {
+      "key": "11-13-96",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: Nhân lượng liên hợp bậc 3 cho ∛(1 + x) - 1: Mẫu số là [∛(1 + x)² - ∛(1 + x) + 1] nên giới hạn bằng 1 / (1 - 1 + 1) = 1.",
+      "correction": "Hằng đẳng thức chuẩn: a³ - b³ = (a - b)(a² + ab + b²). Lượng liên hợp của (a - b) là (a² + ab + b²) với DẤU CỘNG ở giữa, không phải dấu trừ. Sửa lại: Mẫu số phải là 1 + 1 + 1 = 3, kết quả giới hạn là 1/3.",
+      "proof": "Ta có [∛(1+x) - 1][∛(1+x)² + ∛(1+x) + 1] = [∛(1+x)]³ - 1³ = 1 + x - 1 = x. Nếu dùng dấu trừ ở giữa thì tích là a³ + b³ chứ không triệt tiêu được.",
+      "whyAiError": "Mô hình nhầm lẫn giữa hai hằng đẳng thức a³ - b³ (liên hợp dấu cộng) và a³ + b³ (liên hợp dấu trừ).",
+      "teacherPrompt": "AI dùng dấu trừ trong lượng liên hợp của hiệu hai căn bậc ba. Em hãy chỉ lỗi đại số và sửa lại công thức đúng.",
+      "studentProduct": "Ghi “Lỗi đại số: nhầm dấu liên hợp bậc ba của hiệu”, sửa mẫu thành dấu cộng và kết quả 1/3.",
+      "boardPrompt": "AI viết lượng liên hợp của (a - b) là (a² - ab + b²). Dấu đúng của các số hạng trong ngoặc là gì?",
+      "libraryTitle": "Lỗi AI dùng sai dấu trong lượng liên hợp bậc ba của hiệu hai biểu thức"
+    },
+    "11-13-97": {
+      "key": "11-13-97",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Dựng hình biểu diễn hình chóp cụt tứ giác bằng cách vẽ hai hình bình hành ABCD và A'B'C'D' có kích thước tùy ý, sau đó nối các cặp đỉnh tương ứng A-A', B-B', C-C', D-D'.",
+      "correction": "Hai đáy của hình chóp cụt không thể vẽ tùy ý độc lập. Các cặp cạnh tương ứng BẮT BUỘC phải song song: A'B' // AB, B'C' // BC,... và các đường thẳng chứa cạnh bên kéo dài phải ĐỒNG QUY tại đỉnh S của hình chóp ban đầu.",
+      "proof": "Định nghĩa: Hình chóp cụt là phần hình chóp nằm giữa đáy và một thiết diện song song với đáy. Do thiết diện song song với đáy nên theo tính chất giao tuyến, các cạnh tương ứng phải song song và các cạnh bên xuất phát từ cùng đỉnh chóp S.",
+      "whyAiError": "Mô hình xem hình chóp cụt như một khối đa diện bất kỳ có hai đáy mà bỏ qua nguồn gốc thiết diện hình học của nó.",
+      "teacherPrompt": "AI vẽ hai đáy chóp cụt độc lập và nối tùy ý. Em hãy chỉ lỗi khái niệm và sửa lại: quy tắc dựng hình biểu diễn chóp cụt chuẩn là gì?",
+      "studentProduct": "Ghi “Lỗi khái niệm: các cạnh đáy phải song song và cạnh bên phải đồng quy”, dựng lại qua đỉnh chóp S.",
+      "boardPrompt": "AI vẽ các cạnh bên chóp cụt không đồng quy. Điều kiện hình học bắt buộc của các cạnh bên chóp cụt là gì?",
+      "libraryTitle": "Lỗi AI dựng hình biểu diễn chóp cụt với các cạnh bên không đồng quy"
+    },
+    "12-13-90": {
+      "key": "12-13-90",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: Tính ∫ (2x + 1)⁴ dx. AI đặt u = 2x + 1 => du = dx. Do đó ∫ u⁴ du = u⁵/5 + C = (2x + 1)⁵/5 + C.",
+      "correction": "Đạo hàm của u = 2x + 1 là u' = 2, do đó vi phân đúng là du = 2 dx <=> dx = du / 2. Sửa lại: Phải có hệ số 1/2: Kết quả chuẩn là (1/2) · (2x + 1)⁵/5 + C = (2x + 1)⁵/10 + C.",
+      "proof": "Đạo hàm kiểm tra lại: [(2x+1)⁵/5]' = 5(2x+1)⁴ · 2 / 5 = 2(2x+1)⁴, thừa ra số 2 so với đề bài. Với kết quả đúng [(2x+1)⁵/10]' = 10(2x+1)⁴ / 10 = (2x+1)⁴.",
+      "whyAiError": "Mô hình quên nhân đạo hàm của hàm số bậc nhất khi tính vi phân du, mặc định xem hệ số góc bằng 1.",
+      "teacherPrompt": "AI tính vi phân du = dx khi u = 2x + 1. Em hãy chỉ lỗi sai đại số và sửa lại: hệ số vi phân đúng là bao nhiêu?",
+      "studentProduct": "Ghi “Lỗi đại số: thiếu hệ số đạo hàm du = 2dx”, sửa thành (2x + 1)⁵/10 + C.",
+      "boardPrompt": "AI viết du = dx khi đặt u = 2x + 1. Đạo hàm của u cho vi phân như thế nào?",
+      "libraryTitle": "Lỗi AI quên hệ số vi phân khi đổi biến hàm số bậc nhất"
+    },
+    "12-13-91": {
+      "key": "12-13-91",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: Tính ∫ x cos x dx. Đặt u = x => du = dx, dv = cos x dx => v = sin x. Áp dụng: uv - ∫ v du = x sin x - ∫ sin x dx = x sin x - cos x + C.",
+      "correction": "Nguyên hàm của sin x là -cos x. Do đó - ∫ sin x dx = -(-cos x) = +cos x. AI đã sai dấu khi lấy nguyên hàm. Sửa lại: Kết quả đúng là x sin x + cos x + C.",
+      "proof": "Đạo hàm kiểm tra lại: (x sin x - cos x)' = sin x + x cos x - (-sin x) = 2 sin x + x cos x (sai). Trong khi (x sin x + cos x)' = sin x + x cos x - sin x = x cos x (đúng với đề bài).",
+      "whyAiError": "Mô hình nhầm lẫn dấu trong nguyên hàm hàm lượng giác: ∫ sin x dx = -cos x chứ không phải +cos x.",
+      "teacherPrompt": "AI tính - ∫ sin x dx thành -cos x. Em hãy chỉ lỗi sai dấu và sửa lại kết quả nguyên hàm chuẩn.",
+      "studentProduct": "Ghi “Lỗi đại số: nguyên hàm sin x là -cos x”, sửa dấu thành x sin x + cos x + C.",
+      "boardPrompt": "AI tính dấu trừ thành -cos x khi nguyên hàm sin x. Dấu chuẩn của biểu thức là gì?",
+      "libraryTitle": "Lỗi AI sai dấu khi lấy nguyên hàm hàm lượng giác trong từng phần"
+    },
+    "12-13-92": {
+      "key": "12-13-92",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI viết: Tính diện tích hình phẳng giới hạn bởi đồ thị y = x³ và trục hoành trên đoạn [-1; 1]: AI tính S = ∫_{-1}^1 x³ dx = 0.",
+      "correction": "Tích phân ∫_{-1}^1 x³ dx = 0 vì hàm số lẻ, hai phần đồ thị đối xứng qua gốc O triệt tiêu nhau. Nhưng DIỆN TÍCH HÌNH PHẲNG là tổng độ lớn diện tích hai miền, không thể bằng 0. Sửa lại: S = ∫_{-1}^1 |x³| dx = 2 ∫_0^1 x³ dx = 2 · (1/4) = 1/2.",
+      "proof": "Miền bên trái trên [-1; 0] có diện tích S1 = - ∫_{-1}^0 x³ dx = 1/4. Miền bên phải trên [0; 1] có diện tích S2 = ∫_0^1 x³ dx = 1/4. Tổng diện tích S = S1 + S2 = 1/2 > 0.",
+      "whyAiError": "Mô hình đánh đồng giá trị đại số của tích phân với diện tích hình học mà quên lấy dấu giá trị tuyệt đối.",
+      "teacherPrompt": "AI tính diện tích kẹp giữa y = x³ từ -1 đến 1 ra bằng 0. Em hãy chỉ lỗi sai khái niệm và sửa lại công thức tính diện tích đúng.",
+      "studentProduct": "Ghi “Lỗi khái niệm: diện tích phải lấy tích phân trị tuyệt đối”, sửa kết quả diện tích thành 1/2.",
+      "boardPrompt": "AI tính diện tích miền phẳng kẹp giữa x³ từ -1 đến 1 ra bằng 0. Công thức diện tích đúng cần bổ sung điều gì?",
+      "libraryTitle": "Lỗi AI đánh đồng tích phân triệt tiêu với diện tích hình phẳng bằng không"
+    },
+    "12-13-93": {
+      "key": "12-13-93",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI giải: Tính I = ∫_0^1 (x - 1) dx. Nguyên hàm F(x) = x²/2 - x. AI tính F(1) = 1/2 - 1 = -1/2, F(0) = 0. AI kết luận vì tích phân là diện tích nên I = |-1/2| = 1/2.",
+      "correction": "Tích phân xác định là một đại lượng đại số có dấu, nó hoàn toàn có thể nhận giá trị âm khi đồ thị nằm dưới trục Ox. Đề bài yêu cầu tính tích phân chứ không hỏi diện tích. Sửa lại: Giá trị của tích phân đúng là I = -1/2.",
+      "proof": "Theo công thức Newton - Leibniz: ∫_0^1 (x - 1) dx = (x²/2 - x)|_0^1 = (1/2 - 1) - 0 = -1/2. Không được tự ý lấy giá trị tuyệt đối.",
+      "whyAiError": "Mô hình nhầm lẫn yêu cầu tính tích phân đại số với yêu cầu tính diện tích hình học.",
+      "teacherPrompt": "AI tự ý đổi dấu tích phân từ -1/2 thành 1/2 vì cho rằng tích phân là diện tích. Em hãy chỉ lỗi sai và sửa lại kết quả chính xác.",
+      "studentProduct": "Ghi “Lỗi đại số: tích phân có thể âm, không được tự ý lấy trị tuyệt đối”, giữ nguyên kết quả -1/2.",
+      "boardPrompt": "AI tự ý lấy trị tuyệt đối kết quả tích phân vì nghĩ tích phân không được âm. Tích phân xác định có được nhận giá trị âm không?",
+      "libraryTitle": "Lỗi AI tự ý lấy giá trị tuyệt đối biến tích phân âm thành dương"
+    },
+    "12-13-94": {
+      "key": "12-13-94",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI viết: Cho ∫_0^1 f(x) dx = 2 và ∫_0^1 g(x) dx = 3. Tính ∫_0^1 f(x)g(x) dx = [∫_0^1 f(x) dx] · [∫_0^1 g(x) dx] = 2 · 3 = 6.",
+      "correction": "Tích phân của tích KHÔNG BẰNG tích của hai tích phân. Tính chất tuyến tính chỉ áp dụng cho tổng và hiệu, tuyệt đối không có tính chất cho phép nhân hai hàm số. Sửa lại: Không thể tính được tích phân ∫_0^1 f(x)g(x) dx chỉ dựa vào hai tích phân thành phần.",
+      "proof": "Ví dụ phản chứng đơn giản: Chọn f(x) = x, g(x) = x trên [0; 1]. Ta có ∫_0^1 x dx = 1/2, tích hai tích phân là (1/2) · (1/2) = 1/4. Nhưng tích phân của tích là ∫_0^1 x² dx = 1/3 ≠ 1/4.",
+      "whyAiError": "Mô hình học máy mở rộng mù quáng tính chất tuyến tính của phép cộng sang phép nhân.",
+      "teacherPrompt": "AI tính tích phân của tích bằng tích hai tích phân và ra kết quả 6. Em hãy chỉ lỗi sai đại số và giải thích sửa lại.",
+      "studentProduct": "Ghi “Lỗi đại số: tích phân không nhân phân phối được”, chỉ ra phản chứng ∫ x² ≠ (∫ x)²",
+      "boardPrompt": "AI nhân hai tích phân thành phần để tính tích phân của tích. Phép toán này có được thừa nhận trong giải tích không?",
+      "libraryTitle": "Lỗi AI nhân phân phối tích phân của một tích hàm số"
+    },
+    "12-13-95": {
+      "key": "12-13-95",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI giải: Tính I = ∫_0^2 2x(x² + 1) dx. Đặt u = x² + 1 => du = 2x dx. AI giữ nguyên cận: I = ∫_0^2 u du = u²/2 |_0^2 = (4 - 0)/2 = 2.",
+      "correction": "AI quên hoàn toàn bước đổi cận. Cận 0 và 2 là của biến x. Khi đổi sang u = x² + 1 thì cận đúng phải là: x = 0 => u = 1; x = 2 => u = 5. Sửa lại: Tích phân chuẩn là ∫_1^5 u du = u²/2 |_1^5 = (25 - 1)/2 = 12.",
+      "proof": "Giải bằng cách khai triển trực tiếp không đổi biến: I = ∫_0^2 (2x³ + 2x) dx = (x⁴/2 + x²)|_0^2 = (16/2 + 4) - 0 = 8 + 4 = 12. Kết quả 12 trùng khớp với phép đổi cận chuẩn, kết quả 2 của AI là sai hoàn toàn.",
+      "whyAiError": "Mô hình nhầm lẫn giữa nguyên hàm (không có cận, phải trả lại biến) và tích phân xác định (có cận, bắt buộc đổi cận).",
+      "teacherPrompt": "AI tính tích phân bằng đổi biến nhưng giữ nguyên cận x = 0 và x = 2. Em hãy chỉ lỗi sai và sửa lại bước đổi cận đúng.",
+      "studentProduct": "Ghi “Lỗi đại số: quên đổi cận khi đổi biến số”, đổi cận thành u ∈ [1; 5] và tính ra kết quả 12.",
+      "boardPrompt": "AI không đổi cận khi đặt ẩn phụ u. Khi đổi biến tích phân có bắt buộc đổi cận không?",
+      "libraryTitle": "Lỗi AI quên đổi cận khi tính tích phân xác định bằng đổi biến số"
+    },
+    "12-13-96": {
+      "key": "12-13-96",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI giải: Tính I = ∫_0^1 dx / (3x + 1). Nguyên hàm F(x) = ln|3x + 1|. Thế cận: I = ln 4 - ln 1 = ln 4.",
+      "correction": "Công thức nguyên hàm chuẩn của hàm bậc nhất có hệ số góc: ∫ dx / (ax + b) = (1/a) ln|ax + b| + C. AI đã quên chia cho hệ số a = 3. Sửa lại: Kết quả đúng là (1/3) ln 4 = (2/3) ln 2.",
+      "proof": "Đạo hàm kiểm tra lại: [ln(3x + 1)]' = 3 / (3x + 1), thừa ra số 3 so với biểu thức 1 / (3x + 1) của đề bài. Đạo hàm của [(1/3) ln(3x + 1)]' = (1/3) · [3 / (3x + 1)] = 1 / (3x + 1) mới chính xác.",
+      "whyAiError": "Mô hình quên nhân hệ số 1/a khi áp dụng công thức vi phân hàm hợp bậc nhất.",
+      "teacherPrompt": "AI tính ∫ dx / (3x + 1) ra ln 4. Em hãy chỉ lỗi sai đại số và sửa lại: hệ số nhân phía trước logarit là bao nhiêu?",
+      "studentProduct": "Ghi “Lỗi đại số: quên hệ số 1/a = 1/3”, sửa kết quả thành (1/3) ln 4.",
+      "boardPrompt": "AI tính nguyên hàm 1/(3x+1) mà không có hệ số 1/3. Công thức chuẩn của 1/(ax+b) là gì?",
+      "libraryTitle": "Lỗi AI quên hệ số một phần a khi tính tích phân hàm phân thức bậc nhất"
+    },
+    "12-13-97": {
+      "key": "12-13-97",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI giải: Khi tính I = ∫_0^π cos(x) dx trên máy tính Casio, AI để màn hình ở chế độ DEG và bấm ra I ≈ 0,0548 rồi kết luận tích phân bằng 0,0548.",
+      "correction": "Trong giải tích toán học, mọi công thức đạo hàm và tích phân hàm lượng giác đều xây dựng trên đơn vị đo góc Radian. Bấm máy ở chế độ Deg làm sai lệch hoàn toàn góc tính toán. Sửa lại: Chuyển máy về chế độ Radian (Shift Menu 2 2), bấm lại ra I = sin(π) - sin(0) = 0.",
+      "proof": "Giải bằng tay theo định lý: ∫_0^π cos x dx = sin x |_0^π = sin(π rad) - sin(0 rad) = 0 - 0 = 0. Giá trị 0,0548 của AI xuất phát từ việc máy hiểu nhầm là tích phân từ 0 đến π độ (khoảng 3,14 độ).",
+      "whyAiError": "Mô hình không nhận thức được sự phụ thuộc bắt buộc của giải tích vi tích phân vào hệ đo góc Radian.",
+      "teacherPrompt": "AI để máy tính ở chế độ DEG và tính tích phân lượng giác ra 0,0548. Em hãy chỉ lỗi khái niệm và nêu thao tác sửa lại chế độ góc chuẩn.",
+      "studentProduct": "Ghi “Lỗi khái niệm: tích phân lượng giác bắt buộc dùng Radian”, đổi sang Radian và sửa kết quả thành 0.",
+      "boardPrompt": "AI tính tích phân lượng giác ở chế độ DEG ra kết quả sai. Chế độ góc bắt buộc trên máy tính là gì?",
+      "libraryTitle": "Lỗi AI để sai đơn vị đo góc DEG khi tính tích phân hàm lượng giác bằng máy tính"
     }
   }
 }
