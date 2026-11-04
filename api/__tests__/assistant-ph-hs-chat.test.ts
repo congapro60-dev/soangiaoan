@@ -180,6 +180,20 @@ describe('chat AI theo vai trò (C11)', () => {
     expect(noName).toContain('gọi người nhắn là "em"');
   });
 
+  it('C11d: có ASSISTANT_NAME → prompt dùng tên riêng, cấm tự nhận là AI; không có thì giữ nguyên', () => {
+    const before = buildSystemPrompt('DỮ LIỆU GIẢ', 'student');
+    expect(before).not.toContain('Bạn tên "');
+    vi.stubEnv('ASSISTANT_NAME', 'Thầy Bờm');
+    try {
+      const after = buildSystemPrompt('DỮ LIỆU GIẢ', 'student', 'Bảo Trâm');
+      expect(after).toContain('Bạn tên "Thầy Bờm"');
+      expect(after).toContain('KHÔNG nói mình là AI');
+      // Quy tắc an toàn không được nới lỏng khi đổi tên.
+      expect(after).toContain('QUY TẮC BẮT BUỘC');
+      expect(after).toContain('Không nhắc tên, điểm, hay thông tin của học sinh khác');
+    } finally { vi.unstubAllEnvs(); }
+  });
+
   it('C11b: ngữ cảnh HS có nhận xét GV đã duyệt; ngữ cảnh PH không có', () => {
     const withFeedback = {
       ...report,

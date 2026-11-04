@@ -46,6 +46,8 @@ vi.mock('../_assistant-ph-hs-photo', () => ({
   hasLiveAssignmentSession: vi.fn(async () => false),
   // Phiên nộp vừa hết hạn (sự cố 3–4/11). Mặc định coi như không có.
   hasExpiredAssignmentSession: vi.fn(async () => false),
+  // "Tay chân" cho AI (hướng A): mặc định không khớp câu hỏi bài chưa nộp.
+  isPendingListQuestion: vi.fn(() => false),
 }));
 // Giải đề từ ảnh: mock để không gọi vision thật. fetchPhotoBuffer trả null (ảnh test không tải được).
 const { fetchPhotoMock, solveGroupImageMock } = vi.hoisted(() => ({ fetchPhotoMock: vi.fn(async () => null as unknown), solveGroupImageMock: vi.fn(async () => null) }));
@@ -77,7 +79,7 @@ import { linkByPin, switchBotRole } from '../_assistant-ph-hs-link';
 import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
 import { parentMenuReply, loadParentReport } from '../_assistant-ph-hs-menu';
-import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
+import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, isPendingListQuestion, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
 
 
 
@@ -512,6 +514,15 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     expect(fetchPhotoMock).not.toHaveBeenCalled(); // không tải ảnh, không đốt phí AI
     expect(solveGroupImageMock).not.toHaveBeenCalled();
     expect(JSON.parse(sent()[0][1].body).text).toBe('EXPIRED_SESSION_REPLY');
+  });
+  // Hướng A (gợi ý của Phát, 4/11): câu hỏi "còn bài nào chưa nộp" phải trả DỮ LIỆU THẬT,
+  // không để AI đáp "chưa có thông tin" và không tốn token.
+  it('HS hỏi "còn bài nào chưa nộp" → trả danh sách thật, KHÔNG gọi AI', async () => {
+    mockStudent();
+    vi.mocked(isPendingListQuestion).mockReturnValueOnce(true);
+    await request(event('con bai nao chua nop', 'm-pending-1'));
+    expect(answerDetailed).not.toHaveBeenCalled();
+    expect(JSON.parse(sent()[0][1].body).text).toBe('LIST_1');
   });
   it('người lạ gửi ảnh → nhận hướng dẫn liên kết (guard chống spam), không vào luồng HS', async () => {
     vi.mocked(resolveChannelActor).mockRejectedValue(new Error('Channel is not linked'));

@@ -75,6 +75,25 @@ export const PHOTO_REPLIES = {
   expiredSession: `⏰ Phiên nộp bài trước đã hết hạn.\n\n📌 HƯỚNG DẪN:\n   • Nhắn 8 để xem lại danh sách bài.\n   • Chọn số thứ tự bài rồi gửi ảnh bài làm.\n\n⚠️ LƯU Ý: Ảnh chỉ được tính là BÀI NỘP khi em đã chọn bài. Muốn nhờ giải đề trong ảnh thì nhắn 0 về menu rồi gửi ảnh.\n\n` + MENU_HINT,
 } as const;
 
+/**
+ * HS/PH hỏi tự nhiên về bài chưa nộp ("còn bài nào chưa nộp?", "hạn nộp bài?", "phải nộp gì?")
+ * → hệ trả DỮ LIỆU THẬT thay vì để AI trả lời "chưa có thông tin". So khớp trên chuỗi BỎ DẤU
+ * nên "chua nop", "chưa nộp" đều ăn. Không khớp ⇒ null để câu đi tiếp luồng AI bình thường.
+ */
+export const isPendingListQuestion = (raw: string): boolean => {
+  const plain = String(raw ?? '').normalize('NFC').normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .replace(/\s+/g, ' ').trim().toLowerCase();
+  if (!plain || plain.length > 120) return false;
+  return /(con|co)\s+bai\s+(nao|gi)\s+(chua\s+)?(nop|lam)/.test(plain)
+    || /bai\s+(nao|gi)\s+(chua\s+|can\s+|phai\s+)?nop/.test(plain)
+    || /chua\s+nop\s+bai/.test(plain)
+    || /(han|deadline)\s*(nop|bai)/.test(plain)
+    || /con\s+(phai|can)\s+nop/.test(plain)
+    || /(phai|can)\s+nop\s+(bai|gi)/.test(plain)
+    || /nop\s+bai\s+(gi|nao)/.test(plain);
+};
+
 export type PhotoCommand =
   | { kind: 'list' } | { kind: 'pick'; n: number } | { kind: 'done' } | { kind: 'cancel' }
   | { kind: 'assist' } | { kind: 'assistPick'; n: number } | { kind: 'assistChoose'; n: number };

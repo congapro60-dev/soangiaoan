@@ -3,8 +3,8 @@ import { FakeDb } from './_fake-db.js';
 import {
   PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply,
   assistTargetReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession,
-  hasLiveAssignmentSession, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent,
-  photoListReply, photoReceivedReply,
+  hasLiveAssignmentSession, isPendingListQuestion, openPhotoSession, parsePhotoCommand,
+  pendingAssignmentsForStudent, photoListReply, photoReceivedReply,
 } from '../_assistant-ph-hs-photo.js';
 import { emptyQuota, chayNgam, getGradingChain } from '../_grading-core';
 import { gradeContextFor, gradeOneSubmission } from '../grade-homework';
@@ -870,5 +870,30 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     expect(await opening).toBe(PHOTO_REPLIES.sessionChanged);
     expect(h.db.rows.get(SESSION_PATH)).toEqual(reopened);
     expect([...h.db.rows.keys()].filter(path => path.startsWith('submissions/'))).toHaveLength(0);
+  });
+});
+
+describe('isPendingListQuestion — "tay chân" cho AI (hướng A)', () => {
+  it('nhận câu hỏi tự nhiên về bài chưa nộp (có dấu và không dấu)', () => {
+    for (const q of [
+      'còn bài nào chưa nộp không ạ',
+      'con bai nao chua nop',
+      'bài nào chưa nộp vậy',
+      'em chưa nộp bài nào',
+      'hạn nộp bài tuần này là khi nào',
+      'deadline bài tập',
+      'con phải nộp gì',
+      'em phải nộp bài gì',
+    ]) expect(isPendingListQuestion(q)).toBe(true);
+  });
+
+  it('không nhận câu hỏi khác (để câu đi tiếp luồng AI)', () => {
+    for (const q of [
+      'điểm bài tuần 5 của em bao nhiêu',
+      'học phân số sao cho giỏi',
+      'chào bot',
+      '',
+      'x'.repeat(200),
+    ]) expect(isPendingListQuestion(q)).toBe(false);
   });
 });

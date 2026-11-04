@@ -11,8 +11,9 @@ import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJo
 import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
 import { secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
+import { splitForChat } from './_assistant-natural-reply.js';
 import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
-import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
+import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, isPendingListQuestion, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
 import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveGroupImage, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
 import { requestRegrade } from './_assistant-ph-hs-regrade.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
@@ -194,6 +195,23 @@ const solvePhotoAsQuestion = async (
   if (answer.geometry) photoSent = await sendGeometryPhoto(token, chatId, answer.geometry, fullCaption, classId, sendPhoto);
   else if (answer.hasMath) photoSent = await sendMathFormulaPhoto(token, chatId, answer.mathSource, fullCaption, classId, sendPhoto);
   if (!photoSent) await sendStyled(token, chatId, fullCaption, false);
+};
+
+/**
+ * Gửi câu trả lời AI theo NHỊP NGƯỜI THẬT (hướng A — gợi ý của Phát 4/11): chia 2–3 tin ngắn,
+ * hiện "đang nhập…" trước mỗi tin như người đang gõ. Chỉ dùng cho tin text (tin có ảnh thì ảnh
+ * đã mang nội dung). Lỗi ở một tin không làm mất các tin khác.
+ */
+const sendChatty = async (token: string, chatId: string, text: string): Promise<void> => {
+  const parts = splitForChat(text, 3);
+  for (let i = 0; i < parts.length; i++) {
+    if (i > 0) {
+      sendTyping(token, chatId);
+      // Nhịp gõ ngắn: đủ để tin trước kịp hiện, không giữ function lâu (webhook ~90s).
+      await new Promise(resolve => setTimeout(resolve, 450));
+    }
+    await sendStyled(token, chatId, parts[i], false);
+  }
 };
 const readBody = async (req: VercelRequest): Promise<string> => {
   const raw = (req as VercelRequest & { rawBody?: string | Buffer }).rawBody;
@@ -381,6 +399,13 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
         }
       }
     }
+    // TAY CHÂN cho AI (hướng A, 4/11): HS/PH hỏi "còn bài nào chưa nộp" → trả DỮ LIỆU THẬT
+    // thay vì để AI đáp "chưa có thông tin". Dùng lại listPendingReply nên vẫn ghi cờ chờ chọn
+    // bài — em nhắn số là nộp được ngay. Không tốn token AI.
+    if ((role === 'student' || role === 'parent') && isPendingListQuestion(message)) {
+      await sendStyled(token, chatId, await listPendingReply(botId, userId, classId, studentId, role), false);
+      return '';
+    }
     const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
     if (!bundle) return MENU_REPLIES.noData;
     // AI CHAT PH chỉ dùng key RIÊNG (PH_CHAT_VILAO_KEY) — tách khỏi key chấm bài để theo dõi
@@ -412,7 +437,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
         const photoCaption = withWebPortalLink('Em xem lời giải trình bày đẹp trong ảnh nhé 👆', role, bundle.joinCode);
         photoSent = await sendMathFormulaPhoto(token, chatId, detail.mathSource, photoCaption, classId, sendPhoto);
       }
-      if (!photoSent) await sendStyled(token, chatId, fullCaption, false);
+      if (!photoSent) await sendChatty(token, chatId, fullCaption);
       return '';
     } catch {
       return AI_CHAT_REPLIES.unavailable;

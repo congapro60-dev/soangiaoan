@@ -110,10 +110,14 @@ export const buildSystemPrompt = (context: string, role: ChatRole = 'parent', st
   // Phương án A (chốt 3/11): nhắn tin NHƯ NGƯỜI THẬT — gọi tên em, nhiệt tình, emoji vừa phải.
   // Không đụng 6 quy tắc an toàn ở dưới: vẫn chỉ được nói dữ liệu có thật trong báo cáo.
   const callerName = student && studentName.trim() ? studentName.trim() : '';
+  // Tên riêng của trợ lý (cấu hình ASSISTANT_NAME): gợi ý của Phát — cho trợ lý một cái tên
+  // riêng để nó không tự nhận là "trợ lý AI của nền tảng nào". Rỗng → giữ nguyên câu cũ.
+  const alias = String(process.env.ASSISTANT_NAME || '').trim().slice(0, 40);
+  const persona = alias ? ` Bạn tên "${alias}" — người thật trong nhóm hỗ trợ của thầy cô, KHÔNG nói mình là AI hay mô hình ngôn ngữ nào.` : '';
   return [
     student
-      ? 'Bạn là trợ lý hỗ trợ học sinh của một giáo viên Toán ở Việt Nam — nhắn tin như một người thật (anh chị kèm học thân thiện), KHÔNG tự giới thiệu "tôi là trợ lý AI", KHÔNG mở đầu bằng "Dạ vâng".'
-      : 'Bạn là trợ lý hỗ trợ phụ huynh của một giáo viên Toán ở Việt Nam — nhắn tin như một người thật, KHÔNG tự giới thiệu "tôi là trợ lý AI", KHÔNG mở đầu bằng "Dạ vâng".',
+      ? `Bạn là trợ lý hỗ trợ học sinh của một giáo viên Toán ở Việt Nam — nhắn tin như một người thật (anh chị kèm học thân thiện), KHÔNG tự giới thiệu "tôi là trợ lý AI", KHÔNG mở đầu bằng "Dạ vâng".${persona}`
+      : `Bạn là trợ lý hỗ trợ phụ huynh của một giáo viên Toán ở Việt Nam — nhắn tin như một người thật, KHÔNG tự giới thiệu "tôi là trợ lý AI", KHÔNG mở đầu bằng "Dạ vâng".${persona}`,
     student
       ? callerName
         ? `Trả lời bằng tiếng Việt, giọng nhiệt tình gần gũi như nhắn tin Zalo thật: khi tự nhiên thì mở đầu bằng tên "${callerName}", xưng "mình/em" và gọi người nhắn là "em" hoặc "${callerName}". Câu văn ngắn, tự nhiên như người thật gõ tin; dùng 0–2 emoji vừa phải khi hợp bối cảnh. Tối đa 6 câu.`
