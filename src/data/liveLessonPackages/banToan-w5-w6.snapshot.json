@@ -5191,69 +5191,69 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Giải phương trình lượng giác sinx = m",
-      "focus": "Phương trình lượng giác cơ bản dạng sin x = m",
+      "focus": "Hình thành công thức nghiệm của phương trình sin x = m trên trục thực nghiệm vòng đu quay h(θ) = 10 + 8sin θ: ở 14 m được sin θ = 1/2 → θ = π/6 + 2kπ hoặc 5π/6 + 2kπ; nhận diện điều kiện |m| ≤ 1 (26 m vô nghiệm)",
       "formulas": [
-        "\\sin x=m",
-        "\\lvert m\\rvert\\le 1",
-        "\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi,\\ k\\in\\mathbb Z",
-        "\\sin^2x+\\cos^2x=1"
+        "\\sin x = m \\ (|m| \\le 1) \\Leftrightarrow x = \\alpha + 2k\\pi \\ \\text{hoặc} \\ x = \\pi - \\alpha + 2k\\pi",
+        "\\sin x = 1 \\Leftrightarrow x = \\tfrac{\\pi}{2} + 2k\\pi",
+        "\\sin x = -1 \\Leftrightarrow x = -\\tfrac{\\pi}{2} + 2k\\pi",
+        "\\sin x = 0 \\Leftrightarrow x = k\\pi"
       ],
       "examples": [
         {
-          "question": "Giải $\\sin x=\\frac12$ trên $\\mathbb R$.",
-          "solution": "Chọn $\\alpha=\\frac\\pi6$. Suy ra $x=\\frac\\pi6+2k\\pi$ hoặc $x=\\frac{5\\pi}6+2k\\pi$ với $k\\in\\mathbb Z$."
+          "question": "Cabin đu quay ở độ cao h(θ) = 10 + 8sin θ (m). Tìm θ để cabin ở độ cao 14 m.",
+          "solution": "10 + 8sin θ = 14 ⇔ sin θ = 1/2. Vì sin(π/6) = 1/2 nên θ = π/6 + 2kπ hoặc θ = π − π/6 + 2kπ = 5π/6 + 2kπ, k ∈ ℤ."
         },
         {
-          "question": "Giải $\\sin x=-\\frac{\\sqrt3}{2}$ trên $\\mathbb R$.",
-          "solution": "Một góc đại diện là $-\\frac\\pi3$. Nghiệm là $x=-\\frac\\pi3+2k\\pi$ hoặc $x=\\frac{4\\pi}3+2k\\pi$."
+          "question": "Với cùng mô hình, cabin có đạt độ cao 26 m không? Giải thích.",
+          "solution": "Cần sin θ = (26 − 10)/8 = 2, nhưng −1 ≤ sin θ ≤ 1 nên phương trình vô nghiệm. Độ cao lớn nhất của cabin là 10 + 8 = 18 m."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Giải $\\sin x=\\frac{\\sqrt3}{2}$.",
-          "answer": "$x=\\frac\\pi3+2k\\pi$ hoặc $x=\\frac{2\\pi}3+2k\\pi$, $k\\in\\mathbb Z$."
+          "question": "Nêu điều kiện của m để phương trình sin x = m có nghiệm.",
+          "answer": "−1 ≤ m ≤ 1 (hay |m| ≤ 1)."
         },
         {
           "level": "NB",
-          "question": "Giải $\\sin x=-\\frac12$.",
-          "answer": "$x=-\\frac\\pi6+2k\\pi$ hoặc $x=\\frac{7\\pi}6+2k\\pi$."
+          "question": "Giải phương trình sin x = 1/2.",
+          "answer": "x = π/6 + 2kπ hoặc x = 5π/6 + 2kπ, k ∈ ℤ."
         },
         {
           "level": "TH",
-          "question": "Giải $\\sin 2x=\\frac{\\sqrt3}{2}$ trên $[0;2\\pi]$.",
-          "answer": "$x\\in\\{\\frac\\pi{12},\\frac{5\\pi}{12},\\frac{13\\pi}{12},\\frac{17\\pi}{12}\\}$."
+          "question": "Giải phương trình sin x = −1.",
+          "answer": "x = −π/2 + 2kπ, k ∈ ℤ."
         },
         {
           "level": "TH",
-          "question": "Giải $\\sin 3x=0$ trên $[0;2\\pi]$.",
-          "answer": "$x=\\frac{k\\pi}{3}$ với $k=0,1,\\ldots,6$."
+          "question": "Giải phương trình sin(2x) = sin(π/5).",
+          "answer": "2x = π/5 + 2kπ hoặc 2x = π − π/5 + 2kπ = 4π/5 + 2kπ ⇒ x = π/10 + kπ hoặc x = 2π/5 + kπ."
         },
         {
           "level": "VD",
-          "question": "Biện luận số nghiệm của $\\sin x=m$ theo $m$.",
-          "answer": "Có nghiệm khi $-1\\le m\\le1$; ngoài khoảng này phương trình vô nghiệm."
+          "question": "Cabin ở độ cao 10 + 8sin θ = 14. Tìm tất cả góc θ và giải thích vì sao có hai vị trí.",
+          "answer": "sin θ = 1/2 ⇒ θ = π/6 + 2kπ hoặc 5π/6 + 2kπ. Hai góc đối xứng qua đường kính thẳng đứng nên cùng độ cao 14 m."
         },
         {
           "level": "VD",
-          "question": "Phản biện lời giải: $\\sin x=\\frac12\\Rightarrow x=\\frac\\pi6+2k\\pi$.",
-          "answer": "Lời giải thiếu họ nghiệm đối xứng; phải thêm $x=\\frac{5\\pi}6+2k\\pi$."
+          "question": "Tìm nghiệm của sin x = √3/2 trong khoảng [0; 2π].",
+          "answer": "x = π/3 và x = 2π/3 (ứng với k = 0 của hai họ nghiệm)."
         }
       ],
       "quick": [
         {
-          "question": "Tìm nghiệm của $\\sin x=-\\frac{\\sqrt2}{2}$ trên $[0;2\\pi]$.",
-          "solution": "$x=\\frac{5\\pi}4,\\frac{7\\pi}4$."
+          "question": "Vì sao sin x = 2 vô nghiệm?",
+          "solution": "Vì tập giá trị của sin là [−1; 1], không có góc nào có sin bằng 2."
         },
         {
-          "question": "Giải $\\sin(x-\\frac\\pi6)=\\frac12$.",
-          "solution": "$x-\\frac\\pi6=\\frac\\pi6+2k\\pi$ hoặc $x-\\frac\\pi6=\\frac{5\\pi}6+2k\\pi$."
+          "question": "Vì sao phương trình sin x = 1/2 có hai họ nghiệm?",
+          "solution": "Vì đường thẳng y = 1/2 cắt đường tròn lượng giác tại hai điểm đối xứng qua trục tung, ứng với α và π − α."
         }
       ],
       "mistakes": [
-        "Quên họ nghiệm đối xứng π − α.",
-        "Viết sai chu kỳ của hàm sin, dùng kπ thay vì 2kπ.",
-        "Kết luận có nghiệm khi |m| > 1 mà không kiểm tra điều kiện."
+        "Quên điều kiện |m| ≤ 1.",
+        "Chỉ viết một họ nghiệm, bỏ nhánh π − α.",
+        "Nhầm chu kỳ: dùng kπ thay vì 2kπ cho phương trình sin."
       ],
       "diagram": "trig",
       "global": true,
@@ -5493,7 +5493,19 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Phương trình lượng giác cơ bản dạng sin x = m, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Mô hình dao động, thủy triều và giờ chiếu sáng theo mùa ở các vĩ độ khác nhau., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Điều kiện có nghiệm",
+        "a. |m| ≤ 1 thì có nghiệm; |m| > 1 vô nghiệm.",
+        "2. Công thức nghiệm",
+        "a. sin x = m = sin α ⇔ x = α + 2kπ hoặc x = π − α + 2kπ.",
+        "b. Trường hợp đặc biệt: sin x = 1; −1; 0.",
+        "3. Áp dụng đu quay",
+        "a. h = 10 + 8sin θ; h = 14 ⇒ sin θ = 1/2.",
+        "b. θ = π/6 + 2kπ hoặc 5π/6 + 2kπ.",
+        "c. h = 26 ⇒ sin θ = 2: vô nghiệm; độ cao tối đa 18 m."
+      ]
     },
     {
       "key": "11-5-27",
@@ -5503,69 +5515,69 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Giải phương trình lượng giác cosx = m",
-      "focus": "Phương trình lượng giác cơ bản dạng cos x = m",
+      "focus": "Hình thành công thức nghiệm cos x = m trên trục thực nghiệm điều hoà nhiệt độ T(t) = 26 + 4cos(πt/12): đạt 28°C khi cos = 1/2 → t = 4 và t = 20 giờ; đạt 22°C tại t = 12 giờ; 31°C vô nghiệm; rèn điều kiện |m| ≤ 1 và dấu ±",
       "formulas": [
-        "\\cos x=m",
-        "\\lvert m\\rvert\\le1",
-        "\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi,\\ k\\in\\mathbb Z",
-        "\\cos(-x)=\\cos x"
+        "\\cos x = m \\ (|m| \\le 1) \\Leftrightarrow x = \\pm\\alpha + 2k\\pi",
+        "\\cos x = 1 \\Leftrightarrow x = 2k\\pi",
+        "\\cos x = -1 \\Leftrightarrow x = \\pi + 2k\\pi",
+        "\\cos x = 0 \\Leftrightarrow x = \\tfrac{\\pi}{2} + k\\pi"
       ],
       "examples": [
         {
-          "question": "Giải $\\cos x=\\frac12$.",
-          "solution": "Chọn $\\alpha=\\frac\\pi3$. Nghiệm là $x=\\pm\\frac\\pi3+2k\\pi$."
+          "question": "Nhiệt độ phòng T(t) = 26 + 4cos(πt/12) (°C). Tìm các thời điểm trong ngày (0 ≤ t ≤ 24) nhiệt độ đạt 28°C.",
+          "solution": "26 + 4cos(πt/12) = 28 ⇔ cos(πt/12) = 1/2 ⇔ πt/12 = ±π/3 + 2kπ ⇒ t = ±4 + 24k. Trong [0;24]: k = 0 cho t = 4; k = 1 cho t = 20 (nhánh −4 + 24 = 20). Vậy 4 giờ và 20 giờ."
         },
         {
-          "question": "Giải $\\cos(x-\\frac\\pi3)=\\frac{\\sqrt2}{2}$.",
-          "solution": "Đặt $t=x-\\frac\\pi3$. Khi đó $t=\\pm\\frac\\pi4+2k\\pi$, nên $x=\\frac\\pi{12}+2k\\pi$ hoặc $x=\\frac{7\\pi}{12}+2k\\pi$."
+          "question": "Với mô hình trên, phòng có đạt 31°C không? Nhiệt độ thấp nhất là bao nhiêu?",
+          "solution": "Cần cos(πt/12) = (31 − 26)/4 = 1,25 > 1 nên vô nghiệm. Nhiệt độ biến thiên từ 26 − 4 = 22°C đến 26 + 4 = 30°C."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Giải $\\cos x=\\frac{\\sqrt3}{2}$.",
-          "answer": "$x=\\pm\\frac\\pi6+2k\\pi$."
+          "question": "Nêu điều kiện của m để cos x = m có nghiệm.",
+          "answer": "−1 ≤ m ≤ 1."
         },
         {
           "level": "NB",
-          "question": "Giải $\\cos x=-1$.",
-          "answer": "$x=\\pi+2k\\pi$."
+          "question": "Giải phương trình cos x = 1/2.",
+          "answer": "x = ±π/3 + 2kπ, k ∈ ℤ."
         },
         {
           "level": "TH",
-          "question": "Giải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$.",
-          "answer": "$x\\in\\{\\frac\\pi6,\\frac{5\\pi}6,\\frac{7\\pi}6,\\frac{11\\pi}6\\}$."
+          "question": "Giải phương trình cos x = −1.",
+          "answer": "x = π + 2kπ, k ∈ ℤ."
         },
         {
           "level": "TH",
-          "question": "Giải $\\cos(x+\\frac\\pi4)=-\\frac{\\sqrt2}{2}$.",
-          "answer": "$x=\\frac\\pi2+2k\\pi$ hoặc $x=\\pi+2k\\pi$."
+          "question": "Giải phương trình cos(3x) = cos(π/4).",
+          "answer": "3x = ±π/4 + 2kπ ⇒ x = ±π/12 + 2kπ/3."
         },
         {
           "level": "VD",
-          "question": "Biện luận $\\cos x=m$ theo $m$.",
-          "answer": "Có nghiệm khi $-1\\le m\\le1$; với $m=1$ nghiệm $x=2k\\pi$, với $m=-1$ nghiệm $x=(2k+1)\\pi$."
+          "question": "Với T(t) = 26 + 4cos(πt/12), tìm t ∈ [0; 24] để T = 22°C.",
+          "answer": "cos(πt/12) = −1 ⇔ πt/12 = π + 2kπ ⇒ t = 12 + 24k; trong [0;24] được t = 12 giờ."
         },
         {
           "level": "VD",
-          "question": "Sửa lỗi $\\cos x=\\cos\\alpha\\Rightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi$.",
-          "answer": "Quy tắc đúng là $x=\\pm\\alpha+2k\\pi$; công thức $\\pi-\\alpha$ thuộc họ nghiệm của sin trong trường hợp tương ứng."
+          "question": "Tìm nghiệm của cos x = −√2/2 trong khoảng [0; π].",
+          "answer": "x = 3π/4 (nhánh −3π/4 + 2π = 5π/4 không thuộc [0; π])."
         }
       ],
       "quick": [
         {
-          "question": "Tìm nghiệm của $\\cos x=-\\frac{\\sqrt3}{2}$ trên $[0;2\\pi]$.",
-          "solution": "$x=\\frac{5\\pi}6,\\frac{7\\pi}6$."
+          "question": "Vì sao nghiệm của cos x = m có dấu ±?",
+          "solution": "Vì hai điểm trên đường tròn lượng giác có cùng cosin đối xứng qua trục hoành, ứng với α và −α."
         },
         {
-          "question": "Giải $\\cos(2x-\\frac\\pi3)=0$.",
-          "solution": "$2x-\\frac\\pi3=\\frac\\pi2+k\\pi$ nên $x=\\frac{5\\pi}{12}+\\frac{k\\pi}{2}$."
+          "question": "Chu kỳ của phương trình cos x = m là bao nhiêu?",
+          "solution": "2kπ (không phải kπ) — trừ trường hợp đặc biệt cos x = 0 dùng kπ."
         }
       ],
       "mistakes": [
-        "Áp nhầm quy tắc π − α của sin cho cos.",
-        "Mất dấu ± khi viết nghiệm tổng quát.",
-        "Không lọc nghiệm khi đề yêu cầu trên một khoảng."
+        "Quên dấu ± trong nghiệm.",
+        "Quên điều kiện |m| ≤ 1.",
+        "Dùng kπ thay vì 2kπ (trừ trường hợp cos x = 0)."
       ],
       "diagram": "trig",
       "global": true,
@@ -5805,7 +5817,18 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Phương trình lượng giác cơ bản dạng cos x = m, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh So sánh chu kỳ và biên độ trong mô hình dao động, thủy triều và giờ chiếu sáng., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Công thức nghiệm cos x = m",
+        "a. Điều kiện |m| ≤ 1.",
+        "b. cos x = cos α ⇔ x = ±α + 2kπ.",
+        "c. Đặc biệt: cos x = 1 (2kπ); −1 (π + 2kπ); 0 (π/2 + kπ).",
+        "2. Áp dụng điều hoà nhiệt độ",
+        "a. T(t) = 26 + 4cos(πt/12).",
+        "b. T = 28 ⇒ t = 4 và t = 20 giờ.",
+        "c. T = 22 ⇒ t = 12 giờ; T = 31 vô nghiệm (tối đa 30°C)."
+      ]
     },
     {
       "key": "11-5-28",
@@ -5815,69 +5838,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Đường thẳng song song với mặt phẳng — định nghĩa",
-      "focus": "Nhận biết ba vị trí tương đối của đường thẳng và mặt phẳng",
+      "focus": "Hình thành định nghĩa ba vị trí tương đối của đường thẳng và mặt phẳng trên mô hình kệ sách và hộp ABCD.A′B′C′D′: d ⊂ (P) (vô số điểm chung), d cắt (P) (1 điểm), d // (P) (0 điểm); phân biệt bằng số điểm chung, không dựa vào hình vẽ",
       "formulas": [
-        "d\\subset(P)",
-        "d\\cap(P)=\\{M\\}",
-        "d\\parallel(P)\\Longleftrightarrow d\\cap(P)=\\varnothing\\ \\text{và}\\ d\\not\\subset(P)",
-        "d\\subset(P)\\ \\text{không gọi là}\\ d\\parallel(P)"
+        "d \\subset (P) \\Leftrightarrow \\text{vô số điểm chung}",
+        "d \\cap (P) = \\{M\\} \\Leftrightarrow \\text{đúng 1 điểm chung}",
+        "d \\parallel (P) \\Leftrightarrow \\text{không có điểm chung}"
       ],
       "examples": [
         {
-          "question": "Phân loại vị trí của $AB$, $SA$ và $MN$ với mặt phẳng $(SBC)$ trong hình chóp $S.ABCD$.",
-          "solution": "$SA$ cắt $(SBC)$ tại $S$; $AB$ cắt $(SBC)$ tại $B$; nếu $MN\\parallel BC$ và $MN\\not\\subset(SBC)$ thì $MN\\parallel(SBC)$"
+          "question": "Trong hộp ABCD.A′B′C′D′, xác định vị trí tương đối của AB, AA′, A′B′ với mặt phẳng (ABCD).",
+          "solution": "AB ⊂ (ABCD) vì cả hai đầu A, B thuộc mặt đáy. AA′ cắt (ABCD) tại A. A′B′ // (ABCD) vì A′B′ nằm trong mặt (A′B′C′D′) song song với (ABCD), không có điểm chung."
         },
         {
-          "question": "Trong hình hộp $ABCD.A'B'C'D'$, xét $AB$ với $(CDD'C')$.",
-          "solution": "$AB\\parallel CD$, $CD\\subset(CDD'C')$ và $AB\\not\\subset(CDD'C')$, nên $AB\\parallel(CDD'C')$"
+          "question": "Giải thích vì sao một đường thẳng và một mặt phẳng không thể có đúng hai điểm chung.",
+          "solution": "Nếu đường thẳng có hai điểm chung với mặt phẳng thì toàn bộ đường thẳng nằm trong mặt phẳng (vì mặt phẳng chứa đường thẳng qua hai điểm đó). Khi đó số điểm chung là vô số."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Nêu ba vị trí của $d$ với $(P)$.",
-          "answer": "$d\\subset(P)$; $d\\cap(P)=\\{M\\}$; $d\\parallel(P)$."
+          "question": "Nêu ba vị trí tương đối của đường thẳng d và mặt phẳng (P).",
+          "answer": "d ⊂ (P); d cắt (P) tại một điểm; d // (P)."
         },
         {
           "level": "NB",
-          "question": "Nếu $d$ có một điểm chung $M$ với $(P)$ thì kết luận gì?",
-          "answer": "$d$ cắt $(P)$ tại $M$, không song song với $(P)$."
+          "question": "Đường thẳng song song với mặt phẳng khi nào?",
+          "answer": "Khi chúng không có điểm chung."
         },
         {
           "level": "TH",
-          "question": "Trong hình hộp $ABCD.A'B'C'D'$, chứng minh $AB\\parallel(CDD'C')$.",
-          "answer": "$AB\\parallel CD$, $CD\\subset(CDD'C')$, $AB\\not\\subset(CDD'C')$ nên $AB\\parallel(CDD'C')$."
+          "question": "Trong hộp ABCD.A′B′C′D′, đường AD′ có cắt (ABCD) không? Vì sao?",
+          "answer": "Có, tại D: D thuộc cả AD′ và (ABCD). Vậy AD′ cắt (ABCD) tại D."
         },
         {
           "level": "TH",
-          "question": "Vì sao $d\\subset(P)$ không được gọi là $d\\parallel(P)$?",
-          "answer": "Vì $d$ có vô số điểm chung với $(P)$; định nghĩa song song yêu cầu không có điểm chung và $d$ không nằm trong $(P)$."
+          "question": "Kể hai đường thẳng song song với (ABCD) trong hộp.",
+          "answer": "A′B′ và B′C′ (cùng nằm trong (A′B′C′D′) song song với (ABCD)); còn có C′D′, D′A′."
         },
         {
           "level": "VD",
-          "question": "Hoàn thiện sơ đồ ba vị trí cho đường thẳng $d$ và $(P)$ bằng ký hiệu giao.",
-          "answer": "Một điểm chung: $d\\cap(P)={M}$; vô số điểm chung: $d\\subset(P)$; không điểm chung: $d\\parallel(P)$."
+          "question": "Một bạn nói: \"Trong hình vẽ, d không cắt (P) nên d // (P)\". Hãy phản biện.",
+          "answer": "Hình vẽ chỉ là hình biểu diễn, có thể che khuất giao điểm. Muốn kết luận song song phải chứng minh không có điểm chung (thường qua định lí: d // d′ và d′ ⊂ (P))."
         },
         {
           "level": "VD",
-          "question": "Phản biện: “Hai đường $d$ và $a$ không cắt nhau nên $d\\parallel(P)$ với $a\\subset(P)$”.",
-          "answer": "Chưa đủ; cần thêm $d\\parallel a$ và $d\\not\\subset(P)$. Hai đường chéo nhau cũng không suy ra đường song song mặt phẳng."
+          "question": "Nêu ba ví dụ thực tế (trong lớp) cho ba vị trí tương đối.",
+          "answer": "Mép bảng dán trên tường → đường nằm trong mặt phẳng; chân bàn xiên → cắt mặt sàn; thanh treo đèn → song song mặt sàn."
         }
       ],
       "quick": [
         {
-          "question": "Cho $d\\cap(P)=\\varnothing$ nhưng chưa biết $d$ có nằm trong $(P)$ không. Có thể kết luận ngay không?",
-          "solution": "Có thể kết luận $d\\parallel(P)$ chỉ khi đồng thời khẳng định $d\\not\\subset(P)$; đây là điều kiện định nghĩa."
+          "question": "Vì sao \"nằm trong\" không phải là trường hợp của \"song song\"?",
+          "solution": "Vì d ⊂ (P) có vô số điểm chung, còn song song là không có điểm chung — hai quan hệ khác nhau."
         },
         {
-          "question": "Một đường chứa điểm $A\\in(P)$ nhưng không nằm trong $(P)$ có song song $(P)$ không?",
-          "solution": "Không; đường đó cắt $(P)$ tại $A$."
+          "question": "Có bao nhiêu vị trí tương đối của đường thẳng và mặt phẳng?",
+          "solution": "Ba: nằm trong, cắt tại một điểm, song song."
         }
       ],
       "mistakes": [
-        "Lẫn “không cắt” với “song song” khi d nằm trong mặt phẳng.",
-        "Không kiểm tra điều kiện đường không nằm trong mặt phẳng.",
-        "Nhận dạng theo hình vẽ nhưng không nêu giao tuyến/ký hiệu."
+        "Kết luận song song dựa vào hình vẽ.",
+        "Nhầm d ⊂ (P) với d // (P).",
+        "Cho rằng có thể có đúng hai điểm chung."
       ],
       "diagram": "parallel",
       "digital": false,
@@ -6116,7 +6138,21 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Nhận biết ba vị trí tương đối của đường thẳng và mặt phẳng, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Ba vị trí tương đối",
+        "a. d ⊂ (P): vô số điểm chung.",
+        "b. d ∩ (P) = {M}: đúng một điểm chung.",
+        "c. d // (P): không có điểm chung.",
+        "2. Mô hình hộp ABCD.A′B′C′D′",
+        "a. AB ⊂ (ABCD).",
+        "b. AA′ cắt (ABCD) tại A.",
+        "c. A′B′ // (ABCD).",
+        "3. Lưu ý",
+        "a. Không kết luận song song từ hình vẽ.",
+        "b. Chỉ có ba khả năng về số điểm chung."
+      ]
     },
     {
       "key": "11-5-29",
@@ -6126,69 +6162,67 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Đường thẳng song song với mặt phẳng — điều kiện",
-      "focus": "Dùng định lí đường thẳng song song với mặt phẳng để chứng minh",
+      "focus": "Hình thành định lí điều kiện đường thẳng song song mặt phẳng (d ⊄ (P), d // d′, d′ ⊂ (P) ⇒ d // (P)) và quy trình chứng minh 3 bước, áp dụng trên hộp ABCD.A′B′C′D′ (AB // A′B′ ⊂ (A′B′C′D′) ⇒ AB // (A′B′C′D′))",
       "formulas": [
-        "d\\not\\subset(P)",
-        "d\\parallel d'",
-        "d'\\subset(P)",
-        "d\\parallel d',\\ d'\\subset(P),\\ d\\not\\subset(P)\\Longrightarrow d\\parallel(P)"
+        "d \\not\\subset (P), \\ d \\parallel d′, \\ d′ \\subset (P) \\Rightarrow d \\parallel (P)",
+        "\\text{Quy trình: tìm } d′ \\to \\text{kiểm } d \\not\\subset (P) \\to \\text{kết luận}"
       ],
       "examples": [
         {
-          "question": "Cho $M,N$ lần lượt là trung điểm của $AB,AC$ trong tam giác $ABC$, với $S\\notin(ABC)$. Chứng minh $MN\\parallel(SBC)$.",
-          "solution": "Theo định lí đường trung bình, $MN\\parallel BC$; $BC\\subset(SBC)$ và $MN\\not\\subset(SBC)$ nên $MN\\parallel(SBC)$"
+          "question": "Trong hộp ABCD.A′B′C′D′, chứng minh AB song song với (A′B′C′D′).",
+          "solution": "AB // A′B′ (hai cạnh tương ứng của hình hộp). A′B′ ⊂ (A′B′C′D′). AB ⊄ (A′B′C′D′) vì A, B thuộc mặt đáy. Theo định lí, AB // (A′B′C′D′)."
         },
         {
-          "question": "Trong hình chóp $S.ABCD$ có $AB\\parallel CD$. Chứng minh $AB\\parallel(SCD)$.",
-          "solution": "$CD\\subset(SCD)$, $AB\\parallel CD$ và $AB\\not\\subset(SCD)$, do đó $AB\\parallel(SCD)$."
+          "question": "Vì sao cần điều kiện d ⊄ (P) trong định lí? Cho ví dụ.",
+          "solution": "Nếu d ⊂ (P) thì d có vô số điểm chung với (P) nên không thể song song. Ví dụ AB // CD và CD ⊂ (ABCD), nhưng AB ⊂ (ABCD) nên AB không song song (ABCD)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Điền ba điều kiện của định lí vào $d\\parallel d',\\ d'\\subset(P),\\ldots\\Longrightarrow d\\parallel(P)$.",
-          "answer": "Điều kiện còn thiếu là $d\\not\\subset(P)$."
+          "question": "Phát biểu định lí điều kiện để d // (P).",
+          "answer": "Nếu d không nằm trong (P) và d song song với một đường d′ nằm trong (P) thì d song song với (P)."
         },
         {
           "level": "NB",
-          "question": "Nếu $a\\subset(P)$ và $d\\parallel a$, cần kiểm tra thêm điều gì?",
-          "answer": "Cần kiểm tra $d\\not\\subset(P)$ trước khi kết luận $d\\parallel(P)$."
+          "question": "Nêu ba bước chứng minh d // (P).",
+          "answer": "Tìm d′ ⊂ (P) với d // d′; kiểm d ⊄ (P); kết luận d // (P)."
         },
         {
           "level": "TH",
-          "question": "Cho $M,N$ là trung điểm $SA,SB$ của hình chóp $S.ABC$. Chứng minh $MN\\parallel(ABC)$.",
-          "answer": "$MN\\parallel AB$, $AB\\subset(ABC)$, $MN\\not\\subset(ABC)$ nên $MN\\parallel(ABC)$."
+          "question": "Trong hộp, chứng minh A′B′ // (ABCD).",
+          "answer": "A′B′ // AB, AB ⊂ (ABCD), A′B′ ⊄ (ABCD) → A′B′ // (ABCD)."
         },
         {
           "level": "TH",
-          "question": "Cho hình lăng trụ $ABC.A'B'C'$. Chứng minh $AA'\\parallel(BCC'B')$.",
-          "answer": "$AA'\\parallel BB'$, $BB'\\subset(BCC'B')$, $AA'\\not\\subset(BCC'B')$ nên $AA'\\parallel(BCC'B')$."
+          "question": "Trong hộp, chứng minh B′C′ // (ABCD).",
+          "answer": "B′C′ // BC, BC ⊂ (ABCD), B′C′ ⊄ (ABCD) → B′C′ // (ABCD)."
         },
         {
           "level": "VD",
-          "question": "Tìm và gạch chân đủ ba điều kiện trong một lời giải chứng minh $AB\\parallel(SCD)$.",
-          "answer": "$AB\\parallel CD$; $CD\\subset(SCD)$; $AB\\not\\subset(SCD)$. Ba điều kiện dẫn tới $AB\\parallel(SCD)$."
+          "question": "Cho hình chóp S.ABCD có M, N là trung điểm SA, SB. Chứng minh MN // (ABCD).",
+          "answer": "MN là đường trung bình của tam giác SAB nên MN // AB. Mà AB ⊂ (ABCD) và MN ⊄ (ABCD) (M, N không thuộc mặt đáy). Vậy MN // (ABCD)."
         },
         {
           "level": "VD",
-          "question": "Cho một phản ví dụ khi bỏ điều kiện $d\\not\\subset(P)$.",
-          "answer": "Nếu $d\\subset(P)$ và $d\\parallel d'$ với $d'\\subset(P)$ thì không được gọi $d\\parallel(P)$ vì $d$ có vô số điểm chung với $(P)$."
+          "question": "Phản biện chứng minh chỉ ghi \"MN // AB nên MN // (ABCD)\".",
+          "answer": "Thiếu hai căn cứ: AB phải nằm trong (ABCD) và MN phải không nằm trong (ABCD). Nếu thiếu, lập luận không hợp lệ dù kết quả đúng."
         }
       ],
       "quick": [
         {
-          "question": "Trong hình chóp $S.ABCD$, $AB\\parallel CD$. Chọn mặt phẳng nào để chứng minh $AB\\parallel(SCD)$?",
-          "solution": "Chọn $(SCD)$ vì $CD$ nằm trong mặt phẳng đó và song song với $AB$."
+          "question": "Vì sao cần d ⊄ (P)?",
+          "solution": "Vì nếu d nằm trong (P) thì d có vô số điểm chung, không thể song song."
         },
         {
-          "question": "Nếu đường chứng minh $d$ đi qua một điểm thuộc $(P)$ thì có thể song song $(P)$ không?",
-          "solution": "Không; khi có điểm chung, $d$ cắt $(P)$, trừ trường hợp $d$ nằm trong $(P)$ cũng không gọi là song song."
+          "question": "Trong hình chóp, đường trung bình của tam giác bên thường song song với mặt đáy — vì sao?",
+          "solution": "Đường trung bình song song với cạnh đáy, mà cạnh đáy nằm trong mặt đáy; đường trung bình không nằm trong mặt đáy nên song song với mặt đáy."
         }
       ],
       "mistakes": [
-        "Quên điều kiện $d\\not\\subset(P)$.",
-        "Chọn đường d' không nằm trong mặt phẳng cần xét.",
-        "Kết luận song song nhưng không chỉ ra đường nằm trong mặt phẳng."
+        "Bỏ điều kiện d ⊄ (P).",
+        "Chọn d′ không nằm trong (P).",
+        "Kết luận song song mà không nêu căn cứ song song của d và d′."
       ],
       "diagram": "parallel",
       "lessonType": "formation",
@@ -6426,7 +6460,20 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Dùng định lí đường thẳng song song với mặt phẳng để chứng minh, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Định lí điều kiện",
+        "a. d ⊄ (P), d // d′, d′ ⊂ (P) ⇒ d // (P).",
+        "b. Đây là điều kiện đủ, dùng để chứng minh.",
+        "2. Quy trình 3 bước",
+        "a. Tìm d′ ⊂ (P) sao cho d // d′.",
+        "b. Kiểm d ⊄ (P).",
+        "c. Kết luận d // (P).",
+        "3. Áp dụng",
+        "a. Hộp: AB // A′B′ ⊂ (A′B′C′D′) ⇒ AB // (A′B′C′D′).",
+        "b. Hình chóp: đường trung bình MN // AB ⊂ (ABCD) ⇒ MN // (ABCD)."
+      ]
     },
     {
       "key": "11-5-30",
@@ -6436,69 +6483,67 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Đường thẳng song song với mặt phẳng — tính chất",
-      "focus": "Khai thác giao tuyến của hai mặt phẳng để tìm đường song song",
+      "focus": "Hình thành tính chất: nếu d // (P), (Q) chứa d và cắt (P) theo giao tuyến b thì b // d; áp dụng trên hộp ABCD.A′B′C′D′ (AB // A′B′) và hình chóp S.ABCD (MN // AB); nhận diện lỗi mở rộng phạm vi song song",
       "formulas": [
-        "d\\parallel(P)",
-        "d\\subset(Q)",
-        "(P)\\cap(Q)=d'",
-        "d\\parallel(P),\\ d\\subset(Q),\\ (P)\\cap(Q)=d'\\Longrightarrow d\\parallel d'"
+        "d \\parallel (P), \\ (Q) \\supset d, \\ (Q) \\cap (P) = b \\Rightarrow b \\parallel d",
+        "\\text{Hệ quả: hai mặt phẳng cắt nhau cùng song song } d \\Rightarrow \\text{giao tuyến} \\parallel d"
       ],
       "examples": [
         {
-          "question": "Cho $d\\parallel(P)$, $d\\subset(Q)$ và $(P)\\cap(Q)=d'$. Hãy nêu quan hệ giữa $d$ và $d'$.",
-          "solution": "Theo tính chất, $d\\parallel d'$. Giao tuyến $d'$ là đường nằm trong $(Q)$ để chuyển quan hệ đường–mặt phẳng thành quan hệ hai đường."
+          "question": "Trong hộp ABCD.A′B′C′D′, biết A′B′ // (ABCD). Mặt phẳng (ABB′A′) cắt (ABCD) theo AB. Kết luận về AB và A′B′.",
+          "solution": "Theo tính chất, giao tuyến AB song song với đường đã cho A′B′. Kiểm: AB và A′B′ cùng nằm trong (ABB′A′) và không có điểm chung nên AB // A′B′ (đúng tính chất hình hộp)."
         },
         {
-          "question": "Trong hình chóp $S.ABCD$, lấy $M\\in SA$, $M\\ne S$ và qua $M$ dựng $d\\parallel CD$. Chứng minh $d\\parallel(SCD)$ và xác định $d\\cap(SCD)$.",
-          "solution": "Vì $M\\notin(SCD)$), mặt phẳng $(MCD)$ cắt $(SCD)$ theo $CD$. Lại có $d\\subset(MCD)$ và $d\\parallel CD$, nên $d\\parallel(SCD)$; do đó $d\\cap(SCD)=\\varnothing$."
+          "question": "Vì sao không thể nói \"d // (P) nên d song song với mọi đường trong (P)\"?",
+          "solution": "Trong (P) có vô số đường khác phương d; ví dụ đường vuông góc với d trong (P) sẽ cắt phương của d. Chỉ các đường cùng phương d (như giao tuyến b) mới song song với d."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Nếu $(P)\\cap(Q)=d'$ và $d\\parallel(P)$, $d\\subset(Q)$ thì $d$ song song với đường nào?",
-          "answer": "$d\\parallel d'$."
+          "question": "Phát biểu tính chất về giao tuyến khi d // (P).",
+          "answer": "Nếu d // (P), mặt phẳng (Q) chứa d và cắt (P) theo giao tuyến b thì b // d."
         },
         {
           "level": "NB",
-          "question": "Vai trò của $d'$ trong tính chất là gì?",
-          "answer": "$d'$ là giao tuyến của hai mặt phẳng và nằm trong $(Q)$, giúp chuyển quan hệ đường–mặt phẳng thành quan hệ hai đường."
+          "question": "Nêu hai điều kiện cần kiểm trước khi kết luận b // d.",
+          "answer": "(Q) phải chứa d; (Q) phải cắt (P) theo giao tuyến b (tức b = (Q) ∩ (P))."
         },
         {
           "level": "TH",
-          "question": "Cho $(P)\\parallel(Q)$ và $d\\subset(Q)$. Kết luận $d\\parallel(P)$ trong điều kiện nào?",
-          "answer": "Khi $d\\not\\subset(P)$; vì $(P)$ và $(Q)$ song song nên $d$ không có điểm chung với $(P)$."
+          "question": "Cho hình chóp S.ABCD, M, N là trung điểm SA, SB. Biết MN // (ABCD) và (SAB) cắt (ABCD) theo AB, kết luận gì?",
+          "answer": "MN // AB theo tính chất — phù hợp với việc MN là đường trung bình của tam giác SAB."
         },
         {
           "level": "TH",
-          "question": "Trong mặt phẳng $(Q)$, dựng qua $M$ đường $d'$ song song với $d$ để xác định giao tuyến. Nêu bước chính.",
-          "answer": "Xác định $d'=(P)\\cap(Q)$ trước, sau đó dùng tính chất $d\\parallel d'$; giao điểm với đường qua $M$ được tìm trong $(Q)$."
+          "question": "Trong hộp, biết AD // (BCC′B′) và (ADD′A′) cắt (BCC′B′) theo ... hãy cho biết có giao tuyến không.",
+          "answer": "Hai mặt (ADD′A′) và (BCC′B′) song song nhau nên không có giao tuyến; do đó không áp dụng được tính chất này (phải chọn mặt phẳng cắt (P))."
         },
         {
           "level": "VD",
-          "question": "Phân tích vì sao phải tìm giao tuyến trước khi kết luận hai đường song song.",
-          "answer": "Không có $d'$ thì chưa có đường nằm trong $(Q)$ để áp dụng định lí; giao tuyến là mắt xích nối $d\\parallel(P)$ với $d\\parallel d'$."
+          "question": "Cho hình chóp S.ABCD có đáy ABCD là hình bình hành, M là trung điểm SA. Mặt phẳng (MBC) cắt (SAD) theo giao tuyến d. Chứng minh d // BC.",
+          "answer": "Có BC // AD và AD ⊂ (SAD), BC ⊄ (SAD) ⇒ BC // (SAD). Mặt (MBC) chứa BC và cắt (SAD) theo d. Theo tính chất, d // BC."
         },
         {
           "level": "VD",
-          "question": "Sửa lời giải “$d\\parallel(P)$ nên $d$ song song mọi đường trong $(P)$”.",
-          "answer": "Sai. Chỉ có thể kết luận với đường giao tuyến $d'$ trong mặt phẳng chứa $d$ theo tính chất; không phải mọi đường trong $(P)$."
+          "question": "Phản biện lập luận: \"d // (P) nên giao tuyến b // mọi đường trong (P)\".",
+          "answer": "Sai phạm vi. Chỉ các đường trong (P) cùng phương với d mới song song với b; đường khác phương sẽ cắt b. Ví dụ trong (P) lấy đường vuông góc với b — đường đó cắt b tại một điểm."
         }
       ],
       "quick": [
         {
-          "question": "Trong mô hình hai mặt phẳng sàn và trần song song, thanh $d$ nằm trên trần. Đường nào đóng vai trò giao tuyến?",
-          "solution": "Chọn một mặt phẳng phụ $(Q)$ chứa thanh $d$; giao tuyến $d'=(P)\\cap(Q)$ là đường dùng để suy ra $d\\parallel d'$."
+          "question": "Vì sao b và d đồng phẳng?",
+          "solution": "Vì cả hai đều nằm trong (Q): d theo giả thiết, b là giao tuyến của (Q) với (P)."
         },
         {
-          "question": "Nếu $(P)\\cap(Q)$ không phải là một đường thẳng thì có dùng tính chất này không?",
-          "solution": "Không; tính chất này cần hai mặt phẳng cắt nhau theo một giao tuyến $d'$."
+          "question": "Nếu (Q) song song (P) thì có áp dụng được tính chất không?",
+          "solution": "Không, vì không có giao tuyến b. Tính chất chỉ áp dụng khi (Q) cắt (P)."
         }
       ],
       "mistakes": [
-        "Vẽ giao tuyến không qua đúng điểm đã cho.",
-        "Nhầm giao tuyến của hai mặt phẳng với đường bất kỳ trong mặt phẳng.",
-        "Suy ra d song song mọi đường trong (P)."
+        "Cho rằng giao tuyến song song với mọi đường trong mặt phẳng.",
+        "Áp dụng tính chất khi (Q) song song (P) (không có giao tuyến).",
+        "Nhầm d với một đường nằm trong (P)."
       ],
       "diagram": "parallel",
       "digital": true,
@@ -6737,7 +6782,18 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Khai thác giao tuyến của hai mặt phẳng để tìm đường song song, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Tính chất",
+        "a. d // (P), (Q) ⊃ d, (Q) ∩ (P) = b ⇒ b // d.",
+        "b. b và d đồng phẳng trong (Q) và không có điểm chung.",
+        "2. Hệ quả",
+        "a. Hai mặt phẳng cắt nhau cùng song song d ⇒ giao tuyến // d.",
+        "3. Áp dụng",
+        "a. Hộp: A′B′ // (ABCD) ⇒ AB // A′B′.",
+        "b. Hình chóp: MN // (ABCD) ⇒ MN // AB."
+      ]
     },
     {
       "key": "11-5-31",
@@ -6747,73 +6803,68 @@
       "kind": "practice",
       "selfChoice": false,
       "title": "Luyện tập đường thẳng song song với mặt phẳng",
-      "focus": "Tổng hợp định nghĩa, điều kiện và tính chất",
+      "focus": "Luyện tập ba kỹ năng về đường thẳng song song mặt phẳng trên hộp ABCD.A′B′C′D′ và hình chóp S.ABCD: nhận diện vị trí, chứng minh bằng định lí điều kiện (AB // (A′B′C′D′), MN // (ABCD)), khai thác tính chất giao tuyến; quy tắc chọn công cụ theo \"đã biết song song chưa\"",
       "formulas": [
-        "d\\subset(P)",
-        "d\\cap(P)=\\{M\\}",
-        "d\\parallel d',\\ d'\\subset(P),\\ d\\not\\subset(P)\\Longrightarrow d\\parallel(P)",
-        "d\\parallel(P),\\ d\\subset(Q),\\ (P)\\cap(Q)=d'\\Longrightarrow d\\parallel d'"
+        "d \\not\\subset (P), d \\parallel d′, d′ \\subset (P) \\Rightarrow d \\parallel (P)",
+        "d \\parallel (P), (Q) \\supset d, (Q) \\cap (P) = b \\Rightarrow b \\parallel d",
+        "\\text{Đường trung bình tam giác} \\parallel \\text{cạnh đáy}"
       ],
       "examples": [
         {
-          "question": "Chứng minh $AB\\parallel(SCD)$ trong hình chóp $S.ABCD$ có đáy là hình bình hành. (tham khảo ví dụ 1 SBT trang 201)",
-          "solution": "$AB\\parallel CD$, $CD\\subset(SCD)$, $AB\\not\\subset(SCD)$ nên $AB\\parallel(SCD)$.",
-          "sourceRef": "tham khảo ví dụ 1 SBT trang 201"
+          "question": "Trong hộp ABCD.A′B′C′D′, chứng minh AB // (A′B′C′D′).",
+          "solution": "AB // A′B′ (cạnh tương ứng hình hộp); A′B′ ⊂ (A′B′C′D′); AB ⊄ (A′B′C′D′). Theo định lí, AB // (A′B′C′D′)."
         },
         {
-          "question": "Trong lăng trụ $ABC.A'B'C'$, chứng minh $AA'\\parallel(BCC'B')$. (tham khảo ví dụ 3 SBT trang 202)",
-          "solution": "$AA'\\parallel BB'$, $BB'\\subset(BCC'B')$, $AA'\\not\\subset(BCC'B')$ nên $AA'\\parallel(BCC'B')$.",
-          "sourceRef": "tham khảo ví dụ 3 SBT trang 202"
+          "question": "Cho hình chóp S.ABCD, M, N là trung điểm SA, SB. Chứng minh MN // (ABCD).",
+          "solution": "MN là đường trung bình tam giác SAB nên MN // AB. Có AB ⊂ (ABCD) và MN ⊄ (ABCD) (M, N không thuộc mặt đáy). Vậy MN // (ABCD)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Phân loại: $d\\subset(P)$, $d\\cap(P)={M}$, hay $d\\parallel(P)$.",
-          "answer": "Dựa vào số điểm chung: vô số, một, hoặc không có điểm chung và $d$ không nằm trong $(P)$."
+          "question": "Nêu định lí điều kiện để d // (P).",
+          "answer": "d ⊄ (P), d // d′, d′ ⊂ (P) ⇒ d // (P)."
         },
         {
           "level": "NB",
-          "question": "Nêu điều kiện đủ để chứng minh $d\\parallel(P)$.",
-          "answer": "$d\\parallel d'$, $d'\\subset(P)$ và $d\\not\\subset(P)$."
+          "question": "Nêu tính chất giao tuyến khi d // (P).",
+          "answer": "Nếu (Q) chứa d và cắt (P) theo b thì b // d."
         },
         {
           "level": "TH",
-          "question": "Cho $M,N$ là trung điểm của $AB,AC$ trong tam giác $ABC$ và $S\\notin(ABC)$. Chứng minh $MN\\parallel(SBC)$. (bài 1 SBT trang 212)",
-          "answer": "$MN\\parallel BC$, $BC\\subset(SBC)$, $MN\\not\\subset(SBC)$ nên $MN\\parallel(SBC)$.",
-          "sourceRef": "bài 1 SBT trang 212"
+          "question": "Trong hộp, chứng minh A′D′ // (ABCD).",
+          "answer": "A′D′ // AD, AD ⊂ (ABCD), A′D′ ⊄ (ABCD) ⇒ A′D′ // (ABCD)."
         },
         {
           "level": "TH",
-          "question": "Tìm giao tuyến của mặt phẳng $(SAB)$ và $(SCD)$ trong hình chóp khi $AB\\parallel CD$. (bài 1 SBT trang 200)",
-          "answer": "Hai mặt phẳng cùng đi qua $S$; giao tuyến là đường qua $S$ song song với $AB$ và $CD$.",
-          "sourceRef": "bài 1 SBT trang 200"
+          "question": "Trong hộp, biết A′B′ // (ABCD) và (BCC′B′) cắt (ABCD) theo BC. Kết luận gì?",
+          "answer": "Chưa kết luận được vì (BCC′B′) không chứa A′B′. Phải chọn mặt phẳng chứa A′B′, ví dụ (ABB′A′), khi đó giao tuyến AB // A′B′."
         },
         {
           "level": "VD",
-          "question": "Lập lời giải đủ ba điều kiện cho $AD\\parallel(SBC)$ khi $ABCD$ là hình bình hành.",
-          "answer": "$AD\\parallel BC$, $BC\\subset(SBC)$, $AD\\not\\subset(SBC)$ nên $AD\\parallel(SBC)$."
+          "question": "Cho hình chóp S.ABCD đáy là hình bình hành, M trung điểm SA. (MBC) cắt (SAD) theo d. Chứng minh d // BC.",
+          "answer": "BC // AD ⊂ (SAD) và BC ⊄ (SAD) ⇒ BC // (SAD). (MBC) chứa BC, cắt (SAD) theo d ⇒ d // BC."
         },
         {
           "level": "VD",
-          "question": "Vẽ mô hình mặt phẳng và chỉ ra lỗi nếu một đường bị đặt nằm luôn trong mặt phẳng.",
-          "answer": "Nếu đường nằm trong mặt phẳng thì không được kết luận song song; phải chọn đường không thuộc mặt phẳng và có đường song song nằm trong mặt phẳng."
+          "question": "Phản biện: \"Muốn chứng minh d // (P) chỉ cần tìm một đường trong (P) không cắt d\".",
+          "answer": "Sai. Hai đường không cắt nhau trong không gian vẫn có thể chéo nhau. Phải chứng minh d // d′ (cùng phương, đồng phẳng) với d′ ⊂ (P), hoặc chứng minh d không có điểm chung với (P) bằng lập luận."
         }
       ],
       "quick": [
         {
-          "question": "Cho $AB\\parallel CD$, $CD\\subset(SCD)$ và $AB\\not\\subset(SCD)$. Kết luận quan hệ giữa $AB$ và $(SCD)$.",
-          "solution": "$AB\\parallel(SCD)$ theo định lí đường thẳng song song với mặt phẳng."
+          "question": "Khi nào dùng tính chất giao tuyến?",
+          "solution": "Khi đã biết d // (P) và cần tìm quan hệ giữa d với giao tuyến của một mặt phẳng chứa d."
         },
         {
-          "question": "Cho $d\\parallel(P)$, $d\\subset(Q)$ và $(P)\\cap(Q)=d'$. Kết luận quan hệ giữa $d$ và $d'$.",
-          "solution": "$d\\parallel d'$ theo tính chất đường thẳng song song với mặt phẳng."
+          "question": "Vì sao MN // AB trong hình chóp với M, N trung điểm SA, SB?",
+          "solution": "Vì MN là đường trung bình của tam giác SAB, nên song song với cạnh đáy AB."
         }
       ],
       "mistakes": [
-        "Không nêu đủ ba điều kiện khi kết luận.",
-        "Đổi mặt phẳng giữa chừng nhưng không cập nhật đường song song.",
-        "Dùng hình vẽ đẹp thay cho lập luận."
+        "Dùng tính chất giao tuyến khi chưa chứng minh song song.",
+        "Chọn mặt phẳng (Q) không chứa d.",
+        "Bỏ điều kiện d ⊄ (P)."
       ],
       "diagram": "parallel",
       "digital": true,
@@ -7052,7 +7103,20 @@
       },
       "guidingQuestion": "Khi gặp các bài về Tổng hợp định nghĩa, điều kiện và tính chất, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Hai công cụ",
+        "a. Định lí điều kiện: d ⊄ (P), d // d′, d′ ⊂ (P) ⇒ d // (P).",
+        "b. Tính chất: d // (P), (Q) ⊃ d, (Q) ∩ (P) = b ⇒ b // d.",
+        "2. Quy tắc chọn",
+        "a. Chưa biết song song → dùng định lí.",
+        "b. Đã biết song song → dùng tính chất.",
+        "3. Ba ca luyện tập",
+        "a. AB // (A′B′C′D′).",
+        "b. AB // A′B′ qua giao tuyến.",
+        "c. MN // (ABCD) qua đường trung bình."
+      ]
     },
     {
       "key": "11-5-32",
@@ -7062,71 +7126,68 @@
       "kind": "practice",
       "selfChoice": true,
       "title": "Củng cố phương trình lượng giác cơ bản và điều kiện nghiệm",
-      "focus": "Ôn sin x = m, cos x = m và điều kiện tồn tại nghiệm",
+      "focus": "Củng cố phương trình lượng giác cơ bản và điều kiện nghiệm trên hai mô hình đã học: sin θ = 1/2 (π/6; 5π/6), cos(πt/12) = 1/2 (t = 4; 20 trong ngày), sin θ = √2 vô nghiệm; rèn quy trình lọc nghiệm theo k",
       "formulas": [
-        "\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi",
-        "\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi",
-        "\\lvert m\\rvert\\le1",
-        "\\sin^2x+\\cos^2x=1"
+        "\\sin x = m \\Leftrightarrow x = \\alpha + 2k\\pi \\ \\text{hoặc} \\ x = \\pi - \\alpha + 2k\\pi",
+        "\\cos x = m \\Leftrightarrow x = \\pm\\alpha + 2k\\pi",
+        "|m| \\le 1 \\ \\text{là điều kiện có nghiệm}"
       ],
       "examples": [
         {
-          "question": "Giải và phân loại $\\sin x=\\frac12$ và $\\cos x=\\frac12$. (bài 1 SBT trang 73)",
-          "solution": "Sin cho hai họ $\\frac\\pi6,\\frac{5\\pi}6$; cos cho $\\pm\\frac\\pi3$; tất cả cộng chu kỳ $2k\\pi$.",
-          "sourceRef": "bài 1 SBT trang 73"
+          "question": "Giải sin θ = 1/2 và liệt kê nghiệm trong [0; 2π].",
+          "solution": "θ = π/6 + 2kπ hoặc θ = 5π/6 + 2kπ. Trong [0; 2π]: k = 0 cho θ = π/6 và 5π/6; k = 1 vượt quá 2π. Vậy hai nghiệm."
         },
         {
-          "question": "Xét điều kiện nghiệm của $\\sin x=\\frac32$ và $\\cos x=-2$. (bài 2 SBT trang 76)",
-          "solution": "Cả hai vô nghiệm vì vế phải không thuộc $[-1;1]$.",
-          "sourceRef": "bài 2 SBT trang 76"
+          "question": "Giải cos(πt/12) = 1/2 trong [0; 24].",
+          "solution": "πt/12 = ±π/3 + 2kπ ⇒ t = ±4 + 24k. Trong [0;24]: t = 4 (k = 0, nhánh +) và t = 20 (k = 1, nhánh − vì −4 + 24 = 20)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Viết công thức nghiệm của $\\cos x=\\cos\\alpha$.",
-          "answer": "$x=\\pm\\alpha+2k\\pi$."
+          "question": "Nêu điều kiện có nghiệm của sin x = m và cos x = m.",
+          "answer": "Cả hai đều cần |m| ≤ 1."
         },
         {
           "level": "NB",
-          "question": "Điều kiện để $\\sin x=m$ có nghiệm là gì?",
-          "answer": "$-1\\le m\\le1$."
+          "question": "Viết nghiệm tổng quát của cos x = 1/2.",
+          "answer": "x = ±π/3 + 2kπ."
         },
         {
           "level": "TH",
-          "question": "Giải $\\sin x=-\\frac12$ trên $[0;2\\pi]$.",
-          "answer": "$x=\\frac{7\\pi}6,\\frac{11\\pi}6$."
+          "question": "Giải sin 2x = −1/2.",
+          "answer": "2x = −π/6 + 2kπ hoặc 2x = π + π/6 + 2kπ = 7π/6 + 2kπ ⇒ x = −π/12 + kπ hoặc x = 7π/12 + kπ."
         },
         {
           "level": "TH",
-          "question": "Giải $\\cos 2x=-1$ trên $[0;2\\pi]$.",
-          "answer": "$x=\\frac\\pi2,\\frac{3\\pi}2$."
+          "question": "Tìm nghiệm của sin x = √2/2 trong [0; 2π].",
+          "answer": "x = π/4 và x = 3π/4."
         },
         {
           "level": "VD",
-          "question": "Tìm $m$ để $\\sin x=m$ có nghiệm và có một nghiệm thuộc $[0;\\frac\\pi2]$.",
-          "answer": "Điều kiện cơ bản $0\\le m\\le1$; mọi $m$ trong khoảng này có nghiệm thuộc góc phần tư I."
+          "question": "Giải 2sin x − 1 = 0 và cho biết số nghiệm trong [0; 2π].",
+          "answer": "sin x = 1/2 ⇒ x = π/6 + 2kπ hoặc 5π/6 + 2kπ; trong [0;2π] có 2 nghiệm: π/6 và 5π/6."
         },
         {
           "level": "VD",
-          "question": "Lập bảng đối chiếu dấu, góc đại diện và chu kỳ cho sin/cos.",
-          "answer": "Sin: hai góc đối xứng qua trục vuông; cos: hai góc đối nhau; cả hai có chu kỳ $2\\pi$."
+          "question": "Biện luận số nghiệm của sin x = m trong [0; 2π] theo m.",
+          "answer": "Nếu |m| > 1: 0 nghiệm. Nếu |m| = 1: 1 nghiệm (x = π/2 hoặc 3π/2). Nếu 0 < |m| < 1: 2 nghiệm. Nếu m = 0: 3 nghiệm (0; π; 2π)."
         }
       ],
       "quick": [
         {
-          "question": "Giải nhanh $\\cos x=-\\frac{\\sqrt2}{2}$ trên $[0;2\\pi]$.",
-          "solution": "$x=\\frac{3\\pi}4,\\frac{5\\pi}4$."
+          "question": "Vì sao phải thử k = 1 khi lọc nghiệm trong [0; 24]?",
+          "solution": "Vì nhánh âm −4 + 24k chỉ vào khoảng khi k = 1, cho t = 20; nếu chỉ lấy k = 0 sẽ mất nghiệm."
         },
         {
-          "question": "Có nghiệm không với $\\sin x=\\frac54$?",
-          "solution": "Không, vì $\\frac54>1$."
+          "question": "sin x = 0 có bao nhiêu nghiệm trong [0; 2π]?",
+          "solution": "3 nghiệm: 0; π; 2π (vì x = kπ và hai đầu mút đều thuộc khoảng đóng)."
         }
       ],
       "mistakes": [
-        "Trộn công thức sin và cos.",
-        "Quên điều kiện |m| ≤ 1.",
-        "Không thống nhất khoảng nghiệm và nghiệm tổng quát."
+        "Quên nhánh thứ hai của sin.",
+        "Dùng kπ thay vì 2kπ.",
+        "Chỉ thử k = 0 khi lọc nghiệm."
       ],
       "global": false,
       "lessonType": "practice",
@@ -7364,7 +7425,18 @@
       },
       "guidingQuestion": "Khi gặp các bài về Ôn sin x = m, cos x = m và điều kiện tồn tại nghiệm, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Điều kiện có nghiệm",
+        "a. |m| ≤ 1 với cả sin và cos.",
+        "2. Công thức nghiệm",
+        "a. sin: α + 2kπ hoặc π − α + 2kπ.",
+        "b. cos: ±α + 2kπ.",
+        "3. Lọc nghiệm",
+        "a. Thay k nguyên hoặc giải bất phương trình theo k.",
+        "b. Kiểm hai đầu mút của khoảng đóng."
+      ]
     },
     {
       "key": "11-5-33",
@@ -7374,73 +7446,67 @@
       "kind": "practice",
       "selfChoice": true,
       "title": "Luyện tập phối hợp phương trình lượng giác và vị trí tương đối",
-      "focus": "Phối hợp đại số lượng giác với nhận dạng đường–mặt phẳng",
+      "focus": "Luyện phối hợp phương trình lượng giác và vị trí tương đối: sin 2x = 1/2 → x = π/12 + kπ hoặc 5π/12 + kπ (chú ý chia chu kỳ), A′B′ // (ABCD) qua định lí điều kiện; rèn quy trình chung dữ kiện → công cụ → thực hiện → kiểm độc lập",
       "formulas": [
-        "\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi",
-        "\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi",
-        "d\\parallel d',\\ d'\\subset(P),\\ d\\not\\subset(P)\\Longrightarrow d\\parallel(P)",
-        "d\\subset(P)\\ \\text{hoặc}\\ d\\cap(P)=\\{M\\}\\ \\text{hoặc}\\ d\\parallel(P)"
+        "\\sin 2x = \\tfrac12 \\Leftrightarrow x = \\tfrac{\\pi}{12} + k\\pi \\ \\text{hoặc} \\ x = \\tfrac{5\\pi}{12} + k\\pi",
+        "d \\not\\subset (P), d \\parallel d′, d′ \\subset (P) \\Rightarrow d \\parallel (P)"
       ],
       "examples": [
         {
-          "question": "Giải $\\sin 2x=\\frac12$ và ghi nghiệm trong $[0;2\\pi]$. (bài 3 SBT trang 78)",
-          "solution": "$x=\\frac\\pi{12},\\frac{5\\pi}{12},\\frac{13\\pi}{12},\\frac{17\\pi}{12}$.",
-          "sourceRef": "bài 3 SBT trang 78"
+          "question": "Giải phương trình sin 2x = 1/2.",
+          "solution": "2x = π/6 + 2kπ hoặc 2x = 5π/6 + 2kπ ⇒ x = π/12 + kπ hoặc x = 5π/12 + kπ (chu kỳ chia đôi khi chia hai vế cho 2). Kiểm: x = π/12 cho sin(π/6) = 1/2 ✓."
         },
         {
-          "question": "Trong hình chóp, chọn đúng mặt phẳng để chứng minh một đường song song mặt phẳng. (bài 1 SBT trang 203)",
-          "solution": "Chọn mặt phẳng chứa một đường đã biết song song với đường cần xét; sau đó kiểm tra đường cần xét không nằm trong mặt phẳng.",
-          "sourceRef": "bài 1 SBT trang 203"
+          "question": "Trong hộp ABCD.A′B′C′D′, xác định vị trí của A′B′ và (ABCD) kèm căn cứ.",
+          "solution": "A′B′ // AB (cạnh tương ứng hình hộp), AB ⊂ (ABCD), A′B′ ⊄ (ABCD) ⇒ A′B′ // (ABCD). Kiểm: A′B′ và (ABCD) không có điểm chung."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Giải $\\cos x=0$.",
-          "answer": "$x=\\frac\\pi2+k\\pi$."
+          "question": "Giải cos 2x = 1/2.",
+          "answer": "2x = ±π/3 + 2kπ ⇒ x = ±π/6 + kπ."
         },
         {
           "level": "NB",
-          "question": "Nhận dạng $d\\cap(P)={M}$.",
-          "answer": "Đây là trường hợp đường thẳng cắt mặt phẳng tại đúng một điểm."
+          "question": "Nêu định lí điều kiện để d // (P).",
+          "answer": "d ⊄ (P), d // d′, d′ ⊂ (P) ⇒ d // (P)."
         },
         {
           "level": "TH",
-          "question": "Giải $\\sin(x-\\frac\\pi6)=\\frac{\\sqrt3}{2}$. (bài 1 SBT trang 73)",
-          "answer": "$x=\\frac\\pi2+2k\\pi$ hoặc $x=\\frac{5\\pi}6+2k\\pi$.",
-          "sourceRef": "bài 1 SBT trang 73"
+          "question": "Giải sin 2x = 1/2.",
+          "answer": "x = π/12 + kπ hoặc x = 5π/12 + kπ."
         },
         {
           "level": "TH",
-          "question": "Cho $AB\\parallel CD$, $CD\\subset(SCD)$. Cần thêm điều kiện nào để $AB\\parallel(SCD)$? (bài 1 SBT trang 200)",
-          "answer": "$AB\\not\\subset(SCD)$.",
-          "sourceRef": "bài 1 SBT trang 200"
+          "question": "Trong hộp, chứng minh BC // (ADD′A′).",
+          "answer": "BC // AD, AD ⊂ (ADD′A′), BC ⊄ (ADD′A′) ⇒ BC // (ADD′A′)."
         },
         {
           "level": "VD",
-          "question": "Phân tích một lời giải có cả bước giải phương trình và bước chứng minh song song.",
-          "answer": "Tách hai mạch lập luận; mỗi mạch phải có điều kiện, phép biến đổi và phép kiểm riêng, không dùng kết quả đại số để thay cho giả thiết hình học."
+          "question": "Giải cos 3x = 1/2 và cho biết số nghiệm trong [0; π].",
+          "answer": "x = ±π/9 + 2kπ/3. Trong [0; π]: x = π/9; 5π/9; 7π/9 (và π/9 + 2π/3 = 7π/9; −π/9 + 2π/3 = 5π/9) → 3 nghiệm."
         },
         {
           "level": "VD",
-          "question": "Thiết kế một câu hỏi phản biện về chu kỳ hoặc điều kiện không thuộc mặt phẳng.",
-          "answer": "Ví dụ: “Vì sao không thể dùng $k\\pi$ cho họ nghiệm sin?” hoặc “Nếu đường nằm trong mặt phẳng thì vì sao không gọi song song?”"
+          "question": "Nêu một lỗi thường gặp khi chuyển từ mạch lượng giác sang mạch hình học và cách tránh.",
+          "answer": "Lỗi: bê nguyên điều kiện |m| ≤ 1 sang hình học hoặc quên kiểm d ⊄ (P) vì đang quen thao tác đại số. Cách tránh: viết lại quy trình 4 bước cho từng phần và kiểm từng điều kiện riêng."
         }
       ],
       "quick": [
         {
-          "question": "Chọn một bài đại số và một bài hình để báo cáo trong 60 giây.",
-          "solution": "Báo cáo phải có dữ kiện, quy tắc, kết luận và một phép kiểm độc lập."
+          "question": "Vì sao chu kỳ của sin 2x = 1/2 là kπ?",
+          "solution": "Vì 2x có chu kỳ 2kπ; chia hai vế cho 2 thì chu kỳ của x là kπ."
         },
         {
-          "question": "Nêu một lỗi có thể xảy ra khi chuyển từ đại số sang hình học.",
-          "solution": "Dễ chuyển nhầm ký hiệu hoặc bỏ điều kiện; cần đọc lại đối tượng và phạm vi trước khi kết luận."
+          "question": "A′B′ và (ABCD) có điểm chung nào?",
+          "solution": "Không có — A′B′ nằm trong mặt trên (A′B′C′D′) song song với mặt đáy."
         }
       ],
       "mistakes": [
-        "Nối hai mạch suy luận không có cầu nối.",
-        "Bỏ điều kiện của phương trình khi lọc nghiệm.",
-        "Kết luận hình học dựa trên cảm giác từ hình vẽ."
+        "Quên chia chu kỳ khi chia hai vế cho hệ số.",
+        "Bỏ điều kiện |m| ≤ 1.",
+        "Quên kiểm d ⊄ (P) khi chuyển sang hình học."
       ],
       "diagram": "parallel",
       "lessonType": "practice",
@@ -7678,7 +7744,17 @@
       },
       "guidingQuestion": "Khi gặp các bài về Phối hợp đại số lượng giác với nhận dạng đường–mặt phẳng, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Mạch lượng giác",
+        "a. sin 2x = 1/2 ⇒ x = π/12 + kπ hoặc 5π/12 + kπ.",
+        "b. cos 2x = 1/2 ⇒ x = ±π/6 + kπ.",
+        "2. Mạch hình học",
+        "a. A′B′ // AB ⊂ (ABCD) ⇒ A′B′ // (ABCD).",
+        "3. Quy trình chung",
+        "a. Dữ kiện → công cụ → thực hiện → kiểm độc lập."
+      ]
     },
     {
       "key": "11-6-34",
@@ -7688,69 +7764,69 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Giải phương trình lượng giác tanx = m, cotx = m",
-      "focus": "Phương trình cơ bản của tan và cot, kèm điều kiện xác định",
+      "focus": "Hình thành công thức nghiệm tan x = m, cot x = m trên trục độ dốc mái nhà (tan α = 0,5 → α = arctan 0,5 + kπ ≈ 26,57° trong (0; π/2)); nhấn chu kỳ kπ, điều kiện xác định cos ≠ 0 / sin ≠ 0 và việc tan nhận mọi giá trị thực",
       "formulas": [
-        "\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi",
-        "\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi",
-        "x\\ne\\frac\\pi2+k\\pi\\ \\text{đối với tan}",
-        "x\\ne k\\pi\\ \\text{đối với cot}"
+        "\\tan x = m \\Leftrightarrow x = \\arctan m + k\\pi \\ (x \\ne \\tfrac{\\pi}{2} + k\\pi)",
+        "\\cot x = m \\Leftrightarrow x = \\operatorname{arccot} m + k\\pi \\ (x \\ne k\\pi)",
+        "\\tan x = 0 \\Leftrightarrow x = k\\pi",
+        "\\cot x = 0 \\Leftrightarrow x = \\tfrac{\\pi}{2} + k\\pi"
       ],
       "examples": [
         {
-          "question": "Giải $\\tan x=1$.",
-          "solution": "Vì $\\tan\\frac\\pi4=1$ nên $x=\\frac\\pi4+k\\pi$."
+          "question": "Mái nhà có độ dốc i = tan α = 0,5. Tìm α và cho biết giá trị trong khoảng (0; π/2).",
+          "solution": "α = arctan 0,5 + kπ, điều kiện α ≠ π/2 + kπ. Trong (0; π/2): α = arctan 0,5 ≈ 26,57°."
         },
         {
-          "question": "Giải $\\cot(2x-\\frac\\pi4)=-1$.",
-          "solution": "Đặt $2x-\\frac\\pi4=-\\frac\\pi4+k\\pi$; suy ra $x=\\frac{k\\pi}{2}$, đồng thời kiểm tra điều kiện xác định của cot."
+          "question": "Giải cot x = √3.",
+          "solution": "x = π/6 + kπ (vì cot(π/6) = √3), điều kiện x ≠ kπ."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Giải $\\tan x=\\sqrt3$.",
-          "answer": "$x=\\frac\\pi3+k\\pi$."
+          "question": "Nêu điều kiện xác định của tan x và cot x.",
+          "answer": "tan x xác định khi cos x ≠ 0, tức x ≠ π/2 + kπ; cot x xác định khi sin x ≠ 0, tức x ≠ kπ."
         },
         {
           "level": "NB",
-          "question": "Giải $\\cot x=-1$.",
-          "answer": "$x=-\\frac\\pi4+k\\pi$."
+          "question": "Giải tan x = 1.",
+          "answer": "x = π/4 + kπ, điều kiện x ≠ π/2 + kπ."
         },
         {
           "level": "TH",
-          "question": "Giải $\\tan(2x+\\frac\\pi4)=\\sqrt3$.",
-          "answer": "$2x+\\frac\\pi4=\\frac\\pi3+k\\pi$ nên $x=\\frac\\pi{24}+\\frac{k\\pi}{2}$."
+          "question": "Giải tan(2x) = −1.",
+          "answer": "2x = −π/4 + kπ ⇒ x = −π/8 + kπ/2, điều kiện x ≠ π/4 + kπ/2."
         },
         {
           "level": "TH",
-          "question": "Giải $\\cot(3x)=\\sqrt3$ trên $[0;\\pi]$.",
-          "answer": "$3x=\\frac\\pi6+k\\pi$; lọc được $x=\\frac\\pi{18},\\frac{7\\pi}{18},\\frac{13\\pi}{18}$."
+          "question": "Giải cot(3x) = 0.",
+          "answer": "3x = π/2 + kπ ⇒ x = π/6 + kπ/3, điều kiện x ≠ kπ/3."
         },
         {
           "level": "VD",
-          "question": "Giải $\\tan x+\\tan(\\frac\\pi4-x)=2$ trong miền xác định.",
-          "answer": "Đặt $t=\\tan x$. Khi $\\tan(\\frac\\pi4-x)=\\frac{1-t}{1+t}$, ta được $t+\\frac{1-t}{1+t}=2$ hay $t^2-2t-1=0$. Suy ra $t=1+\\sqrt2$ hoặc $t=1-\\sqrt2$, rồi đối chiếu điều kiện xác định."
+          "question": "Mái nhà có tan α = 2. Tính α và nhận xét so với tiêu chuẩn i = 0,5.",
+          "answer": "α = arctan 2 + kπ ≈ 63,43° + kπ. Trong (0; π/2) góc ≈ 63,43°, lớn hơn nhiều so với 26,57° của tiêu chuẩn — mái quá dốc."
         },
         {
           "level": "VD",
-          "question": "Phản biện lời giải dùng chu kỳ $2pi$ cho $\\tan x=1$.",
-          "answer": "Sai; tan và cot có chu kỳ $\\pi$ nên nghiệm phải là $x=\\frac\\pi4+k\\pi$."
+          "question": "Giải tan x = 0 và cho biết số nghiệm trong [0; 2π).",
+          "answer": "x = kπ; trong [0; 2π) có x = 0 và x = π — 2 nghiệm (x = 2π không thuộc khoảng nửa mở)."
         }
       ],
       "quick": [
         {
-          "question": "Giải $\\tan x=-\\sqrt3$ trên $[0;2\\pi]$.",
-          "solution": "$x=\\frac{2\\pi}3,\\frac{5\\pi}3$."
+          "question": "Vì sao tan x = m luôn có nghiệm với mọi m?",
+          "solution": "Vì tập giá trị của tan là toàn bộ ℝ (khác sin, cos bị chặn trong [−1; 1])."
         },
         {
-          "question": "Nêu điều kiện xác định của $\\cot(2x-\\frac\\pi3)$.",
-          "solution": "$2x-\\frac\\pi3\\ne k\\pi$."
+          "question": "Chu kỳ nghiệm của cot là bao nhiêu?",
+          "solution": "kπ, vì cot tuần hoàn chu kỳ π."
         }
       ],
       "mistakes": [
-        "Dùng k2π thay cho kπ.",
-        "Bỏ điều kiện xác định của tan/cot.",
-        "Không lọc nghiệm theo khoảng sau khi chia hệ số góc."
+        "Dùng 2kπ cho tan/cot.",
+        "Bỏ điều kiện xác định khi kết luận nghiệm.",
+        "Áp điều kiện |m| ≤ 1 cho tan/cot."
       ],
       "diagram": "trig",
       "digital": true,
@@ -7989,7 +8065,20 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Phương trình cơ bản của tan và cot, kèm điều kiện xác định, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Tan và cot",
+        "a. tan x = m ⇔ x = arctan m + kπ, x ≠ π/2 + kπ.",
+        "b. cot x = m ⇔ x = arccot m + kπ, x ≠ kπ.",
+        "c. Đặc biệt: tan x = 0 ⇔ x = kπ; cot x = 0 ⇔ x = π/2 + kπ.",
+        "2. Lưu ý",
+        "a. Chu kỳ π, không phải 2π.",
+        "b. Tan nhận mọi giá trị thực, không có điều kiện |m| ≤ 1.",
+        "3. Áp dụng độ dốc mái",
+        "a. i = 0,5 ⇒ α ≈ 26,57°.",
+        "b. i = 2 ⇒ α ≈ 63,43° (quá dốc)."
+      ]
     },
     {
       "key": "11-6-35",
@@ -7999,72 +8088,69 @@
       "kind": "practice",
       "selfChoice": false,
       "title": "Luyện tập phương trình lượng giác",
-      "focus": "Trộn bốn dạng sin, cos, tan, cot và lọc nghiệm trên khoảng",
+      "focus": "Luyện tập bốn dạng phương trình lượng giác (sin, cos, tan, cot) theo bảng tra: 2sin x − √3 = 0 (x = π/3 + 2kπ; 2π/3 + 2kπ), tan 2x = 1 (x = π/8 + kπ/2), cot(x/2) = −1 (x = −π/2 + 2kπ); rèn nhận dạng, chu kỳ và điều kiện xác định",
       "formulas": [
-        "\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi",
-        "\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi",
-        "\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi",
-        "\\cot x=\\cot\\alpha\\Longleftrightarrow x=\\alpha+k\\pi"
+        "\\sin x = m \\Leftrightarrow x = \\alpha + 2k\\pi \\ \\text{hoặc} \\ \\pi - \\alpha + 2k\\pi",
+        "\\cos x = m \\Leftrightarrow x = \\pm\\alpha + 2k\\pi",
+        "\\tan x = m \\Leftrightarrow x = \\arctan m + k\\pi",
+        "\\cot x = m \\Leftrightarrow x = \\operatorname{arccot} m + k\\pi"
       ],
       "examples": [
         {
-          "question": "Giải và lọc $\\sin x=\\frac12$ trên $[0;2\\pi]$. (bài 3 SBT trang 78)",
-          "solution": "$x=\\frac\\pi6,\\frac{5\\pi}6$.",
-          "sourceRef": "bài 3 SBT trang 78"
+          "question": "Giải phương trình 2sin x − √3 = 0.",
+          "solution": "sin x = √3/2 = sin(π/3) ⇒ x = π/3 + 2kπ hoặc x = 2π/3 + 2kπ."
         },
         {
-          "question": "Giải $\\tan(2x-\\frac\\pi6)=1$. (bài 1 SBT trang 82)",
-          "solution": "$2x-\\frac\\pi6=\\frac\\pi4+k\\pi$ nên $x=\\frac{5\\pi}{24}+\\frac{k\\pi}{2}$.",
-          "sourceRef": "bài 1 SBT trang 82"
+          "question": "Giải phương trình tan 2x = 1 và kiểm với x = π/8.",
+          "solution": "2x = π/4 + kπ ⇒ x = π/8 + kπ/2. Kiểm: tan(2·π/8) = tan(π/4) = 1 ✓."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Giải $\\cos x=0$.",
-          "answer": "$x=\\frac\\pi2+k\\pi$."
+          "question": "Giải sin x = √3/2.",
+          "answer": "x = π/3 + 2kπ hoặc x = 2π/3 + 2kπ."
         },
         {
           "level": "NB",
-          "question": "Giải $\\cot x=\\sqrt3$.",
-          "answer": "$x=\\frac\\pi6+k\\pi$."
+          "question": "Giải tan x = √3.",
+          "answer": "x = π/3 + kπ, điều kiện x ≠ π/2 + kπ."
         },
         {
           "level": "TH",
-          "question": "Giải $\\sin(2x)=\\frac12$ trên $[0;\\pi]$.",
-          "answer": "$2x=\\frac\\pi6+2k\\pi$ hoặc $2x=\\frac{5\\pi}6+2k\\pi$; trong khoảng đã cho, $x=\\frac\\pi{12},\\frac{5\\pi}{12}$."
+          "question": "Giải cos(2x − π/4) = −1/2.",
+          "answer": "2x − π/4 = ±2π/3 + 2kπ ⇒ 2x = π/4 ± 2π/3 + 2kπ ⇒ x = π/8 ± π/3 + kπ."
         },
         {
           "level": "TH",
-          "question": "Giải $\\cos(x-\\frac\\pi3)=-\\frac12$.",
-          "answer": "$x=\\frac\\pi,\\frac{5\\pi}3+2k\\pi$ theo hai họ nghiệm tương ứng."
+          "question": "Giải cot(x/2) = −1.",
+          "answer": "x/2 = −π/4 + kπ ⇒ x = −π/2 + 2kπ."
         },
         {
           "level": "VD",
-          "question": "Giải $\\tan x=\\sqrt3$ trên $(-\\pi;\\pi)$. (bài 1 SBT trang 82)",
-          "answer": "$x=-\\frac{2\\pi}3,\\frac\\pi3$.",
-          "sourceRef": "bài 1 SBT trang 82"
+          "question": "Giải 2cos²x − 1 = 0.",
+          "answer": "cos²x = 1/2 ⇒ cos x = ±√2/2. Với cos x = √2/2: x = ±π/4 + 2kπ; với cos x = −√2/2: x = ±3π/4 + 2kπ. Gộp: x = π/4 + kπ/2."
         },
         {
           "level": "VD",
-          "question": "Tạo một bài trộn sin và cot rồi nêu điểm khác nhau về chu kỳ.",
-          "answer": "Sin lặp lại sau $2\\pi$, cot lặp lại sau $\\pi$; phải lọc theo từng điều kiện xác định."
+          "question": "Tìm nghiệm của tan x = 1 trong [0; π).",
+          "answer": "x = π/4 + kπ; trong [0; π) chỉ có x = π/4 (k = 0)."
         }
       ],
       "quick": [
         {
-          "question": "Trong 20 giây, chọn đúng công thức cho $\\cos x=\\cos\\alpha$.",
-          "solution": "$x=\\pm\\alpha+2k\\pi$."
+          "question": "Vì sao tan 2x = 1 phải chia chu kỳ?",
+          "solution": "Vì sau khi có 2x = π/4 + kπ, chia hai vế cho 2 thì chu kỳ thành kπ/2."
         },
         {
-          "question": "Một nghiệm của $\\tan x=1$ là gì?",
-          "solution": "$x=\\frac\\pi4$; họ nghiệm đầy đủ là $x=\\frac\\pi4+k\\pi$."
+          "question": "Dạng nào cần điều kiện xác định?",
+          "solution": "tan (cos x ≠ 0) và cot (sin x ≠ 0)."
         }
       ],
       "mistakes": [
-        "Lọc nghiệm ngoài khoảng.",
-        "Trộn chu kỳ của tan/cot với sin/cos.",
-        "Quên điều kiện xác định khi biến đổi."
+        "Không chia chu kỳ khi chia hệ số của biến.",
+        "Bỏ điều kiện xác định của tan/cot.",
+        "Nhầm √3/2 với √3 khi chuyển vế."
       ],
       "diagram": "trig",
       "lessonType": "practice",
@@ -8302,7 +8388,17 @@
       },
       "guidingQuestion": "Khi gặp các bài về Trộn bốn dạng sin, cos, tan, cot và lọc nghiệm trên khoảng, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Bảng bốn dạng",
+        "a. sin: hai họ, chu kỳ 2kπ, |m| ≤ 1.",
+        "b. cos: ±α, chu kỳ 2kπ, |m| ≤ 1.",
+        "c. tan: arctan m + kπ, điều kiện cos ≠ 0.",
+        "d. cot: arccot m + kπ, điều kiện sin ≠ 0.",
+        "2. Quy trình 4 bước",
+        "a. Về dạng cơ bản → kiểm điều kiện → áp công thức → lọc nghiệm."
+      ]
     },
     {
       "key": "11-6-36",
@@ -8312,71 +8408,69 @@
       "kind": "practice",
       "selfChoice": false,
       "title": "Ôn tập chương I — giá trị và hàm số lượng giác",
-      "focus": "Hệ thống hóa dấu, chu kỳ, tập xác định, tập giá trị và đồ thị",
+      "focus": "Ôn tập giá trị và hàm số lượng giác: dấu theo phần tư (sin200° < 0, cos(−30°) > 0, tan(3π/4) = −1), chu kỳ (sin 2x có chu kỳ π), tập xác định (tan loại π/2 + kπ), tập giá trị (3cos x + 1 ∈ [−2;4])",
       "formulas": [
-        "\\sin^2x+\\cos^2x=1",
-        "\\tan x=\\frac{\\sin x}{\\cos x}\\ (\\cos x\\ne0)",
-        "\\cot x=\\frac{\\cos x}{\\sin x}\\ (\\sin x\\ne0)",
-        "\\sin(x+2\\pi)=\\sin x,\\ \\cos(x+2\\pi)=\\cos x"
+        "\\text{Chu kỳ } y = \\sin(ax) \\text{ là } \\dfrac{2\\pi}{|a|}",
+        "\\text{Chu kỳ } y = \\tan(ax) \\text{ là } \\dfrac{\\pi}{|a|}",
+        "-1 \\le \\sin x, \\cos x \\le 1",
+        "\\text{Tập giá trị } A\\cos x + B = [B - |A|; B + |A|]"
       ],
       "examples": [
         {
-          "question": "Xác định tập giá trị và chu kỳ của $y=2sin x-1$. (tham khảo bài 5 SBT trang 89)",
-          "solution": "Tập giá trị là $[-3;1]$, chu kỳ $2\\pi$.",
-          "sourceRef": "tham khảo bài 5 SBT trang 89"
+          "question": "Xác định dấu của sin 200°, cos(−30°), tan(3π/4).",
+          "solution": "200° thuộc phần tư III nên sin âm, cos âm, tan dương. −30° thuộc phần tư IV nên cos dương (cos30° = √3/2). 3π/4 thuộc phần tư II nên tan âm (tan(3π/4) = −1)."
         },
         {
-          "question": "Xét tính chẵn lẻ của $y=cos x$ và $y=\tan x$.",
-          "solution": "$cos x$ là hàm chẵn; $\tan x$ là hàm lẻ trên tập xác định của nó."
+          "question": "Tìm chu kỳ và tập giá trị của y = 3cos x + 1.",
+          "solution": "Chu kỳ 2π (hệ số của x là 1). Tập giá trị: cos x ∈ [−1;1] ⇒ 3cos x ∈ [−3;3] ⇒ 3cos x + 1 ∈ [−2;4]."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Nêu tập xác định của $y=\\tan x$. (tham khảo câu 10 SBT trang 88)",
-          "answer": "$\\mathbb R\\setminus\\{\\frac\\pi2+k\\pi\\}$.",
-          "sourceRef": "tham khảo câu 10 SBT trang 88"
+          "question": "Xác định dấu của sin 200° và cos 200°.",
+          "answer": "Cả hai đều âm (phần tư III)."
         },
         {
           "level": "NB",
-          "question": "Tập giá trị của $y=3\\cos x+2$ là gì?",
-          "answer": "$[-1;5]$."
+          "question": "Chu kỳ của y = sin 2x là bao nhiêu?",
+          "answer": "2π/2 = π."
         },
         {
           "level": "TH",
-          "question": "Tìm GTLN, GTNN của $y=2\\sin x-\\cos x$.",
-          "answer": "Biên độ $\\sqrt5$; giá trị lớn nhất $\\sqrt5$ và nhỏ nhất $-\\sqrt5$."
+          "question": "Tìm tập xác định của y = tan x.",
+          "answer": "ℝ \\ {π/2 + kπ, k ∈ ℤ}."
         },
         {
           "level": "TH",
-          "question": "Giải $\\tan x=\\sqrt3$ và ghi tập xác định.",
-          "answer": "$x=\\frac\\pi3+k\\pi$; các nghiệm đều thuộc tập xác định của tan."
+          "question": "Tìm tập giá trị của y = 3cos x + 1.",
+          "answer": "[−2; 4]."
         },
         {
           "level": "VD",
-          "question": "Dựng bảng biến thiên khái quát của $y=\\sin x$ trên $[0;2\\pi]$.",
-          "answer": "Tăng trên $[0;\\frac\\pi2]$, giảm trên $[\\frac\\pi2;\\frac{3\\pi}2]$, tăng trên $[\\frac{3\\pi}2;2\\pi]$."
+          "question": "Tìm chu kỳ của y = tan 2x và tập xác định của nó.",
+          "answer": "Chu kỳ π/2. Tập xác định: 2x ≠ π/2 + kπ ⇒ x ≠ π/4 + kπ/2."
         },
         {
           "level": "VD",
-          "question": "Giải thích vì sao không thể chia cả hai vế cho $\\cos x$ khi giải phương trình.",
-          "answer": "Vì có thể xảy ra $\\cos x=0$; phải xét điều kiện và trường hợp riêng trước khi chia."
+          "question": "Phản biện kết luận \"tập giá trị của 2sin x − 3 là [−3; 3]\".",
+          "answer": "Sai. sin x ∈ [−1;1] ⇒ 2sin x ∈ [−2;2] ⇒ 2sin x − 3 ∈ [−5; −1]. Kết luận [−3;3] bỏ qua cả biên độ và phép dịch."
         }
       ],
       "quick": [
         {
-          "question": "Tập giá trị của $y=\\sin x+2$ là gì?",
-          "solution": "$[1;3]$."
+          "question": "Vì sao hàm tan không xác định tại 90°?",
+          "solution": "Vì tan = sin/cos và cos90° = 0, phép chia không xác định."
         },
         {
-          "question": "Nêu một lỗi khi vẽ đồ thị tan.",
-          "solution": "Quên các tiệm cận đứng $x=\\frac\\pi2+k\\pi$."
+          "question": "Tập giá trị của sin và cos là gì?",
+          "solution": "[−1; 1] — với mọi góc, giá trị sin và cos luôn nằm trong đoạn này."
         }
       ],
       "mistakes": [
-        "Nhầm tập xác định với tập giá trị.",
-        "Bỏ điều kiện mẫu khác không.",
-        "Đọc sai chiều biến thiên trên một chu kỳ."
+        "Nhầm chu kỳ khi hàm có hệ số.",
+        "Quên phép dịch khi tính tập giá trị.",
+        "Cho rằng tan xác định với mọi x."
       ],
       "diagram": "trig",
       "global": true,
@@ -8616,7 +8710,21 @@
       },
       "guidingQuestion": "Khi gặp các bài về Hệ thống hóa dấu, chu kỳ, tập xác định, tập giá trị và đồ thị, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Đối chiếu chu kỳ của các hàm lượng giác với chu kỳ ngày–đêm và các hiện tượng tự nhiên., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Dấu theo phần tư",
+        "a. I (+,+,+); II (+,−,−); III (−,−,+); IV (−,+,−).",
+        "2. Chu kỳ",
+        "a. sin, cos: 2π/|a|.",
+        "b. tan, cot: π/|a|.",
+        "3. Tập xác định",
+        "a. sin, cos: ℝ.",
+        "b. tan: loại π/2 + kπ; cot: loại kπ.",
+        "4. Tập giá trị",
+        "a. sin, cos: [−1;1].",
+        "b. A·cos x + B: [B − |A|; B + |A|]."
+      ]
     },
     {
       "key": "11-6-37",
@@ -8626,72 +8734,68 @@
       "kind": "practice",
       "selfChoice": false,
       "title": "Ôn tập chương I — phương trình lượng giác",
-      "focus": "Giải phương trình lượng giác cơ bản và phương trình đưa về dạng cơ bản",
+      "focus": "Ôn tập phương trình lượng giác qua ba dạng: 2cos²x − 1 = 0 (x = π/4 + kπ/2), sin x + √3cos x = 0 (tan x = −√3 ⇒ x = −π/3 + kπ), cos2x + 3cos x − 1 = 0 (cos x = 1/2 ⇒ x = ±π/3 + 2kπ); rèn công thức nhân đôi, đặt ẩn có điều kiện và xét trường hợp 0 khi chia",
       "formulas": [
-        "\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi",
-        "\\cos x=\\cos\\alpha\\Longleftrightarrow x=\\pm\\alpha+2k\\pi",
-        "\\tan x=\\tan\\alpha\\Longleftrightarrow x=\\alpha+k\\pi",
-        "\\sin^2x+\\cos^2x=1"
+        "\\cos 2x = 2\\cos^2 x - 1",
+        "a\\sin x + b\\cos x = 0 \\Leftrightarrow \\tan x = -\\dfrac{b}{a} \\ (\\text{xét } \\cos x = 0)",
+        "\\cos x = t, \\ t \\in [-1;1]"
       ],
       "examples": [
         {
-          "question": "Giải $2\\sin x-1=0$. (bài 1 SBT trang 78)",
-          "solution": "Đưa về $\\sin x=\\frac12$, nghiệm $x=\\frac\\pi6+2k\\pi$ hoặc $x=\\frac{5\\pi}6+2k\\pi$.",
-          "sourceRef": "bài 1 SBT trang 78"
+          "question": "Giải phương trình 2cos²x − 1 = 0.",
+          "solution": "cos²x = 1/2 ⇒ cos x = ±√2/2. Với cos x = √2/2: x = ±π/4 + 2kπ; với cos x = −√2/2: x = ±3π/4 + 2kπ. Gộp: x = π/4 + kπ/2."
         },
         {
-          "question": "Giải $2\\cos^2x-3\\cos x+1=0$. (bài 2 SBT trang 78)",
-          "solution": "Đặt $t=\\cos x$. Có $t=1$ hoặc $t=\\frac12$, rồi giải hai phương trình cos tương ứng.",
-          "sourceRef": "bài 2 SBT trang 78"
+          "question": "Giải phương trình sin x + √3cos x = 0 và giải thích bước chia.",
+          "solution": "Xét cos x = 0: khi đó sin x = ±1, phương trình thành ±1 = 0 (vô nghiệm) ⇒ cos x ≠ 0. Chia hai vế cho cos x: tan x + √3 = 0 ⇒ tan x = −√3 ⇒ x = −π/3 + kπ."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Giải $\\sin x=0$.",
-          "answer": "$x=k\\pi$."
+          "question": "Viết công thức nhân đôi của cos 2x theo cos x.",
+          "answer": "cos 2x = 2cos²x − 1."
         },
         {
           "level": "NB",
-          "question": "Giải $\\cos x=-\\frac12$.",
-          "answer": "$x=\\frac{2\\pi}3+2k\\pi$ hoặc $x=\\frac{4\\pi}3+2k\\pi$."
+          "question": "Giải cos x = 1/2.",
+          "answer": "x = ±π/3 + 2kπ."
         },
         {
           "level": "TH",
-          "question": "Giải $2\\cos x-\\sqrt3=0$ trên $[0;2\\pi]$.",
-          "answer": "$x=\\frac\\pi6,\\frac{11\\pi}6$."
+          "question": "Giải 2cos²x − 1 = 0.",
+          "answer": "cos x = ±√2/2 ⇒ x = π/4 + kπ/2 (gộp bốn họ)."
         },
         {
           "level": "TH",
-          "question": "Giải $\\sin 2x=\\cos x$. (bài 3 SBT trang 78)",
-          "answer": "Dùng $\\sin2x=2\\sin x\\cos x$; được $\\cos x(2\\sin x-1)=0$ và xét hai trường hợp.",
-          "sourceRef": "bài 3 SBT trang 78"
+          "question": "Giải sin x + √3cos x = 0.",
+          "answer": "Xét cos x = 0 vô nghiệm; chia cho cos x được tan x = −√3 ⇒ x = −π/3 + kπ."
         },
         {
           "level": "VD",
-          "question": "Giải $\\cos 2x+\\cos x=0$.",
-          "answer": "Dùng $\\cos2x=2\\cos^2x-1$ để đưa về phương trình bậc hai theo $\\cos x$."
+          "question": "Giải cos 2x + 3cos x − 1 = 0.",
+          "answer": "2cos²x − 1 + 3cos x − 1 = 0 ⇒ 2t² + 3t − 2 = 0 (t = cos x) ⇒ t = 1/2 hoặc t = −2 (loại). Vậy cos x = 1/2 ⇒ x = ±π/3 + 2kπ."
         },
         {
           "level": "VD",
-          "question": "Lập bảng tiêu chí giải một phương trình lượng giác.",
-          "answer": "Bước 1: điều kiện; bước 2: biến đổi; bước 3: công thức nghiệm; bước 4: lọc khoảng; bước 5: thử lại."
+          "question": "Phản biện lời giải chia hai vế cho sin x mà không xét sin x = 0.",
+          "answer": "Nếu sin x = 0 thì phương trình có thể có nghiệm bị bỏ. Phải xét riêng: thay sin x = 0 vào phương trình, nếu thỏa thì đó là nghiệm; nếu không thỏa mới được chia. Thiếu bước này là làm mất nghiệm."
         }
       ],
       "quick": [
         {
-          "question": "Giải nhanh $\\cos x=1$.",
-          "solution": "$x=2k\\pi$."
+          "question": "Vì sao cos²x = 1/2 cho hai khả năng?",
+          "solution": "Vì bình phương của √2/2 và −√2/2 đều bằng 1/2; khai căn phải kèm ±."
         },
         {
-          "question": "Với phương trình bậc hai theo $\\sin x$, cần làm gì sau khi tìm $t$?",
-          "solution": "Chỉ nhận $t\\in[-1;1]$, sau đó giải phương trình lượng giác tương ứng và kiểm tra điều kiện."
+          "question": "Khi đặt t = cos x, điều kiện của t là gì?",
+          "solution": "−1 ≤ t ≤ 1; nghiệm ngoài đoạn này phải loại."
         }
       ],
       "mistakes": [
-        "Bỏ điều kiện khi đặt ẩn phụ.",
-        "Nhận nghiệm t ngoài đoạn [-1;1].",
-        "Không thử lại nghiệm sau nhiều bước biến đổi."
+        "Bỏ dấu ± khi khai căn bình phương.",
+        "Chia cho sin x hoặc cos x mà không xét trường hợp bằng 0.",
+        "Quên điều kiện −1 ≤ t ≤ 1 khi đặt ẩn."
       ],
       "diagram": "trig",
       "lessonType": "practice",
@@ -8929,7 +9033,18 @@
       },
       "guidingQuestion": "Khi gặp các bài về Giải phương trình lượng giác cơ bản và phương trình đưa về dạng cơ bản, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Ba kỹ thuật",
+        "a. Công thức nhân đôi hạ bậc.",
+        "b. Đặt ẩn phụ với điều kiện [−1;1].",
+        "c. Chia cho biểu thức chứa ẩn: xét trường hợp 0 trước.",
+        "2. Ba ví dụ",
+        "a. 2cos²x − 1 = 0 ⇒ x = π/4 + kπ/2.",
+        "b. sin x + √3cos x = 0 ⇒ x = −π/3 + kπ.",
+        "c. cos2x + 3cos x − 1 = 0 ⇒ x = ±π/3 + 2kπ."
+      ]
     },
     {
       "key": "11-6-38",
@@ -8939,69 +9054,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Dãy số",
-      "focus": "Nhận biết dãy số và ba cách cho dãy",
+      "focus": "Hình thành khái niệm dãy số và ba cách cho dãy trên trục xếp ghế hội trường (u_n = 2n + 5: u1 = 7, u5 = 15, u10 = 25; truy hồi u1 = 7, u_{n+1} = u_n + 2); dãy là hàm số trên ℕ*",
       "formulas": [
-        "u_n=f(n)",
-        "u_1=a,\\ u_{n+1}=g(u_n)",
-        "u_n=\\frac{2n+1}{n+1}",
-        "u_{n+1}=u_n+3"
+        "u_n = 2n + 5",
+        "u_1 = 7, \\ u_{n+1} = u_n + 2",
+        "u: \\mathbb{N}^* \\to \\mathbb{R}, \\ n \\mapsto u_n"
       ],
       "examples": [
         {
-          "question": "Cho $u_n=\\frac{2n+1}{n+1}$. Tính $u_1,u_2,u_3$.",
-          "solution": "$u_1=\\frac32$, $u_2=\\frac53$, $u_3=\\frac74$; chỉ số $n$ là đầu vào của công thức."
+          "question": "Hội trường có hàng 1 là 7 ghế, mỗi hàng sau thêm 2 ghế. Viết công thức số hạng tổng quát và công thức truy hồi; tính u5, u10.",
+          "solution": "Công thức: u_n = 2n + 5. Truy hồi: u1 = 7, u_{n+1} = u_n + 2. u5 = 2·5 + 5 = 15; u10 = 25."
         },
         {
-          "question": "Cho $u_1=1, u_{n+1}=u_n+3$. Viết năm số hạng đầu.",
-          "solution": "$u_1=1,u_2=4,u_3=7,u_4=10,u_5=13$."
+          "question": "Tính tổng số ghế của 10 hàng đầu tiên.",
+          "solution": "u1 = 7, u10 = 25; tổng = (7 + 25)·10/2 = 160 ghế."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính $u_4$ của $u_n=2n-1$.",
-          "answer": "$u_4=7$."
+          "question": "Nêu định nghĩa dãy số và tập xác định của nó.",
+          "answer": "Dãy số là hàm số xác định trên ℕ*: u: ℕ* → ℝ, n ↦ u_n."
         },
         {
           "level": "NB",
-          "question": "Viết truy hồi của dãy $2,5,8,11,\\ldots$.",
-          "answer": "$u_1=2, u_{n+1}=u_n+3$."
+          "question": "Với u_n = 2n + 5, tính u1 và u5.",
+          "answer": "u1 = 7; u5 = 15."
         },
         {
           "level": "TH",
-          "question": "Tìm $u_5$ của $u_n=\\frac{n}{n+1}$.",
-          "answer": "$u_5=\\frac56$."
+          "question": "Cho u1 = 2, u_{n+1} = 3u_n − 1. Tính u2, u3, u4.",
+          "answer": "u2 = 5; u3 = 14; u4 = 41."
         },
         {
           "level": "TH",
-          "question": "Cho $u_1=2, u_{n+1}=2u_n-1$. Tính $u_2,u_3$.",
-          "answer": "$u_2=3,u_3=5$."
+          "question": "Cho u_n = n² − 1. Tính u10.",
+          "answer": "u10 = 100 − 1 = 99."
         },
         {
           "level": "VD",
-          "question": "Đổi dãy $u_n=\\frac{2n+1}{n+1}$ sang dạng $u_n=2-\\frac1{n+1}$ và giải thích lợi ích.",
-          "answer": "Dạng mới làm rõ dãy tiến gần $2$ và hỗ trợ xét bị chặn/tính giới hạn."
+          "question": "Viết công thức truy hồi cho dãy u_n = 2n + 5.",
+          "answer": "u1 = 7 và u_{n+1} = u_n + 2 (vì u_{n+1} − u_n = 2(n+1) + 5 − (2n+5) = 2)."
         },
         {
           "level": "VD",
-          "question": "Nêu khác biệt giữa $n$ và $u_n$.",
-          "answer": "$n$ là chỉ số; $u_n$ là giá trị của số hạng tại chỉ số đó. Không được đồng nhất hai đại lượng."
+          "question": "Một bãi đỗ xe có 12 chỗ ở hàng đầu, mỗi hàng sau nhiều hơn 4 chỗ. Viết dãy số và tính số chỗ hàng thứ 8.",
+          "answer": "u_n = 4n + 8 (vì u1 = 12). u8 = 4·8 + 8 = 40 chỗ. Kiểm: 12; 16; 20; 24; 28; 32; 36; 40."
         }
       ],
       "quick": [
         {
-          "question": "Số hạng thứ 10 của dãy $u_n=3n-2$ là gì?",
-          "solution": "$u_{10}=28$."
+          "question": "Vì sao dãy số được coi là hàm số?",
+          "solution": "Vì mỗi số nguyên dương n ứng với đúng một giá trị u_n, đúng định nghĩa hàm số trên ℕ*."
         },
         {
-          "question": "Dãy $1,4,7,10,\\ldots$ có quy luật truy hồi nào?",
-          "solution": "$u_1=1, u_{n+1}=u_n+3$."
+          "question": "Công thức truy hồi khác công thức tổng quát ở đâu?",
+          "solution": "Truy hồi tính số hạng sau từ số hạng trước (phải tính lần lượt); tổng quát tính trực tiếp từ n."
         }
       ],
       "mistakes": [
-        "Nhầm chỉ số n với giá trị u_n.",
-        "Tính sai số hạng đầu khi chuyển từ truy hồi.",
-        "Dùng công thức tổng quát cho n = 0 dù dãy bắt đầu từ n = 1."
+        "Thay sai vị trí n khi tính số hạng.",
+        "Nhầm công thức truy hồi với công thức tổng quát.",
+        "Quên tập xác định ℕ*."
       ],
       "diagram": "sequence",
       "global": false,
@@ -9240,7 +9354,19 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Nhận biết dãy số và ba cách cho dãy, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Định nghĩa",
+        "a. Dãy số là hàm số trên ℕ*: u(n) = u_n.",
+        "2. Ba cách cho dãy",
+        "a. Công thức tổng quát: u_n = 2n + 5.",
+        "b. Truy hồi: u1 = 7, u_{n+1} = u_n + 2.",
+        "c. Liệt kê: 7, 9, 11, …",
+        "3. Áp dụng",
+        "a. u5 = 15; u10 = 25.",
+        "b. Tổng 10 hàng = (7 + 25)·10/2 = 160 ghế."
+      ]
     },
     {
       "key": "11-6-39",
@@ -9250,69 +9376,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Dãy số tăng, giảm, bị chặn",
-      "focus": "Xét đơn điệu và bị chặn bằng hiệu hoặc tỉ số",
+      "focus": "Hình thành khái niệm dãy tăng, giảm, bị chặn qua ba dãy thực nghiệm: u_n = 2n + 5 (tăng), v_n = 1/n (giảm, 0 < v_n ≤ 1), w_n = n/(n+1) (tăng, 1/2 ≤ w_n < 1); dãy (−1)^n không đơn điệu nhưng bị chặn",
       "formulas": [
-        "u_{n+1}-u_n>0\\Longrightarrow (u_n)\\ \\text{tăng}",
-        "u_{n+1}-u_n<0\\Longrightarrow (u_n)\\ \\text{giảm}",
-        "0<u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn trên}",
-        "m\\le u_n\\le M\\Longrightarrow (u_n)\\ \\text{bị chặn}"
+        "u_{n+1} - u_n > 0 \\Rightarrow \\text{tăng}; \\quad < 0 \\Rightarrow \\text{giảm}",
+        "\\dfrac{u_{n+1}}{u_n} > 1 \\Rightarrow \\text{tăng (khi } u_n > 0)",
+        "u_n \\le M \\ \\forall n \\Rightarrow \\text{bị chặn trên}; \\quad u_n \\ge m \\Rightarrow \\text{bị chặn dưới}"
       ],
       "examples": [
         {
-          "question": "Xét tính tăng giảm của $u_n=\\frac{n}{n+1}$.",
-          "solution": "Ta có $u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$, nên dãy tăng."
+          "question": "Xét tính tăng/giảm của u_n = 2n + 5 và v_n = 1/n.",
+          "solution": "u_{n+1} − u_n = 2(n+1) + 5 − (2n + 5) = 2 > 0 ⇒ u_n tăng. v_{n+1} − v_n = 1/(n+1) − 1/n = −1/(n(n+1)) < 0 ⇒ v_n giảm."
         },
         {
-          "question": "Chứng minh $u_n=\\frac{n}{n+1}$ bị chặn.",
-          "solution": "Với $n\\ge1$, $0<\\frac{n}{n+1}<1$; dãy bị chặn dưới bởi $0$ và trên bởi $1$."
+          "question": "Chứng minh w_n = n/(n+1) tăng và bị chặn bởi 1.",
+          "solution": "w_{n+1} − w_n = 1/((n+1)(n+2)) > 0 ⇒ tăng. Mặt khác w_n = 1 − 1/(n+1) < 1 và w_n ≥ 1/2 (khi n = 1) nên 1/2 ≤ w_n < 1."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Điền dấu của $u_{n+1}-u_n$ nếu dãy tăng.",
-          "answer": "Hiệu dương: $u_{n+1}-u_n>0$."
+          "question": "Nêu hai phương pháp xét tính tăng, giảm của dãy số.",
+          "answer": "Xét hiệu u_{n+1} − u_n hoặc xét tỉ số u_{n+1}/u_n (khi u_n > 0)."
         },
         {
           "level": "NB",
-          "question": "Dãy $u_n=\\frac1n$ tăng hay giảm?",
-          "answer": "Giảm vì $u_{n+1}<u_n$ với $n\\ge1$."
+          "question": "Dãy u_n = 2n − 1 tăng hay giảm?",
+          "answer": "Tăng vì u_{n+1} − u_n = 2 > 0."
         },
         {
           "level": "TH",
-          "question": "Chứng minh $u_n=\\frac{2n+1}{n+1}$ tăng.",
-          "answer": "$u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$."
+          "question": "Xét tính tăng/giảm của u_n = 1/n.",
+          "answer": "Giảm vì u_{n+1} − u_n = −1/(n(n+1)) < 0."
         },
         {
           "level": "TH",
-          "question": "Tìm một cận trên của $u_n=\\frac{n}{n+1}$.",
-          "answer": "Cận trên $1$ vì $u_n<1$."
+          "question": "Dãy u_n = n² có bị chặn trên không?",
+          "answer": "Không. Với mọi M > 0, chọn n > √M thì u_n > M, nên dãy không bị chặn trên."
         },
         {
           "level": "VD",
-          "question": "Xét $u_n=(-1)^n$ bằng hiệu.",
-          "answer": "Không đơn điệu vì các số hạng luân phiên $-1,1$; nhưng bị chặn bởi $-1$ và $1$."
+          "question": "Chứng minh w_n = n/(n+1) bị chặn bởi 1/2 và 1.",
+          "answer": "w_n = 1 − 1/(n+1) < 1 với mọi n; và w_n ≥ 1/2 vì 1/(n+1) ≤ 1/2 khi n ≥ 1. Vậy 1/2 ≤ w_n < 1."
         },
         {
           "level": "VD",
-          "question": "Giải thích vì sao không dùng tỉ số $\\frac{u_{n+1}}{u_n}$ khi $u_n$ có thể âm.",
-          "answer": "Dấu của mẫu làm đổi chiều bất đẳng thức và tỉ số có thể không phản ánh đơn điệu; dùng hiệu an toàn hơn."
+          "question": "Dãy (−1)^n có đơn điệu không? Có bị chặn không?",
+          "answer": "Không đơn điệu vì luân phiên −1; 1; −1; 1… Nhưng bị chặn: −1 ≤ (−1)^n ≤ 1 với mọi n."
         }
       ],
       "quick": [
         {
-          "question": "Dãy $u_n=\\frac{n}{n+1}$ có cận trên đơn giản nào?",
-          "solution": "$1$."
+          "question": "Vì sao xét tỉ số cần u_n > 0?",
+          "solution": "Vì nhân/chia bất đẳng thức với số âm làm đổi chiều; nếu dãy đổi dấu, kết luận từ tỉ số không còn đúng."
         },
         {
-          "question": "Một dãy luân phiên $-1,1$ có đơn điệu không?",
-          "solution": "Không, nhưng bị chặn."
+          "question": "Dãy 1/n bị chặn bởi hai số nào?",
+          "solution": "Bị chặn dưới bởi 0 (v_n > 0) và chặn trên bởi 1 (v_1 = 1)."
         }
       ],
       "mistakes": [
-        "Dùng tỉ số khi số hạng có thể âm.",
-        "Chứng minh hiệu dương nhưng quên n thuộc miền chỉ số.",
-        "Nhầm bị chặn với hội tụ."
+        "Kết luận đơn điệu chỉ từ vài số hạng đầu.",
+        "Nhầm \"bị chặn\" với \"có giới hạn\".",
+        "Dùng tỉ số khi dãy đổi dấu."
       ],
       "diagram": "sequence",
       "global": true,
@@ -9552,7 +9677,21 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Xét đơn điệu và bị chặn bằng hiệu hoặc tỉ số, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh So sánh các dãy mô hình hóa tăng trưởng dân số và giới hạn tài nguyên; chỉ dùng dữ kiện toán học, không bịa số liệu lớp học., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Đơn điệu",
+        "a. u_{n+1} − u_n > 0 ⇒ tăng; < 0 ⇒ giảm.",
+        "b. Tỉ số > 1 ⇒ tăng (khi u_n > 0).",
+        "2. Bị chặn",
+        "a. Chặn trên: u_n ≤ M với mọi n.",
+        "b. Chặn dưới: u_n ≥ m với mọi n.",
+        "c. Bị chặn = có cả chặn trên và dưới.",
+        "3. Ba dãy thực nghiệm",
+        "a. 2n + 5: tăng, không chặn trên.",
+        "b. 1/n: giảm, 0 < v_n ≤ 1.",
+        "c. n/(n+1): tăng, 1/2 ≤ w_n < 1."
+      ]
     },
     {
       "key": "11-6-40",
@@ -9562,73 +9701,68 @@
       "kind": "practice",
       "selfChoice": true,
       "title": "Củng cố dãy số và tính đơn điệu",
-      "focus": "Phân mức bài tập về dãy số, tăng giảm và bị chặn",
+      "focus": "Củng cố dãy số và tính đơn điệu qua bốn dãy: 3n − 2 (tăng, không chặn trên), 2/n (giảm, 0 < v_n ≤ 2), n/(2n+1) (tăng, 1/3 ≤ w_n < 1/2), (−1)^n·n (không đơn điệu, không bị chặn); phân biệt đơn điệu với bị chặn",
       "formulas": [
-        "u_n=f(n)",
-        "u_{n+1}-u_n",
-        "m\\le u_n\\le M",
-        "u_n=2-\\frac1{n+1}"
+        "u_{n+1} - u_n",
+        "\\dfrac{n}{2n+1} = \\dfrac12 - \\dfrac{1}{2(2n+1)}",
+        "u_n \\le M \\ \\forall n; \\quad u_n \\ge m \\ \\forall n"
       ],
       "examples": [
         {
-          "question": "Xét $u_n=2-\\frac1n$. (bài 2 SBT trang 101)",
-          "solution": "Vì $u_{n+1}-u_n=\\frac1{n(n+1)}>0$, dãy tăng và $u_n<2$.",
-          "sourceRef": "bài 2 SBT trang 101"
+          "question": "Xét đơn điệu và chặn của w_n = n/(2n+1).",
+          "solution": "w_{n+1} − w_n = 1/((2n+1)(2n+3)) > 0 ⇒ tăng. w_n = 1/2 − 1/(2(2n+1)) nên w_n < 1/2; w_1 = 1/3 ⇒ 1/3 ≤ w_n < 1/2."
         },
         {
-          "question": "Tìm cận dưới và cận trên của $u_n=\\frac{n+1}{n+2}$. (bài 3 SBT trang 101)",
-          "solution": "Với $n\\ge1$, $\\frac12\\le u_n<1$; dãy bị chặn.",
-          "sourceRef": "bài 3 SBT trang 101"
+          "question": "Dãy x_n = (−1)^n·n có bị chặn không?",
+          "solution": "Không. |x_n| = n tăng không giới hạn, nên với mọi M > 0 đều có n > M thỏa |x_n| > M."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính $u_2$ của $u_n=2-\\frac1n$.",
-          "answer": "$u_2=\\frac32$."
+          "question": "Xét tính tăng/giảm của u_n = 3n − 2.",
+          "answer": "Tăng vì u_{n+1} − u_n = 3 > 0."
         },
         {
           "level": "NB",
-          "question": "Nêu tiêu chí hiệu để dãy giảm.",
-          "answer": "$u_{n+1}-u_n<0$ với mọi $n$."
+          "question": "Dãy v_n = 2/n bị chặn bởi hai số nào?",
+          "answer": "0 < v_n ≤ 2 (chặn dưới 0, chặn trên 2)."
         },
         {
           "level": "TH",
-          "question": "Chứng minh $u_n=\\frac{n+1}{n+2}$ tăng. (bài 2 SBT trang 101)",
-          "answer": "$u_{n+1}-u_n=\\frac1{(n+2)(n+3)}>0$.",
-          "sourceRef": "bài 2 SBT trang 101"
+          "question": "Xét tính tăng/giảm của w_n = n/(2n+1).",
+          "answer": "Tăng vì w_{n+1} − w_n = 1/((2n+1)(2n+3)) > 0."
         },
         {
           "level": "TH",
-          "question": "Tìm cận của $u_n=1+\\frac{(-1)^n}{n}$. (bài 3 SBT trang 101)",
-          "answer": "Với $n\\ge1$, $0\\le u_n\\le2$ là một cận đơn giản.",
-          "sourceRef": "bài 3 SBT trang 101"
+          "question": "Dãy x_n = (−1)^n·n có đơn điệu không?",
+          "answer": "Không: các số hạng −1; 2; −3; 4… luân phiên dấu và tăng độ lớn."
         },
         {
           "level": "VD",
-          "question": "Phân tích một dãy không đơn điệu nhưng bị chặn.",
-          "answer": "Dùng $u_n=(-1)^n$; hiệu đổi dấu nhưng $-1\\le u_n\\le1$."
+          "question": "Chứng minh w_n = n/(2n+1) < 1/2 với mọi n.",
+          "answer": "w_n < 1/2 ⇔ 2n < 2n + 1 ⇔ 0 < 1 (luôn đúng). Vậy w_n < 1/2 với mọi n."
         },
         {
           "level": "VD",
-          "question": "Viết lời giải chuẩn gồm hai phần: đơn điệu và bị chặn.",
-          "answer": "Tính hiệu/tỉ số để kết luận đơn điệu; sau đó dựng bất đẳng thức hai phía để kết luận bị chặn."
+          "question": "Phản biện: \"Dãy không đơn điệu thì không bị chặn\".",
+          "answer": "Sai. Ví dụ (−1)^n không đơn điệu nhưng bị chặn trong [−1;1]. Đơn điệu và bị chặn là hai tính chất độc lập."
         }
       ],
       "quick": [
         {
-          "question": "Với $u_n=\\frac{n}{n+1}$, hiệu $u_{n+1}-u_n$ có dấu gì?",
-          "solution": "Dương, nên dãy tăng."
+          "question": "Dãy giảm có luôn bị chặn dưới không?",
+          "solution": "Không. Ví dụ u_n = −n giảm nhưng không bị chặn dưới."
         },
         {
-          "question": "Cận trên $1$ có đạt được không với $u_n=\\frac n{n+1}$?",
-          "solution": "Không đạt với $n$ hữu hạn vì $u_n<1$."
+          "question": "Dãy tăng có luôn bị chặn trên không?",
+          "solution": "Không. Ví dụ u_n = n tăng nhưng không bị chặn trên."
         }
       ],
       "mistakes": [
-        "Không tách hai yêu cầu đơn điệu và bị chặn.",
-        "Dùng kết luận vượt quá yêu cầu khi đề chỉ hỏi bị chặn.",
-        "Bỏ điều kiện n ≥ 1 trong bất đẳng thức."
+        "Cho rằng tăng thì bị chặn trên.",
+        "Cho rằng không đơn điệu thì không bị chặn.",
+        "Tính w_1 sai khi tìm chặn dưới."
       ],
       "diagram": "sequence",
       "digital": true,
@@ -9867,7 +10001,19 @@
       },
       "guidingQuestion": "Khi gặp các bài về Phân mức bài tập về dãy số, tăng giảm và bị chặn, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Ba mức kỹ năng",
+        "a. Tính số hạng.",
+        "b. Xét đơn điệu bằng hiệu.",
+        "c. Tìm chặn bằng bất đẳng thức.",
+        "2. Bốn dãy",
+        "a. 3n − 2: tăng, không chặn trên.",
+        "b. 2/n: giảm, 0 < v_n ≤ 2.",
+        "c. n/(2n+1): tăng, 1/3 ≤ w_n < 1/2.",
+        "d. (−1)^n·n: không đơn điệu, không bị chặn."
+      ]
     },
     {
       "key": "11-6-41",
@@ -9877,72 +10023,68 @@
       "kind": "practice",
       "selfChoice": true,
       "title": "Phối hợp giá trị lượng giác, phương trình lượng giác và dãy số",
-      "focus": "Tiết tự chọn tổng hợp ba mạch kiến thức",
+      "focus": "Phối hợp ba mạch kiến thức trong một bài đo đạc: giá trị lượng giác (cos(2π/3) = −1/2, cos(5π/6) = −√3/2), phương trình lượng giác (2sin x − 1 = 0 → π/6 + 2kπ; 5π/6 + 2kπ), dãy số (u_n = 3n + 1, u10 = 31, tăng); rèn quy trình dữ kiện → công cụ → kiểm",
       "formulas": [
-        "\\sin^2x+\\cos^2x=1",
-        "\\tan x=\\frac{\\sin x}{\\cos x}",
-        "\\sin x=\\sin\\alpha\\Longleftrightarrow x=\\alpha+2k\\pi\\ \\text{hoặc}\\ x=\\pi-\\alpha+2k\\pi",
-        "u_{n+1}-u_n"
+        "\\cos\\dfrac{2\\pi}{3} = -\\dfrac12",
+        "2\\sin x - 1 = 0 \\Leftrightarrow x = \\dfrac{\\pi}{6} + 2k\\pi \\ \\text{hoặc} \\ \\dfrac{5\\pi}{6} + 2k\\pi",
+        "u_n = 3n + 1, \\ u_{n+1} - u_n = 3 > 0"
       ],
       "examples": [
         {
-          "question": "Giải $\\sin x=\\frac12$ rồi dùng một nghiệm đại diện để kiểm tra giá trị. (bài 1 SBT trang 73)",
-          "solution": "Chọn $x=\\frac\\pi6$; thay vào sin được $\\frac12$ đúng.",
-          "sourceRef": "bài 1 SBT trang 73"
+          "question": "Tính cos(2π/3) và giải thích dấu.",
+          "solution": "Góc 2π/3 = 120° thuộc phần tư II nên cos âm; góc tham chiếu π/3 cho cos = 1/2, nên cos(2π/3) = −1/2."
         },
         {
-          "question": "Xét tính tăng giảm và tìm cận trên của dãy $u_n=\\frac n{n+1}$. (bài 2 SBT trang 101)",
-          "solution": "Ta có $u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$, nên dãy tăng; đồng thời $0<u_n<1$, nên $1$ là một cận trên.",
-          "sourceRef": "bài 2 SBT trang 101"
+          "question": "Giải 2sin x − 1 = 0 và tính u10 của dãy u_n = 3n + 1.",
+          "solution": "sin x = 1/2 ⇒ x = π/6 + 2kπ hoặc 5π/6 + 2kπ. Với n = 10: u10 = 3·10 + 1 = 31."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính $\\sin^2\\frac\\pi6+\\cos^2\\frac\\pi6$.",
-          "answer": "$1$."
+          "question": "Tính cos(2π/3) và cos(5π/6).",
+          "answer": "cos(2π/3) = −1/2; cos(5π/6) = −√3/2."
         },
         {
           "level": "NB",
-          "question": "Giải $\\tan x=0$.",
-          "answer": "$x=k\\pi$."
+          "question": "Giải 2sin x − 1 = 0.",
+          "answer": "sin x = 1/2 ⇒ x = π/6 + 2kπ hoặc 5π/6 + 2kπ."
         },
         {
           "level": "TH",
-          "question": "Giải $\\cos 2x=\\frac12$ trên $[0;2\\pi]$. (bài 3 SBT trang 78)",
-          "answer": "$x=\\frac\\pi6,\\frac{5\\pi}6,\\frac{7\\pi}6,\\frac{11\\pi}6$.",
-          "sourceRef": "bài 3 SBT trang 78"
+          "question": "Giải 2cos x + 1 = 0.",
+          "answer": "cos x = −1/2 ⇒ x = ±2π/3 + 2kπ."
         },
         {
           "level": "TH",
-          "question": "Xét $u_n=\\frac n{n+1}$ tăng bằng hiệu.",
-          "answer": "$u_{n+1}-u_n=\\frac1{(n+1)(n+2)}>0$."
+          "question": "Cho u_n = 3n + 1, tính u1, u5, u10 và nhận xét đơn điệu.",
+          "answer": "u1 = 4; u5 = 16; u10 = 31; dãy tăng vì hiệu bằng 3 > 0."
         },
         {
           "level": "VD",
-          "question": "Thiết kế bài toán liên kết một nghiệm lượng giác với chỉ số $n$.",
-          "answer": "Ví dụ đặt $x_n=\\frac\\pi6+2n\\pi$; kiểm tra công thức, miền chỉ số và chu kỳ."
+          "question": "Giải 2sin x − 1 = 0 trong [0; 2π].",
+          "answer": "x = π/6 và x = 5π/6 — hai nghiệm."
         },
         {
           "level": "VD",
-          "question": "Nêu cách kiểm tra chéo một lời giải hỗn hợp.",
-          "answer": "Kiểm công thức bằng thế giá trị; kiểm dãy bằng hiệu; đọc lại ký hiệu và điều kiện ở từng mạch."
+          "question": "Nêu một lỗi thường gặp khi làm bài tổng hợp ba mạch và cách tránh.",
+          "answer": "Lỗi: dùng công thức nghiệm của sin cho cos (hoặc ngược lại), hoặc quên phần tư khi xét dấu. Cách tránh: viết rõ tên công thức và vẽ đường tròn trước khi tính."
         }
       ],
       "quick": [
         {
-          "question": "Chọn một công thức lượng giác và một phép kiểm dãy để ghi vào phiếu thoát.",
-          "solution": "Một công thức đúng và một phép kiểm cụ thể, không chỉ ghi “đã kiểm tra”."
+          "question": "Vì sao cos(2π/3) âm?",
+          "solution": "Vì 120° thuộc phần tư II, ở đó cos âm."
         },
         {
-          "question": "Nêu một điểm khác giữa chu kỳ và chỉ số dãy.",
-          "solution": "Chu kỳ lặp của hàm; chỉ số xác định vị trí của số hạng."
+          "question": "Dãy u_n = 3n + 1 bị chặn trên không?",
+          "solution": "Không, vì u_n tăng không giới hạn khi n tăng."
         }
       ],
       "mistakes": [
-        "Trộn biến x với chỉ số n.",
-        "Dùng kết luận của một mạch cho mạch khác.",
-        "Không chỉ ra phép kiểm cụ thể."
+        "Lấy cos(2π/3) = 1/2 (quên dấu phần tư II).",
+        "Dùng công thức nghiệm sin cho phương trình cos.",
+        "Quên thay đúng n khi tính số hạng."
       ],
       "diagram": "sequence",
       "lessonType": "practice",
@@ -10180,7 +10322,18 @@
       },
       "guidingQuestion": "Khi gặp các bài về Tiết tự chọn tổng hợp ba mạch kiến thức, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Ba mạch",
+        "a. Giá trị lượng giác: phần tư → dấu → giá trị.",
+        "b. Phương trình: dạng cơ bản → điều kiện → nghiệm → lọc.",
+        "c. Dãy số: công thức → thay n → kiểm.",
+        "2. Kết quả chuẩn",
+        "a. cos(2π/3) = −1/2; cos(5π/6) = −√3/2.",
+        "b. 2sin x − 1 = 0 ⇒ π/6; 5π/6 (trong một vòng).",
+        "c. u_n = 3n + 1: u10 = 31, tăng."
+      ]
     },
     {
       "key": "12-5-26",
@@ -15678,225 +15831,225 @@
     "11-5-26": {
       "key": "11-5-26",
       "mode": "micro",
-      "category": "Lỗi khái niệm",
-      "wrongSolution": "AI giải sin x = 1/2 bằng x = π/6 + kπ.",
-      "correction": "Nghiệm tổng quát là x = π/6 + 2kπ hoặc x = 5π/6 + 2kπ, k thuộc Z.",
-      "proof": "sin(5π/6) = 1/2; nghiệm AI bỏ mất cả họ nghiệm đối xứng.",
-      "teacherPrompt": "AI bỏ mất vị trí nào trên đường tròn lượng giác? Em dùng một giá trị cụ thể để kiểm.",
-      "studentProduct": "Bổ sung họ nghiệm, phân loại lỗi khái niệm và kiểm bằng giá trị sin.",
-      "boardPrompt": "Phương trình sin: kiểm đủ hai vị trí đối xứng.",
-      "libraryTitle": "Phương trình sin: bỏ họ nghiệm đối xứng",
-      "whyAiError": "Đầu ra có thể áp dụng nhầm một quy tắc quen thuộc cho đối tượng hoặc điều kiện khác; câu trả lời trông hợp lý nhưng chưa được đối chiếu với định nghĩa.",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI giải: \"Phương trình sin x = 1/2 có nghiệm x = π/6 + 2kπ, k ∈ ℤ. Vậy tập nghiệm là S = {π/6 + 2kπ}.\"",
+      "correction": "Thiếu họ nghiệm thứ hai: sin x = 1/2 ⇔ x = π/6 + 2kπ hoặc x = 5π/6 + 2kπ.",
+      "proof": "Trên đường tròn lượng giác, đường thẳng y = 1/2 cắt đường tròn tại hai điểm: góc π/6 và góc 5π/6. Kiểm: sin(5π/6) = 1/2 ✓, nên 5π/6 + 2kπ cũng là nghiệm.",
+      "teacherPrompt": "Em vẽ đường tròn lượng giác và kiểm xem AI bỏ sót nghiệm nào, rồi sửa lại tập nghiệm.",
+      "studentProduct": "Thẻ Đ/S + vẽ hai giao điểm và bổ sung họ 5π/6 + 2kπ.",
+      "boardPrompt": "AI chỉ ra một họ nghiệm cho sin x = 1/2. Còn họ nào?",
+      "libraryTitle": "Lỗi AI bỏ họ nghiệm thứ hai của phương trình sin",
+      "whyAiError": "Mô hình chỉ lấy nghiệm từ hàm ngược (arcsin) mà bỏ qua tính tuần hoàn và tính đối xứng của hàm sin.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-5-27": {
       "key": "11-5-27",
       "mode": "micro",
-      "category": "Lỗi khái niệm",
-      "wrongSolution": "AI giải cos x = 1/2 bằng x = π/3 + 2kπ và kết luận đã đủ nghiệm.",
-      "correction": "Phải có x = ±π/3 + 2kπ, tương đương x = π/3 + 2kπ hoặc x = 5π/3 + 2kπ.",
-      "proof": "cos(5π/3) = 1/2 nhưng không thuộc họ nghiệm AI đã ghi.",
-      "teacherPrompt": "Hàm cos có hai vị trí nào cho cùng giá trị? Em tìm nghiệm AI bỏ sót.",
-      "studentProduct": "Sửa họ nghiệm, ghi loại lỗi và kiểm một nghiệm đối xứng.",
-      "boardPrompt": "Phương trình cos: kiểm dấu ± và chu kỳ.",
-      "libraryTitle": "Phương trình cos: mất nghiệm đối xứng",
-      "whyAiError": "Đầu ra có thể áp dụng nhầm một quy tắc quen thuộc cho đối tượng hoặc điều kiện khác; câu trả lời trông hợp lý nhưng chưa được đối chiếu với định nghĩa.",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI giải: \"26 + 4cos(πt/12) = 28 ⇒ cos(πt/12) = 1/2 ⇒ πt/12 = π/3 + 2kπ ⇒ t = 4 + 24k. Trong ngày chỉ có một thời điểm t = 4 giờ.\"",
+      "correction": "Thiếu nhánh âm: πt/12 = ±π/3 + 2kπ ⇒ t = ±4 + 24k. Với k = 0, 1 nhánh âm cho t = 20 giờ; vậy có hai thời điểm 4 giờ và 20 giờ.",
+      "proof": "Kiểm trực tiếp: T(20) = 26 + 4cos(20π/12) = 26 + 4cos(5π/3) = 26 + 4·(1/2) = 28 ✓. Vậy 20 giờ chắc chắn là nghiệm bị bỏ sót.",
+      "teacherPrompt": "Em thay t = 20 vào T(t) để kiểm, rồi sửa lại tập nghiệm của AI.",
+      "studentProduct": "Thẻ Đ/S + phép thử T(20) = 28 và bổ sung nhánh t = 20 giờ.",
+      "boardPrompt": "AI nói chỉ có t = 4 giờ. Thử t = 20 giờ được bao nhiêu?",
+      "libraryTitle": "Lỗi AI bỏ nhánh âm của phương trình cos",
+      "whyAiError": "Mô hình chỉ lấy nghiệm dương của hàm ngược arccos, bỏ qua tính đối xứng ±α của phương trình cos.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-5-28": {
       "key": "11-5-28",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "AI kết luận mọi đường thẳng không cắt mặt phẳng trong hình vẽ đều song song với mặt phẳng đó.",
-      "correction": "Cần xét đúng quan hệ hình học; đường thẳng nằm trong mặt phẳng không được gọi là song song với mặt phẳng theo định nghĩa đang dùng.",
-      "proof": "Nếu d ⊂ (P), d có vô số điểm chung với (P), nên không thỏa điều kiện không có điểm chung.",
-      "teacherPrompt": "Hình vẽ có đủ bằng chứng chưa? Điều kiện về vị trí của đường thẳng trong mặt phẳng là gì?",
-      "studentProduct": "Chỉ ra điều kiện thiếu, vẽ ba vị trí tương đối và ghi ký hiệu phù hợp.",
-      "boardPrompt": "Định nghĩa phải kèm điều kiện vị trí.",
-      "libraryTitle": "Đường thẳng và mặt phẳng: suy luận theo hình vẽ mà bỏ định nghĩa",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận: \"Trong hình hộp ABCD.A′B′C′D′, đường chéo A′C không cắt mặt phẳng (ABCD) trên hình vẽ nên A′C song song với (ABCD).\"",
+      "correction": "A′C cắt (ABCD) tại C, vì C thuộc cả đường A′C và mặt phẳng (ABCD). Do đó A′C không song song với (ABCD).",
+      "proof": "Điểm C nằm trên A′C (là đầu mút) và nằm trong (ABCD) (là một đỉnh của đáy). Vậy giao điểm tồn tại, chỉ bị che khuất trong hình biểu diễn.",
+      "teacherPrompt": "Em tìm một điểm chung giữa A′C và (ABCD) rồi sửa lại kết luận của AI.",
+      "studentProduct": "Thẻ Đ/S + chỉ ra C là điểm chung, kết luận A′C cắt (ABCD).",
+      "boardPrompt": "AI nói A′C // (ABCD) vì \"không thấy cắt\". Điểm nào phản bác?",
+      "libraryTitle": "Lỗi AI kết luận song song từ hình biểu diễn",
+      "whyAiError": "Mô hình suy luận từ hình biểu diễn 2D thay vì kiểm tra điểm chung trong không gian.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-5-29": {
       "key": "11-5-29",
       "mode": "micro",
       "category": "Thiếu điều kiện",
-      "wrongSolution": "AI dùng định lý: d ∥ a, a ⊂ (P) nên d ∥ (P), không cần xét d có nằm trong (P) hay không.",
-      "correction": "Phải có thêm d không thuộc (P); nếu d nằm trong (P), kết luận d ∥ (P) theo định nghĩa không còn đúng.",
-      "proof": "Chọn d = a ⊂ (P): d ∥ a theo cách suy biến nhưng d có vô số điểm chung với (P).",
-      "teacherPrompt": "Định lý cần điều kiện loại trừ nào? Em tạo trường hợp phản ví dụ khi d nằm trong mặt phẳng.",
-      "studentProduct": "Bổ sung điều kiện, phân loại lỗi và trình bày phản ví dụ hình học.",
-      "boardPrompt": "Định lý song song: phải kiểm d không thuộc mặt phẳng.",
-      "libraryTitle": "Định lý đường thẳng song song mặt phẳng: bỏ điều kiện loại trừ",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "wrongSolution": "AI chứng minh: \"Vì MN // AB nên MN // (ABCD).\" (không nêu AB ⊂ (ABCD) và MN ⊄ (ABCD) — trong đó M, N là trung điểm SA, SB của hình chóp S.ABCD).",
+      "correction": "Phải ghi đủ: MN // AB (đường trung bình tam giác SAB); AB ⊂ (ABCD); MN ⊄ (ABCD). Khi đó mới kết luận MN // (ABCD) theo định lí.",
+      "proof": "Nếu chỉ có MN // AB thì chưa đủ: AB có thể không nằm trong (ABCD) (khi đó không kết luận được), hoặc MN có thể nằm trong (ABCD) (khi đó MN cắt mặt phẳng tại vô số điểm). Đủ ba điều kiện mới suy ra được.",
+      "teacherPrompt": "Em liệt kê đủ ba điều kiện của định lí rồi sửa lại chứng minh của AI.",
+      "studentProduct": "Thẻ Đ/S + viết lại chứng minh 3 dòng có căn cứ cho từng dòng.",
+      "boardPrompt": "AI chỉ ghi \"MN // AB nên MN // (ABCD)\". Thiếu gì?",
+      "libraryTitle": "Lỗi AI rút gọn chứng minh song song, bỏ tiền đề",
+      "whyAiError": "Mô hình rút gọn chứng minh, bỏ các tiền đề kiểm tra được coi là \"hiển nhiên\" — nhưng chính các tiền đề đó làm lập luận hợp lệ.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-5-30": {
       "key": "11-5-30",
       "mode": "micro",
-      "category": "Lỗi logic",
-      "wrongSolution": "AI nói nếu d ∥ (P) thì d song song với mọi đường thẳng nằm trong (P).",
-      "correction": "d chỉ song song với những đường trong (P) có cùng phương; các đường khác có thể chéo nhau hoặc không song song.",
-      "proof": "Trong một mặt phẳng có vô số phương khác nhau; một đường d không thể đồng thời song song với mọi phương đó.",
-      "teacherPrompt": "Từ d ∥ (P) có suy ra d ∥ mọi đường trong (P) không? Em chỉ ra bước suy luận nhảy quá xa.",
-      "studentProduct": "Bác bỏ kết luận bằng hình/đường cụ thể và viết quan hệ đúng.",
-      "boardPrompt": "Song song với mặt phẳng không đồng nghĩa song song mọi đường trong đó.",
-      "libraryTitle": "Hình học không gian: suy ra song song với mọi đường",
-      "whyAiError": "Đầu ra có thể nhảy từ một hình ảnh, một trường hợp hoặc một kết quả riêng sang kết luận chung mà chưa chứng minh quan hệ kéo theo.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận: \"Vì A′B′ // (ABCD) nên A′B′ song song với mọi đường thẳng nằm trong (ABCD), chẳng hạn AC và BD.\"",
+      "correction": "A′B′ chỉ song song với các đường trong (ABCD) cùng phương với nó, như AB và CD. Các đường AC, BD khác phương nên không song song với A′B′.",
+      "proof": "AB // A′B′ (đúng), nhưng AC là đường chéo đáy, phương khác AB. Hai đường thẳng khác phương trong cùng mặt phẳng thì cắt nhau (hoặc chéo nếu khác mặt phẳng); A′B′ và AC là hai đường chéo nhau, không song song.",
+      "teacherPrompt": "Em kiểm tra A′B′ với AC: chúng có cùng phương không? Từ đó sửa lại phát biểu của AI.",
+      "studentProduct": "Thẻ Đ/S + chỉ ra A′B′ // AB nhưng A′B′ chéo AC, sửa phạm vi kết luận.",
+      "boardPrompt": "AI nói A′B′ song song mọi đường trong (ABCD). Thử với AC.",
+      "libraryTitle": "Lỗi AI mở rộng phạm vi quan hệ song song",
+      "whyAiError": "Mô hình mở rộng quan hệ song song từ một đường sang toàn bộ mặt phẳng chứa nó.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-5-31": {
       "key": "11-5-31",
       "mode": "full",
       "category": "Lỗi logic",
-      "wrongSolution": "AI kết luận d ∥ (P) chỉ vì hình vẽ cho thấy d không cắt (P); không tìm đường a nằm trong (P) để chứng minh d ∥ a.",
-      "correction": "Cần chỉ ra một đường a ⊂ (P) sao cho d ∥ a và d không thuộc (P), rồi mới kết luận d ∥ (P).",
-      "proof": "Hình vẽ chỉ là dữ kiện gợi ý; hai đường nhìn không cắt nhau có thể chéo nhau. Quan hệ song song phải được chứng minh bằng điều kiện/định lý.",
-      "teacherPrompt": "Dòng nào đang dùng hình vẽ thay cho lập luận? Em phân loại lỗi, bổ sung đường a và hoàn thiện chứng minh.",
-      "studentProduct": "Đánh dấu dòng sai, sửa chứng minh đủ điều kiện, nêu lý do và phản biện bằng một hình/quan hệ khác.",
-      "boardPrompt": "Chứng minh: đường trong mặt phẳng · cùng phương · không thuộc mặt phẳng.",
-      "libraryTitle": "Đường thẳng song song mặt phẳng: hình vẽ không thay cho chứng minh",
-      "whyAiError": "Đầu ra có thể nhảy từ một hình ảnh, một trường hợp hoặc một kết quả riêng sang kết luận chung mà chưa chứng minh quan hệ kéo theo.",
+      "wrongSolution": "AI chứng minh: \"Vì MN // (ABCD) và (SAB) cắt (ABCD) theo AB nên MN // AB\" — nhưng ở bước đầu AI chưa hề chứng minh MN // (ABCD), chỉ giả định điều cần chứng minh.",
+      "correction": "Phải chứng minh MN // (ABCD) trước bằng định lí: MN // AB (đường trung bình), AB ⊂ (ABCD), MN ⊄ (ABCD). Sau đó mới dùng tính chất nếu cần.",
+      "proof": "Lập luận của AI dùng chính kết luận làm tiền đề (vòng tròn). Kiểm chứng: MN // AB đúng vì MN là đường trung bình tam giác SAB — đây là căn cứ hợp lệ duy nhất, không phải \"MN // (ABCD)\".",
+      "teacherPrompt": "Em chỉ ra chỗ AI dùng kết luận làm giả thiết, rồi sửa lại chứng minh đúng thứ tự.",
+      "studentProduct": "Thẻ Đ/S + chứng minh lại: MN // AB → AB ⊂ (ABCD) → MN ⊄ (ABCD) → kết luận.",
+      "boardPrompt": "AI viết \"vì MN // (ABCD)\" khi chưa chứng minh. Đó là lỗi gì?",
+      "libraryTitle": "Lỗi AI lập luận vòng khi chứng minh song song",
+      "whyAiError": "Mô hình trộn giả thiết với kết luận khi tái sử dụng định lí, tạo lập luận vòng.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-5-32": {
       "key": "11-5-32",
       "mode": "full",
       "category": "Thiếu điều kiện",
-      "wrongSolution": "AI giải sin x = 1/2 bằng x = π/6 + 2kπ và nói đây là toàn bộ nghiệm.",
-      "correction": "Phải bổ sung x = 5π/6 + 2kπ; nếu đề cho khoảng thì sau đó mới lọc nghiệm theo khoảng đó.",
-      "proof": "Thay x = 5π/6 vào sin x = 1/2; nghiệm bị bỏ sót thỏa phương trình.",
-      "teacherPrompt": "Lời giải AI thiếu họ nghiệm hay thiếu điều kiện khoảng? Em tách hai việc đó và kiểm từng nghiệm.",
-      "studentProduct": "Phân loại lỗi, viết đủ nghiệm tổng quát, lọc khoảng nếu có và kiểm một nghiệm.",
-      "boardPrompt": "Nghiệm tổng quát → điều kiện khoảng → kiểm lại.",
-      "libraryTitle": "Phương trình lượng giác: lẫn nghiệm tổng quát với nghiệm trên khoảng",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "wrongSolution": "AI kết luận: \"Trong khoảng [0; 2π], phương trình sin θ = 1/2 chỉ có một nghiệm θ = π/6.\"",
+      "correction": "Có hai nghiệm: θ = π/6 và θ = 5π/6 (ứng với hai họ nghiệm, k = 0).",
+      "proof": "Thay θ = 5π/6: sin(5π/6) = sin(π − π/6) = 1/2 ✓ và 5π/6 ∈ [0; 2π]. Vậy nghiệm bị bỏ sót tồn tại.",
+      "teacherPrompt": "Em thử θ = 5π/6 vào phương trình rồi sửa lại số nghiệm của AI.",
+      "studentProduct": "Thẻ Đ/S + phép thử sin(5π/6) = 1/2 và kết luận 2 nghiệm.",
+      "boardPrompt": "AI nói chỉ có π/6. Thử 5π/6.",
+      "libraryTitle": "Lỗi AI bỏ nghiệm thứ hai khi lọc trên khoảng",
+      "whyAiError": "Mô hình chỉ lấy nghiệm chính từ hàm ngược, không xét nhánh π − α khi lọc trên khoảng.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-5-33": {
       "key": "11-5-33",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "Với sin x = 1/2, x ∈ [0;π], AI giữ x = π/6 + 2kπ và kết luận chỉ có π/6.",
-      "correction": "Trong khoảng [0;π] còn nghiệm x = 5π/6; phải lọc cả hai họ nghiệm theo khoảng đã cho.",
-      "proof": "π/6 và 5π/6 đều thuộc [0;π] và đều có sin bằng 1/2.",
-      "teacherPrompt": "Khoảng xét thay đổi bước cuối thế nào? Em dùng cả nghiệm đối xứng trước khi lọc.",
-      "studentProduct": "Ghi điều kiện khoảng, bổ sung nghiệm bị mất và kiểm bằng đường tròn lượng giác.",
-      "boardPrompt": "Không lọc nghiệm trước khi viết đủ họ nghiệm.",
-      "libraryTitle": "Phương trình lượng giác: lọc khoảng khi chưa viết đủ họ nghiệm",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI giải: \"sin 2x = 1/2 ⇒ 2x = π/6 + 2kπ ⇒ x = π/12 + 2kπ. Vậy nghiệm là x = π/12 + 2kπ.\"",
+      "correction": "Khi chia hai vế cho 2, chu kỳ cũng phải chia: x = π/12 + kπ (và nhánh còn lại x = 5π/12 + kπ).",
+      "proof": "Thử x = π/12 + π = 13π/12: sin(2·13π/12) = sin(13π/6) = sin(π/6 + 2π) = 1/2 ✓ — nghiệm này thuộc chu kỳ kπ nhưng bị công thức AI loại bỏ.",
+      "teacherPrompt": "Em thử x = 13π/12 vào phương trình rồi sửa lại chu kỳ trong công thức nghiệm của AI.",
+      "studentProduct": "Thẻ Đ/S + phép thử x = 13π/12 và công thức đúng với chu kỳ kπ.",
+      "boardPrompt": "AI ra x = π/12 + 2kπ. Thử x = 13π/12.",
+      "libraryTitle": "Lỗi AI không chia chu kỳ khi chia hệ số",
+      "whyAiError": "Mô hình chia đúng hệ số của biến nhưng giữ nguyên chu kỳ, bỏ qua việc chu kỳ phụ thuộc hệ số.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-6-34": {
       "key": "11-6-34",
       "mode": "micro",
       "category": "Lỗi khái niệm",
-      "wrongSolution": "AI giải tan x = 1 bằng x = π/4 + 2kπ vì mọi hàm lượng giác đều có chu kỳ 2π.",
-      "correction": "tan x có chu kỳ π nên x = π/4 + kπ, k thuộc Z; đồng thời phải giữ điều kiện xác định.",
-      "proof": "tan(π/4 + π) = tan(π/4) = 1, nhưng π/4 + π không xuất hiện trong họ 2kπ của AI.",
-      "teacherPrompt": "Câu “mọi hàm lượng giác” sai ở đâu? Em dùng tính chu kỳ để kiểm.",
-      "studentProduct": "Sửa chu kỳ, ghi điều kiện xác định và kiểm một nghiệm cách nhau π.",
-      "boardPrompt": "tan/cot: chu kỳ π và điều kiện xác định.",
-      "libraryTitle": "Tan: áp nhầm chu kỳ 2π",
-      "whyAiError": "Đầu ra có thể áp dụng nhầm một quy tắc quen thuộc cho đối tượng hoặc điều kiện khác; câu trả lời trông hợp lý nhưng chưa được đối chiếu với định nghĩa.",
+      "wrongSolution": "AI giải: \"tan x = 0,5 ⇒ x = arctan(0,5) + 2kπ ≈ 26,57° + 2kπ. Không cần điều kiện gì thêm vì tan xác định với mọi x.\"",
+      "correction": "Chu kỳ nghiệm của tan là kπ (không phải 2kπ), và tan chỉ xác định khi x ≠ π/2 + kπ.",
+      "proof": "tan(x + π) = tan x với mọi x, nên nếu x là nghiệm thì x + π cũng là nghiệm — chu kỳ phải là kπ. Ngoài ra tại x = π/2 hàm tan không xác định (tiệm cận đứng), nên phải loại khỏi tập nghiệm.",
+      "teacherPrompt": "Em kiểm tra x = arctan0,5 + π có phải nghiệm không, rồi sửa lại chu kỳ và điều kiện xác định.",
+      "studentProduct": "Thẻ Đ/S + chỉ ra chu kỳ đúng là kπ và điều kiện x ≠ π/2 + kπ.",
+      "boardPrompt": "AI dùng 2kπ cho tan và nói \"xác định với mọi x\". Sai ở đâu?",
+      "libraryTitle": "Lỗi AI dùng chu kỳ 2kπ cho phương trình tan",
+      "whyAiError": "Mô hình dùng chung chu kỳ 2kπ của sin/cos cho cả tan/cot và bỏ qua miền xác định.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-6-35": {
       "key": "11-6-35",
       "mode": "full",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "AI giải cot x = 1 trên [0;2π] bằng x = π/4, chỉ lấy nghiệm đầu tiên của họ x = π/4 + kπ.",
-      "correction": "Trong [0;2π] có x = π/4 và x = 5π/4; phải dùng chu kỳ π rồi lọc khoảng.",
-      "proof": "cot(π/4) = cot(5π/4) = 1 và cả hai giá trị đều nằm trong khoảng xét.",
-      "teacherPrompt": "AI đã viết họ nghiệm đúng chưa, hay lọc khoảng sai? Em liệt kê tuần tự các giá trị k.",
-      "studentProduct": "Bổ sung nghiệm, ghi khoảng xét, kiểm hai giá trị bằng cot và phân loại lỗi.",
-      "boardPrompt": "Lọc nghiệm: thay k để nằm trong khoảng.",
-      "libraryTitle": "Cot: bỏ nghiệm khi lọc trên khoảng",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI giải: \"tan 2x = 1 ⇒ 2x = π/4 + kπ ⇒ x = π/4 + kπ. Vậy nghiệm là x = π/4 + kπ.\"",
+      "correction": "Phải chia cả hai vế cho 2: x = π/8 + kπ/2.",
+      "proof": "Thay x = π/8: tan(π/4) = 1 ✓. Nhưng thay x = π/4 (nghiệm của AI): tan(π/2) không xác định — nghiệm AI đưa ra thậm chí không thuộc miền xác định.",
+      "teacherPrompt": "Em thay x = π/4 vào phương trình để kiểm, rồi sửa lại bước chia hệ số.",
+      "studentProduct": "Thẻ Đ/S + chỉ ra tan(π/2) không xác định và nghiệm đúng x = π/8 + kπ/2.",
+      "boardPrompt": "AI ra x = π/4 + kπ. Thay x = π/4 thì tan bằng bao nhiêu?",
+      "libraryTitle": "Lỗi AI không chia nghiệm khi có hệ số của biến",
+      "whyAiError": "Mô hình bỏ bước chia hệ số cho toàn bộ biểu thức nghiệm (cả phần chứa k).",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-6-36": {
       "key": "11-6-36",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "AI nói hàm y = tan x có tập xác định là R vì tan x nhận được mọi giá trị thực.",
-      "correction": "Tập xác định là R bỏ các điểm x = π/2 + kπ, vì cos x = 0 tại đó.",
-      "proof": "Tại x = π/2, tan x = sin x/cos x không xác định do mẫu bằng 0.",
-      "teacherPrompt": "Tập giá trị có quyết định tập xác định không? Em tìm điểm làm mẫu số bằng 0.",
-      "studentProduct": "Bổ sung miền loại, giải thích bằng mẫu số và ghi một điểm không thuộc tập xác định.",
-      "boardPrompt": "Phân biệt tập xác định và tập giá trị.",
-      "libraryTitle": "Hàm lượng giác: lẫn tập xác định với tập giá trị",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận: \"Hàm số y = 3cos x + 1 có tập giá trị là [−3; 3] vì cos x nhận giá trị từ −1 đến 1 nên nhân 3 được −3 đến 3.\"",
+      "correction": "Phải cộng thêm 1: 3cos x ∈ [−3;3] nên 3cos x + 1 ∈ [−2;4].",
+      "proof": "Tính hai đầu mút: khi cos x = 1, y = 4; khi cos x = −1, y = −2. Vậy tập giá trị là [−2;4], không phải [−3;3].",
+      "teacherPrompt": "Em tính y tại cos x = 1 và cos x = −1 rồi sửa lại tập giá trị của AI.",
+      "studentProduct": "Thẻ Đ/S + hai giá trị biên 4 và −2, kết luận [−2;4].",
+      "boardPrompt": "AI nói tập giá trị [−3;3]. Tính y khi cos x = 1.",
+      "libraryTitle": "Lỗi AI quên phép dịch khi tìm tập giá trị hàm lượng giác",
+      "whyAiError": "Mô hình chỉ xử lý phép nhân hệ số mà bỏ qua phép cộng hằng số (phép dịch đồ thị).",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-6-37": {
       "key": "11-6-37",
       "mode": "full",
       "category": "Thiếu điều kiện",
-      "wrongSolution": "Từ sin 2x = sin x, AI chia hai vế cho sin x và nhận x = π/4 + kπ là toàn bộ nghiệm.",
-      "correction": "Không được chia cho sin x khi chưa xét sin x = 0; nhánh x = kπ bị mất và phải được kiểm riêng.",
-      "proof": "x = 0 là nghiệm của phương trình gốc nhưng không xuất hiện trong kết luận của AI.",
-      "teacherPrompt": "Phép chia đã loại trường hợp nào? Em tách trường hợp mẫu bằng 0 trước khi rút gọn.",
-      "studentProduct": "Bổ sung nhánh bị mất, phân loại lỗi và kiểm nghiệm x = 0 trong phương trình gốc.",
-      "boardPrompt": "Chia cho biểu thức: phải xét biểu thức bằng 0 trước.",
-      "libraryTitle": "Phương trình lượng giác: chia cho sin và làm mất nghiệm",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "wrongSolution": "AI giải: \"sin x + √3cos x = 0. Chia hai vế cho cos x: tan x + √3 = 0 ⇒ tan x = −√3 ⇒ x = −π/3 + kπ. Kết luận: tập nghiệm là x = −π/3 + kπ.\"",
+      "correction": "Kết quả cuối đúng nhưng thiếu bước kiểm: phải xét cos x = 0 trước khi chia. Khi cos x = 0 thì sin x = ±1 và phương trình thành ±1 = 0 (vô nghiệm), do đó cos x ≠ 0 và phép chia hợp lệ.",
+      "proof": "Nếu không xét, lời giải có thể bỏ nghiệm trong trường hợp tổng quát. Ở bài này kiểm tra cho thấy trường hợp cos x = 0 không cho nghiệm, nên việc chia an toàn — nhưng phải ghi lý do để lập luận đầy đủ.",
+      "teacherPrompt": "Em xét trường hợp cos x = 0 rồi sửa lại lời giải AI cho đầy đủ điều kiện.",
+      "studentProduct": "Thẻ Đ/S + bổ sung dòng \"xét cos x = 0: vô nghiệm\" trước phép chia.",
+      "boardPrompt": "AI chia cho cos x ngay. Cần kiểm gì trước?",
+      "libraryTitle": "Lỗi AI chia cho biểu thức chứa ẩn mà không xét trường hợp 0",
+      "whyAiError": "Mô hình bỏ bước kiểm điều kiện chia, chỉ quan tâm kết quả cuối trùng đáp án.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-6-38": {
       "key": "11-6-38",
       "mode": "micro",
       "category": "Lỗi đại số",
-      "wrongSolution": "AI cho dãy u_n = 2n + 1 bắt đầu từ u_0 = 1 vì thay n = 0 được 1, trong khi đề quy ước n ≥ 1.",
-      "correction": "Với chỉ số bắt đầu n ≥ 1, số hạng đầu là u_1 = 3; u_0 không thuộc dãy đang xét.",
-      "proof": "Thay đúng miền chỉ số: u_1 = 2 · 1 + 1 = 3; không thể dùng u_0 để gọi là số hạng đầu.",
-      "teacherPrompt": "AI tính đúng công thức nhưng dùng sai miền chỉ số ở đâu? Em khoanh điều kiện n.",
-      "studentProduct": "Sửa chỉ số đầu, ghi loại lỗi và tính hai số hạng đầu đúng quy ước.",
-      "boardPrompt": "Dãy số: công thức luôn đi cùng miền chỉ số.",
-      "libraryTitle": "Dãy số: tính đúng công thức nhưng sai chỉ số bắt đầu",
-      "whyAiError": "Đầu ra có thể nối đúng các ký hiệu nhưng bỏ sót dấu, hệ số hoặc bước biến đổi; vì vậy phải kiểm tra lại bằng phép tính độc lập.",
+      "wrongSolution": "AI tính: \"Dãy u_n = 2n + 5. Số hạng thứ 5: u_5 = 2·(5 + 5) = 20.\"",
+      "correction": "Thay n = 5 vào biểu thức: u_5 = 2·5 + 5 = 15 (không phải 20).",
+      "proof": "Liệt kê trực tiếp: u1 = 7, u2 = 9, u3 = 11, u4 = 13, u5 = 15. Vậy 20 là kết quả của phép thay sai.",
+      "teacherPrompt": "Em liệt kê 5 số hạng đầu rồi sửa lại phép thay n của AI.",
+      "studentProduct": "Thẻ Đ/S + liệt kê 7; 9; 11; 13; 15 và kết luận u5 = 15.",
+      "boardPrompt": "AI ra u5 = 20. Liệt kê 5 số hạng đầu để kiểm.",
+      "libraryTitle": "Lỗi AI thay sai vị trí chỉ số trong công thức dãy số",
+      "whyAiError": "Mô hình nhầm vị trí thay thế, cộng 5 vào chỉ số thay vì cộng vào giá trị biểu thức.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-6-39": {
       "key": "11-6-39",
       "mode": "micro",
-      "category": "Lỗi logic",
-      "wrongSolution": "AI chứng minh một dãy giảm nên bị chặn vì “đã giảm thì không thể xuống mãi”.",
-      "correction": "Đơn điệu giảm không tự suy ra bị chặn dưới; phải tìm một cận dưới cụ thể và chứng minh mọi số hạng lớn hơn cận đó.",
-      "proof": "Dãy u_n = −n giảm nhưng không bị chặn dưới; đây là phản ví dụ cho suy luận của AI.",
-      "teacherPrompt": "Kết luận “giảm nên bị chặn” có thiếu cầu nối nào? Em đưa phản ví dụ đơn giản.",
-      "studentProduct": "Phân loại lỗi logic, viết điều kiện bị thiếu và nêu phản ví dụ u_n = −n.",
-      "boardPrompt": "Đơn điệu và bị chặn là hai yêu cầu phải tách.",
-      "libraryTitle": "Dãy số: nhầm đơn điệu với bị chặn",
-      "whyAiError": "Đầu ra có thể nhảy từ một hình ảnh, một trường hợp hoặc một kết quả riêng sang kết luận chung mà chưa chứng minh quan hệ kéo theo.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI nhận xét: \"Dãy w_n = n/(n+1) chỉ bị chặn trên bởi 1, không bị chặn dưới vì khi n rất lớn thì w_n tiến về 1, còn khi n nhỏ thì w_n có thể âm.\"",
+      "correction": "w_n = n/(n+1) > 0 với mọi n ≥ 1, và w_n ≥ 1/2. Vậy dãy bị chặn: 1/2 ≤ w_n < 1.",
+      "proof": "Tính trực tiếp w_1 = 1/2 — đây là giá trị nhỏ nhất. Với mọi n ≥ 1, n/(n+1) ≥ 1/2 vì 2n ≥ n + 1 ⇔ n ≥ 1. Không có giá trị âm nào.",
+      "teacherPrompt": "Em tính w_1 và giải bất phương trình n/(n+1) ≥ 1/2 rồi sửa lại kết luận của AI.",
+      "studentProduct": "Thẻ Đ/S + chứng minh n/(n+1) ≥ 1/2 với n ≥ 1, kết luận bị chặn bởi 1/2 và 1.",
+      "boardPrompt": "AI nói w_n có thể âm. Tính w_1.",
+      "libraryTitle": "Lỗi AI suy chặn dưới từ giới hạn thay vì từ giá trị nhỏ nhất",
+      "whyAiError": "Mô hình suy đoán chặn dưới từ hành vi tiệm cận thay vì kiểm giá trị nhỏ nhất trên tập xác định.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-6-40": {
       "key": "11-6-40",
       "mode": "full",
-      "category": "Lỗi đại số",
-      "wrongSolution": "Với u_n = 1/n, AI nói dãy tăng vì tử số và mẫu số đều dương; do đó u_{n+1} > u_n.",
-      "correction": "u_{n+1} − u_n = 1/(n+1) − 1/n = −1/[n(n+1)] < 0, nên dãy giảm.",
-      "proof": "u_1 = 1 > u_2 = 1/2 > u_3 = 1/3; phép trừ hai số hạng liên tiếp xác nhận dấu âm.",
-      "teacherPrompt": "Dương không có nghĩa là tăng. Em dùng hiệu hai số hạng liên tiếp để bác bỏ kết luận.",
-      "studentProduct": "Sửa chiều đơn điệu, ghi phép tính hiệu và kiểm bằng ba số hạng đầu.",
-      "boardPrompt": "Tính hiệu uₙ₊₁ − uₙ để xét tăng giảm.",
-      "libraryTitle": "Dãy số: nhầm “dương” với “tăng”",
-      "whyAiError": "Đầu ra có thể nối đúng các ký hiệu nhưng bỏ sót dấu, hệ số hoặc bước biến đổi; vì vậy phải kiểm tra lại bằng phép tính độc lập.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận: \"Dãy v_n = 2/n là dãy giảm nên không bị chặn dưới; khi n rất lớn thì v_n tiến về 0 và có thể nhận giá trị âm.\"",
+      "correction": "2/n > 0 với mọi n ≥ 1 nên dãy bị chặn dưới bởi 0; đồng thời v_n ≤ 2 nên bị chặn trên bởi 2. Dãy bị chặn: 0 < v_n ≤ 2.",
+      "proof": "Với mọi n nguyên dương, 2/n > 0 (thương hai số dương). Kiểm n = 100: v = 0,02 > 0. Không tồn tại n để v_n âm.",
+      "teacherPrompt": "Em chứng minh 2/n > 0 với mọi n rồi sửa lại kết luận của AI về chặn dưới.",
+      "studentProduct": "Thẻ Đ/S + bất đẳng thức 2/n > 0 và kết luận 0 < v_n ≤ 2.",
+      "boardPrompt": "AI nói 2/n có thể âm. Thử n = 100.",
+      "libraryTitle": "Lỗi AI suy dấu từ giới hạn thay vì từ công thức",
+      "whyAiError": "Mô hình suy đoán dấu từ xu hướng tiến về 0 thay vì kiểm bất đẳng thức với mọi n.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-6-41": {
       "key": "11-6-41",
       "mode": "full",
-      "category": "Lỗi logic",
-      "wrongSolution": "AI đổi nghiệm lượng giác x = π/6 + 2kπ thành dãy u_k = π/6 + 2kπ rồi cho rằng k có thể nhận mọi số thực.",
-      "correction": "Trong họ nghiệm, k thuộc Z; nếu lập dãy thì chỉ số phải được quy ước trong miền chỉ số của dãy, không đồng nhất biến liên tục x với chỉ số k.",
-      "proof": "Cho k = 1/2 tạo x = 7π/6 nhưng k = 1/2 không phải số nguyên nên không phải nghiệm của họ đã cho.",
-      "teacherPrompt": "AI đã trộn biến x với chỉ số k ở đâu? Em kiểm miền giá trị của k trước khi kết luận.",
-      "studentProduct": "Tách hai mạch suy luận, sửa miền chỉ số và ghi một phép kiểm bằng k nguyên.",
-      "boardPrompt": "Không trộn biến liên tục với chỉ số nguyên.",
-      "libraryTitle": "Lời giải liên môn: trộn biến x với chỉ số dãy số",
-      "whyAiError": "Đầu ra có thể nhảy từ một hình ảnh, một trường hợp hoặc một kết quả riêng sang kết luận chung mà chưa chứng minh quan hệ kéo theo.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI tính: \"cos(2π/3) = cos(120°) = 1/2 vì cos là hàm chẵn nên luôn dương ở hai phía trục tung.\"",
+      "correction": "cos là hàm chẵn theo nghĩa cos(−x) = cos x, không phải luôn dương. Góc 120° thuộc phần tư II nên cos(2π/3) = −1/2.",
+      "proof": "Dùng công thức: cos(2π/3) = cos(π − π/3) = −cos(π/3) = −1/2. Kiểm bằng đường tròn lượng giác: hoành độ của điểm 120° nằm bên trái trục tung.",
+      "teacherPrompt": "Em xác định phần tư của 2π/3 và dùng cos(π − x) = −cos x để sửa lại kết quả của AI.",
+      "studentProduct": "Thẻ Đ/S + hai căn cứ: phần tư II và công thức cos(π − x) = −cos x.",
+      "boardPrompt": "AI nói cos(2π/3) = 1/2 vì \"cos chẵn\". Sai ở đâu?",
+      "libraryTitle": "Lỗi AI nhầm tính chẵn của cos với dấu dương",
+      "whyAiError": "Mô hình nhầm tính chẵn của hàm cos với việc cos luôn dương, và bỏ qua dấu theo góc phần tư.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-5-26": {
