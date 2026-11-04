@@ -21,88 +21,81 @@
       "lessonType": "formation",
       "selfChoice": false,
       "title": "Bất phương trình bậc nhất hai ẩn",
-      "focus": "Mô hình hóa điều kiện ngân sách bằng bất phương trình bậc nhất hai ẩn, xác định ý nghĩa biến và kiểm tra cặp số là nghiệm",
+      "focus": "Mô hình hóa điều kiện ngân sách của xe bánh mì \"Bánh Mì 0đ\" (bánh 15 nghìn/chiếc, nước 10 nghìn/chai, ngân sách 150 nghìn) thành bất phương trình bậc nhất hai ẩn 15x + 10y ≤ 150 ⇔ 3x + 2y ≤ 30; xác định ý nghĩa biến, điều kiện x, y nguyên không âm và kiểm tra một cặp số có là nghiệm",
       "formulas": [
-        "ax+by\\le c\\quad(\\text{hoặc }<,\\ge,>)\\quad a,b\\ \\text{không đồng thời bằng }0",
-        "(x_0;y_0)\\ \\text{là nghiệm nếu thay vào làm bất phương trình đúng}",
-        "15x+10y\\le150",
-        "3x+2y\\le30"
+        "ax + by \\le c \\quad (a, b \\text{ không đồng thời bằng } 0)",
+        "(x_0; y_0) \\text{ là nghiệm nếu thay vào được mệnh đề đúng}",
+        "15x + 10y \\le 150",
+        "3x + 2y \\le 30"
       ],
       "examples": [
         {
-          "question": "Một nhóm có 150 nghìn đồng mua bánh giá 15 nghìn đồng/chiếc (x chiếc) và nước giá 10 nghìn đồng/chai (y chai), không vượt quá ngân sách. Lập mô hình và rút gọn.",
-          "solution": "Mô hình: 15x + 10y ≤ 150. Rút gọn (chia cả hai vế cho 5): 3x + 2y ≤ 30. Trong đó x, y là số nguyên không âm vì là số lượng đồ vật."
+          "question": "Xe bánh mì có 150 nghìn đồng, mua bánh giá 15 nghìn/chiếc (x chiếc) và nước 10 nghìn/chai (y chai). Lập mô hình ràng buộc ngân sách, rút gọn và nêu điều kiện của x, y.",
+          "solution": "Mô hình: 15x + 10y ≤ 150. Chia hai vế cho 5: 3x + 2y ≤ 30. Vì x, y là số lượng nên x, y ∈ ℕ (nguyên không âm)."
         },
         {
-          "question": "Cặp (4;9) và cặp (6;7) có thỏa mô hình 15x + 10y ≤ 150 không?",
-          "solution": "Với (4;9): 15·4 + 10·9 = 150 ≤ 150 đúng, nên (4;9) là nghiệm. Với (6;7): 15·6 + 10·7 = 160 > 150, mệnh đề 160 ≤ 150 sai nên (6;7) không phải nghiệm."
+          "question": "Với mô hình 15x + 10y ≤ 150, các cặp (4; 9), (2; 12), (6; 7) có phải là nghiệm không?",
+          "solution": "(4; 9): 60 + 90 = 150 ≤ 150 → nghiệm. (2; 12): 30 + 120 = 150 ≤ 150 → nghiệm. (6; 7): 90 + 70 = 160 > 150 → không là nghiệm."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Bất phương trình bậc nhất hai ẩn $x, y$ có dạng nào?",
-          "answer": "$ax + by \\le c$ (hoặc $<, \\ge, >$), trong đó $a, b$ không đồng thời bằng $0$."
+          "question": "Nêu dạng tổng quát của bất phương trình bậc nhất hai ẩn x, y và điều kiện của hệ số.",
+          "answer": "ax + by ≤ c (hoặc <, ≥, >) với a, b không đồng thời bằng 0."
         },
         {
           "level": "NB",
-          "question": "Cặp $(x_0;y_0)$ được gọi là nghiệm của bất phương trình khi nào?",
-          "answer": "Khi thay $x_0, y_0$ vào bất phương trình cho một mệnh đề đúng."
+          "question": "Cặp (x₀; y₀) được gọi là nghiệm của bất phương trình khi nào?",
+          "answer": "Khi thay x₀, y₀ vào bất phương trình ta được một mệnh đề đúng."
         },
         {
           "level": "TH",
-          "question": "Cặp (2;12) có thỏa mô hình 15x + 10y ≤ 150 không?",
-          "answer": "Thay vào: 15·2 + 10·12 = 150 ≤ 150 đúng, nên (2;12) là nghiệm."
+          "question": "Cặp (2; 12) có thỏa mô hình 15x + 10y ≤ 150 không?",
+          "answer": "15·2 + 10·12 = 150 ≤ 150 đúng → (2; 12) là nghiệm (dùng đúng toàn bộ ngân sách)."
         },
         {
           "level": "TH",
-          "question": "Cặp (5;8) có thỏa mô hình 15x + 10y ≤ 150 không?",
-          "answer": "Thay vào: 15·5 + 10·8 = 155 > 150, nên (5;8) không phải nghiệm."
+          "question": "Cặp (5; 8) có thỏa mô hình 15x + 10y ≤ 150 không?",
+          "answer": "15·5 + 10·8 = 155 > 150 → không phải nghiệm (vượt ngân sách 5 nghìn)."
         },
         {
           "level": "VD",
-          "question": "Vì sao mô hình ngân sách phải dùng dấu ≤ mà không dùng dấu $=$?",
-          "answer": "Vì tổng tiền chỉ cần không vượt quá 150 nghìn, có thể tiêu ít hơn; dấu $=$ chỉ nhận đúng giới hạn và bỏ sót các phương án hợp lệ khác."
+          "question": "Vì sao mô hình ngân sách phải dùng dấu ≤ mà không dùng dấu =?",
+          "answer": "Vì chỉ cần tổng tiền không vượt quá 150 nghìn; dùng dấu = sẽ loại bỏ mọi phương án tiêu ít hơn (ví dụ (3; 10) hết 145 nghìn) — những phương án hoàn toàn hợp lệ."
         },
         {
           "level": "VD",
-          "question": "Giải thích vì sao $x, y$ trong mô hình phải là số nguyên không âm.",
-          "answer": "Vì $x$ là số chiếc bánh và $y$ là số chai nước; số lượng đồ vật không thể âm hoặc là số thập phân."
+          "question": "Vì sao x, y trong mô hình buộc phải là số nguyên không âm? Nếu bỏ điều kiện này thì mô hình sai ở đâu?",
+          "answer": "Vì x, y là số chiếc bánh và số chai nước — không thể âm hay lẻ thập phân. Bỏ điều kiện sẽ chấp nhận các nghiệm vô nghĩa như (2,5; 3) dù bất phương trình vẫn đúng."
         }
       ],
       "quick": [
         {
-          "question": "Vì sao (6;7) không phải nghiệm của 15x + 10y ≤ 150?",
-          "solution": "Vì 15·6 + 10·7 = 160 > 150, mệnh đề 160 ≤ 150 sai nên (6;7) không thỏa mô hình."
+          "question": "Vì sao (6; 7) không phải nghiệm của 15x + 10y ≤ 150?",
+          "solution": "Vì 15·6 + 10·7 = 160 > 150; mệnh đề 160 ≤ 150 sai."
         },
         {
-          "question": "Đổi mô hình 15x + 10y ≤ 150 sang dạng rút gọn?",
-          "solution": "Chia cả hai vế cho 5: 3x + 2y ≤ 30."
+          "question": "Rút gọn mô hình 15x + 10y ≤ 150.",
+          "solution": "Chia cả hai vế cho 5 (số dương, dấu không đổi): 3x + 2y ≤ 30."
         }
       ],
       "mistakes": [
-        "Thay số vào mô hình nhưng quên so sánh tổng với đúng vế phải của bất phương trình.",
-        "Không kiểm điều kiện $x, y$ là số nguyên không âm trước khi kết luận một cặp là nghiệm.",
-        "Nhầm dấu ≤ thành dấu $=$ khi lập mô hình từ tình huống ngân sách."
+        "Đọc \"không vượt quá\" thành dấu = khi lập mô hình.",
+        "Quên điều kiện x, y nguyên không âm.",
+        "Tính đúng tổng tiền nhưng so sánh sai chiều (160 > 150 lại kết luận là nghiệm)."
       ],
       "boardKnowledge": [
         "II. NỘI DUNG",
         "1. Khái niệm",
-        "a. Bất phương trình bậc nhất hai ẩn có dạng $ax + by \\le c$ (hoặc $<, \\ge, >$), trong đó $a, b$ không đồng thời bằng $0$.",
-        "b. Cặp số $(x_0; y_0)$ là nghiệm nếu thay vào cho một mệnh đề đúng.",
-        "2. Mô hình hóa điều kiện ngân sách",
-        "a. $x, y$ là số nguyên không âm; $x$ là số chiếc bánh, $y$ là số chai nước.",
-        "b. $15x + 10y \\le 150$.",
-        "c. Rút gọn: $3x + 2y \\le 30$.",
-        "3. Quy tắc kiểm tra một cặp số",
-        "a. Thay cặp số vào bất phương trình.",
-        "b. Tính và so sánh hai vế.",
-        "c. Mệnh đề đúng: là nghiệm; mệnh đề sai: không là nghiệm.",
-        "d. $(4;9)$: $15\\cdot4 + 10\\cdot9 = 150 \\le 150$ nên là nghiệm.",
-        "e. $(6;7)$: $15\\cdot6 + 10\\cdot7 = 160 > 150$ nên không là nghiệm.",
-        "4. Chú ý",
-        "a. “Không vượt quá” dùng dấu $\\le$, không dùng dấu $=$.",
-        "b. Giữ điều kiện $x, y$ là số nguyên không âm."
+        "a. Bất phương trình bậc nhất hai ẩn: ax + by ≤ c (hoặc <, ≥, >), a, b không đồng thời bằng 0.",
+        "b. (x₀; y₀) là nghiệm nếu thay vào được mệnh đề đúng.",
+        "2. Mô hình ngân sách xe bánh mì",
+        "a. x = số bánh (15 nghìn/chiếc), y = số nước (10 nghìn/chai), ngân sách 150 nghìn.",
+        "b. 15x + 10y ≤ 150 ⇔ 3x + 2y ≤ 30; x, y ∈ ℕ.",
+        "3. Kiểm tra nghiệm",
+        "a. Thay cặp số, tính vế trái, so sánh với vế phải.",
+        "b. (4; 9) và (2; 12) là nghiệm; (6; 7), (5; 8) không là nghiệm."
       ],
       "languageSupport": {
         "profile": "g10-korean-vietnamese",
@@ -349,68 +342,68 @@
       "lessonType": "formation",
       "selfChoice": false,
       "title": "Biểu diễn miền nghiệm của bất phương trình",
-      "focus": "Biểu diễn chính xác miền nghiệm bằng đường biên và điểm thử",
+      "focus": "Biểu diễn miền nghiệm của bất phương trình bậc nhất hai ẩn bằng đường biên và điểm thử, trên trục thực nghiệm mô hình xe bánh mì 3x + 2y ≤ 30 (biên qua (10; 0), (0; 15), miền chứa gốc tọa độ); phân biệt nét liền/nét đứt theo dấu",
       "formulas": [
-        "ax+by+c\\le0\\ \\text{hoặc}\\ ax+by+c\\ge0",
-        "ax+by+c=0\\ \\text{là đường biên}",
-        "\\le,\\ \\ge\\Rightarrow\\text{nét liền};\\quad <,\\ >\\Rightarrow\\text{nét đứt}"
+        "ax + by = c \\ \\text{là đường biên}",
+        "\\le, \\ge \\Rightarrow \\text{nét liền}; \\quad <, > \\Rightarrow \\text{nét đứt}",
+        "3x + 2y = 30 \\ \\text{qua } (10;0), (0;15)"
       ],
       "examples": [
         {
-          "question": "Biểu diễn miền nghiệm của $3x-2y>6$.",
-          "solution": "Vẽ đường $3x-2y=6$ nét đứt; thử $(3;0)$: $3>6$ sai, thử $(0;-4)$: $8>6$ đúng, chọn phía chứa $(0;-4)$."
+          "question": "Biểu diễn miền nghiệm của 3x + 2y ≤ 30 (mô hình xe bánh mì).",
+          "solution": "Đường biên 3x + 2y = 30 qua (10; 0) và (0; 15), vẽ nét liền vì dấu ≤. Thử O(0; 0): 0 ≤ 30 đúng → tô nửa mặt phẳng chứa gốc (phía dưới đường biên). Kiểm: (4; 9) cho 30 ≤ 30 (trên biên, thuộc miền); (8; 6) cho 36 > 30 (ngoài miền)."
         },
         {
-          "question": "Biểu diễn miền nghiệm của $x+2y\\le4$ và kiểm tra bằng điểm $(0;0)$.",
-          "solution": "Đường biên nét liền $x+2y=4$; gốc tọa độ cho $0\\le4$, nên chọn nửa mặt phẳng chứa gốc."
+          "question": "Biểu diễn miền nghiệm của 3x − 2y > 6 và giải thích vì sao chọn phía không chứa gốc tọa độ.",
+          "solution": "Đường biên 3x − 2y = 6 vẽ nét đứt vì dấu >. Thử O(0; 0): 0 > 6 sai → chọn nửa mặt phẳng không chứa gốc. Kiểm (3; 0): 9 > 6 đúng; kiểm (0; −4): 8 > 6 đúng."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Với $2x+y<1$, đường biên vẽ liền hay đứt?",
-          "answer": "Nét đứt vì dấu là $<$"
+          "question": "Với 2x + y < 1, đường biên vẽ nét liền hay nét đứt?",
+          "answer": "Nét đứt, vì dấu < không lấy đường biên."
         },
         {
           "level": "NB",
-          "question": "Nêu ba bước biểu diễn miền nghiệm.",
-          "answer": "Vẽ đường biên; chọn điểm thử; tô/đánh dấu nửa mặt phẳng đúng."
+          "question": "Nêu ba bước biểu diễn miền nghiệm của bất phương trình bậc nhất hai ẩn.",
+          "answer": "Vẽ đường biên (nét liền/đứt theo dấu); chọn điểm thử và thay vào; chọn nửa mặt phẳng theo kết quả rồi tô."
         },
         {
           "level": "TH",
-          "question": "Biểu diễn miền nghiệm của $-x+y\\ge2$.",
-          "answer": "Đường $-x+y=2$ nét liền; thử $(0;0)$ không thỏa, chọn phía đối diện gốc."
+          "question": "Biểu diễn miền nghiệm của −x + y ≥ 2.",
+          "answer": "Đường −x + y = 2 nét liền; thử O(0; 0): 0 ≥ 2 sai → chọn phía không chứa gốc; điểm (0; 3) thỏa nên thuộc miền."
         },
         {
           "level": "TH",
-          "question": "Kiểm tra xem $(2;1)$ có thuộc miền nghiệm $x+y\\le3$ không.",
-          "answer": "Có, vì $2+1=3\\le3$; điểm nằm trên đường biên liền."
+          "question": "Điểm (2; 1) có thuộc miền nghiệm của x + y ≤ 3 không?",
+          "answer": "Có: 2 + 1 = 3 ≤ 3 đúng; điểm nằm ngay trên đường biên (vẫn thuộc vì dấu ≤)."
         },
         {
           "level": "VD",
-          "question": "Tạo một bất phương trình có miền nghiệm chứa gốc tọa độ nhưng không chứa điểm $(2;2)$.",
-          "answer": "Ví dụ $x+y\\le1$; gốc thỏa, còn $(2;2)$ cho $4\\le1$ sai."
+          "question": "Tạo một bất phương trình có miền nghiệm chứa gốc tọa độ nhưng không chứa điểm (2; 2).",
+          "answer": "Ví dụ x + y ≤ 1: gốc cho 0 ≤ 1 đúng; (2; 2) cho 4 ≤ 1 sai. (Chỉ cần chọn hằng số nhỏ hơn 4 và không âm.)"
         },
         {
           "level": "VD",
-          "question": "Sửa lời giải vẽ nét đứt cho $x-y\\le0$.",
-          "answer": "Phải vẽ nét liền vì dấu $\\le$ lấy cả đường biên $x-y=0$."
+          "question": "Một bạn vẽ nét đứt cho x − y ≤ 0. Hãy sửa và giải thích.",
+          "answer": "Phải vẽ nét liền vì dấu ≤ lấy cả đường biên x − y = 0; các điểm trên đường (ví dụ (1; 1), (0; 0)) đều là nghiệm."
         }
       ],
       "quick": [
         {
-          "question": "Điểm $(1;1)$ có thuộc miền nghiệm $x-y\\ge0$ không?",
-          "solution": "Có, vì $0\\ge0$; điểm nằm trên đường biên."
+          "question": "Vì sao dấu < phải vẽ nét đứt?",
+          "solution": "Vì các điểm trên đường biên cho vế trái bằng vế phải, không thỏa bất đẳng thức ngặt — nên biên không thuộc miền."
         },
         {
-          "question": "Nếu điểm thử cho đẳng thức bằng $0$ thì phải làm gì?",
-          "solution": "Đổi sang một điểm không nằm trên đường biên."
+          "question": "Khi điểm thử O(0;0) cho mệnh đề sai thì chọn phía nào?",
+          "solution": "Chọn nửa mặt phẳng đối diện với O (không chứa gốc tọa độ)."
         }
       ],
       "mistakes": [
-        "Quên đổi chiều dấu khi nhân với số âm.",
-        "Tô phía chứa điểm thử nhưng không ghi phép thử.",
-        "Nhầm điểm trên đường biên là điểm thử hợp lệ."
+        "Vẽ nét đứt cho dấu ≤ hoặc ≥.",
+        "Tô phía chứa điểm thử dù điểm thử cho mệnh đề sai.",
+        "Quên kiểm tra lại bằng một điểm ngoài miền."
       ],
       "diagram": "graph",
       "digital": true,
@@ -648,7 +641,20 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Biểu diễn chính xác miền nghiệm bằng đường biên và điểm thử, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Đường biên",
+        "a. ax + by = c là đường biên; nét liền với ≤, ≥; nét đứt với <, >.",
+        "b. Với 3x + 2y = 30: cho x = 0 → y = 15; cho y = 0 → x = 10.",
+        "2. Ba bước biểu diễn miền nghiệm",
+        "a. Vẽ đường biên.",
+        "b. Thử một điểm (thường O(0;0)).",
+        "c. Chọn nửa mặt phẳng: đúng → phía điểm thử; sai → phía đối diện.",
+        "3. Áp dụng mô hình xe bánh mì",
+        "a. 3x + 2y ≤ 30: nét liền, miền chứa gốc.",
+        "b. (4; 9) trên biên thuộc miền; (8; 6) cho 36 > 30 nên ngoài miền."
+      ]
     },
     {
       "key": "10-5-33",
@@ -659,68 +665,68 @@
       "lessonType": "formation",
       "selfChoice": false,
       "title": "Hệ bất phương trình bậc nhất hai ẩn",
-      "focus": "Xác định miền nghiệm của hệ bất phương trình bậc nhất hai ẩn",
+      "focus": "Xác định miền nghiệm của hệ bất phương trình bậc nhất hai ẩn trên trục thực nghiệm xe bánh mì: 3x + 2y ≤ 30, x ≥ 4, y ≥ 2; miền là tam giác với các đỉnh (4;2), (4;9), (26/3;2); kiểm tra điểm thuộc miền và lọc nghiệm nguyên",
       "formulas": [
-        "\\begin{cases}a_1x+b_1y+c_1\\le0\\\\a_2x+b_2y+c_2\\ge0\\end{cases}",
-        "S=S_1\\cap S_2\\cap\\cdots\\cap S_n",
-        "\\text{Miền nghiệm hệ là phần giao của các miền nghiệm thành phần.}"
+        "\\begin{cases}3x + 2y \\le 30 \\\\ x \\ge 4 \\\\ y \\ge 2\\end{cases}",
+        "S = S_1 \\cap S_2 \\cap S_3",
+        "\\text{Đỉnh} = \\text{giao hai đường biên} \\cap \\text{thỏa các điều kiện còn lại}"
       ],
       "examples": [
         {
-          "question": "Biểu diễn hệ $\\begin{cases}x+y\\le4\\\\x\\ge0\\\\y\\ge0\\end{cases}$.",
-          "solution": "Miền nghiệm là tam giác với các đỉnh $(0;0),(4;0),(0;4)$: lấy giao của nửa mặt phẳng dưới $x+y=4$ với hai nửa mặt phẳng bên phải/trên trục."
+          "question": "Biểu diễn miền nghiệm của hệ 3x + 2y ≤ 30, x ≥ 4, y ≥ 2 và xác định các đỉnh.",
+          "solution": "Vẽ ba đường biên 3x + 2y = 30, x = 4, y = 2. Lấy phần giao: tam giác với A(4; 2) (giao x = 4, y = 2), B(4; 9) (giao x = 4 với 3x + 2y = 30), C(26/3; 2) (giao y = 2 với 3x + 2y = 30). Kiểm: A cho 16 ≤ 30; B cho 30 ≤ 30; C cho 30 ≤ 30 — cả ba thỏa mọi điều kiện."
         },
         {
-          "question": "Với hệ $\\begin{cases}2x+y\\le6\\\\x+y\\le4\\\\x\\ge0\\\\y\\ge0\\end{cases}$, vì sao không được chỉ chọn miền của bất phương trình đầu?",
-          "solution": "Vì nghiệm hệ phải đồng thời thỏa tất cả điều kiện; phải lấy phần giao, có các đỉnh $(0;0),(3;0),(2;2),(0;4)$."
+          "question": "Với hệ trên, tìm cặp nghiệm nguyên có số bánh nhiều nhất.",
+          "solution": "Từ y = 2: 3x + 4 ≤ 30 ⇒ x ≤ 26/3 ≈ 8,67 nên x ≤ 8. Cặp (8; 2) cho 24 + 4 = 28 ≤ 30 và thỏa x ≥ 4, y ≥ 2 — đây là phương án nguyên nhiều bánh nhất."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Miền nghiệm của hệ được tạo bởi phép toán tập hợp nào?",
+          "question": "Miền nghiệm của hệ bất phương trình được tạo bởi phép toán tập hợp nào?",
           "answer": "Phép giao của các miền nghiệm thành phần."
         },
         {
           "level": "NB",
-          "question": "Điểm $(1;1)$ có thỏa hệ $x\\ge0,y\\ge0,x+y\\le3$ không?",
-          "answer": "Có; cả ba điều kiện đều đúng."
+          "question": "Điểm (1; 1) có thỏa hệ x ≥ 0, y ≥ 0, x + y ≤ 3 không?",
+          "answer": "Có: 1 ≥ 0, 1 ≥ 0, 1 + 1 = 2 ≤ 3 — cả ba điều kiện đúng."
         },
         {
           "level": "TH",
-          "question": "Tìm miền nghiệm hệ $x\\ge0,y\\ge0,x+y\\le2$.",
-          "answer": "Tam giác giới hạn bởi hai trục và đường $x+y=2$."
+          "question": "Tìm miền nghiệm của hệ x ≥ 0, y ≥ 0, x + y ≤ 2.",
+          "answer": "Tam giác với các đỉnh (0; 0), (2; 0), (0; 2) — giới hạn bởi hai trục tọa độ và đường x + y = 2."
         },
         {
           "level": "TH",
-          "question": "Kiểm tra điểm $(2;3)$ với hệ $x+y\\le4,x\\ge0,y\\ge0$.",
-          "answer": "Không, vì $2+3=5>4$."
+          "question": "Điểm (2; 3) có thuộc miền nghiệm của hệ x + y ≤ 4, x ≥ 0, y ≥ 0 không?",
+          "answer": "Không: 2 + 3 = 5 > 4 nên vi phạm điều kiện đầu."
         },
         {
           "level": "VD",
-          "question": "Tìm các đỉnh miền nghiệm của $x+y\\le5,\\ x+2y\\le6,\\ x\\ge0,\\ y\\ge0$.",
-          "answer": "Các đỉnh là $(0;0),(5;0),(4;1),(0;3)$; lấy giao từng cặp đường biên rồi lọc điều kiện."
+          "question": "Tìm các đỉnh miền nghiệm của hệ x + y ≤ 5, x + 2y ≤ 6, x ≥ 0, y ≥ 0.",
+          "answer": "Các đỉnh: (0; 0); (5; 0); (4; 1) (giao x + y = 5 với x + 2y = 6); (0; 3). Kiểm cả bốn điểm đều thỏa mọi điều kiện."
         },
         {
           "level": "VD",
-          "question": "Phản biện: “Một điểm thỏa ba trong bốn bất phương trình là nghiệm hệ”.",
-          "answer": "Sai; nghiệm hệ phải thỏa đồng thời cả bốn điều kiện."
+          "question": "Phản biện nhận định: \"Một điểm thỏa ba trong bốn bất phương trình là nghiệm của hệ\".",
+          "answer": "Sai. Nghiệm hệ phải thỏa đồng thời cả bốn. Ví dụ điểm (5; 1) thỏa x ≥ 0, y ≥ 0, x + y ≤ 6 nhưng vi phạm x + 2y ≤ 6 (5 + 2 = 7 > 6) nên không là nghiệm."
         }
       ],
       "quick": [
         {
-          "question": "Điểm $(0;0)$ có luôn là nghiệm của hệ $x\\ge0,y\\ge0,x+y\\le4$ không?",
-          "solution": "Có, vì cả ba điều kiện đều đúng."
+          "question": "Vì sao không thể chỉ lấy miền của 3x + 2y ≤ 30 làm miền nghiệm hệ?",
+          "solution": "Vì còn hai điều kiện x ≥ 4 và y ≥ 2; điểm (0;0) thuộc miền của bất phương trình đầu nhưng vi phạm cả hai điều kiện còn lại."
         },
         {
-          "question": "Vì sao cần kiểm tra lại các đỉnh sau khi tìm giao hai đường?",
-          "solution": "Có giao điểm nhưng có thể nằm ngoài một điều kiện khác của hệ."
+          "question": "Đỉnh (4; 9) được xác định từ giao của hai đường nào?",
+          "solution": "x = 4 và 3x + 2y = 30 (thay x = 4 được 12 + 2y = 30 ⇒ y = 9)."
         }
       ],
       "mistakes": [
-        "Tô hợp các miền thay vì phần giao.",
-        "Không kiểm tra đỉnh với mọi điều kiện.",
-        "Đọc hình vẽ bằng mắt nhưng không ghi bất đẳng thức kiểm chứng."
+        "Chỉ lấy miền của một bất phương trình mạnh nhất, bỏ các điều kiện còn lại.",
+        "Nhầm hợp với giao khi xác định miền nghiệm hệ.",
+        "Tìm đỉnh bằng giao hai đường biên nhưng quên kiểm điều kiện còn lại."
       ],
       "diagram": "graph",
       "digital": true,
@@ -960,7 +966,21 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Xác định miền nghiệm của hệ bất phương trình bậc nhất hai ẩn, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Nhìn miền khả thi như vùng các lựa chọn cùng đáp ứng nhiều ràng buộc trong một cộng đồng., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Khái niệm hệ bất phương trình bậc nhất hai ẩn",
+        "a. Nghiệm hệ là cặp số thỏa đồng thời mọi bất phương trình.",
+        "b. Miền nghiệm hệ = giao các miền nghiệm thành phần.",
+        "2. Xác định miền nghiệm",
+        "a. Vẽ từng đường biên và nửa mặt phẳng tương ứng.",
+        "b. Lấy phần giao; đánh dấu các đỉnh.",
+        "c. Đỉnh = giao hai đường biên nằm trong và thỏa điều kiện còn lại.",
+        "3. Áp dụng xe bánh mì",
+        "a. Hệ: 3x + 2y ≤ 30, x ≥ 4, y ≥ 2.",
+        "b. Đỉnh: (4; 2), (4; 9), (26/3; 2).",
+        "c. Nghiệm nguyên nhiều bánh nhất: (8; 2)."
+      ]
     },
     {
       "key": "10-5-34",
@@ -971,68 +991,68 @@
       "lessonType": "formation",
       "selfChoice": false,
       "title": "Công thức diện tích tam giác",
-      "focus": "Hình thành và lựa chọn công thức diện tích tam giác",
+      "focus": "Hình thành và lựa chọn công thức diện tích tam giác trên trục thực nghiệm ba mảnh vườn của trường: S = ½ah_a (12 m²), S = ½bc·sin A (12 m²), S = abc/(4R) (24 m²); rèn kỹ năng chọn công thức theo bộ dữ kiện",
       "formulas": [
-        "S=\\frac12ah_a",
-        "S=\\frac12ab\\sin C",
-        "S=\\frac{abc}{4R}"
+        "S = \\dfrac12 a h_a",
+        "S = \\dfrac12 ab\\sin C",
+        "S = \\dfrac{abc}{4R}"
       ],
       "examples": [
         {
-          "question": "Cho tam giác có $a=6$, $b=8$, $C=30^\\circ$. Tính diện tích.",
-          "solution": "Dùng $S=\\frac12ab\\sin C$: $S=\\frac12\\cdot6\\cdot8\\cdot\\frac12=12$."
+          "question": "Vườn hoa hình tam giác có b = 6 m, c = 8 m, góc xen giữa A = 30°. Tính diện tích.",
+          "solution": "Dùng S = ½bc·sin A (biết hai cạnh và góc xen giữa): S = ½·6·8·sin30° = 24·0,5 = 12 m²."
         },
         {
-          "question": "Khi biết ba cạnh $a,b,c$ và bán kính đường tròn ngoại tiếp $R$, công thức nào phù hợp?",
-          "solution": "Dùng $S=\\frac{abc}{4R}$); cần kiểm tra các độ dài dương và tam giác tồn tại."
+          "question": "Sân cỏ hình tam giác có ba cạnh 6 m, 8 m, 10 m nội tiếp đường tròn bán kính R = 5 m. Tính diện tích và kiểm tra bằng cách khác.",
+          "solution": "S = abc/(4R) = (6·8·10)/(4·5) = 480/20 = 24 m². Kiểm tra: 6² + 8² = 100 = 10² nên tam giác vuông tại góc giữa hai cạnh 6 và 8, do đó S = ½·6·8 = 24 m² ✓."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Viết công thức diện tích khi biết đáy $a$ và chiều cao $h_a$.",
-          "answer": "$S=\\frac12ah_a$."
+          "question": "Viết công thức diện tích tam giác khi biết đáy a và chiều cao h_a.",
+          "answer": "S = ½·a·h_a."
         },
         {
           "level": "NB",
-          "question": "Tính diện tích với $a=5$, $h_a=4$.",
-          "answer": "$10$ đơn vị diện tích."
+          "question": "Tính diện tích tam giác có a = 5 và h_a = 4.",
+          "answer": "S = ½·5·4 = 10 (đơn vị diện tích)."
         },
         {
           "level": "TH",
-          "question": "Tính diện tích khi $a=5,b=7,C=60^\\circ$.",
-          "answer": "$S=\\frac{35\\sqrt3}{4}$."
+          "question": "Tính diện tích tam giác có a = 5, b = 7, góc xen giữa C = 60°.",
+          "answer": "S = ½·5·7·sin60° = 17,5·(√3/2) = 35√3/4 ≈ 15,16 (đơn vị diện tích)."
         },
         {
           "level": "TH",
-          "question": "Nếu hai cạnh giữ nguyên mà góc xen giữa tăng từ $30^\\circ$ lên $90^\\circ$, diện tích thay đổi thế nào?",
-          "answer": "Diện tích tăng vì $\\sin30^\\circ=\\frac12<\\sin90^\\circ=1$."
+          "question": "Hai cạnh a, b giữ nguyên, góc xen giữa tăng từ 30° lên 90°. Diện tích thay đổi thế nào?",
+          "answer": "Diện tích tăng: S = ½ab·sin C, mà sin30° = 0,5 < sin90° = 1 nên diện tích tăng gấp đôi."
         },
         {
           "level": "VD",
-          "question": "Phản biện việc dùng $S=\\frac12ab\\cos C$ để tính diện tích.",
-          "answer": "Sai; công thức dùng sin của góc xen giữa, không dùng cos."
+          "question": "Một bạn dùng S = ½ab·cos C để tính diện tích. Hãy phản biện.",
+          "answer": "Sai: công thức dùng sin của góc xen giữa. Với C = 90° công thức của bạn cho S = 0 trong khi tam giác vuông có diện tích ½ab — phản ví dụ quyết định."
         },
         {
           "level": "VD",
-          "question": "Tạo hai tam giác khác nhau nhưng có cùng diện tích và giải thích.",
-          "answer": "Chọn cùng đáy và cùng chiều cao; hình dạng/góc có thể khác nhưng $S=\\frac12ah$ không đổi."
+          "question": "Nêu hai tam giác khác nhau nhưng có cùng diện tích và giải thích.",
+          "answer": "Chọn cùng đáy a và cùng chiều cao h_a nhưng đỉnh thứ ba trượt trên đường thẳng song song với đáy: S = ½ah_a không đổi dù hình dạng và các góc thay đổi."
         }
       ],
       "quick": [
         {
-          "question": "Với $a=10$, $h_a=3$, diện tích bằng bao nhiêu?",
-          "solution": "$15$ đơn vị diện tích."
+          "question": "Vì sao công thức diện tích dùng sin mà không dùng cos của góc xen giữa?",
+          "solution": "Vì c·sin A chính là chiều cao kẻ từ B xuống cạnh b; cos A cho hình chiếu của cạnh lên phương đáy, không phải chiều cao."
         },
         {
-          "question": "Công thức nào dùng khi biết hai cạnh và góc xen giữa?",
-          "solution": "$S=\\frac12ab\\sin C$."
+          "question": "Cần dữ kiện gì để dùng S = abc/(4R)?",
+          "solution": "Ba cạnh a, b, c và bán kính R của đường tròn ngoại tiếp tam giác."
         }
       ],
       "mistakes": [
-        "Chọn nhầm góc không phải góc xen giữa.",
-        "Dùng cos thay cho sin.",
-        "Quên đơn vị diện tích hoặc thay sai chiều cao."
+        "Dùng cos thay vì sin trong công thức diện tích.",
+        "Quên hệ số ½.",
+        "Áp dụng S = abc/(4R) khi chưa biết bán kính ngoại tiếp R."
       ],
       "diagram": "trig",
       "global": true,
@@ -1271,7 +1291,21 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Hình thành và lựa chọn công thức diện tích tam giác, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh So sánh cách đo diện tích một khu vực ở các địa hình khác nhau; nêu rõ dữ kiện và giả định đo., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Ba công thức diện tích tam giác",
+        "a. S = ½·a·h_a (biết đáy và chiều cao).",
+        "b. S = ½·a·b·sin C (biết hai cạnh và góc xen giữa).",
+        "c. S = abc/(4R) (biết ba cạnh và bán kính ngoại tiếp).",
+        "2. Cách chọn công thức",
+        "a. Khoanh dữ kiện đã cho → ghép với công thức tương ứng.",
+        "b. Nếu biết nhiều bộ dữ kiện, chọn cách ít bước và kiểm tra chéo.",
+        "3. Áp dụng ba mảnh vườn",
+        "a. Vườn rau: ½·6·4 = 12 m².",
+        "b. Vườn hoa: ½·6·8·sin30° = 12 m².",
+        "c. Sân cỏ: 6·8·10/(4·5) = 24 m²."
+      ]
     },
     {
       "key": "10-5-35",
@@ -1282,87 +1316,85 @@
       "lessonType": "practice",
       "selfChoice": false,
       "title": "Luyện tập công thức diện tích tam giác",
-      "focus": "Lựa chọn và vận dụng công thức diện tích tam giác",
+      "focus": "Luyện tập chọn và vận dụng công thức diện tích tam giác trên trục thực nghiệm ba mảnh vườn của trường: ½ah_a = 30 m², ½bc·sin A = 15 m², abc/(4R) = 24 m²; rèn kiểm tra chéo và đơn vị m²",
       "formulas": [
-        "S=\\frac12ah_a",
-        "S=\\frac12ab\\sin C",
-        "S=\\frac{abc}{4R}"
+        "S = \\dfrac12 a h_a",
+        "S = \\dfrac12 ab\\sin C",
+        "S = \\dfrac{abc}{4R}",
+        "S \\le \\dfrac12 bc \\ (\\text{vì } \\sin A \\le 1)"
       ],
       "examples": [
         {
-          "question": "Cho tam giác $ABC$ có đáy $a=12\\text{ cm}$ và chiều cao tương ứng $h_a=5\\text{ cm}$. Tính diện tích $S$ và đối chiếu đơn vị đo.",
-          "solution": "Áp dụng công thức $S=\\frac12ah_a$: $S=\\frac12\\cdot12\\cdot5=30\\text{ cm}^2$. Đơn vị diện tích là bình phương đơn vị độ dài ($\\text{cm}^2$)."
+          "question": "Vườn rau có đáy a = 12 m, chiều cao h_a = 5 m. Tính diện tích và nêu đơn vị.",
+          "solution": "S = ½·12·5 = 30 m². Đơn vị diện tích là bình phương đơn vị độ dài (m²), không phải m."
         },
         {
-          "question": "Cho tam giác $ABC$ có $b=10\\text{ cm}$, $c=6\\text{ cm}$ và góc xen giữa $A=30^\\circ$. Tính diện tích tam giác $ABC$.",
-          "solution": "Áp dụng công thức $S=\\frac12bc\\sin A$: $S=\\frac12\\cdot10\\cdot6\\cdot\\sin30^\\circ=30\\cdot\\frac12=15\\text{ cm}^2$."
+          "question": "Vườn hoa có b = 10 m, c = 6 m, góc xen giữa A = 30°. Tính diện tích.",
+          "solution": "S = ½·b·c·sin A = ½·10·6·sin30° = 30·0,5 = 15 m²."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính diện tích tam giác $ABC$ biết độ dài cạnh đáy $a=8\\text{ cm}$ và đường cao $h_a=3\\text{ cm}$.",
-          "answer": "Áp dụng $S=\\frac12ah_a$: $S=\\frac12\\cdot8\\cdot3=12\\text{ cm}^2$."
+          "question": "Tính diện tích tam giác có đáy a = 8 cm và chiều cao h_a = 3 cm.",
+          "answer": "S = ½·8·3 = 12 cm²."
         },
         {
           "level": "NB",
-          "question": "Cho tam giác $ABC$ có hai cạnh $a, b$ và góc xen giữa $C$. Nêu công thức tính diện tích $S$ theo dữ kiện đã cho.",
-          "answer": "$S=\\frac12ab\\sin C$."
+          "question": "Biết hai cạnh a, b và góc xen giữa C, viết công thức diện tích.",
+          "answer": "S = ½·a·b·sin C."
         },
         {
           "level": "TH",
-          "question": "Tính diện tích tam giác $ABC$ có $a=7\\text{ cm}$, $b=9\\text{ cm}$ và góc xen giữa $C=90^\\circ$.",
-          "answer": "Áp dụng $S=\\frac12ab\\sin C$: $S=\\frac12\\cdot7\\cdot9\\cdot\\sin90^\\circ=\\frac{63}{2}\\cdot1=\\frac{63}{2}\\text{ cm}^2=31{,}5\\text{ cm}^2$."
+          "question": "Tính diện tích tam giác có a = 7 cm, b = 9 cm, góc xen giữa C = 90°.",
+          "answer": "S = ½·7·9·sin90° = 31,5 cm²."
         },
         {
           "level": "TH",
-          "question": "Cho tam giác $ABC$ có ba cạnh $a=6\\text{ cm}$, $b=8\\text{ cm}$, $c=10\\text{ cm}$ nội tiếp đường tròn bán kính $R=5\\text{ cm}$. Tính diện tích tam giác $ABC$ bằng công thức $S=\\frac{abc}{4R}$. (bài 2 SBT trang 123)",
-          "answer": "Thay số: $S=\\frac{6\\cdot8\\cdot10}{4\\cdot5}=\\frac{480}{20}=24\\text{ cm}^2$. (Kiểm tra: Tam giác vuông tại $C$ có $S=\\frac12\\cdot6\\cdot8=24\\text{ cm}^2$).",
-          "sourceRef": "bài 2 SBT trang 123"
+          "question": "Tam giác có a = 6 cm, b = 8 cm, c = 10 cm, bán kính ngoại tiếp R = 5 cm. Tính diện tích bằng công thức abc/(4R) và kiểm tra lại.",
+          "answer": "S = (6·8·10)/(4·5) = 24 cm². Kiểm tra: 6² + 8² = 10² nên tam giác vuông, S = ½·6·8 = 24 cm² ✓."
         },
         {
           "level": "VD",
-          "question": "Cho tam giác $ABC$ có $b=\\sqrt{37}\\text{ cm}$, $c=5\\text{ cm}$, $\\cos A=\\frac35$. Tính đường cao $h_a$ kẻ từ đỉnh $A$. (bài 3 SBT trang 123)",
-          "answer": "Từ $\\cos A=\\frac35$ suy ra $\\sin A=\\frac45$. Diện tích $S=\\frac12bc\\sin A=\\frac12\\cdot\\sqrt{37}\\cdot5\\cdot\\frac45=2\\sqrt{37}\\text{ cm}^2$. Mặt khác $a^2=b^2+c^2-2bc\\cos A=37+25-2\\cdot\\sqrt{37}\\cdot5\\cdot\\frac35=52-6\\sqrt{37}$, nên $h_a=\\frac{2S}{a}=\\frac{4\\sqrt{37}}{\\sqrt{52-6\\sqrt{37}}}\\text{ cm}$.",
-          "sourceRef": "bài 3 SBT trang 123"
+          "question": "Cho b = √37, c = 5 và cos A = 3/5. Tính diện tích tam giác.",
+          "answer": "Từ cos A = 3/5 suy ra sin A = 4/5 (A nhọn). S = ½·b·c·sin A = ½·√37·5·(4/5) = 2√37 ≈ 12,17 (đơn vị diện tích)."
         },
         {
           "level": "VD",
-          "question": "Một mảnh vườn hình tam giác $ABC$ có $a=13\\text{ m}$, $b=14\\text{ m}$, $c=15\\text{ m}$ và diện tích $S=84\\text{ m}^2$. Tính bán kính đường tròn ngoại tiếp $R$ của mảnh vườn. (bài 1 SBT trang 127)",
-          "answer": "Từ công thức $S=\\frac{abc}{4R}$, suy ra $R=\\frac{abc}{4S}=\\frac{13\\cdot14\\cdot15}{4\\cdot84}=\\frac{2730}{336}=\\frac{65}{8}=8{,}125\\text{ m}$.",
-          "sourceRef": "bài 1 SBT trang 127"
+          "question": "Mảnh vườn có a = 13 m, b = 14 m, c = 15 m và diện tích 84 m². Tính bán kính đường tròn ngoại tiếp.",
+          "answer": "R = abc/(4S) = (13·14·15)/(4·84) = 2730/336 = 8,125 m."
         }
       ],
       "quick": [
         {
-          "question": "Tính nhanh diện tích tam giác $ABC$ có $a=4\\text{ cm}$ và $h_a=6\\text{ cm}$.",
-          "solution": "$S=\\frac12\\cdot4\\cdot6=12\\text{ cm}^2$."
+          "question": "Quên hệ số ½ trong S = ½bc·sin A thì diện tích sai thế nào?",
+          "solution": "Diện tích bị gấp đôi; với tam giác 6–8–10 sẽ ra 48 m² thay vì 24 m²."
         },
         {
-          "question": "Tam giác $ABC$ có $b=8\\text{ cm}$, $c=5\\text{ cm}$ và $A=150^\\circ$. Tính diện tích $S$.",
-          "solution": "$S=\\frac12\\cdot8\\cdot5\\cdot\\sin150^\\circ=20\\cdot\\frac12=10\\text{ cm}^2$."
+          "question": "Diện tích tam giác có vượt quá ½ tích hai cạnh kề không? Vì sao?",
+          "solution": "Không, vì S = ½bc·sin A và sin A ≤ 1 nên S ≤ ½bc; dấu bằng khi A = 90°."
         }
       ],
       "mistakes": [
-        "Không xác định dữ kiện trước khi chọn công thức.",
-        "Bỏ quên hệ số 1/2 trong công thức đáy nhân chiều cao hoặc công thức sin.",
-        "Nhầm góc xen giữa hai cạnh đã cho."
+        "Quên hệ số ½.",
+        "Dùng cos thay vì sin của góc xen giữa.",
+        "Dùng abc/(4R) khi chưa biết R.",
+        "Ghi đơn vị m thay vì m²."
       ],
       "digital": true,
       "boardKnowledge": [
         "II. NỘI DUNG",
-        "1. Các công thức diện tích tam giác",
-        "a. $S = \\frac12 a h_a = \\frac12 b h_b = \\frac12 c h_c$ (biết một cạnh và đường cao tương ứng).",
-        "b. $S = \\frac12 ab \\sin C = \\frac12 bc \\sin A = \\frac12 ca \\sin B$ (biết hai cạnh và góc xen giữa).",
-        "c. $S = \\frac{abc}{4R}$ (biết ba cạnh $a,b,c>0$ và bán kính đường tròn ngoại tiếp $R$).",
-        "2. Chiến lược và quy trình giải",
-        "a. Phân tích dữ kiện đề bài để chọn đúng công thức phù hợp.",
-        "b. Thay số cẩn thận, tính đúng giá trị lượng giác của góc.",
-        "c. Quy tắc kiểm tra: Diện tích $S > 0$, kiểm tra đúng đơn vị đo (đơn vị bình phương).",
-        "3. Chú ý",
-        "a. Bắt buộc nhân hệ số $\\frac12$ ở công thức cạnh-chiều cao và công thức sin.",
-        "b. Góc trong công thức $S=\\frac12ab\\sin C$ phải là góc xen giữa hai cạnh $a$ và $b$.",
-        "c. Khi dùng $S=\\frac{abc}{4R}$, cần đủ ba cạnh và bán kính $R$ thỏa bất đẳng thức tam giác."
+        "1. Ba công thức diện tích",
+        "a. S = ½·a·h_a.",
+        "b. S = ½·a·b·sin C.",
+        "c. S = abc/(4R).",
+        "2. Trục thực nghiệm ba mảnh vườn",
+        "a. Vườn rau: ½·12·5 = 30 m².",
+        "b. Vườn hoa: ½·10·6·sin30° = 15 m².",
+        "c. Sân cỏ: 6·8·10/(4·5) = 24 m².",
+        "3. Kiểm tra",
+        "a. Ước lượng: S ≤ ½ tích hai cạnh kề.",
+        "b. Kiểm chéo bằng công thức khác khi có đủ dữ kiện."
       ],
       "languageSupport": {
         "profile": "g10-korean-vietnamese",
@@ -1609,86 +1641,85 @@
       "lessonType": "practice",
       "selfChoice": false,
       "title": "Ôn tập chương III — hệ thức lượng trong tam giác",
-      "focus": "Ôn tập lựa chọn công thức và kiểm tra kết quả trong tam giác",
+      "focus": "Ôn tập lựa chọn công cụ hệ thức lượng trong tam giác trên trục đo đạc sân trường: định lý côsin (b = 5, c = 7, A = 60° → a = √39 ≈ 6,24), định lý sin (a = 8, A = 30° → R = 8), diện tích (S = 35√3/4 ≈ 15,16 m²); kiểm tra bằng quan hệ cạnh–góc",
       "formulas": [
-        "a^2=b^2+c^2-2bc\\cos A",
-        "S=\\frac12bc\\sin A",
-        "\\frac{a}{\\sin A}=2R"
+        "a^2 = b^2 + c^2 - 2bc\\cos A",
+        "\\dfrac{a}{\\sin A} = \\dfrac{b}{\\sin B} = \\dfrac{c}{\\sin C} = 2R",
+        "S = \\dfrac12 bc\\sin A = \\dfrac{abc}{4R}"
       ],
       "examples": [
         {
-          "question": "Cho tam giác $ABC$ có $b=5\\text{ cm}$, $c=7\\text{ cm}$ và $A=60^\\circ$. Tính cạnh $a$ và diện tích $S$.",
-          "solution": "Áp dụng định lý côsin: $a^2=b^2+c^2-2bc\\cos A=25+49-2\\cdot5\\cdot7\\cdot\\cos60^\\circ=74-35=39 \\Rightarrow a=\\sqrt{39}\\text{ cm}$. Diện tích: $S=\\frac12bc\\sin A=\\frac12\\cdot5\\cdot7\\cdot\\sin60^\\circ=\\frac{35\\sqrt3}{4}\\text{ cm}^2$."
+          "question": "Sân trường có tam giác ABC với b = 5 m, c = 7 m, góc xen giữa A = 60°. Tính cạnh a và diện tích.",
+          "solution": "Định lý côsin: a² = 25 + 49 − 2·5·7·cos60° = 74 − 35 = 39 ⇒ a = √39 ≈ 6,24 m. Diện tích: S = ½·5·7·sin60° = 35√3/4 ≈ 15,16 m²."
         },
         {
-          "question": "Cho tam giác $ABC$ có $a=8\\text{ cm}$, góc $A=30^\\circ$. Tính bán kính đường tròn ngoại tiếp $R$ và kiểm tra tính phù hợp của công thức áp dụng.",
-          "solution": "Biết cạnh $a$ và góc đối diện $A$, áp dụng định lý sin: $\\frac{a}{\\sin A}=2R \\Rightarrow R=\\frac{a}{2\\sin A}=\\frac{8}{2\\cdot\\sin30^\\circ}=\\frac{8}{2\\cdot0{,}5}=8\\text{ cm}$. Dữ kiện một cặp cạnh - góc đối diện hoàn toàn phù hợp để tìm trực tiếp $R$."
+          "question": "Biết a = 8 m và góc đối diện A = 30°. Tính bán kính đường tròn ngoại tiếp và giải thích vì sao chọn định lý sin.",
+          "solution": "2R = a/sin A = 8/0,5 = 16 ⇒ R = 8 m. Chọn định lý sin vì có một cặp cạnh–góc đối diện (a và A)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Viết công thức định lý côsin để tính cạnh $a$ khi biết hai cạnh $b, c$ và góc $A$.",
-          "answer": "$a^2=b^2+c^2-2bc\\cos A$."
+          "question": "Viết định lý côsin để tính cạnh a khi biết b, c và góc A.",
+          "answer": "a² = b² + c² − 2bc·cos A."
         },
         {
           "level": "NB",
-          "question": "Tam giác $ABC$ có dữ kiện $b, c$ và góc xen giữa $A$. Nêu hai công thức để tính độ dài cạnh $a$ và diện tích $S$.",
-          "answer": "Định lý côsin: $a^2=b^2+c^2-2bc\\cos A$ để tính $a$; Công thức diện tích: $S=\\frac12bc\\sin A$ để tính $S$."
+          "question": "Biết b, c và góc xen giữa A, nêu hai công thức để tính a và S.",
+          "answer": "a² = b² + c² − 2bc·cos A và S = ½·b·c·sin A."
         },
         {
           "level": "TH",
-          "question": "Cho tam giác $ABC$ có $b=3\\text{ cm}$, $c=4\\text{ cm}$ và $A=90^\\circ$. Tính cạnh $a$ và diện tích $S$.",
-          "answer": "Định lý côsin: $a^2=3^2+4^2-2\\cdot3\\cdot4\\cos90^\\circ=9+16-0=25 \\Rightarrow a=5\\text{ cm}$. Diện tích: $S=\\frac12\\cdot3\\cdot4\\cdot\\sin90^\\circ=6\\text{ cm}^2$."
+          "question": "Cho b = 3, c = 4 và A = 90°. Tính a và S.",
+          "answer": "a² = 9 + 16 − 0 = 25 ⇒ a = 5. S = ½·3·4·sin90° = 6."
         },
         {
           "level": "TH",
-          "question": "Cho tam giác $ABC$ có $a=6\\text{ cm}$, $B=45^\\circ$, $C=75^\\circ$. Tính số đo góc $A$ và bán kính đường tròn ngoại tiếp $R$. (bài 2 SBT trang 123)",
-          "answer": "Ta có $A=180^\\circ-(45^\\circ+75^\\circ)=60^\\circ$. Áp dụng định lý sin: $2R=\\frac{a}{\\sin A}=\\frac{6}{\\sin60^\\circ}=\\frac{6}{\\sqrt3/2}=4\\sqrt3 \\Rightarrow R=2\\sqrt3\\text{ cm}$.",
-          "sourceRef": "bài 2 SBT trang 123"
+          "question": "Cho a = 6, B = 45°, C = 75°. Tính góc A và bán kính R.",
+          "answer": "A = 180° − 120° = 60°. 2R = a/sin A = 6/(√3/2) = 4√3 ⇒ R = 2√3 ≈ 3,46."
         },
         {
           "level": "VD",
-          "question": "Cho tam giác $ABC$ có $b=6\\text{ cm}$, $c=8\\text{ cm}$, $A=120^\\circ$. Tính cạnh $a$, diện tích $S$ và đường cao $h_a$.",
-          "answer": "Áp dụng định lý côsin: $a^2=6^2+8^2-2\\cdot6\\cdot8\\cos120^\\circ=36+64-96\\cdot\\left(-\\frac12\\right)=100+48=148 \\Rightarrow a=\\sqrt{148}=2\\sqrt{37}\\text{ cm}$. Diện tích: $S=\\frac12\\cdot6\\cdot8\\sin120^\\circ=24\\cdot\\frac{\\sqrt3}{2}=12\\sqrt3\\text{ cm}^2$. Đường cao: $h_a=\\frac{2S}{a}=\\frac{24\\sqrt3}{2\\sqrt{37}}=\\frac{12\\sqrt{111}}{37}\\text{ cm}$."
+          "question": "Cho b = 6, c = 8, A = 120°. Tính a, S và chiều cao h_a.",
+          "answer": "a² = 36 + 64 − 96·(−½) = 148 ⇒ a = 2√37 ≈ 12,17. S = ½·6·8·sin120° = 24·(√3/2) = 12√3 ≈ 20,78. h_a = 2S/a = 24√3/(2√37) = 12√3/√37 ≈ 3,42."
         },
         {
           "level": "VD",
-          "question": "Một tàu thủy xuất phát từ cảng $A$ chạy theo hướng tạo với hướng Bắc một góc nhất định. Xét tam giác vị trí $ABC$ có $AB=40\\text{ km}$, $AC=70\\text{ km}$ và góc $\\widehat{BAC}=60^\\circ$. Tính khoảng cách $BC$ giữa hai điểm và diện tích tam giác $ABC$.",
-          "answer": "Khoảng cách $BC$: $BC^2=AB^2+AC^2-2AB\\cdot AC\\cos60^\\circ=40^2+70^2-2\\cdot40\\cdot70\\cdot0{,}5=1600+4900-2800=3700 \\Rightarrow BC=10\\sqrt{37}\\approx60{,}83\\text{ km}$. Diện tích: $S=\\frac12\\cdot40\\cdot70\\cdot\\sin60^\\circ=1400\\cdot\\frac{\\sqrt3}{2}=700\\sqrt3\\approx1212{,}44\\text{ km}^2$."
+          "question": "Hai vị trí A, B cách nhau 40 km; A, C cách nhau 70 km; góc BAC = 60°. Tính BC và diện tích tam giác ABC.",
+          "answer": "BC² = 40² + 70² − 2·40·70·cos60° = 1600 + 4900 − 2800 = 3700 ⇒ BC = 10√37 ≈ 60,83 km. S = ½·40·70·sin60° = 700√3 ≈ 1212,4 km²."
         }
       ],
       "quick": [
         {
-          "question": "Cho tam giác $ABC$ vuông tại $A$ có hai cạnh góc vuông $b=3\\text{ cm}, c=4\\text{ cm}$. Diện tích $S$ bằng bao nhiêu?",
-          "solution": "$S=\\frac12\\cdot3\\cdot4=6\\text{ cm}^2$."
+          "question": "Khi nào dùng được định lý sin?",
+          "solution": "Khi biết một cặp cạnh–góc đối diện (a và A, hoặc b và B, hoặc c và C); nếu chỉ biết ba cạnh thì phải dùng định lý côsin trước."
         },
         {
-          "question": "Trong tam giác $ABC$, nếu biết $a=10\\text{ cm}$ và $\\sin A=0{,}5$ thì bán kính ngoại tiếp $R$ bằng bao nhiêu?",
-          "solution": "Áp dụng định lý sin: $R=\\frac{a}{2\\sin A}=\\frac{10}{2\\cdot0{,}5}=10\\text{ cm}$."
+          "question": "Vì sao cosin của góc tù âm?",
+          "solution": "Vì với góc tù, hình chiếu của cạnh kề lên phương cạnh kia nằm ngược chiều, nên cos A < 0 (ví dụ cos120° = −½)."
         }
       ],
       "mistakes": [
-        "Nhầm cạnh đối diện và góc xen giữa khi áp dụng định lý côsin.",
-        "Nhầm dấu trong định lý côsin thành dấu cộng.",
-        "Dùng định lý sin khi chưa có cặp cạnh - góc đối diện phù hợp."
+        "Nhầm dấu cosin khi góc tù (lấy cos120° = +½).",
+        "Dùng định lý sin khi chưa có cặp cạnh–góc đối diện.",
+        "Nhầm R với 2R khi tính từ a/sin A.",
+        "Quên kiểm tra bằng quan hệ cạnh–góc."
       ],
       "digital": true,
       "global": true,
       "globalContext": "Kiểm tra cách một mô hình đo đạc/định vị thay đổi khi góc đo có sai số; nêu giới hạn kết luận.",
       "boardKnowledge": [
         "II. NỘI DUNG",
-        "1. Định lý côsin và công thức diện tích",
-        "a. Định lý côsin: $a^2 = b^2 + c^2 - 2bc \\cos A$; hệ quả $\\cos A = \\frac{b^2 + c^2 - a^2}{2bc}$.",
-        "b. Công thức diện tích: $S = \\frac12 bc \\sin A = \\frac12 ac \\sin B = \\frac12 ab \\sin C$.",
-        "c. Định lý sin: $\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C} = 2R$.",
-        "2. Chiến lược lựa chọn công thức theo dữ kiện",
-        "a. Biết hai cạnh và góc xen giữa: Dùng định lý côsin tìm cạnh thứ ba; dùng công thức sin tính diện tích.",
-        "b. Biết ba cạnh: Dùng hệ quả định lý côsin tìm góc; tính diện tích hoặc bán kính ngoại tiếp qua định lý sin/công thức diện tích.",
-        "c. Biết một cạnh và góc đối diện: Dùng định lý sin để tính bán kính ngoại tiếp $R$.",
-        "3. Quy tắc kiểm tra và lưu ý",
-        "a. Dấu trước $2bc\\cos A$ là dấu trừ; với góc tù $\\cos A < 0$ nên $-2bc\\cos A > 0$.",
-        "b. Kiểm tra điều kiện tồn tại tam giác: tổng hai cạnh luôn lớn hơn cạnh còn lại, $a,b,c,R,S > 0$."
+        "1. Ba công cụ",
+        "a. Định lý côsin: a² = b² + c² − 2bc·cos A.",
+        "b. Định lý sin: a/sin A = b/sin B = c/sin C = 2R.",
+        "c. Diện tích: S = ½bc·sin A = abc/(4R).",
+        "2. Chọn công cụ theo dữ kiện",
+        "a. Hai cạnh + góc xen giữa → côsin (tìm cạnh thứ ba) và ½bc sin A (tìm diện tích).",
+        "b. Một cặp cạnh–góc đối diện → định lý sin, tìm R hoặc góc/cạnh còn lại.",
+        "3. Kiểm tra kết quả",
+        "a. Cạnh đối diện góc lớn hơn thì lớn hơn.",
+        "b. Góc tù ⇒ cos âm; cạnh đối diện góc tù là cạnh lớn nhất."
       ],
       "languageSupport": {
         "profile": "g10-korean-vietnamese",
@@ -1935,83 +1966,81 @@
       "lessonType": "practice",
       "selfChoice": true,
       "title": "Tự chọn — luyện tập bất phương trình hai ẩn",
-      "focus": "Luyện tập biểu diễn miền nghiệm và kiểm tra nghiệm của bất phương trình hai ẩn",
+      "focus": "Luyện tập biểu diễn miền nghiệm và kiểm tra nghiệm của bất phương trình hai ẩn trên trục quầy sách của lớp (30x + 20y ≤ 120 ⇔ 3x + 2y ≤ 12, miền tam giác (0;0), (4;0), (0;6)); xử lý dấu ngặt 2x − y > 1 (nét đứt, loại biên)",
       "formulas": [
-        "ax+by+c=0",
-        "ax+by+c\\gtreqless0",
-        "S=S_1\\cap S_2\\cap S_3"
+        "30x + 20y \\le 120 \\Leftrightarrow 3x + 2y \\le 12",
+        "ax + by = c \\ \\text{là biên}; \\ >, < \\Rightarrow \\text{nét đứt}",
+        "S = S_1 \\cap S_2 \\cap S_3"
       ],
       "examples": [
         {
-          "question": "Biểu diễn miền nghiệm của $2x-y>1$. (tham khảo bài 1 SBT trang 58)",
-          "solution": "Đường biên nét đứt $2x-y=1$; chọn điểm thử $(0;0)$: $2\\cdot0-0=0>1$ sai nên chọn phía không chứa gốc tọa độ.",
-          "sourceRef": "tham khảo bài 1 SBT trang 58"
+          "question": "Biểu diễn miền nghiệm của 2x − y > 1.",
+          "solution": "Đường biên 2x − y = 1 vẽ nét đứt (dấu >). Thử O(0; 0): 0 > 1 sai → chọn nửa mặt phẳng không chứa gốc. Kiểm (1; 0): 2 > 1 đúng (thuộc miền); (0; 2): −2 > 1 sai (không thuộc)."
         },
         {
-          "question": "Một cửa hàng bán sách 30 nghìn/cuốn (x) và vở 20 nghìn/cuốn (y), tổng tiền không quá 120 nghìn. Viết hệ ràng buộc và chỉ miền nghiệm.",
-          "solution": "Hệ: $x\\ge0,\\ y\\ge0,\\ 30x+20y\\le120$, rút gọn $3x+2y\\le12$; miền là tam giác có các đỉnh $(0;0),(4;0),(0;6)$."
+          "question": "Quầy sách có 120 nghìn, sách 30 nghìn/cuốn (x), vở 20 nghìn/cuốn (y). Viết ràng buộc, rút gọn và nêu các đỉnh miền nghiệm.",
+          "solution": "Ràng buộc: x ≥ 0, y ≥ 0, 30x + 20y ≤ 120 ⇔ 3x + 2y ≤ 12. Miền là tam giác với (0; 0), (4; 0) (3·4 = 12), (0; 6) (2·6 = 12)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Vẽ miền nghiệm của $x+y\\le2$.",
-          "answer": "Đường biên liền, thử gốc tọa độ, chọn nửa mặt phẳng chứa gốc."
+          "question": "Vẽ miền nghiệm của x + y ≤ 2.",
+          "answer": "Đường biên x + y = 2 nét liền; thử O(0; 0): 0 ≤ 2 đúng → tô phía chứa gốc; đỉnh (0; 0), (2; 0), (0; 2)."
         },
         {
           "level": "NB",
-          "question": "Vì sao đường biên $2x-y>1$ phải vẽ nét đứt?",
-          "answer": "Vì dấu $>$ không lấy đường biên, chỉ lấy phía bên trong."
+          "question": "Vì sao đường biên của 2x − y > 1 phải vẽ nét đứt?",
+          "answer": "Vì dấu > không lấy đường biên: các điểm trên 2x − y = 1 cho vế trái bằng 1, không thỏa 1 > 1."
         },
         {
           "level": "TH",
-          "question": "Kiểm tra $(0;2)$ có thuộc miền $2x-y>1$ không.",
-          "answer": "Thay: $2\\cdot0-2=-2>1$ sai, nên $(0;2)$ không thuộc miền."
+          "question": "Điểm (0; 2) có thuộc miền nghiệm của 2x − y > 1 không?",
+          "answer": "Không: 2·0 − 2 = −2 > 1 là sai."
         },
         {
           "level": "TH",
-          "question": "Sửa bài nếu vẽ $2x-y>1$ nét liền.",
-          "answer": "Đổi sang nét đứt vì dấu $>$ không lấy đường biên."
+          "question": "Một bạn vẽ nét liền cho 2x − y > 1. Hãy sửa và giải thích.",
+          "answer": "Đổi sang nét đứt vì dấu > loại biên; nếu vẽ liền thì đã đưa cả các điểm có 2x − y = 1 vào miền, sai với bất đẳng thức ngặt."
         },
         {
           "level": "VD",
-          "question": "Tạo hệ ba ràng buộc có miền là tam giác và giải thích các đỉnh. (bài 1 SBT trang 62)",
-          "answer": "Ví dụ $x\\ge0,y\\ge0,x+y\\le4$; đỉnh $(0;0),(4;0),(0;4)$.",
-          "sourceRef": "bài 1 SBT trang 62"
+          "question": "Thiết kế một hệ ba ràng buộc có miền nghiệm là tam giác và nêu các đỉnh.",
+          "answer": "Ví dụ x ≥ 0, y ≥ 0, x + y ≤ 4: miền tam giác với đỉnh (0; 0), (4; 0), (0; 4). Có thể thay bằng 3x + 2y ≤ 12 để được (0; 0), (4; 0), (0; 6)."
         },
         {
           "level": "VD",
-          "question": "Viết phản biện cho hình tô sai phía nghiệm.",
-          "answer": "Chọn điểm ngoài vùng tô, thay vào từng BP; nếu một điều kiện sai thì vùng tô sai."
+          "question": "Viết phản biện cho một hình tô sai phía nghiệm.",
+          "answer": "Lấy một điểm nằm trong vùng được tô nhưng ngoài miền đúng, thay vào bất phương trình; nếu cho mệnh đề sai thì vùng tô sai phía. Ví dụ với 3x + 2y ≤ 12, điểm (0; 8) cho 16 > 12."
         }
       ],
       "quick": [
         {
-          "question": "Điểm thử nằm trên đường biên có dùng được không?",
-          "solution": "Không; nếu thay vào cho $0$ thì phải đổi sang điểm không nằm trên đường biên."
+          "question": "Chia hai vế của 30x + 20y ≤ 120 cho 10 được gì?",
+          "solution": "3x + 2y ≤ 12 (chia số dương nên dấu không đổi)."
         },
         {
-          "question": "Cho một điểm thỏa $2x-y>1$.",
-          "solution": "Ví dụ $(2;0)$: $2\\cdot2-0=4>1$ đúng."
+          "question": "Điểm trên đường biên có thuộc miền của bất đẳng thức ngặt không?",
+          "solution": "Không. Với > hoặc <, điểm trên biên cho hai vế bằng nhau nên không thỏa."
         }
       ],
       "mistakes": [
-        "Nhầm nét đứt và nét liền khi vẽ đường biên.",
-        "Chọn điểm trên đường biên làm điểm thử.",
-        "Không kiểm tra lại sau khi tô miền."
+        "Vẽ nét liền cho dấu > hoặc <.",
+        "Coi điểm trên đường biên là thuộc miền của bất đẳng thức ngặt.",
+        "Tô phía chứa điểm thử dù điểm thử cho mệnh đề sai.",
+        "Chia hai vế cho số âm mà quên đổi dấu."
       ],
       "boardKnowledge": [
         "II. NỘI DUNG",
-        "1. Đường biên",
-        "a. $ax+by+c=0$ là đường biên; nét liền với $\\le,\\ge$, nét đứt với $<,>$.",
-        "b. Điểm thử không nằm trên đường biên.",
-        "2. Quy tắc kiểm tra",
-        "a. Thay tọa độ $(x_0;y_0)$ vào BP.",
-        "b. So sánh hai vế; đúng là nghiệm, sai không là nghiệm.",
-        "c. $(0;0)$ với $2x-y>1$: $0>1$ sai → không thuộc miền.",
-        "3. Chú ý",
-        "a. $>$, $<$ dùng nét đứt; $\\le$, $\\ge$ dùng nét liền.",
-        "b. Tô phía thỏa điều kiện, không nhầm lẫn hai bên đường biên."
+        "1. Ràng buộc quầy sách",
+        "a. 30x + 20y ≤ 120 ⇔ 3x + 2y ≤ 12; x, y ∈ ℕ.",
+        "b. Miền tam giác: (0; 0), (4; 0), (0; 6).",
+        "2. Dấu ngặt",
+        "a. Biên nét đứt; điểm trên biên không thuộc miền.",
+        "b. 2x − y > 1: (1; 0) thuộc; (0; 2) và (1; 1) không thuộc.",
+        "3. Kiểm tra miền",
+        "a. Dùng điểm thử để chọn phía.",
+        "b. Dùng phản ví dụ trong vùng tô để bác bỏ hình sai."
       ],
       "languageSupport": {
         "profile": "g10-korean-vietnamese",
@@ -2258,86 +2287,78 @@
       "lessonType": "practice",
       "selfChoice": true,
       "title": "Tự chọn — luyện tập hệ thức lượng và diện tích",
-      "focus": "Luyện tập áp dụng định lý cos và công thức diện tích tam giác",
+      "focus": "Luyện tập định lý côsin và công thức diện tích trên trục mảnh vườn tam giác b = 6 m, c = 8 m với góc xen giữa 30°, 60°, 90° (a ≈ 4,11 / 7,21 / 10 m; S = 12 / 20,78 / 24 m²); kiểm chứng bằng cận S ≤ ½bc và bất đẳng thức tam giác",
       "formulas": [
-        "a^2=b^2+c^2-2bc\\cos A",
-        "S=\\frac12bc\\sin A"
+        "a^2 = b^2 + c^2 - 2bc\\cos A",
+        "S = \\dfrac12 bc\\sin A",
+        "S \\le \\dfrac12 bc \\ (\\text{dấu bằng khi } A = 90^\\circ)"
       ],
       "examples": [
         {
-          "question": "Cho tam giác có $b=6$, $c=8$, $A=30^\\circ$. Tính $a$ và $S$. (tham khảo bài 1 SBT trang 107)",
-          "solution": "Định lý cos: $a^2=6^2+8^2-2\\cdot6\\cdot8\\cos30^\\circ=100-48\\sqrt3$, nên $a=\\sqrt{100-48\\sqrt3}$. Diện tích: $S=\\frac12\\cdot6\\cdot8\\sin30^\\circ=12$.",
-          "sourceRef": "tham khảo bài 1 SBT trang 107"
+          "question": "Mảnh vườn có b = 6 m, c = 8 m, góc xen giữa A = 30°. Tính a và diện tích.",
+          "solution": "a² = 36 + 64 − 96·cos30° = 100 − 48√3 ≈ 16,86 ⇒ a ≈ 4,11 m. S = ½·6·8·sin30° = 24·0,5 = 12 m²."
         },
         {
-          "question": "Cho $b=6$, $c=8$, $A=60^\\circ$. Tính $a$ và $S$. (tham khảo bài 2 SBT trang 107)",
-          "solution": "Định lý cos: $a^2=36+64-48=52$, $a=2\\sqrt{13}$. Diện tích: $S=\\frac12\\cdot6\\cdot8\\cdot\\frac{\\sqrt3}{2}=12\\sqrt3$.",
-          "sourceRef": "tham khảo bài 2 SBT trang 107"
+          "question": "Cùng mảnh vườn đó nhưng góc xen giữa A = 60°. Tính a và diện tích; so sánh với trường hợp 30°.",
+          "solution": "a² = 100 − 96·0,5 = 52 ⇒ a = 2√13 ≈ 7,21 m. S = ½·6·8·sin60° = 12√3 ≈ 20,78 m². So với A = 30°: cạnh a tăng từ 4,11 lên 7,21 m và diện tích tăng từ 12 lên 20,78 m²."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Viết định lý cos cho cạnh $a$.",
-          "answer": "$a^2=b^2+c^2-2bc\\cos A$."
+          "question": "Viết định lý côsin cho cạnh a.",
+          "answer": "a² = b² + c² − 2bc·cos A."
         },
         {
           "level": "NB",
-          "question": "Khi biết hai cạnh và góc xen giữa, chọn công thức diện tích nào?",
-          "answer": "$S=\\frac12bc\\sin A$."
+          "question": "Biết hai cạnh và góc xen giữa, chọn công thức diện tích nào?",
+          "answer": "S = ½·b·c·sin A (dùng sin của góc xen giữa)."
         },
         {
           "level": "TH",
-          "question": "Cho $b=6,c=8,A=30^\\circ$, tính $a$ và $S$.",
-          "answer": "$a=\\sqrt{100-48\\sqrt3}$, $S=12$."
+          "question": "Cho b = 6, c = 8, A = 30°. Tính a và S.",
+          "answer": "a² = 100 − 48√3 ≈ 16,86 ⇒ a ≈ 4,11; S = ½·6·8·sin30° = 12."
         },
         {
           "level": "TH",
-          "question": "Kiểm tra lời giải $S=bc\\sin A$.",
-          "answer": "Thiếu hệ số $\\frac12$; phải sửa thành $S=\\frac12bc\\sin A$."
+          "question": "Một bạn viết S = b·c·sin A. Hãy kiểm tra và sửa.",
+          "answer": "Thiếu hệ số ½. Với b = 6, c = 8, A = 60°: cách của bạn cho 24√3 ≈ 41,57 m², vượt cận ½bc = 24 m² nên vô lý; đúng là 12√3 ≈ 20,78 m²."
         },
         {
           "level": "VD",
-          "question": "Với dữ kiện $b=6,c=8,A=60^\\circ$, lập bảng kiểm 4 tiêu chí cho lời giải tính $a$ và $S$.",
-          "answer": "Bốn tiêu chí: ghi đúng dữ kiện; chọn đúng định lý côsin/công thức diện tích; biến đổi đúng; có phép kiểm và đơn vị."
+          "question": "Lập bảng kiểm 4 tiêu chí cho một lời giải tính a và S từ b, c, A.",
+          "answer": "Bốn tiêu chí: (1) ghi đúng dữ kiện và đơn vị; (2) chọn đúng định lý côsin và công thức diện tích; (3) biến đổi, thay số chính xác; (4) có phép kiểm (bất đẳng thức tam giác, cận S ≤ ½bc) và đơn vị m²."
         },
         {
           "level": "VD",
-          "question": "Phản biện kết quả diện tích lớn hơn diện tích hình chữ nhật bao quanh.",
-          "answer": "So sánh với cận hình học; kết quả vượt cận là dấu hiệu sai."
+          "question": "Một kết quả diện tích lớn hơn ½bc. Hãy phản biện.",
+          "answer": "Vì S = ½bc·sin A ≤ ½bc (do sin A ≤ 1), mọi kết quả vượt ½bc đều sai. Ví dụ với b = 6, c = 8, mọi diện tích phải ≤ 24 m²; con số 30 m² chắc chắn mắc lỗi thiếu ½ hoặc dùng sai hàm."
         }
       ],
       "quick": [
         {
-          "question": "Một lời giải tốt cần gì ngoài đáp số?",
-          "solution": "Công thức phù hợp, các bước chính, đơn vị và phép kiểm."
+          "question": "Với b, c cố định, diện tích tam giác lớn nhất khi nào?",
+          "solution": "Khi góc xen giữa A = 90°, vì sin A đạt giá trị lớn nhất bằng 1; khi đó S = ½bc."
         },
         {
-          "question": "Nếu chưa biết chọn bài nào, dùng tiêu chí gì?",
-          "solution": "Chọn bài vừa sức với một bằng chứng thử đầu tiên."
+          "question": "Vì sao phải kiểm bằng bất đẳng thức tam giác?",
+          "solution": "Vì kết quả a phải thỏa |b − c| < a < b + c; nếu vi phạm thì phép tính hoặc dữ kiện đã sai (ví dụ a = 1 với b = 6, c = 8 là bất khả)."
         }
       ],
       "mistakes": [
-        "Chọn công thức theo từ khóa mà không xét dữ kiện.",
-        "Sản phẩm tự chọn không có tiêu chí.",
-        "Không kiểm tra tính hợp lý của độ lớn kết quả."
+        "Quên hệ số ½ trong công thức diện tích.",
+        "Dùng cos thay vì sin.",
+        "Không kiểm bằng cận S ≤ ½bc và bất đẳng thức tam giác."
       ],
       "boardKnowledge": [
         "II. NỘI DUNG",
-        "1. Định lý cos",
-        "a. $a^2=b^2+c^2-2bc\\cos A$ khi biết hai cạnh và góc xen giữa.",
-        "b. $b^2+c^2>a^2\\Leftrightarrow\\cos A>0\\Leftrightarrow A<90^\\circ$.",
-        "2. Công thức diện tích",
-        "a. $S=\\frac12bc\\sin A$ khi biết hai cạnh và góc xen giữa.",
-        "b. Thay đúng dữ kiện; giữ nguyên đơn vị độ dài → đơn vị diện tích là bình phương.",
-        "3. Quy trình",
-        "a. Xác định dữ kiện: hai cạnh + góc xen giữa.",
-        "b. Chọn $a^2=b^2+c^2-2bc\\cos A$ để tìm cạnh còn lại.",
-        "c. Chọn $S=\\frac12bc\\sin A$ để tính diện tích.",
-        "d. Kiểm tra: kết quả dương, tam giác tồn tại, đơn vị đúng.",
-        "4. Chú ý",
-        "a. Không dùng $a=2\\sqrt{13}$ với $A=30^\\circ$ (chỉ đúng khi $A=60^\\circ$).",
-        "b. $\\sin30^\\circ=\\frac12$, $\\sin60^\\circ=\\frac{\\sqrt3}{2}$; dùng đúng giá trị trig."
+        "1. Bảng ba trường hợp (b = 6, c = 8)",
+        "a. A = 30°: a ≈ 4,11 m; S = 12 m².",
+        "b. A = 60°: a = 2√13 ≈ 7,21 m; S = 12√3 ≈ 20,78 m².",
+        "c. A = 90°: a = 10 m; S = 24 m².",
+        "2. Hai phép kiểm bắt buộc",
+        "a. Bất đẳng thức tam giác: |b − c| < a < b + c.",
+        "b. Cận diện tích: S ≤ ½bc, dấu bằng khi A = 90°."
       ],
       "languageSupport": {
         "profile": "g10-korean-vietnamese",
@@ -2584,68 +2605,68 @@
       "lessonType": "formation",
       "selfChoice": false,
       "title": "Biểu diễn miền nghiệm của hệ bất phương trình",
-      "focus": "Biểu diễn miền nghiệm của hệ bằng phần giao các nửa mặt phẳng",
+      "focus": "Biểu diễn miền nghiệm của hệ bất phương trình bằng phần giao các nửa mặt phẳng, trên trục thực nghiệm chia 6 giờ chuẩn bị gian hàng: x + y ≤ 6, x ≥ 1, y ≥ 0 (tam giác (1;0), (6;0), (1;5)); kiểm tra đỉnh và loại điểm ngoài miền",
       "formulas": [
-        "S=S_1\\cap S_2\\cap\\cdots\\cap S_n",
-        "\\text{Đường biên của mỗi điều kiện được xét riêng rồi lấy phần giao.}",
-        "\\text{Mọi điểm trong miền giao phải thỏa đồng thời mọi bất phương trình.}"
+        "S = S_1 \\cap S_2 \\cap S_3",
+        "\\text{Đỉnh} = \\text{giao hai đường biên} \\cap \\text{thỏa điều kiện còn lại}",
+        "\\text{Mọi điểm trong miền thỏa đồng thời mọi bất phương trình}"
       ],
       "examples": [
         {
-          "question": "Biểu diễn hệ $\\begin{cases}x+y\\le6\\\\x\\ge1\\\\y\\ge0\\end{cases}$.",
-          "solution": "Vẽ ba đường biên; thử điểm cho từng nửa mặt phẳng; miền nghiệm là phần giao có các đỉnh $(1;0),(6;0),(1;5)$."
+          "question": "Biểu diễn miền nghiệm của hệ x + y ≤ 6, x ≥ 1, y ≥ 0 và xác định các đỉnh.",
+          "solution": "Vẽ ba đường biên: x + y = 6 qua (6;0), (0;6); x = 1; y = 0. Lấy phần giao: tam giác A(1;0), B(6;0), C(1;5). Kiểm: A cho 1 ≤ 6; B cho 6 ≤ 6; C cho 6 ≤ 6 — cả ba thỏa mọi điều kiện."
         },
         {
-          "question": "Một nhóm tô thêm phần không thỏa $x\\ge1$. GV nên hỏi gì để nhóm tự sửa?",
-          "solution": "Hỏi: “Lấy một điểm trong phần tô, thay vào $x\\ge1$ được kết quả gì?”; nếu sai, nhóm bỏ phần đó và đánh dấu điều kiện gây sai."
+          "question": "Một nhóm tô thêm phần có x < 1 vào miền nghiệm. GV nên hỏi gì để nhóm tự sửa?",
+          "solution": "Hỏi: \"Lấy một điểm trong phần tô thêm, ví dụ (0;2), thay vào x ≥ 1 được gì?\" Vì 0 ≥ 1 sai nên phần đó phải bỏ; miền đúng chỉ gồm các điểm có x ≥ 1."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Nêu thao tác cuối cùng sau khi vẽ các nửa mặt phẳng.",
-          "answer": "Lấy phần giao và kiểm tra lại các đỉnh/điểm đại diện."
+          "question": "Sau khi vẽ các nửa mặt phẳng, thao tác cuối cùng để được miền nghiệm hệ là gì?",
+          "answer": "Lấy phần giao của các nửa mặt phẳng, rồi kiểm tra lại các đỉnh/điểm đại diện."
         },
         {
           "level": "NB",
-          "question": "Điểm $(2;1)$ có thỏa hệ $x\\ge1,y\\ge0,x+y\\le4$ không?",
-          "answer": "Có."
+          "question": "Điểm (2; 1) có thỏa hệ x ≥ 1, y ≥ 0, x + y ≤ 4 không?",
+          "answer": "Có: 2 ≥ 1, 1 ≥ 0, 2 + 1 = 3 ≤ 4."
         },
         {
           "level": "TH",
-          "question": "Tìm các đỉnh hệ $x\\ge0,y\\ge0,x+y\\le3$.",
-          "answer": "$(0;0),(3;0),(0;3)$."
+          "question": "Tìm các đỉnh miền nghiệm của hệ x ≥ 0, y ≥ 0, x + y ≤ 3.",
+          "answer": "Tam giác với đỉnh (0;0), (3;0), (0;3)."
         },
         {
           "level": "TH",
-          "question": "Kiểm tra điểm $(0;2)$ với điều kiện $x\\ge1$.",
-          "answer": "Không thỏa vì $0\\ge1$ sai; loại điểm/vùng đó."
+          "question": "Điểm (0; 2) có thuộc miền nghiệm của hệ x ≥ 1, y ≥ 0, x + y ≤ 6 không?",
+          "answer": "Không: 0 ≥ 1 sai, dù 2 ≥ 0 và 0 + 2 = 2 ≤ 6 đúng."
         },
         {
           "level": "VD",
-          "question": "Tìm một điểm chắc chắn không thuộc miền hệ và giải thích bằng điều kiện nào.",
-          "answer": "Chọn điểm vi phạm ít nhất một bất phương trình, nêu rõ phép thay và kết luận loại."
+          "question": "Nêu một điểm chắc chắn không thuộc miền và chỉ rõ điều kiện nào bị vi phạm.",
+          "answer": "Ví dụ (5; 3) với hệ x + y ≤ 6, x ≥ 1, y ≥ 0: 5 + 3 = 8 > 6 nên vi phạm điều kiện tổng thời gian (dù x ≥ 1 và y ≥ 0 đúng)."
         },
         {
           "level": "VD",
-          "question": "Phản biện hình vẽ chỉ tô phần giao của hai điều kiện nhưng quên điều kiện thứ ba.",
-          "answer": "Dùng một điểm ở vùng tô, kiểm tra điều kiện thứ ba; nếu sai thì phải cắt tiếp theo nửa mặt phẳng thứ ba."
+          "question": "Một hình vẽ chỉ tô giao của hai điều kiện và quên điều kiện thứ ba. Hãy phản biện.",
+          "answer": "Chọn một điểm trong vùng tô nhưng vi phạm điều kiện thứ ba; ví dụ với hệ x + y ≤ 6, x ≥ 1, y ≥ 0, điểm (0;2) nằm trong giao của hai điều kiện sau nhưng vi phạm x ≥ 1 — nên vùng tô phải cắt bớt."
         }
       ],
       "quick": [
         {
-          "question": "Nếu thêm một bất phương trình mới vào hệ, miền nghiệm có thể rộng hơn không?",
-          "solution": "Không thể rộng hơn; phần giao mới bằng miền cũ giao thêm một miền, nên chỉ giữ nguyên hoặc thu hẹp."
+          "question": "Vì sao miền nghiệm hệ là giao mà không phải hợp?",
+          "solution": "Vì nghiệm hệ phải thỏa đồng thời mọi bất phương trình; hợp sẽ chứa cả điểm chỉ thỏa một điều kiện."
         },
         {
-          "question": "Điểm nào cần kiểm trước khi kết luận các đỉnh?",
-          "solution": "Mỗi giao điểm đường biên phải được thay vào tất cả điều kiện."
+          "question": "Đỉnh (1; 5) được xác định từ giao hai đường nào?",
+          "solution": "x = 1 và x + y = 6 (thay x = 1 được y = 5)."
         }
       ],
       "mistakes": [
-        "Lấy hợp thay vì giao.",
-        "Quên điều kiện không tạo đường biên rõ trên hình.",
-        "Không kiểm tra điểm giao với toàn bộ hệ."
+        "Chỉ tô giao của một vài điều kiện, bỏ điều kiện còn lại.",
+        "Nhầm hợp với giao.",
+        "Kết luận đỉnh mà không kiểm điều kiện thứ ba."
       ],
       "diagram": "graph",
       "digital": true,
@@ -2885,7 +2906,20 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Biểu diễn miền nghiệm của hệ bằng phần giao các nửa mặt phẳng, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Mô hình hóa vùng lựa chọn phải đáp ứng đồng thời nhiều ràng buộc và minh bạch điều kiện bị loại., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Miền nghiệm của hệ",
+        "a. Là giao các miền nghiệm thành phần.",
+        "b. Mọi điểm trong miền thỏa đồng thời mọi bất phương trình.",
+        "2. Ba bước biểu diễn",
+        "a. Vẽ từng đường biên và nửa mặt phẳng.",
+        "b. Lấy phần giao.",
+        "c. Kiểm tra các đỉnh.",
+        "3. Áp dụng: 6 giờ chuẩn bị gian hàng",
+        "a. Hệ: x + y ≤ 6, x ≥ 1, y ≥ 0.",
+        "b. Đỉnh: (1;0), (6;0), (1;5)."
+      ]
     },
     {
       "key": "10-6-40",
@@ -2896,70 +2930,68 @@
       "lessonType": "practice",
       "selfChoice": false,
       "title": "Ứng dụng hệ bất phương trình",
-      "focus": "Mô hình hóa một tình huống bằng hệ bất phương trình và chọn phương án phù hợp",
+      "focus": "Mô hình hóa tình huống chọn gói quà tình nguyện thành hệ bất phương trình (x + y ≤ 12, x ≥ 4, y ≥ 0), xác định miền khả thi (đỉnh (4;0), (12;0), (4;8)) và chọn phương án theo tiêu chí P = 2x + 3y (lớn nhất 32 tại (4;8))",
       "formulas": [
-        "\\text{Biến quyết định}\\to\\text{ràng buộc}\\to\\text{miền khả thi}\\to\\text{tiêu chí chọn}",
-        "\\begin{cases}x+y\\le12\\\\x\\ge4\\\\y\\ge0\\end{cases}",
-        "P=2x+3y\\ \\text{(nếu cần so sánh giá trị mục tiêu)}"
+        "\\text{Biến} \\to \\text{ràng buộc} \\to \\text{miền khả thi} \\to \\text{tiêu chí}",
+        "\\begin{cases}x + y \\le 12 \\\\ x \\ge 4 \\\\ y \\ge 0\\end{cases}",
+        "P = 2x + 3y"
       ],
       "examples": [
         {
-          "question": "Một nhóm chọn $x$ gói vật liệu loại A và $y$ gói loại B, tổng không quá $12$, cần ít nhất $4$ gói A. Viết hệ ràng buộc. (tham khảo bài 4 SBT trang 59)",
-          "solution": "Đặt $x,yge0$, $x+y\\le12$, $x\\ge4$; nếu số gói thì thêm $x,yinmathbb Z$.",
-          "sourceRef": "tham khảo bài 4 SBT trang 59"
+          "question": "Nhóm chọn x gói loại A và y gói loại B, mang tối đa 12 gói, cần ít nhất 4 gói A. Viết hệ ràng buộc.",
+          "solution": "x + y ≤ 12 (tổng số gói), x ≥ 4 (đã đăng ký), y ≥ 0; thêm x, y ∈ ℕ vì là số gói."
         },
         {
-          "question": "Với tiêu chí $P=2x+3y$, so sánh các đỉnh $(4;0),(12;0),(4;8)$.",
-          "solution": "Giá trị lần lượt $8,24,32$; trong miền khả thi, phương án $(4;8)$ cho giá trị lớn nhất theo tiêu chí đã nêu."
+          "question": "Với tiêu chí P = 2x + 3y, so sánh các đỉnh (4;0), (12;0), (4;8) và chọn phương án tốt nhất.",
+          "solution": "P(4;0) = 8; P(12;0) = 24; P(4;8) = 8 + 24 = 32. Phương án (4;8) cho P lớn nhất và thỏa x + y = 12 ≤ 12, x = 4 ≥ 4."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Trong mô hình, $x,y$ được gọi là gì?",
-          "answer": "Biến quyết định/đại lượng chưa biết cần lựa chọn."
+          "question": "Trong mô hình, x và y được gọi là gì?",
+          "answer": "Biến quyết định — các đại lượng cần chọn."
         },
         {
           "level": "NB",
-          "question": "Viết điều kiện “tổng không quá 12”.",
-          "answer": "$x+y\\le12$."
+          "question": "Viết ràng buộc \"tổng không quá 12\".",
+          "answer": "x + y ≤ 12."
         },
         {
           "level": "TH",
-          "question": "Tìm miền khả thi của $x+y\\le10,x\\ge2,y\\ge0$. (bài 1 SBT trang 67)",
-          "answer": "Miền giới hạn bởi ba đường; các đỉnh $(2;0),(10;0),(2;8)$.",
-          "sourceRef": "bài 1 SBT trang 67"
+          "question": "Tìm miền khả thi của x + y ≤ 10, x ≥ 2, y ≥ 0 và nêu các đỉnh.",
+          "answer": "Tam giác với đỉnh (2;0), (10;0), (2;8)."
         },
         {
           "level": "TH",
-          "question": "Tính $P=2x+3y$ tại $(2;8)$ và $(10;0)$.",
-          "answer": "Lần lượt $28$ và $20$; $(2;8)$ tốt hơn theo $P$."
+          "question": "Tính P = 2x + 3y tại (2;8) và (10;0). Phương án nào tốt hơn theo P?",
+          "answer": "P(2;8) = 4 + 24 = 28; P(10;0) = 20. Theo P, (2;8) tốt hơn."
         },
         {
           "level": "VD",
-          "question": "Nêu một giả định cần ghi khi coi $x,y$ là số thực thay vì số nguyên.",
-          "answer": "Mô hình cho phép chia nhỏ đơn vị; nếu gói không chia được phải thêm điều kiện nguyên."
+          "question": "Nêu một giả định cần ghi khi coi x, y là số thực thay vì số nguyên.",
+          "answer": "Giả định cho phép chia nhỏ đơn vị (ví dụ nửa gói). Nếu gói không chia được thì buộc thêm x, y ∈ ℕ, khi đó một số điểm trong miền không còn khả thi."
         },
         {
           "level": "VD",
-          "question": "Phản biện kết luận “giá trị $P$ lớn nhất luôn ở giao hai đường biên”.",
-          "answer": "Không luôn đúng; phải xét toàn bộ đỉnh miền khả thi và các điều kiện nguyên/giới hạn của bối cảnh."
+          "question": "Phản biện kết luận: \"Giá trị P lớn nhất luôn nằm ở giao của hai đường biên bất kỳ\".",
+          "answer": "Không luôn đúng: phải xét các đỉnh thuộc miền khả thi (giao hai biên và thỏa điều kiện còn lại) cùng điều kiện nguyên. Ví dụ giao của x = 4 với y = 0 là (4;0) nhưng P chỉ 8, không phải lớn nhất."
         }
       ],
       "quick": [
         {
-          "question": "Mô hình tốt cần nêu ba thành phần nào trước khi tính?",
-          "solution": "Biến quyết định, ràng buộc và ý nghĩa của tiêu chí/đại lượng cần so sánh."
+          "question": "Vì sao chỉ cần tính P tại các đỉnh?",
+          "solution": "Vì P là hàm tuyến tính trên miền đa giác lồi; giá trị lớn nhất/nhỏ nhất đạt tại một đỉnh."
         },
         {
-          "question": "Nếu mất mạng, nhóm chứng minh mô hình bằng gì?",
-          "solution": "Bảng giá trị/miền nghiệm vẽ trên giấy và phép thay vào từng ràng buộc."
+          "question": "Nếu bỏ điều kiện x ≥ 4 thì phương án tốt nhất thay đổi thế nào?",
+          "solution": "Miền mở rộng thành tam giác (0;0), (12;0), (0;12); P lớn nhất tại (0;12) với P = 36 — nhưng vi phạm cam kết 4 gói A."
         }
       ],
       "mistakes": [
-        "Đặt biến nhưng không nêu đơn vị/ý nghĩa.",
-        "Bịa dữ liệu thực tế thay vì ghi dữ liệu giả định.",
-        "Tối ưu mà không kiểm tra miền khả thi hoặc điều kiện nguyên."
+        "Chỉ xét một phương án mà không so sánh các đỉnh.",
+        "Bỏ ràng buộc tối thiểu (x ≥ 4).",
+        "Quên điều kiện nguyên của x, y."
       ],
       "diagram": "graph",
       "digital": true,
@@ -3199,7 +3231,19 @@
       },
       "guidingQuestion": "Khi gặp các bài về Mô hình hóa một tình huống bằng hệ bất phương trình và chọn phương án phù hợp, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Dùng dữ liệu giả định được ghi rõ để bàn về cách phân bổ nguồn lực công bằng; HS phải tách dữ kiện, giả định và kết luận., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Quy trình mô hình hóa",
+        "a. Đặt biến kèm đơn vị và điều kiện.",
+        "b. Viết ràng buộc từ lời văn.",
+        "c. Tìm miền khả thi, liệt kê đỉnh.",
+        "d. Tính tiêu chí tại đỉnh và chọn.",
+        "2. Áp dụng gói quà tình nguyện",
+        "a. Hệ: x + y ≤ 12, x ≥ 4, y ≥ 0; x, y ∈ ℕ.",
+        "b. Đỉnh: (4;0) P = 8; (12;0) P = 24; (4;8) P = 32.",
+        "c. Kết luận: chọn (4;8) nếu ưu tiên điểm hỗ trợ."
+      ]
     },
     {
       "key": "10-6-41",
@@ -3210,70 +3254,68 @@
       "lessonType": "practice",
       "selfChoice": false,
       "title": "Luyện tập hệ bất phương trình",
-      "focus": "Luyện tập giải hệ, kiểm tra miền nghiệm và giải thích lựa chọn",
+      "focus": "Luyện giải hệ bất phương trình và kiểm tra miền nghiệm trên trục xếp lịch trực gian hàng (x + y ≤ 5, x ≥ 0, y ≥ 1; tam giác (0;1), (0;5), (4;1)); rèn 4 thành phần của một lời giải đạt: hệ, hình, kiểm, kết luận",
       "formulas": [
-        "S=S_1\\cap S_2\\cap S_3",
-        "\\text{Kiểm tra điểm/đỉnh bằng cách thay vào từng điều kiện.}",
-        "\\text{Mô hình: biến}\\to\\text{ràng buộc}\\to\\text{miền khả thi}\\to\\text{kết luận}"
+        "S = S_1 \\cap S_2 \\cap S_3",
+        "\\text{Kiểm điểm bằng cách thay vào từng điều kiện}",
+        "\\text{Lời giải đạt} = \\text{hệ} + \\text{hình} + \\text{kiểm} + \\text{kết luận}"
       ],
       "examples": [
         {
-          "question": "Giải hệ $\\begin{cases}x+y\\le5\\\\x\\ge0\\\\y\\ge1\\end{cases}$ và ghi rõ bốn đỉnh/điểm biên quan trọng.",
-          "solution": "Miền là tam giác giới hạn bởi $x=0,y=1,x+y=5$ với các đỉnh $(0;1),(0;5),(4;1)$."
+          "question": "Giải hệ x + y ≤ 5, x ≥ 0, y ≥ 1 và nêu các đỉnh.",
+          "solution": "Miền là tam giác giới hạn bởi x + y = 5, x = 0, y = 1 với các đỉnh (0;1), (0;5), (4;1). Kiểm (4;1): 5 ≤ 5, 4 ≥ 0, 1 ≥ 1."
         },
         {
-          "question": "Đổi vai: một HS trình bày, học sinh còn lại phải chỉ ra một điều kiện chưa được kiểm.",
-          "solution": "Bài trình bày chỉ hoàn tất khi có hình/miền giao, điểm kiểm, kết luận và câu giải thích vì sao loại vùng ngoài."
+          "question": "Một HS trình bày hình vẽ nhưng không ghi hệ. Em hỏi gì để bạn bổ sung?",
+          "solution": "Hỏi: \"Ba đường biên này ứng với ba bất phương trình nào? Điều kiện nào quyết định miền nằm phía nào?\" — buộc bạn ghi hệ và nêu điểm kiểm."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tìm nghiệm hệ $x\\ge0,y\\ge0,x+y\\le1$. (bài 1 SBT trang 62)",
-          "answer": "Tam giác có các đỉnh $(0;0),(1;0),(0;1)$.",
-          "sourceRef": "bài 1 SBT trang 62"
+          "question": "Tìm miền nghiệm của x ≥ 0, y ≥ 0, x + y ≤ 1.",
+          "answer": "Tam giác với (0;0), (1;0), (0;1)."
         },
         {
           "level": "NB",
-          "question": "Điều kiện nào phải kiểm sau khi tìm giao điểm?",
-          "answer": "Tất cả bất phương trình trong hệ."
+          "question": "Sau khi tìm giao điểm các đường biên, phải làm gì tiếp?",
+          "answer": "Kiểm giao điểm đó có thỏa mọi điều kiện còn lại không, rồi mới kết luận là đỉnh của miền."
         },
         {
           "level": "TH",
-          "question": "Biểu diễn $x\\ge1,y\\ge2,x+y\\le6$. (tham khảo bài 1 SBT trang 67)",
-          "answer": "Tam giác với đỉnh $(1;2),(1;5),(4;2)$.",
-          "sourceRef": "tham khảo bài 1 SBT trang 67"
+          "question": "Biểu diễn hệ x ≥ 1, y ≥ 2, x + y ≤ 6 và nêu các đỉnh.",
+          "answer": "Tam giác với (1;2), (1;5), (4;2): kiểm 1 + 5 = 6, 4 + 2 = 6."
         },
         {
           "level": "TH",
-          "question": "Sửa một vùng tô sai bằng một câu hỏi làm rõ.",
-          "answer": "Hỏi “Điểm đại diện trong vùng này có thỏa từng điều kiện không?” rồi chỉ sửa vùng vi phạm."
+          "question": "Điểm (5; 1) có thuộc miền x + y ≤ 5, x ≥ 0, y ≥ 1 không?",
+          "answer": "Không: 5 + 1 = 6 > 5."
         },
         {
           "level": "VD",
-          "question": "Tạo hệ có miền nghiệm là hình tứ giác và giải thích cách kiểm các đỉnh.",
-          "answer": "Chọn bốn ràng buộc tạo tứ giác; giao từng cặp đường biên, sau đó lọc bằng mọi điều kiện."
+          "question": "Tạo một hệ có miền nghiệm là hình tứ giác và giải thích cách kiểm các đỉnh.",
+          "answer": "Ví dụ x ≥ 0, y ≥ 0, x + y ≤ 6, x + 3y ≤ 9: các đỉnh (0;0), (6;0), (4;2), (0;3). Kiểm từng đỉnh bằng cách thay vào cả bốn điều kiện."
         },
         {
           "level": "VD",
-          "question": "Viết phản hồi cho học sinh chỉ ghi hình mà không ghi hệ.",
-          "answer": "Yêu cầu bổ sung hệ ràng buộc, điểm thử và câu kết luận; hình chỉ là minh họa, không thay cho điều kiện."
+          "question": "Viết phản hồi cho một HS chỉ ghi hình mà không ghi hệ.",
+          "answer": "Phản hồi: \"Hình đúng nhưng thiếu hệ nên người đọc không biết ràng buộc nào tạo ra miền. Em bổ sung hệ, một điểm kiểm trong miền và một điểm ngoài miền kèm điều kiện bị vi phạm.\""
         }
       ],
       "quick": [
         {
-          "question": "Nếu hai HS có hai hình khác nhau, bằng chứng nào quyết định?",
-          "solution": "Thay cùng một điểm đại diện của mỗi vùng vào toàn bộ hệ và đối chiếu đường biên."
+          "question": "Vì sao cần kiểm một điểm ngoài miền?",
+          "solution": "Để chắc chắn đã chọn đúng phía; nếu điểm ngoài lại thỏa mọi điều kiện thì hình vẽ sai."
         },
         {
-          "question": "Bước nhìn lại của bài hệ là gì?",
-          "solution": "Kiểm lại điều kiện, ý nghĩa miền và xem kết luận có đúng ngữ cảnh hay không."
+          "question": "Đỉnh (0;5) là giao của hai đường nào?",
+          "solution": "x = 0 và x + y = 5."
         }
       ],
       "mistakes": [
-        "Trình bày hình không có hệ.",
-        "Không phân vai kiểm chứng nên lỗi lọt qua.",
-        "Không giải thích ý nghĩa miền nghiệm."
+        "Chỉ vẽ hình mà không ghi hệ bất phương trình.",
+        "Kết luận đỉnh mà không kiểm điều kiện còn lại.",
+        "Dùng \"gần đúng\" để nhận một điểm vào miền."
       ],
       "diagram": "graph",
       "digital": true,
@@ -3511,7 +3553,18 @@
       },
       "guidingQuestion": "Khi gặp các bài về Luyện tập giải hệ, kiểm tra miền nghiệm và giải thích lựa chọn, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Bốn phần của lời giải đạt",
+        "a. Ghi hệ rõ ràng.",
+        "b. Vẽ biên và tô miền giao.",
+        "c. Kiểm một điểm trong và một điểm ngoài.",
+        "d. Kết luận kèm lý do loại vùng ngoài.",
+        "2. Áp dụng lịch trực",
+        "a. Hệ: x + y ≤ 5, x ≥ 0, y ≥ 1.",
+        "b. Đỉnh: (0;1), (0;5), (4;1)."
+      ]
     },
     {
       "key": "10-6-42",
@@ -3522,70 +3575,68 @@
       "lessonType": "practice",
       "selfChoice": false,
       "title": "Ôn tập chương III — nhận diện dạng và công thức",
-      "focus": "Ôn tập hệ thức lượng, diện tích và hệ bất phương trình bằng sơ đồ chọn chiến lược",
+      "focus": "Ôn tập nhận diện dạng và chọn công cụ chương III qua sơ đồ 3 câu hỏi: tam giác 6–8–90° (cạnh huyền 10, S = 24 m²) và hệ x ≥ 0, y ≥ 0, x + y ≤ 4; rèn phép kiểm bắt buộc cho từng dạng",
       "formulas": [
-        "a^2=b^2+c^2-2bc\\cos A",
-        "S=\\frac12bc\\sin A",
-        "S=S_1\\cap S_2\\cap S_3"
+        "a^2 = b^2 + c^2 - 2bc\\cos A",
+        "S = \\dfrac12 bc\\sin A",
+        "S = S_1 \\cap S_2 \\cap S_3"
       ],
       "examples": [
         {
-          "question": "Lập bảng “dữ kiện → công thức/chiến lược” cho một bài tam giác và một hệ bất phương trình.",
-          "solution": "Tam giác: hai cạnh + góc xen giữa → cos/diện tích sin; hệ: từng điều kiện → đường biên/điểm thử → phần giao."
+          "question": "Lập bảng \"dữ kiện → công cụ\" cho một bài tam giác (hai cạnh 6, 8 và góc xen giữa 90°) và một hệ bất phương trình (x ≥ 0, y ≥ 0, x + y ≤ 4).",
+          "solution": "Tam giác: có hai cạnh và góc xen giữa → định lý côsin tìm cạnh thứ ba (a = 10) và S = ½ab·sin C = 24 m². Hệ: nhiều điều kiện đồng thời → vẽ ba đường biên, thử điểm, lấy giao; đỉnh (0;0), (4;0), (0;4)."
         },
         {
-          "question": "Một học sinh chọn công thức đúng nhưng không xét điều kiện. Em đặt câu hỏi nào?",
-          "solution": "Hỏi: “Dữ kiện này có đúng vai trò cạnh–góc/điểm thử không, và em đã kiểm điều kiện nào trước khi kết luận?”"
+          "question": "Một HS chọn đúng công thức nhưng không kiểm điều kiện. Em đặt câu hỏi nào?",
+          "solution": "Hỏi: \"Dữ kiện em dùng có đúng vai trò không (góc xen giữa hay góc đối diện)? Em đã kiểm kết quả bằng bất đẳng thức tam giác / điểm thử chưa?\""
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Chọn công thức cho hai cạnh và góc xen giữa.",
-          "answer": "Định lý cos hoặc $S=\\frac12ab\\sin C$ tùy đại lượng cần tìm."
+          "question": "Chọn công thức tính cạnh thứ ba khi biết hai cạnh và góc xen giữa.",
+          "answer": "Định lý côsin: a² = b² + c² − 2bc·cos A."
         },
         {
           "level": "NB",
-          "question": "Nêu phép kiểm bắt buộc của hệ bất phương trình.",
-          "answer": "Thay điểm/đỉnh vào tất cả bất phương trình."
+          "question": "Nêu phép kiểm bắt buộc khi giải hệ bất phương trình.",
+          "answer": "Thay một điểm trong miền và một điểm ngoài miền vào tất cả các điều kiện."
         },
         {
           "level": "TH",
-          "question": "Giải bài tam giác vuông có hai cạnh $6,8$ và tính diện tích. (bài 2 SBT trang 123)",
-          "answer": "Cạnh huyền $10$, diện tích $24$.",
-          "sourceRef": "bài 2 SBT trang 123"
+          "question": "Tam giác vuông có hai cạnh góc vuông 6 và 8: tính cạnh huyền và diện tích.",
+          "answer": "Cạnh huyền 10 (vì 36 + 64 = 100); S = ½·6·8 = 24."
         },
         {
           "level": "TH",
-          "question": "Biểu diễn hệ $x\\ge0,y\\ge0,x+y\\le4$. (bài 1 SBT trang 62)",
-          "answer": "Tam giác có đỉnh $(0;0),(4;0),(0;4)$.",
-          "sourceRef": "bài 1 SBT trang 62"
+          "question": "Biểu diễn hệ x ≥ 0, y ≥ 0, x + y ≤ 4 và nêu các đỉnh.",
+          "answer": "Tam giác với (0;0), (4;0), (0;4)."
         },
         {
           "level": "VD",
-          "question": "Tạo một sơ đồ quyết định giúp học sinh khác chọn công thức đúng.",
-          "answer": "Sơ đồ phải bắt đầu từ dữ kiện/đại lượng cần tìm, có nhánh điều kiện và bước kiểm."
+          "question": "Tạo một sơ đồ quyết định giúp HS khác chọn công cụ đúng.",
+          "answer": "Sơ đồ 3 câu hỏi: (1) có hai cạnh + góc xen giữa? → côsin/diện tích sin; (2) có cặp cạnh–góc đối diện? → định lý sin; (3) có nhiều điều kiện đồng thời? → hệ bất phương trình. Kèm bước 4: kiểm kết quả."
         },
         {
           "level": "VD",
-          "question": "Phản biện một lời giải chỉ nêu “dùng công thức diện tích” mà không nêu công thức cụ thể.",
-          "answer": "Chưa đủ; phải nêu công thức, gán đúng dữ kiện và kiểm đơn vị."
+          "question": "Phản biện lời giải chỉ nêu \"dùng công thức diện tích\" mà không viết công thức cụ thể.",
+          "answer": "Lời giải chưa đủ để kiểm chứng: có ba công thức diện tích khác nhau. Phải ghi rõ S = ½ah_a, S = ½ab·sin C hay S = abc/(4R), cùng dữ kiện tương ứng, thì mới đánh giá được đúng/sai."
         }
       ],
       "quick": [
         {
-          "question": "Câu hỏi đầu tiên khi gặp bài mới nên hướng vào đâu?",
-          "solution": "Vào dữ kiện, đại lượng cần tìm và điều kiện áp dụng trước khi chọn công thức."
+          "question": "Khi nào dùng định lý sin?",
+          "solution": "Khi biết một cặp cạnh–góc đối diện (a và A, b và B, hoặc c và C)."
         },
         {
-          "question": "Nếu chưa chọn được dạng, em có thể làm gì?",
-          "solution": "Tóm tắt bằng ký hiệu/hình, thử một trường hợp đơn giản và hỏi học sinh cùng bàn hoặc GV bằng câu cụ thể."
+          "question": "Vì sao phải kiểm kết quả sau khi tính?",
+          "solution": "Vì sai dấu, sai đơn vị hoặc dùng sai công cụ vẫn cho ra một con số; phép kiểm (bất đẳng thức tam giác, cận diện tích, điểm thử) phát hiện điều đó."
         }
       ],
       "mistakes": [
-        "Học thuộc công thức nhưng không nhận dạng dữ kiện.",
-        "Đổi dạng bài giữa chừng không ghi lý do.",
-        "Không có sơ đồ chiến lược để nhìn lại."
+        "Viết sai dấu trong định lý côsin (+2bc·cos A).",
+        "Nêu tên công thức mà không viết nội dung.",
+        "Không kiểm kết quả sau khi tính."
       ],
       "digital": true,
       "languageSupport": {
@@ -3822,7 +3873,20 @@
       },
       "guidingQuestion": "Khi gặp các bài về Ôn tập hệ thức lượng, diện tích và hệ bất phương trình bằng sơ đồ chọn chiến lược, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Sơ đồ 3 câu hỏi",
+        "a. Hai cạnh + góc xen giữa → côsin + diện tích sin.",
+        "b. Cặp cạnh–góc đối diện → định lý sin.",
+        "c. Nhiều điều kiện đồng thời → hệ bất phương trình.",
+        "2. Phép kiểm",
+        "a. Tam giác: bất đẳng thức tam giác, S ≤ ½bc.",
+        "b. Hệ: thay điểm trong và ngoài miền.",
+        "3. Ví dụ chuẩn",
+        "a. 6–8–90°: cạnh huyền 10; S = 24 m².",
+        "b. x + y ≤ 4: đỉnh (0;0), (4;0), (0;4)."
+      ]
     },
     {
       "key": "10-6-43",
@@ -3833,70 +3897,68 @@
       "lessonType": "practice",
       "selfChoice": false,
       "title": "Ôn tập chương III — bài toán thực tiễn",
-      "focus": "Mô hình hóa bối cảnh tam giác/hệ bất phương trình bằng dữ liệu được nêu rõ",
+      "focus": "Ôn tập mô hình hóa bài toán thực tiễn trên hai tình huống của trường: mảnh đất tam giác 10 m, 12 m, góc 30° (S = 30 m²) và chia 20 suất quà với x + y ≤ 20, x ≥ 5, y ≥ 0 (phương án (5;10) hợp lệ); rèn kết luận đủ 4 phần: số, đơn vị, giả định, phạm vi",
       "formulas": [
-        "\\text{Dữ kiện}\\to\\text{mô hình}\\to\\text{tính toán}\\to\\text{kiểm tra}\\to\\text{kết luận có đơn vị}",
-        "S=\\frac12ab\\sin C",
-        "S=S_1\\cap S_2\\cap S_3"
+        "\\text{Dữ kiện} \\to \\text{mô hình} \\to \\text{tính} \\to \\text{kiểm} \\to \\text{kết luận có đơn vị}",
+        "S = \\dfrac12 ab\\sin C",
+        "S = S_1 \\cap S_2 \\cap S_3"
       ],
       "examples": [
         {
-          "question": "Một khu vực hình tam giác có hai cạnh $10$ m, $12$ m và góc xen giữa $30^\\circ$. Tính diện tích, ghi đơn vị. (tham khảo bài 1 SBT trang 123)",
-          "solution": "$S=\\frac12\\cdot10\\cdot12\\cdot\\frac12=30$ m².",
-          "sourceRef": "tham khảo bài 1 SBT trang 123"
+          "question": "Mảnh đất hình tam giác có hai cạnh 10 m, 12 m và góc xen giữa 30°. Tính diện tích và ghi kết luận đủ 4 phần.",
+          "solution": "S = ½·10·12·sin30° = 30 m². Kết luận: 30 m² (đơn vị), giả định góc đo ±1°, áp dụng cho mảnh đất đã đo, kiểm S ≤ ½·10·12 = 60 m² ✓."
         },
         {
-          "question": "Một nhóm cần chọn $x,y$ sao cho $x+y\\le20,x\\ge5,y\\ge0$. Hãy nêu ý nghĩa miền nghiệm và một phương án hợp lệ.",
-          "solution": "Miền nghiệm là các phương án đồng thời thỏa tổng và mức tối thiểu; ví dụ $(5;10)$ hợp lệ."
+          "question": "Nhóm cần chọn x, y sao cho x + y ≤ 20, x ≥ 5, y ≥ 0. Nêu ý nghĩa miền nghiệm và một phương án hợp lệ.",
+          "solution": "Miền nghiệm là tập các cách chia thỏa tổng 20 suất và tối thiểu 5 suất loại A. Phương án (5; 10): 5 + 10 = 15 ≤ 20 và x = 5 ≥ 5 — hợp lệ; còn dư 5 suất."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Trong kết luận thực tiễn phải ghi thêm điều gì ngoài số?",
-          "answer": "Đơn vị và ý nghĩa của đại lượng."
+          "question": "Ngoài con số, kết luận thực tiễn phải ghi thêm gì?",
+          "answer": "Đơn vị đo, giả định/nguồn số liệu và phạm vi áp dụng."
         },
         {
           "level": "NB",
-          "question": "Kiểm tra phương án $(5;10)$ với hệ trên. (bài 1 SBT trang 67)",
-          "answer": "Có: $15\\le20$, $5\\ge5$, $10\\ge0$.",
-          "sourceRef": "bài 1 SBT trang 67"
+          "question": "Kiểm tra phương án (5; 10) với hệ x + y ≤ 20, x ≥ 5, y ≥ 0.",
+          "answer": "5 + 10 = 15 ≤ 20; 5 ≥ 5; 10 ≥ 0 — hợp lệ."
         },
         {
           "level": "TH",
-          "question": "Tính diện tích mảnh đất tam giác có $a=8,b=10,C=60^\\circ$.",
-          "answer": "$S=20\\sqrt3$ m²."
+          "question": "Tính diện tích mảnh đất tam giác có a = 8, b = 10, góc xen giữa C = 60°.",
+          "answer": "S = ½·8·10·sin60° = 40·(√3/2) = 20√3 ≈ 34,64 m²."
         },
         {
           "level": "TH",
-          "question": "Nêu một giả định cần ghi khi đo góc thực tế.",
-          "answer": "Coi số đo góc/cạnh đủ chính xác trong phạm vi bài toán; ghi sai số nếu có dữ liệu."
+          "question": "Nêu một giả định cần ghi khi đo góc ngoài thực địa.",
+          "answer": "Ghi dụng cụ đo, sai số (ví dụ ±1°), điều kiện đo (trời không mưa, mặt đất bằng) vì sai số góc làm diện tích thay đổi."
         },
         {
           "level": "VD",
-          "question": "So sánh hai phương án trong miền nghiệm bằng một tiêu chí do nhóm tự đề xuất.",
-          "answer": "Nêu rõ tiêu chí, cách tính, miền so sánh và giới hạn; không gọi một phương án “tốt nhất” khi chưa nói tiêu chí."
+          "question": "So sánh hai phương án trong miền nghiệm bằng một tiêu chí do nhóm đề xuất.",
+          "answer": "Ví dụ tiêu chí \"tổng số suất\": (20; 0) được 20 suất, (5; 10) được 15 suất → (20; 0) tốt hơn theo tiêu chí này, nhưng vi phạm cam kết phân bổ hai loại nếu lớp cần cả A và B."
         },
         {
           "level": "VD",
           "question": "Phản biện một kết luận dùng số liệu nhưng không ghi nguồn/giả định.",
-          "answer": "Chưa đủ minh bạch; phải ghi dữ liệu được cho, giả định và cách kiểm."
+          "answer": "Kết luận không kiểm chứng được: người đọc không biết số đo từ đâu, sai số bao nhiêu, áp dụng cho đối tượng nào. Phải bổ sung nguồn đo, sai số và phạm vi trước khi dùng để ra quyết định."
         }
       ],
       "quick": [
         {
-          "question": "Một mô hình thực tiễn tối thiểu phải trả lời câu hỏi nào?",
-          "solution": "Đại lượng nào là biến, điều kiện nào ràng buộc và kết luận có ý nghĩa gì."
+          "question": "Vì sao diện tích 60 m² là cận trên của mảnh đất 10 m × 12 m?",
+          "solution": "Vì S = ½·10·12·sin C ≤ ½·10·12 = 60 m², dấu bằng khi góc xen giữa 90°."
         },
         {
-          "question": "Nếu dữ liệu không đủ, nhóm được làm gì?",
-          "solution": "Nêu rõ giả định cần thêm, không tự biến giả định thành dữ kiện thật."
+          "question": "Nếu bỏ điều kiện x ≥ 5 thì phương án (0; 20) có hợp lệ không?",
+          "solution": "Theo hệ mới thì hợp lệ (0 + 20 = 20), nhưng vi phạm cam kết ít nhất 5 suất loại A của lớp."
         }
       ],
       "mistakes": [
-        "Dùng bối cảnh để che lấp mô hình chưa rõ.",
-        "Quên đơn vị và ý nghĩa kết luận.",
-        "Gọi “tối ưu” nhưng không nêu tiêu chí."
+        "Kết luận thiếu đơn vị.",
+        "Quên hệ số ½ hoặc dùng cos.",
+        "Không ghi giả định/nguồn số liệu và phạm vi áp dụng."
       ],
       "digital": true,
       "global": true,
@@ -4135,7 +4197,21 @@
       },
       "guidingQuestion": "Khi gặp các bài về Mô hình hóa bối cảnh tam giác/hệ bất phương trình bằng dữ liệu được nêu rõ, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Dùng dữ liệu mô phỏng được gắn nhãn để luyện cách minh bạch nguồn, giả định và giới hạn khi giải quyết vấn đề cộng đồng., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Bốn thành phần kết luận thực tiễn",
+        "a. Số liệu đúng.",
+        "b. Đơn vị đo.",
+        "c. Giả định/nguồn số liệu.",
+        "d. Phạm vi áp dụng.",
+        "2. Hai bài thực tiễn",
+        "a. Mảnh đất 10 m, 12 m, 30°: S = 30 m².",
+        "b. Chia 20 suất: (5;10) hợp lệ; miền x + y ≤ 20, x ≥ 5, y ≥ 0.",
+        "3. Phép kiểm",
+        "a. S ≤ ½bc.",
+        "b. Thay điểm vào cả ba điều kiện."
+      ]
     },
     {
       "key": "10-6-44",
@@ -4146,70 +4222,68 @@
       "lessonType": "practice",
       "selfChoice": false,
       "title": "Ôn tập chương III — phản biện và kiểm tra tổng hợp",
-      "focus": "Phản biện lời giải và kiểm tra tính hợp lý của kết quả chương III",
+      "focus": "Ôn tập phản biện và kiểm tra tổng hợp chương III qua ba lời giải mẫu: S = ab·sin C (thiếu ½, đúng là 12), điểm (2;3) với x + y ≤ 4 (5 > 4, ngoài miền), a² = b² + c² + 2bc·cos A (sai dấu); rèn quy trình phản biện 4 bước",
       "formulas": [
-        "\\text{Kết luận đúng}\\Longleftrightarrow\\text{dữ kiện đúng + biến đổi hợp lệ + điều kiện được kiểm}",
-        "S=\\frac12ab\\sin C",
-        "S=S_1\\cap S_2\\cap S_3"
+        "\\text{Kết luận đúng} \\Leftrightarrow \\text{dữ kiện đúng} + \\text{biến đổi hợp lệ} + \\text{điều kiện được kiểm}",
+        "S = \\dfrac12 ab\\sin C",
+        "S = S_1 \\cap S_2 \\cap S_3"
       ],
       "examples": [
         {
-          "question": "GV chiếu một lời giải có chủ ý sai ở dấu hoặc điểm thử. HS cần làm gì trước khi sửa?",
-          "solution": "Khoanh đúng dòng đáng ngờ, nêu điều kiện/định nghĩa liên quan, thử một giá trị rồi mới đề xuất sửa."
+          "question": "GV chiếu lời giải S = ab·sin C với a = 6, b = 8, C = 30° cho kết quả 24. HS cần làm gì trước khi sửa?",
+          "solution": "Khoanh dòng công thức, nêu công thức đúng S = ½ab·sin C, thử trường hợp C = 90° (công thức sai cho 48 m² trong khi tam giác vuông 6×8 chỉ 24 m²), rồi mới sửa và tính lại S = 12."
         },
         {
-          "question": "Hãy dùng hai cách kiểm tra độc lập cho một kết quả diện tích hoặc miền nghiệm.",
-          "solution": "Đối chiếu công thức khác/đơn vị/ước lượng và thay điểm đại diện vào điều kiện; hai kiểm tra phải cùng ủng hộ kết luận."
+          "question": "Nêu hai cách kiểm độc lập cho một kết quả diện tích.",
+          "solution": "Cách 1: tính lại bằng công thức khác (ví dụ S = abc/(4R) hoặc ½ah). Cách 2: ước lượng bằng cận S ≤ ½bc và so sánh với hình học (tam giác vuông bằng nửa hình chữ nhật)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
           "question": "Nêu bốn tiêu chí của một lời giải đạt.",
-          "answer": "Đúng dữ kiện; biến đổi hợp lệ; kết luận rõ; có phép kiểm/điều kiện."
+          "answer": "Dữ kiện đúng; chọn đúng công thức/định lý; biến đổi và thay số chính xác; có phép kiểm và kết luận có đơn vị."
         },
         {
           "level": "NB",
           "question": "Khi gặp kết quả diện tích âm, cần kiểm tra gì?",
-          "answer": "Kiểm tra công thức, độ dài/góc và dấu; diện tích hình học không âm."
+          "answer": "Kiểm công thức (thiếu ½, dùng cos, sai dấu), đơn vị và dữ kiện đầu vào; diện tích luôn dương nên kết quả âm chắc chắn sai."
         },
         {
           "level": "TH",
-          "question": "Sửa lời giải $S=ab\\sin C$. (tham khảo bài 2 SBT trang 123)",
-          "answer": "Bổ sung hệ số $\\frac12$ và kiểm đúng góc xen giữa.",
-          "sourceRef": "tham khảo bài 2 SBT trang 123"
+          "question": "Sửa lời giải S = ab·sin C với a = 6, b = 8, C = 30°.",
+          "answer": "Công thức đúng: S = ½ab·sin C = ½·6·8·0,5 = 12 (không phải 24)."
         },
         {
           "level": "TH",
-          "question": "Nêu phép kiểm cho điểm ứng viên của miền nghiệm. (bài 3 SBT trang 80)",
-          "answer": "Thay tọa độ vào từng bất phương trình, ghi đúng/sai từng điều kiện.",
-          "sourceRef": "bài 3 SBT trang 80"
+          "question": "Nêu phép kiểm cho điểm (2; 3) với hệ x + y ≤ 4, x ≥ 0, y ≥ 0.",
+          "answer": "2 + 3 = 5 > 4 nên (2;3) không thuộc miền; điểm thuộc miền là (2; 2) vì 4 ≤ 4."
         },
         {
           "level": "VD",
-          "question": "Viết phản biện tôn trọng cho một lời giải sai.",
-          "answer": "Nêu điều đã đúng trước, chỉ một dòng sai, đưa bằng chứng và đề nghị câu hỏi sửa; không gắn nhãn người làm."
+          "question": "Viết phản biện tôn trọng cho lời giải dùng a² = b² + c² + 2bc·cos A.",
+          "answer": "\"Ở dòng công thức, dấu của số hạng 2bc·cos A cần là dấu trừ. Kiểm với A = 60°, b = 6, c = 8: công thức đúng cho a² = 52, công thức trong bài cho 148. Mình đề xuất sửa dấu và giữ lại các bước sau.\""
         },
         {
           "level": "VD",
-          "question": "Tạo một câu hỏi mở để kiểm tra hiểu sâu một công thức.",
-          "answer": "Câu hỏi yêu cầu so sánh, phản ví dụ, biến thể hoặc giải thích vì sao, kèm tiêu chí trả lời."
+          "question": "Tạo một câu hỏi mở để kiểm tra hiểu sâu công thức diện tích.",
+          "answer": "Ví dụ: \"Vì sao với hai cạnh cố định, diện tích lớn nhất khi góc xen giữa bằng 90°? Nếu góc là 0° thì diện tích bằng bao nhiêu và hình học khi đó ra sao?\" — câu hỏi buộc HS giải thích bản chất chứ không chỉ thay số."
         }
       ],
       "quick": [
         {
-          "question": "Sai ở một dòng có làm toàn bộ kết luận sai không?",
-          "solution": "Có thể; cần truy ngược dòng phụ thuộc và kiểm lại kết luận, nhưng vẫn ghi nhận phần đúng."
+          "question": "Vì sao phải sửa công thức chứ không chỉ sửa kết quả?",
+          "solution": "Vì công thức sai sẽ tiếp tục cho kết quả sai ở bài khác; sửa số chỉ che lỗi hiện tại."
         },
         {
-          "question": "Phản biện tốt cần có bằng chứng nào?",
-          "solution": "Một phép thay, điều kiện, định nghĩa hoặc so sánh độc lập; không chỉ nói “em thấy sai”."
+          "question": "Hai phép kiểm độc lập cho diện tích 24 m² là gì?",
+          "solution": "Tính bằng ½·6·8 (tam giác vuông) và bằng abc/(4R) với R = 5; cả hai đều cho 24."
         }
       ],
       "mistakes": [
-        "Chữa theo đáp số mà không chỉ ra dòng sai.",
-        "Phản biện người thay vì phản biện bằng chứng.",
-        "Không cho HS cơ hội tự sửa sau khi nghe đáp án."
+        "Sửa kết quả mà không chỉ ra dòng sai và nguyên nhân.",
+        "Phản biện bằng cảm giác, không có phép thử.",
+        "Chỉ dùng một phép kiểm duy nhất."
       ],
       "digital": true,
       "languageSupport": {
@@ -4446,7 +4520,19 @@
       },
       "guidingQuestion": "Khi gặp các bài về Phản biện lời giải và kiểm tra tính hợp lý của kết quả chương III, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Quy trình phản biện 4 bước",
+        "a. Khoanh dòng đáng ngờ.",
+        "b. Nêu định nghĩa/điều kiện liên quan.",
+        "c. Thử giá trị cụ thể hoặc trường hợp biên.",
+        "d. Đề xuất sửa + phép kiểm thứ hai.",
+        "2. Ba lỗi mẫu",
+        "a. S = ab·sin C thiếu ½ (đúng: 12).",
+        "b. Nhận (2;3) vào miền x + y ≤ 4 (sai: 5 > 4).",
+        "c. a² = b² + c² + 2bc·cos A (sai dấu)."
+      ]
     },
     {
       "key": "10-6-45",
@@ -4457,70 +4543,68 @@
       "lessonType": "practice",
       "selfChoice": true,
       "title": "Tự chọn — luyện tập hệ bất phương trình và mô hình",
-      "focus": "Tự chọn nhiệm vụ luyện tập mô hình miền khả thi",
+      "focus": "Tự chọn mô hình hóa \"ngày hội đọc sách\": x + y ≤ 8, x ≥ 2, y ≥ 0 (miền (2;0), (8;0), (2;6)); chọn tiêu chí P = x + 2y (tối ưu tại (2;6) với P = 14); nêu giới hạn mô hình và phản biện giả định",
       "formulas": [
-        "\\text{Biến}\\to\\text{ràng buộc}\\to\\text{miền khả thi}\\to\\text{tiêu chí}",
-        "S=S_1\\cap S_2\\cap S_3",
-        "P=ux+vy\\ \\text{(nếu nhóm tự chọn tiêu chí)}"
+        "\\text{Biến} \\to \\text{ràng buộc} \\to \\text{miền khả thi} \\to \\text{tiêu chí}",
+        "S = S_1 \\cap S_2 \\cap S_3",
+        "P = ux + vy"
       ],
       "examples": [
         {
-          "question": "Chọn một tình huống gần gũi, nhưng phải ghi rõ dữ liệu giả định và hai ràng buộc.",
-          "solution": "Sản phẩm có biến, đơn vị, hệ, miền nghiệm, một phương án và một giới hạn của mô hình."
+          "question": "Chọn một tình huống gần gũi, ghi rõ dữ liệu giả định và hai ràng buộc.",
+          "solution": "Ví dụ ngày hội đọc sách: x giờ chuẩn bị sách, y giờ trang trí; ràng buộc x + y ≤ 8 và x ≥ 2; giả định chia giờ nguyên, mỗi giờ công có người phụ trách."
         },
         {
-          "question": "Đổi tiêu chí lựa chọn nhưng giữ nguyên miền khả thi. Điều gì thay đổi?",
-          "solution": "Miền khả thi giữ nguyên; phương án được ưu tiên có thể thay đổi theo tiêu chí mới."
+          "question": "Đổi tiêu chí nhưng giữ nguyên miền khả thi. Điều gì thay đổi?",
+          "solution": "Miền khả thi không đổi (do ràng buộc quyết định); chỉ phương án được ưu tiên thay đổi: với P = x + 2y chọn (2;6), với P = 2x + y chọn (8;0) với giá trị 16."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Viết một hệ có $x,yge0$ và $x+yle8$. (bài 1 SBT trang 62)",
-          "answer": "$x\\ge0,y\\ge0,x+y\\le8$.",
-          "sourceRef": "bài 1 SBT trang 62"
+          "question": "Viết một hệ có x, y ≥ 0 và x + y ≤ 8.",
+          "answer": "x ≥ 0, y ≥ 0, x + y ≤ 8 — miền là tam giác với (0;0), (8;0), (0;8)."
         },
         {
           "level": "NB",
-          "question": "Nêu một phương án hợp lệ cho hệ trên.",
-          "answer": "Ví dụ $(3;4)$ vì $3,4\\ge0$ và $7\\le8$."
+          "question": "Nêu một phương án hợp lệ cho hệ x + y ≤ 8, x ≥ 2, y ≥ 0.",
+          "answer": "Ví dụ (3; 4): 7 ≤ 8 và 3 ≥ 2."
         },
         {
           "level": "TH",
-          "question": "Thêm điều kiện $xge2$ và tìm ba điểm hợp lệ.",
-          "answer": "Ví dụ $(2;0),(2;4),(5;1)$; mỗi điểm phải được thay kiểm."
+          "question": "Thêm điều kiện x ≥ 2 vào hệ x, y ≥ 0, x + y ≤ 8 và tìm ba điểm hợp lệ.",
+          "answer": "Ví dụ (2; 0), (5; 2), (2; 6) — cả ba thỏa x + y ≤ 8 và x ≥ 2."
         },
         {
           "level": "TH",
-          "question": "So sánh $P=x+2y$ tại hai điểm hợp lệ. (bài 1 SBT trang 72)",
-          "answer": "Thay từng điểm, không kết luận chỉ từ hoành độ/tung độ riêng.",
-          "sourceRef": "bài 1 SBT trang 72"
+          "question": "So sánh P = x + 2y tại (2; 6) và (8; 0).",
+          "answer": "P(2;6) = 2 + 12 = 14; P(8;0) = 8. Theo tiêu chí này (2;6) tốt hơn."
         },
         {
           "level": "VD",
-          "question": "Thiết kế một bảng tiêu chí để nhóm khác đánh giá mô hình.",
-          "answer": "Đúng biến/đơn vị; ràng buộc đủ; miền kiểm đúng; kết luận có tiêu chí; nêu giới hạn."
+          "question": "Thiết kế bảng tiêu chí để nhóm khác đánh giá một mô hình.",
+          "answer": "Bốn tiêu chí: (1) biến rõ nghĩa và có đơn vị; (2) ràng buộc đúng lời văn; (3) miền khả thi và đỉnh được kiểm; (4) có nêu giả định và giới hạn, kết luận có lý do."
         },
         {
           "level": "VD",
           "question": "Phản biện một giả định có thể làm mô hình thiếu công bằng.",
-          "answer": "Nêu ai bị bỏ sót, dữ liệu nào chưa đại diện và cần thu thập/kiểm tra thêm gì."
+          "answer": "Giả định \"mọi thành viên đóng góp giờ công như nhau\" bỏ qua việc có bạn bận việc gia đình; mô hình sẽ phân công không công bằng. Cách sửa: thêm ràng buộc giới hạn giờ tối đa mỗi nhóm hoặc ghi rõ giả định để lớp thương lượng."
         }
       ],
       "quick": [
         {
-          "question": "Tự chọn không có nghĩa là bỏ tiêu chí; nhóm phải chứng minh điều gì?",
-          "solution": "Chứng minh sản phẩm đạt cùng chuẩn lõi bằng hệ, kiểm tra và giải thích."
+          "question": "Đổi tiêu chí có làm đổi miền khả thi không?",
+          "solution": "Không. Miền khả thi do ràng buộc quyết định; tiêu chí chỉ chọn phương án trong miền."
         },
         {
-          "question": "Nếu tình huống quá rộng, nhóm thu hẹp bằng cách nào?",
-          "solution": "Chọn một câu hỏi, hai biến và số ràng buộc vừa đủ; ghi rõ phạm vi."
+          "question": "Vì sao phải nêu giới hạn của mô hình?",
+          "solution": "Vì mô hình bỏ qua nhiều yếu tố thực tế (nhân lực, thời gian nghỉ, sai số đo); nêu giới hạn giúp người đọc biết phạm vi tin cậy của kết luận."
         }
       ],
       "mistakes": [
-        "Bối cảnh quá rộng, không tạo được hệ.",
-        "Dữ liệu giả định không được ghi nhãn.",
-        "Tự chọn theo sở thích nhưng không có sản phẩm kiểm chứng."
+        "Chỉ nêu mô hình mà không nêu giả định.",
+        "Nhầm miền khả thi với tiêu chí.",
+        "Không kiểm đỉnh trước khi kết luận."
       ],
       "diagram": "graph",
       "digital": true,
@@ -4760,7 +4844,21 @@
       },
       "guidingQuestion": "Khi gặp các bài về mô hình miền khả thi, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Thiết kế mô hình nhỏ cho một vấn đề cộng đồng, tách dữ liệu–giả định và phản biện tác động của tiêu chí lựa chọn., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Bốn bước mô hình",
+        "a. Đặt biến + điều kiện.",
+        "b. Viết ràng buộc.",
+        "c. Tìm miền và đỉnh.",
+        "d. Chọn tiêu chí, tính tại đỉnh, nêu giới hạn.",
+        "2. Ví dụ ngày hội đọc sách",
+        "a. Hệ: x + y ≤ 8, x ≥ 2, y ≥ 0.",
+        "b. Đỉnh: (2;0) P = 2; (8;0) P = 8; (2;6) P = 14.",
+        "3. Giới hạn mô hình",
+        "a. Chưa tính nhân lực và thời gian nghỉ.",
+        "b. Giả định chia giờ nguyên."
+      ]
     },
     {
       "key": "10-6-46",
@@ -4771,73 +4869,68 @@
       "lessonType": "practice",
       "selfChoice": true,
       "title": "Tự chọn — luyện tập tổng hợp chương III",
-      "focus": "Tự chọn nhiệm vụ tổng hợp hệ thức lượng, diện tích và hệ bất phương trình",
+      "focus": "Luyện tập tổng hợp chương III theo quy trình 5 bước trên ba nhánh: tam giác b = 6, c = 8, A = 60° (a = 2√13 ≈ 7,21; S = 12√3 ≈ 20,78), miền nghiệm x + y ≤ 2 (6 điểm nguyên, 3 đỉnh), bài ngược a = 13, b = 14, c = 15, S = 84 → R = 8,125",
       "formulas": [
-        "\\text{Nhận dạng}\\to\\text{chọn chiến lược}\\to\\text{giải}\\to\\text{kiểm}\\to\\text{phản tư}",
-        "a^2=b^2+c^2-2bc\\cos A",
-        "S=\\frac12ab\\sin C\\quad;\\quad S=S_1\\cap S_2\\cap S_3"
+        "a^2 = b^2 + c^2 - 2bc\\cos A",
+        "S = \\dfrac12 bc\\sin A \\quad; \\quad S = \\dfrac{abc}{4R}",
+        "S = S_1 \\cap S_2 \\cap S_3"
       ],
       "examples": [
         {
-          "question": "Nhánh tam giác: Cho tam giác có $b=6$, $c=8$, $A=60^\\circ$. Tính $a$ và diện tích $S$, rồi ghi rõ vì sao em chọn định lý côsin và công thức diện tích. (bài 2 SBT trang 123)",
-          "solution": "Định lý côsin: $a^2=6^2+8^2-2\\cdot6\\cdot8\\cos60^\\circ=52$, nên $a=2\\sqrt{13}$. Diện tích: $S=\\frac12\\cdot6\\cdot8\\sin60^\\circ=12\\sqrt3$. Phép kiểm: $0<S$ và $|8-6|<2\\sqrt{13}<14$.",
-          "sourceRef": "bài 2 SBT trang 123"
+          "question": "Nhánh tam giác: b = 6, c = 8, A = 60°. Tính a và S, nêu vì sao chọn định lý côsin và công thức diện tích.",
+          "solution": "Có hai cạnh và góc xen giữa nên dùng côsin: a² = 36 + 64 − 48 = 52 ⇒ a = 2√13 ≈ 7,21. Diện tích S = ½·6·8·sin60° = 12√3 ≈ 20,78. Kiểm: 2 < 7,21 < 14 và S ≤ 24."
         },
         {
-          "question": "Nhánh miền nghiệm: Với hệ $x\\ge0$, $y\\ge0$, $x+y\\le2$, hãy liệt kê các điểm nguyên trong miền và chỉ ra ba đỉnh. (bài 1 SBT trang 62)",
-          "solution": "Các điểm nguyên là $(0;0),(1;0),(2;0),(0;1),(1;1),(0;2)$. Ba đỉnh là $(0;0),(2;0),(0;2)$; mỗi điểm được kiểm bằng cả ba điều kiện.",
-          "sourceRef": "bài 1 SBT trang 62"
+          "question": "Nhánh miền nghiệm: với x ≥ 0, y ≥ 0, x + y ≤ 2, liệt kê điểm nguyên và ba đỉnh.",
+          "solution": "Điểm nguyên: (0;0), (1;0), (2;0), (0;1), (1;1), (0;2) — cả 6 điểm thỏa mọi điều kiện. Ba đỉnh: (0;0), (2;0), (0;2)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Với tam giác có $b=3$, $c=4$, $A=90^\\circ$, viết công thức tính $a$ và $S$.",
-          "answer": "Định lý côsin cho $a=5$; công thức diện tích cho $S=\\frac12\\cdot3\\cdot4=6$."
+          "question": "Với tam giác b = 3, c = 4, A = 90°, viết công thức tính a và S.",
+          "answer": "a² = b² + c² − 2bc·cos A (với A = 90° thì cos = 0 nên a² = 25); S = ½·b·c·sin A = 6."
         },
         {
           "level": "NB",
-          "question": "Với hệ $x\\ge0$, $y\\ge0$, $x+y\\le2$, điểm $(1;1)$ có là nghiệm không?",
-          "answer": "Có, vì $1\\ge0$, $1\\ge0$ và $1+1=2\\le2$."
+          "question": "Với hệ x ≥ 0, y ≥ 0, x + y ≤ 2, điểm (1; 1) có là nghiệm không?",
+          "answer": "Có: 1 ≥ 0, 1 ≥ 0, 1 + 1 = 2 ≤ 2 (nằm trên biên)."
         },
         {
           "level": "TH",
-          "question": "Cho tam giác có $b=6$, $c=8$, $A=60^\\circ$. Tính $a$ và $S$. (bài 2 SBT trang 123)",
-          "answer": "$a^2=52$ nên $a=2\\sqrt{13}$; $S=12\\sqrt3$.",
-          "sourceRef": "bài 2 SBT trang 123"
+          "question": "Cho tam giác b = 6, c = 8, A = 60°. Tính a và S.",
+          "answer": "a² = 52 ⇒ a = 2√13 ≈ 7,21; S = ½·6·8·sin60° = 12√3 ≈ 20,78."
         },
         {
           "level": "TH",
-          "question": "Tìm các đỉnh của miền nghiệm $x+y\\le4$, $x\\ge1$, $y\\ge0$.",
-          "answer": "Các đỉnh là $(1;0),(4;0),(1;3)$; kiểm tra cả ba điểm với ba điều kiện."
+          "question": "Tìm các đỉnh miền nghiệm x + y ≤ 4, x ≥ 1, y ≥ 0.",
+          "answer": "(1;0), (4;0), (1;3) — kiểm: 1 + 3 = 4 ≤ 4."
         },
         {
           "level": "VD",
-          "question": "Với $x+y\\le12$, $x\\ge4$, $y\\ge0$ và $P=2x+3y$, so sánh $P$ tại $(4;8)$ và $(12;0)$. (bài 1 SBT trang 72)",
-          "answer": "$P(4;8)=8+24=32$, còn $P(12;0)=24$; theo tiêu chí $P$ lớn hơn, $(4;8)$ được ưu tiên.",
-          "sourceRef": "bài 1 SBT trang 72"
+          "question": "Với x + y ≤ 12, x ≥ 4, y ≥ 0 và P = 2x + 3y, so sánh P tại (4;8) và (12;0).",
+          "answer": "P(4;8) = 8 + 24 = 32; P(12;0) = 24. Theo P, (4;8) tốt hơn."
         },
         {
           "level": "VD",
-          "question": "Cho tam giác có $a=13$, $b=14$, $c=15$ và $S=84$. Tính bán kính ngoại tiếp $R$ rồi kiểm tra bằng công thức diện tích. (bài 1 SBT trang 127)",
-          "answer": "$R=\\frac{abc}{4S}=\\frac{13\\cdot14\\cdot15}{4\\cdot84}=\\frac{65}{8}$. Thay ngược vào $S=\\frac{abc}{4R}$ được $84$, nên kết quả phù hợp.",
-          "sourceRef": "bài 1 SBT trang 127"
+          "question": "Cho tam giác a = 13, b = 14, c = 15 và S = 84. Tính bán kính ngoại tiếp R rồi kiểm tra bằng công thức diện tích.",
+          "answer": "R = abc/(4S) = (13·14·15)/(4·84) = 2730/336 = 8,125. Kiểm ngược: abc/(4R) = 2730/32,5 = 84 = S ✓."
         }
       ],
       "quick": [
         {
-          "question": "Với $b=6$, $c=8$, $A=60^\\circ$, kết quả $a=2\\sqrt{13}$ có thỏa điều kiện tồn tại tam giác không?",
-          "solution": "Có, vì $|8-6|<2\\sqrt{13}<8+6$."
+          "question": "Vì sao không nên làm tròn a = 2√13 ngay từ đầu?",
+          "solution": "Vì các bước sau (diện tích, kiểm bất đẳng thức) có thể tích luỹ sai số; giữ căn đến kết luận rồi mới làm tròn."
         },
         {
-          "question": "Điểm $(3;4)$ có thuộc miền $x\\ge0$, $y\\ge0$, $x+y\\le7$ không?",
-          "solution": "Có, vì $3\\ge0$, $4\\ge0$ và $3+4=7\\le7$."
+          "question": "Nêu một phép kiểm cho kết quả R.",
+          "solution": "Thay R vào S = abc/(4R) và so với diện tích đã biết; nếu khớp thì R đúng."
         }
       ],
       "mistakes": [
-        "Chọn nhánh nhưng không bám chuẩn lõi.",
-        "Trình bày dài nhưng không có phép kiểm.",
-        "Phản tư chung chung, không gắn với sản phẩm."
+        "Nhầm a/sin A = R thay vì 2R.",
+        "Bỏ sót điểm nguyên trong miền nghiệm.",
+        "Không có phép kiểm sau khi giải."
       ],
       "diagram": "graph",
       "digital": true,
@@ -5075,7 +5168,20 @@
       },
       "guidingQuestion": "Khi gặp các bài về tổng hợp hệ thức lượng, diện tích và hệ bất phương trình, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Quy trình 5 bước",
+        "a. Nhận dạng dữ kiện.",
+        "b. Chọn chiến lược, viết công thức.",
+        "c. Giải, giữ căn thức.",
+        "d. Kiểm bằng phép độc lập.",
+        "e. Phản tư điều dễ sai.",
+        "2. Ba nhánh bài tập",
+        "a. b = 6, c = 8, A = 60°: a = 2√13 ≈ 7,21; S = 12√3 ≈ 20,78.",
+        "b. x + y ≤ 2: 6 điểm nguyên; đỉnh (0;0), (2;0), (0;2).",
+        "c. 13-14-15, S = 84: R = 8,125."
+      ]
     },
     {
       "key": "11-5-26",
@@ -15349,224 +15455,224 @@
       "key": "10-5-31",
       "mode": "micro",
       "category": "Lỗi logic",
-      "wrongSolution": "AI viết: 15·6 + 10·7 = 160. Vì 160 > 150 nên (6;7) là nghiệm.",
-      "correction": "160 > 150 nên mệnh đề 160 ≤ 150 sai; vì vậy (6;7) không phải là nghiệm của 15x + 10y ≤ 150.",
-      "proof": "Thay x = 6, y = 7 vào vế trái: 15·6 + 10·7 = 160; so với vế phải 150 thì 160 ≤ 150 là mệnh đề sai.",
-      "teacherPrompt": "Dòng nào trong lời giải AI sai? Em phân loại lỗi và chỉ ra bằng chứng vì sao (6;7) không phải nghiệm.",
-      "studentProduct": "Khoanh dòng sai, ghi “lỗi logic”, sửa lại kết luận và nêu phép so sánh 160 > 150 làm bằng chứng.",
+      "wrongSolution": "AI viết: \"Thay x = 6, y = 7 vào 15x + 10y ≤ 150: 15·6 + 10·7 = 160. Vì 160 > 150 nên (6; 7) là nghiệm của bất phương trình.\"",
+      "correction": "160 > 150 nên mệnh đề 160 ≤ 150 là SAI; do đó (6; 7) không phải là nghiệm của 15x + 10y ≤ 150.",
+      "proof": "Nghiệm của bất phương trình là cặp số làm mệnh đề đúng. Ở đây vế trái 160, vế phải 150, quan hệ đúng là 160 > 150 — ngược với yêu cầu ≤, nên kết luận phải là \"không là nghiệm\".",
+      "teacherPrompt": "Dòng nào trong lời giải AI sai? Em phân loại lỗi, chỉ ra bằng chứng vì sao (6; 7) không phải nghiệm rồi sửa lại kết luận.",
+      "studentProduct": "Khoanh dòng sai, ghi \"lỗi logic\", sửa kết luận và nêu phép so sánh 160 > 150 làm bằng chứng.",
       "boardPrompt": "Kiểm lỗi: phép tính đúng · kết luận đảo chiều dấu.",
       "libraryTitle": "Bất phương trình ngân sách: đảo chiều kết luận sau phép thay",
-      "whyAiError": "Đầu ra có thể nhảy từ một hình ảnh, một trường hợp hoặc một kết quả riêng sang kết luận chung mà chưa chứng minh quan hệ kéo theo.",
+      "whyAiError": "Mô hình tính đúng phép nhân nhưng bỏ qua phép so sánh cuối, rồi suy ra kết luận theo hướng \"đã thay số xong là nghiệm\" — lỗi logic điển hình khi thiếu bước kiểm tra dấu.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-5-32": {
       "key": "10-5-32",
       "mode": "micro",
-      "category": "Lỗi đại số",
-      "wrongSolution": "AI biến đổi 3x − 2y > 6 thành −2y > 6 − 3x rồi kết luận y > 3x/2 − 3.",
-      "correction": "Chia cả hai vế cho −2 phải đổi chiều: y < 3x/2 − 3.",
-      "proof": "Với x = 0, y = −4: bất phương trình gốc cho 8 > 6 đúng; kết quả sửa cũng cho −4 < −3 đúng.",
-      "teacherPrompt": "Khi chia cho số âm, bước nào làm đổi chiều? Phép thử nào bác bỏ kết luận của AI?",
-      "studentProduct": "Gạch chân phép chia sai, ghi “lỗi đại số”, sửa dấu và kiểm bằng một cặp điểm.",
-      "boardPrompt": "Kiểm lỗi: chia số âm → đổi chiều.",
-      "libraryTitle": "Bất phương trình: quên đổi chiều khi chia số âm",
-      "whyAiError": "Đầu ra có thể nối đúng các ký hiệu nhưng bỏ sót dấu, hệ số hoặc bước biến đổi; vì vậy phải kiểm tra lại bằng phép tính độc lập.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI trình bày: \"Miền nghiệm của 3x + 2y ≤ 30 là nửa mặt phẳng phía trên đường thẳng 3x + 2y = 30. Vì bất phương trình có dấu ≤ nên ta vẽ đường biên bằng nét đứt để thể hiện rằng biên không được tính.\"",
+      "correction": "Dấu ≤ lấy cả đường biên nên phải vẽ nét LIỀN. Thử O(0; 0): 0 ≤ 30 đúng nên miền là nửa mặt phẳng CHỨA gốc tọa độ (phía dưới đường biên), không phải phía trên.",
+      "proof": "Lấy điểm (0; 16) ở phía trên đường biên: 3·0 + 2·16 = 32 > 30 nên điểm này không thỏa bất phương trình → phía trên không thể là miền nghiệm. Ngược lại O(0;0) và (4; 9) đều thỏa.",
+      "teacherPrompt": "Em đồng ý hay phản đối hình vẽ của AI? Dùng một điểm cụ thể để chứng minh AI chọn sai phía rồi sửa lại hình cho đúng.",
+      "studentProduct": "Thẻ Đ/S + vẽ lại đúng: nét liền, tô phía chứa gốc, kèm phép thử O(0;0) và phản ví dụ (0;16).",
+      "boardPrompt": "AI tô phía trên và vẽ nét đứt. Điểm nào bác bỏ ngay?",
+      "libraryTitle": "Lỗi AI chọn sai phía miền nghiệm và sai nét vẽ",
+      "whyAiError": "Mô hình gắn nhầm quy ước nét vẽ với dấu bất đẳng thức và không dùng điểm thử để kiểm chứng phía miền.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-5-33": {
       "key": "10-5-33",
       "mode": "micro",
-      "category": "Lỗi logic",
-      "wrongSolution": "Với hệ x + y ≤ 4, x ≥ 0, y ≥ 0, AI nói miền nghiệm là hợp của ba nửa mặt phẳng vì chỉ cần thỏa một điều kiện.",
-      "correction": "Miền nghiệm của hệ là phần giao của cả ba miền; một điểm phải thỏa đồng thời mọi bất phương trình.",
-      "proof": "Điểm (5;0) thuộc miền x ≥ 0 và y ≥ 0 nhưng không thuộc x + y ≤ 4, nên không thể lấy hợp.",
-      "teacherPrompt": "Từ “hệ” yêu cầu điều kiện đồng thời hay thay thế? Em đưa một điểm nằm trong hợp nhưng không nằm trong giao.",
-      "studentProduct": "Vẽ phần giao, phân loại lỗi logic và đưa một phản ví dụ cho cách lấy hợp.",
-      "boardPrompt": "Hệ bất phương trình: lấy phần giao.",
-      "libraryTitle": "Hệ bất phương trình: lấy hợp thay vì lấy giao",
-      "whyAiError": "Đầu ra có thể nhảy từ một hình ảnh, một trường hợp hoặc một kết quả riêng sang kết luận chung mà chưa chứng minh quan hệ kéo theo.",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI kết luận: \"Miền nghiệm của hệ là toàn bộ nửa mặt phẳng phía dưới đường 3x + 2y = 30, vì đây là điều kiện chặt nhất. Các điều kiện x ≥ 4 và y ≥ 2 chỉ là ghi chú thêm nên không làm thay đổi miền nghiệm.\"",
+      "correction": "Mọi điều kiện trong hệ đều bắt buộc. Miền nghiệm là giao của ba nửa mặt phẳng: tam giác với các đỉnh (4; 2), (4; 9) và (26/3; 2).",
+      "proof": "Điểm (0; 0) thuộc nửa mặt phẳng AI chọn nhưng vi phạm x ≥ 4 và y ≥ 2, nên không thể là nghiệm hệ. Ngược lại các đỉnh (4; 2), (4; 9), (26/3; 2) thỏa cả ba điều kiện.",
+      "teacherPrompt": "Em kiểm tra điểm (0; 0) trong miền AI vẽ: nó có thỏa hệ không? Từ đó kết luận và sửa lại miền nghiệm cho đúng.",
+      "studentProduct": "Thẻ Đ/S + chỉ ra (0;0) vi phạm hai điều kiện, vẽ lại miền tam giác kèm ba đỉnh.",
+      "boardPrompt": "AI bỏ hai điều kiện x ≥ 4, y ≥ 2. Điểm nào chứng minh ngay?",
+      "libraryTitle": "Lỗi AI bỏ ràng buộc trong hệ bất phương trình",
+      "whyAiError": "Mô hình đánh giá điều kiện theo mức \"chặt\" thay vì tính đồng thời, dẫn tới loại bỏ các ràng buộc không phải bất đẳng thức phức tạp.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-5-34": {
       "key": "10-5-34",
       "mode": "micro",
       "category": "Lỗi khái niệm",
-      "wrongSolution": "AI viết diện tích tam giác S = ab cos C vì góc C nằm giữa hai cạnh a và b.",
-      "correction": "Công thức đúng là S = 1/2 ab sin C; góc xen giữa dùng sin, không dùng cos.",
-      "proof": "Nếu C = 90°, diện tích phải bằng 1/2 ab; công thức cos cho 0 nên mâu thuẫn.",
-      "teacherPrompt": "Dữ kiện nào trong hình quyết định dùng sin? Em kiểm công thức bằng trường hợp góc vuông.",
-      "studentProduct": "Chọn loại lỗi, sửa công thức và giải thích bằng một trường hợp đặc biệt.",
-      "boardPrompt": "Diện tích tam giác: 1/2 · hai cạnh · sin góc xen giữa.",
-      "libraryTitle": "Diện tích tam giác: dùng cos thay vì sin",
-      "whyAiError": "Đầu ra có thể áp dụng nhầm một quy tắc quen thuộc cho đối tượng hoặc điều kiện khác; câu trả lời trông hợp lý nhưng chưa được đối chiếu với định nghĩa.",
+      "wrongSolution": "AI tính: \"Diện tích vườn hoa có b = 6 m, c = 8 m, góc xen giữa A = 30°: S = ½·b·c·cos A = ½·6·8·cos30° = 24·(√3/2) ≈ 20,78 m².\"",
+      "correction": "Công thức đúng dùng sin của góc xen giữa: S = ½·b·c·sin A = ½·6·8·sin30° = 12 m².",
+      "proof": "Chiều cao kẻ từ C xuống cạnh b bằng c·sin A, nên S = ½·b·c·sin A. Kiểm tra bằng trường hợp biên A = 90°: sin = 1 cho S = ½bc = 24 m², còn công thức AI cho cos90° = 0 → S = 0, mâu thuẫn với hình học.",
+      "teacherPrompt": "Em kiểm tra công thức AI bằng trường hợp A = 90°: kết quả 0 m² có hợp lý không? Sửa lại cho đúng.",
+      "studentProduct": "Thẻ Đ/S + viết công thức đúng và tính lại S = 12 m², kèm lập luận \"chiều cao = cạnh kề × sin góc\".",
+      "boardPrompt": "AI dùng cos để tính diện tích. Thử A = 90° thì sao?",
+      "libraryTitle": "Lỗi AI dùng côsin thay vì sin trong công thức diện tích tam giác",
+      "whyAiError": "Mô hình nhầm cặp hàm lượng giác trong công thức diện tích, có thể do liên tưởng tới công thức hình chiếu/côsin.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-5-35": {
       "key": "10-5-35",
       "mode": "full",
       "category": "Lỗi khái niệm",
-      "wrongSolution": "Cho a = 6, b = 8, C = 30°. AI tính S = 6 · 8 · sin 30° = 24.",
-      "correction": "Phải có hệ số 1/2: S = 1/2 · 6 · 8 · sin 30° = 12.",
-      "proof": "Đường cao ứng với cạnh 6 là 8 sin 30° = 4, nên S = 1/2 · 6 · 4 = 12.",
-      "teacherPrompt": "AI đã dùng đúng sin nhưng còn thiếu điều gì? Em chứng minh kết quả bằng cách tính đường cao.",
-      "studentProduct": "Chỉ ra hệ số bị thiếu, sửa lời giải, tính theo đường cao và so sánh hai kết quả.",
-      "boardPrompt": "Lỗi AI: thiếu 1/2 · sửa · kiểm bằng đường cao.",
-      "libraryTitle": "Diện tích tam giác: bỏ hệ số một phần hai",
-      "whyAiError": "Đầu ra có thể áp dụng nhầm một quy tắc quen thuộc cho đối tượng hoặc điều kiện khác; câu trả lời trông hợp lý nhưng chưa được đối chiếu với định nghĩa.",
+      "wrongSolution": "AI giải: \"Tam giác vuông có hai cạnh góc vuông a = 6, b = 8 và góc xen giữa C = 90°. Áp dụng S = ½·a·b·cos C = ½·6·8·cos90° = 24·0 = 0. Vậy diện tích tam giác bằng 0.\"",
+      "correction": "Công thức đúng là S = ½·a·b·sin C. Với C = 90°: S = ½·6·8·sin90° = 24 (đơn vị diện tích).",
+      "proof": "Tam giác vuông có hai cạnh góc vuông 6 và 8 thì chiếm một nửa hình chữ nhật 6×8, diện tích 24 — không thể bằng 0. Kết quả 0 chỉ ra công thức bị dùng sai hàm lượng giác.",
+      "teacherPrompt": "Em kiểm tra kết quả 0 m² của AI bằng cách vẽ tam giác 6–8–10. Sai ở đâu và sửa công thức thế nào?",
+      "studentProduct": "Thẻ Đ/S + sửa công thức thành sin và tính lại 24 (đơn vị diện tích).",
+      "boardPrompt": "AI ra diện tích 0 cho tam giác 6–8–10. Vô lý ở đâu?",
+      "libraryTitle": "Lỗi AI dùng cos khiến diện tích tam giác vuông bằng 0",
+      "whyAiError": "Mô hình chọn nhầm cos thay vì sin trong công thức diện tích, rồi không kiểm tra tính hợp lý của kết quả bằng hình học.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-5-36": {
       "key": "10-5-36",
       "mode": "micro",
-      "category": "Lỗi khái niệm",
-      "wrongSolution": "AI viết a² = b² + c² + 2bc cos A trong định lý cos vì đang cộng ảnh hưởng của hai cạnh kề.",
-      "correction": "Công thức đúng là a² = b² + c² − 2bc cos A.",
-      "proof": "Với A = 90°, hai công thức cùng cho định lý Pythagore; với A = 60°, dấu cộng cho cạnh đối diện quá lớn.",
-      "teacherPrompt": "Dấu nào trong định lý cos cần kiểm? Trường hợp góc 60° giúp bác bỏ lời giải AI thế nào?",
-      "studentProduct": "Khoanh dấu sai, phân loại và kiểm lại công thức bằng góc vuông hoặc góc 60°.",
-      "boardPrompt": "Định lý cos: kiểm dấu trước khi thay số.",
-      "libraryTitle": "Định lý cos: nhầm dấu trước tích cosin",
-      "whyAiError": "Đầu ra có thể áp dụng nhầm một quy tắc quen thuộc cho đối tượng hoặc điều kiện khác; câu trả lời trông hợp lý nhưng chưa được đối chiếu với định nghĩa.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI giải: \"Cho b = 6, c = 8, A = 120°. Áp dụng định lý côsin: a² = 6² + 8² − 2·6·8·cos120° = 36 + 64 − 96·(1/2) = 52, suy ra a = 2√13 ≈ 7,21.\"",
+      "correction": "cos120° = −1/2, nên a² = 36 + 64 − 96·(−1/2) = 100 + 48 = 148 và a = 2√37 ≈ 12,17.",
+      "proof": "Trong tam giác, cạnh đối diện góc lớn nhất là cạnh lớn nhất. Góc A = 120° là góc tù lớn nhất nên a > c = 8; kết quả 7,21 < 8 mâu thuẫn. Ngoài ra cos120° = −cos60° = −1/2.",
+      "teacherPrompt": "Em kiểm tra kết quả a ≈ 7,21 của AI bằng quan hệ cạnh–góc trong tam giác có góc 120°, rồi sửa lại phép thay số.",
+      "studentProduct": "Thẻ Đ/S + sửa dấu cosin và tính lại a = 2√37 ≈ 12,17, nêu phép kiểm \"a phải lớn nhất\".",
+      "boardPrompt": "AI ra a = 7,21 khi góc A = 120°. Điều gì vô lý?",
+      "libraryTitle": "Lỗi AI bỏ dấu âm của côsin góc tù",
+      "whyAiError": "Mô hình tra giá trị lượng giác của góc 120° theo góc tham chiếu 60° nhưng bỏ dấu âm của góc phần tư thứ hai.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-5-37": {
       "key": "10-5-37",
       "mode": "full",
-      "category": "Lỗi đại số",
-      "wrongSolution": "Với 2x + y ≤ 6, x ≥ 0, y ≥ 0, AI thử điểm (4;0) và kết luận điểm này thuộc miền nghiệm vì 2 · 4 + 0 = 6 ≤ 6.",
-      "correction": "2 · 4 + 0 = 8 > 6 nên (4;0) không thuộc miền nghiệm; điểm (3;0) nằm trên đường biên.",
-      "proof": "Thay trực tiếp (4;0) vào bất phương trình cho mệnh đề 8 ≤ 6, là mệnh đề sai.",
-      "teacherPrompt": "Phép tính nào trong lời giải AI không khớp? Em sửa điểm thử và dùng nó để kiểm miền nghiệm.",
-      "studentProduct": "Khoanh phép tính sai, ghi loại lỗi, sửa điểm thử và hoàn thiện kết luận về miền nghiệm.",
-      "boardPrompt": "Điểm thử: thay lại vào từng điều kiện.",
-      "libraryTitle": "Miền nghiệm: phép tính điểm thử không khớp kết luận",
-      "whyAiError": "Đầu ra có thể nối đúng các ký hiệu nhưng bỏ sót dấu, hệ số hoặc bước biến đổi; vì vậy phải kiểm tra lại bằng phép tính độc lập.",
+      "category": "Lỗi logic",
+      "wrongSolution": "AI kết luận: \"Xét bất phương trình 2x − y > 1. Thay điểm (1; 1): 2·1 − 1 = 1. Vì 1 ≥ 1 nên (1; 1) thỏa mãn bất phương trình, do đó (1; 1) thuộc miền nghiệm.\"",
+      "correction": "Bất phương trình là 2x − y > 1 (dấu ngặt). Với (1; 1): 2 − 1 = 1, mà 1 > 1 là SAI. Do đó (1; 1) không thuộc miền nghiệm; nó nằm trên đường biên bị loại.",
+      "proof": "Điểm thuộc miền nghiệm phải làm mệnh đề đúng. Ở đây vế trái bằng đúng vế phải nên mệnh đề \">\" sai; điểm thuộc miền là (2; 0) vì 4 > 1 đúng.",
+      "teacherPrompt": "Em kiểm tra điểm (1; 1) với dấu >: mệnh đề 1 > 1 đúng hay sai? Hãy sửa lại kết luận và nêu một điểm thực sự thuộc miền.",
+      "studentProduct": "Thẻ Đ/S + chỉ ra dấu ngặt bị đọc thành ≥, nêu điểm đúng thuộc miền (2; 0).",
+      "boardPrompt": "AI nói (1; 1) thuộc miền 2x − y > 1. Kiểm tra dấu.",
+      "libraryTitle": "Lỗi AI đọc dấu ngặt thành dấu không ngặt khi xét miền nghiệm",
+      "whyAiError": "Mô hình đọc dấu \">\" thành \"≥\" khi so sánh, nên đưa cả đường biên vào miền nghiệm.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-5-38": {
       "key": "10-5-38",
       "mode": "full",
-      "category": "Lỗi khái niệm",
-      "wrongSolution": "Cho a = 5, b = 7, C = 60°. AI tính S = 5 · 7 · sin 60° = 35√3/2.",
-      "correction": "Phải nhân thêm 1/2: S = 35√3/4.",
-      "proof": "Đường cao ứng với cạnh 5 là 7 sin 60°; diện tích là 1/2 · 5 · 7 sin 60° = 35√3/4.",
-      "teacherPrompt": "Em tìm lỗi trước hay tính lại từ đầu? Hãy dùng đường cao để chứng minh đáp án sửa.",
-      "studentProduct": "Phân loại lỗi khái niệm, sửa kết quả, viết phép kiểm bằng đường cao.",
-      "boardPrompt": "Lời giải dài: sai hệ số → sửa → chứng minh.",
-      "libraryTitle": "Diện tích tam giác: lời giải đẹp nhưng thiếu hệ số",
-      "whyAiError": "Đầu ra có thể áp dụng nhầm một quy tắc quen thuộc cho đối tượng hoặc điều kiện khác; câu trả lời trông hợp lý nhưng chưa được đối chiếu với định nghĩa.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI giải: \"Mảnh vườn có b = 6 m, c = 8 m, góc xen giữa A = 60°. Diện tích: S = b·c·sin A = 6·8·sin60° = 48·(√3/2) ≈ 41,57 m².\"",
+      "correction": "Công thức đúng có hệ số ½: S = ½·b·c·sin A = ½·6·8·sin60° = 12√3 ≈ 20,78 m².",
+      "proof": "Với hai cạnh b, c cố định, tam giác có diện tích lớn nhất khi vuông tại góc xen giữa: S = ½bc = 24 m². Kết quả 41,57 m² vượt quá cận này nên chắc chắn sai — nguyên nhân là thiếu hệ số ½.",
+      "teacherPrompt": "Kết quả 41,57 m² của AI có vượt quá diện tích tối đa của tam giác có hai cạnh 6 m và 8 m không? Hãy sửa lại công thức.",
+      "studentProduct": "Thẻ Đ/S + sửa công thức có ½ và nêu cận ½bc = 24 m² làm bằng chứng.",
+      "boardPrompt": "AI ra 41,57 m² cho tam giác 6–8. Cận hình học nào bác bỏ?",
+      "libraryTitle": "Lỗi AI quên hệ số ½ trong công thức diện tích tam giác",
+      "whyAiError": "Mô hình bỏ sót hệ số ½ khi tái tạo công thức diện tích từ ngữ nghĩa \"nửa tích hai cạnh nhân sin góc xen giữa\".",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-6-39": {
       "key": "10-6-39",
       "mode": "micro",
-      "category": "Lỗi logic",
-      "wrongSolution": "Với hệ x + y ≤ 5, x ≥ 1, AI tô hợp miền x + y ≤ 5 và miền x ≥ 1 vì hai miền đều chứa nghiệm.",
-      "correction": "Phải lấy phần giao; điểm thuộc miền nghiệm phải thỏa đồng thời x + y ≤ 5 và x ≥ 1.",
-      "proof": "Điểm (0;0) thỏa x + y ≤ 5 nhưng không thỏa x ≥ 1, nên không thuộc miền nghiệm của hệ.",
-      "teacherPrompt": "Em dùng từ “và” trong đề để quyết định phép giao hay phép hợp? Hãy kiểm một điểm bị loại.",
-      "studentProduct": "Đánh dấu vùng giao, nêu lỗi logic và ghi một điểm phản ví dụ.",
-      "boardPrompt": "Hệ: vùng phải thỏa đồng thời tất cả điều kiện.",
-      "libraryTitle": "Hệ miền nghiệm: đọc sai quan hệ đồng thời",
-      "whyAiError": "Đầu ra có thể nhảy từ một hình ảnh, một trường hợp hoặc một kết quả riêng sang kết luận chung mà chưa chứng minh quan hệ kéo theo.",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI vẽ miền nghiệm của hệ x + y ≤ 6, x ≥ 1, y ≥ 0 bằng cách lấy giao của x + y ≤ 6 và y ≥ 0, rồi kết luận: \"Miền nghiệm là tam giác (0;0), (6;0), (0;6). Điều kiện x ≥ 1 chỉ là ghi chú nên không ảnh hưởng hình vẽ.\"",
+      "correction": "x ≥ 1 là điều kiện bắt buộc. Miền nghiệm đúng là tam giác (1;0), (6;0), (1;5) — đã cắt bỏ phần có x < 1.",
+      "proof": "Điểm (0;2) nằm trong tam giác AI vẽ nhưng cho 0 ≥ 1 sai, nên không thể là nghiệm hệ. Ngoài ra đỉnh (0;6) cũng vi phạm x ≥ 1.",
+      "teacherPrompt": "Em kiểm tra hai đỉnh (0;0) và (0;6) trong hình AI vẽ: chúng có thỏa hệ không? Hãy sửa lại miền nghiệm.",
+      "studentProduct": "Thẻ Đ/S + chỉ ra (0;6) vi phạm x ≥ 1 và vẽ lại tam giác (1;0), (6;0), (1;5).",
+      "boardPrompt": "AI vẽ tam giác (0;0), (6;0), (0;6). Đỉnh nào vi phạm?",
+      "libraryTitle": "Lỗi AI bỏ ràng buộc một biến khi vẽ miền nghiệm hệ",
+      "whyAiError": "Mô hình coi các ràng buộc dạng bất đẳng thức đơn giản (x ≥ 1) là \"ghi chú\" và chỉ xử lý các ràng buộc có hai biến.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-6-40": {
       "key": "10-6-40",
       "mode": "full",
-      "category": "Lỗi logic",
-      "wrongSolution": "Với x ≥ 0, y ≥ 0, x + y ≤ 10, AI tối đa hóa F = x + 2y và chọn (10;0) vì x đạt giá trị lớn nhất là 10.",
-      "correction": "Các đỉnh khả thi là (0;0), (10;0), (0;10); F lần lượt là 0, 10, 20 nên phương án tối ưu là (0;10).",
-      "proof": "Thay cả ba đỉnh của miền đa giác khả thi vào F; không được tối ưu một biến mà bỏ qua hệ số của biến còn lại.",
-      "teacherPrompt": "AI đã kiểm tra miền khả thi chưa? Vì sao chỉ chọn x lớn nhất chưa đủ để tối ưu F?",
-      "studentProduct": "Lập bảng đỉnh–giá trị, phân loại lỗi logic, kết luận phương án và phép kiểm.",
-      "boardPrompt": "Tối ưu: miền khả thi · các đỉnh · giá trị mục tiêu.",
-      "libraryTitle": "Mô hình tuyến tính: tối ưu một biến thay cho hàm mục tiêu",
-      "whyAiError": "Đầu ra có thể nhảy từ một hình ảnh, một trường hợp hoặc một kết quả riêng sang kết luận chung mà chưa chứng minh quan hệ kéo theo.",
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "AI kết luận: \"Vì x ≥ 4 nên cần nhiều gói A nhất có thể. Phương án (12; 0) là tốt nhất vì dùng hết 12 gói và có số gói A lớn nhất.\"",
+      "correction": "Tiêu chí là P = 2x + 3y, không phải \"nhiều A nhất\". P(12;0) = 24, còn P(4;8) = 32, nên (4;8) mới là phương án tốt nhất.",
+      "proof": "Lập bảng: (4;0) → 8; (12;0) → 24; (4;8) → 32. Giá trị lớn nhất là 32 tại (4;8), thỏa x + y = 12 và x = 4 ≥ 4.",
+      "teacherPrompt": "Em lập bảng P tại ba đỉnh rồi sửa lại kết luận của AI.",
+      "studentProduct": "Thẻ Đ/S + bảng 3 đỉnh với P tương ứng và kết luận (4;8).",
+      "boardPrompt": "AI chọn (12;0) vì \"nhiều A nhất\". Tiêu chí là gì?",
+      "libraryTitle": "Lỗi AI tối ưu theo một biến thay vì theo tiêu chí",
+      "whyAiError": "Mô hình tối ưu theo một biến thay vì theo tiêu chí đã nêu, bỏ qua đóng góp của y vào P.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-6-41": {
       "key": "10-6-41",
       "mode": "full",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "Với x ≥ 0, y ≥ 0, x + y ≤ 4, AI nói (3;2) là nghiệm vì cả hai tọa độ đều không âm.",
-      "correction": "(3;2) không thuộc miền nghiệm vì 3 + 2 = 5 > 4; phải kiểm tra toàn bộ hệ, không chỉ điều kiện dấu.",
-      "proof": "Thay (3;2) vào điều kiện tổng: 5 ≤ 4 là sai.",
-      "teacherPrompt": "Điều kiện nào AI bỏ quên? Em kiểm một điểm bằng toàn bộ hệ thay vì chỉ nhìn tọa độ.",
-      "studentProduct": "Chỉ ra điều kiện thiếu, sửa kết luận và ghi đủ phép thay vào hệ.",
-      "boardPrompt": "Kiểm miền nghiệm: không bỏ điều kiện tổng.",
-      "libraryTitle": "Hệ bất phương trình: kiểm thiếu một ràng buộc",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi logic",
+      "wrongSolution": "AI kết luận: \"Điểm (5; 1) có 5 + 1 = 6, chỉ hơi vượt mức 5 nên vẫn được coi là thuộc miền nghiệm của hệ x + y ≤ 5, x ≥ 0, y ≥ 1.\"",
+      "correction": "(5; 1) cho 6 > 5 nên vi phạm điều kiện x + y ≤ 5; bất phương trình không có khái niệm \"gần đúng\", do đó điểm này nằm ngoài miền.",
+      "proof": "Điểm thuộc miền phải cho mọi bất phương trình đúng. 6 ≤ 5 là sai. Điểm sát biên nhất còn thuộc miền là (4; 1) vì 4 + 1 = 5 ≤ 5.",
+      "teacherPrompt": "Em kiểm điểm (5; 1) với điều kiện x + y ≤ 5 và sửa lại kết luận của AI.",
+      "studentProduct": "Thẻ Đ/S + nêu phép so sánh 6 > 5 và điểm đúng sát biên (4; 1).",
+      "boardPrompt": "AI nhận (5; 1) vì \"6 gần 5\". Sai ở đâu?",
+      "libraryTitle": "Lỗi AI nới lỏng bất đẳng thức thành \"gần đúng\"",
+      "whyAiError": "Mô hình nới lỏng phép so sánh khi giá trị \"gần\" ngưỡng, biến bất đẳng thức thành ước lượng.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-6-42": {
       "key": "10-6-42",
       "mode": "micro",
-      "category": "Lỗi khái niệm",
-      "wrongSolution": "AI chọn công thức S = 1/2 ab cos C vì trong đề có hai cạnh và một góc xen giữa.",
-      "correction": "Hai cạnh và góc xen giữa dùng S = 1/2 ab sin C; cos C thuộc định lý cos trong bài phù hợp khác.",
-      "proof": "Với C = 90°, diện tích phải dương bằng 1/2 ab, còn 1/2 ab cos 90° = 0.",
-      "teacherPrompt": "Từ dữ kiện nào em nhận diện công thức? Trường hợp góc vuông cho kết luận gì?",
-      "studentProduct": "Nêu dấu hiệu chọn công thức, phân loại lỗi và đưa phép kiểm góc vuông.",
-      "boardPrompt": "Chọn chiến lược từ dữ kiện, không từ từ khóa đơn lẻ.",
-      "libraryTitle": "Ôn tập: chọn công thức theo từ khóa nhưng bỏ cấu trúc dữ kiện",
-      "whyAiError": "Đầu ra có thể áp dụng nhầm một quy tắc quen thuộc cho đối tượng hoặc điều kiện khác; câu trả lời trông hợp lý nhưng chưa được đối chiếu với định nghĩa.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI trình bày: \"Áp dụng định lý côsin: a² = b² + c² + 2bc·cos A. Với b = 6, c = 8, A = 60°: a² = 36 + 64 + 48 = 148, suy ra a ≈ 12,17.\"",
+      "correction": "Công thức đúng là a² = b² + c² − 2bc·cos A, nên a² = 36 + 64 − 48 = 52 và a = 2√13 ≈ 7,21.",
+      "proof": "Với A = 60° (góc nhọn), cạnh a phải nhỏ hơn cạnh lớn nhất trong hai cạnh kề khi góc đối diện nhỏ hơn góc đối diện của chúng. Kiểm bằng giá trị: 148 > 100 = b² + c², tức a > 10 — lớn hơn cả trường hợp góc vuông, vô lý vì 60° < 90°.",
+      "teacherPrompt": "Em kiểm công thức của AI bằng trường hợp A = 90° và A = 60° rồi sửa lại dấu cho đúng.",
+      "studentProduct": "Thẻ Đ/S + nêu a² = 52 (không phải 148) và giải thích vì sao a > 10 là vô lý khi A = 60°.",
+      "boardPrompt": "AI dùng dấu + trong định lý côsin. Thử A = 60° thì a vượt 10 — vì sao vô lý?",
+      "libraryTitle": "Lỗi AI đảo dấu trong định lý côsin",
+      "whyAiError": "Mô hình ghi nhớ công thức ở dạng tổng thay vì hiệu, dẫn tới đảo dấu số hạng −2bc·cos A.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-6-43": {
       "key": "10-6-43",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "AI nói điểm (0;0) là phương án tối ưu vì nó thuộc miền nghiệm của mô hình; không cần biết hàm mục tiêu.",
-      "correction": "Muốn kết luận tối ưu phải nêu hàm mục tiêu, miền khả thi và chiều tối ưu; thuộc miền nghiệm chỉ là điều kiện cần.",
-      "proof": "Cùng một miền khả thi, F = x + y và F = −x − y có phương án tối ưu trái ngược nhau.",
-      "teacherPrompt": "“Thuộc miền nghiệm” đã đủ để gọi là tối ưu chưa? Dữ kiện nào còn thiếu trong mô hình?",
-      "studentProduct": "Bổ sung hàm mục tiêu/chiều tối ưu, phân loại lỗi và chỉ ra điều kiện cần–đủ.",
-      "boardPrompt": "Mô hình: biến · ràng buộc · mục tiêu · đơn vị.",
-      "libraryTitle": "Bài toán thực tiễn: gọi một phương án là tối ưu khi thiếu mục tiêu",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI kết luận: \"Mảnh đất có hai cạnh 10 m và 12 m, góc xen giữa 30°. Diện tích = 10·12·sin30° = 60 m².\"",
+      "correction": "Thiếu hệ số ½: S = ½·10·12·sin30° = 30 m².",
+      "proof": "Với hai cạnh 10 m và 12 m, diện tích lớn nhất chỉ đạt 60 m² khi góc xen giữa bằng 90° (sin = 1). Với góc 30°, diện tích chỉ bằng một nửa cận trên, tức 30 m².",
+      "teacherPrompt": "Em so sánh kết quả 60 m² của AI với cận ½·10·12 rồi sửa lại phép tính.",
+      "studentProduct": "Thẻ Đ/S + nêu cận 60 m² chỉ đạt khi góc vuông, sửa lại S = 30 m².",
+      "boardPrompt": "AI ra 60 m² cho góc 30°. Vì sao đó là cận trên chứ không phải kết quả?",
+      "libraryTitle": "Lỗi AI quên ½ khiến diện tích thực tiễn gấp đôi",
+      "whyAiError": "Mô hình bỏ hệ số ½ khi tái tạo công thức diện tích, dẫn tới luôn gấp đôi kết quả đúng.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-6-44": {
       "key": "10-6-44",
       "mode": "full",
-      "category": "Lỗi đại số",
-      "wrongSolution": "AI biến đổi 2x + y ≤ 4 thành x + y ≤ 4 bằng cách chia riêng hệ số của x cho 2.",
-      "correction": "Không được chia riêng một hạng tử; nếu chia cả hai vế cho 2 thì phải được x + y/2 ≤ 2.",
-      "proof": "Điểm (0;3) thỏa kết quả AI nhưng không thỏa bất phương trình gốc vì 3 ≤ 4 đúng ở đây; dùng (1;3): AI cho 4 ≤ 4 đúng nhưng gốc cho 5 ≤ 4 sai.",
-      "teacherPrompt": "Phép biến đổi nào không bảo toàn hai vế? Hãy tìm một điểm làm hai kết luận khác nhau.",
-      "studentProduct": "Chỉ ra dòng biến đổi sai, sửa bất phương trình và đưa phản ví dụ kiểm chứng.",
-      "boardPrompt": "Phản biện bằng phản ví dụ, không chỉ bằng đáp số.",
-      "libraryTitle": "Biến đổi bất phương trình: chia riêng một hạng tử",
-      "whyAiError": "Đầu ra có thể nối đúng các ký hiệu nhưng bỏ sót dấu, hệ số hoặc bước biến đổi; vì vậy phải kiểm tra lại bằng phép tính độc lập.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI nhận xét: \"Lời giải S = ab·sin C cho kết quả 24 là sai, phải là 12. Chỉ cần sửa số 24 thành 12, công thức giữ nguyên vì đã dùng đúng sin của góc xen giữa.\"",
+      "correction": "Công thức thiếu hệ số ½: đúng là S = ½·a·b·sin C. Nếu giữ nguyên công thức, mọi bài sau đều sai gấp đôi.",
+      "proof": "Với a = 6, b = 8, C = 90°: công thức đúng cho S = 24 m² (nửa hình chữ nhật 48), công thức AI giữ cho 48 m² — vượt cận ½ab. Vậy lỗi nằm ở công thức, không ở con số.",
+      "teacherPrompt": "Em thử công thức AI giữ lại với C = 90° rồi sửa lại công thức cho đúng, không chỉ sửa số.",
+      "studentProduct": "Thẻ Đ/S + nêu phản ví dụ C = 90° (48 m² > 24 m²) và sửa công thức thành ½ab·sin C.",
+      "boardPrompt": "AI chỉ sửa 24 → 12, giữ công thức. Thử C = 90° xem còn đúng không.",
+      "libraryTitle": "Lỗi AI sửa kết quả mà không sửa công thức gốc",
+      "whyAiError": "Mô hình ưu tiên khớp đáp án cuối thay vì truy nguyên quy tắc, nên chỉnh số mà bỏ qua lỗi công thức.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-6-45": {
       "key": "10-6-45",
       "mode": "full",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "Với x ≥ 0, y ≥ 0, x + y ≤ 8, AI nói (8;8) là phương án tốt nhất vì cả x và y đều đạt giá trị lớn nhất là 8.",
-      "correction": "(8;8) không khả thi vì x + y = 16 > 8; phải tôn trọng ràng buộc tổng và so sánh các điểm/biên khả thi.",
-      "proof": "Các đỉnh (0;0), (8;0), (0;8) đều thỏa hệ; (8;8) bị loại ngay bởi điều kiện x + y ≤ 8.",
-      "teacherPrompt": "Dữ kiện nào giới hạn việc tăng đồng thời x và y? Em sửa phương án bằng một miền khả thi cụ thể.",
-      "studentProduct": "Khoanh điều kiện bị bỏ, dựng lại miền khả thi và ghi một phép kiểm tại điểm chọn.",
-      "boardPrompt": "Phương án phải nằm trong miền khả thi trước khi so sánh.",
-      "libraryTitle": "Mô hình: cộng hai giá trị cực đại riêng lẻ thành một điểm không khả thi",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận: \"Muốn tối ưu theo tiêu chí mới P = 2x + y, cần vẽ lại miền khả thi vì tiêu chí thay đổi sẽ làm các ràng buộc thay đổi theo.\"",
+      "correction": "Miền khả thi chỉ phụ thuộc các ràng buộc (x + y ≤ 8, x ≥ 2, y ≥ 0), không phụ thuộc tiêu chí. Đổi tiêu chí chỉ làm thay đổi phương án được ưu tiên.",
+      "proof": "Với cả hai tiêu chí, miền vẫn là tam giác (2;0), (8;0), (2;6). Chỉ giá trị P thay đổi: P = x + 2y chọn (2;6) với 14; P = 2x + y chọn (8;0) với 16.",
+      "teacherPrompt": "Em tính P = 2x + y tại ba đỉnh của miền cũ rồi sửa lại kết luận của AI về việc phải vẽ lại miền.",
+      "studentProduct": "Thẻ Đ/S + nêu miền không đổi, bảng P theo tiêu chí mới, kết luận (8;0).",
+      "boardPrompt": "AI nói đổi tiêu chí phải vẽ lại miền. Đúng hay sai?",
+      "libraryTitle": "Lỗi AI nhầm tiêu chí với ràng buộc miền khả thi",
+      "whyAiError": "Mô hình gộp khái niệm \"hàm mục tiêu\" với \"miền ràng buộc\", dẫn tới việc vẽ lại miền mỗi khi đổi tiêu chí.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-6-46": {
       "key": "10-6-46",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "Với a = 3, b = 4, C = 90°, AI ghi S = 12 nhưng không ghi đơn vị và kết luận mọi số 12 đều là diện tích hợp lệ.",
-      "correction": "S = 12 đơn vị diện tích; cần giữ đúng đơn vị và điều kiện hình học của dữ kiện.",
-      "proof": "S = 1/2 · 3 · 4 · sin 90° = 6, nên chính đáp số AI còn sai; sau khi sửa phải kiểm cả công thức và đơn vị.",
-      "teacherPrompt": "AI thiếu những lớp kiểm nào ngoài phép tính? Em sửa cả kết quả lẫn cách kết luận.",
-      "studentProduct": "Nêu lỗi, tính lại, ghi đơn vị và tự kiểm bằng công thức diện tích.",
-      "boardPrompt": "Kết quả đúng cần công thức · giá trị · đơn vị · phép kiểm.",
-      "libraryTitle": "Lời giải dài: đáp số và đơn vị đều cần được kiểm",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI giải: \"Tam giác có a = 13, b = 14, c = 15 và diện tích S = 84. Áp dụng định lý sin: a/sin A = R, và vì S = ½bc·sin A nên sin A = 2S/(bc) = 168/210 = 0,8. Suy ra R = a/sin A = 13/0,8 = 16,25.\"",
+      "correction": "Định lý sin cho a/sin A = 2R, nên R = a/(2·sin A) = 13/1,6 = 8,125.",
+      "proof": "Kiểm ngược: với R = 8,125 thì abc/(4R) = 2730/32,5 = 84 = S ✓. Với R = 16,25 thì abc/(4R) = 42, khác xa diện tích đã cho — chứng tỏ kết quả 16,25 sai.",
+      "teacherPrompt": "Em kiểm kết quả R = 16,25 bằng công thức S = abc/(4R) rồi sửa lại cho đúng.",
+      "studentProduct": "Thẻ Đ/S + phép kiểm ngược cho thấy R = 8,125 mới khớp S = 84.",
+      "boardPrompt": "AI ra R = 16,25. Thay vào abc/(4R) được bao nhiêu?",
+      "libraryTitle": "Lỗi AI nhầm 2R với R trong định lý sin",
+      "whyAiError": "Mô hình bỏ hệ số 2 trong hệ thức a/sin A = 2R, nhầm đường kính với bán kính.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "11-5-26": {
