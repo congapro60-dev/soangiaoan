@@ -1,10 +1,22 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 02/11/2026 (bài 12-12-85)
+> Cập nhật: 04/11/2026 — **TOÀN DIỆN 66/66 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER 100%**
 
 ## 1. Trạng thái hiện tại
-- Tuần 11 & Addendum: Đã hoàn tất 100% (7/7 bài batch 2 + COMM-AQ-01 + ASS-MDP-01).
-- Tuần 12 — Bài mở đầu: Khối 10 (`tds-g10-86` / `10-12-88`) Tiết 2: Tứ phân vị và Mốt:
+- **TOÀN BỘ 66/66 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
+  - Khối 10: 19/19 bài (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 1 bài).
+  - Khối 11: 21/21 bài (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 1 bài).
+  - Khối 12: 26/26 bài (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài).
+- **Bộ dữ liệu chuẩn hóa:**
+  - `src/data/liveLessonPackages/banToan-w5-w6.snapshot.json` (51 bài): đồng bộ 100% specs + AI Error 9 trường.
+  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json` (15 bài): đồng bộ 100% specs + AI Error 9 trường.
+  - Toàn bộ 66 file `tasks/gate-d-*.md` và `tasks/giaoan-goc-*.md` khớp chuẩn V8.8.
+- **Kiểm định chất lượng:**
+  - Vitest test suite: `src/lib/liveLesson/` đạt **442/442 PASS** (39 test files).
+  - Production build: `npm run build` thành công, 0 lỗi TypeScript, 0 lỗi bundle.
+- **Đồng bộ mã nguồn:**
+  - Đã commit và push đồng bộ lên cả 2 nhánh `feat/nop-bai-da-cham` và `main`.
+
   - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-10-12-88.md` và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-10-12-88.md` (commit `8482b87`). Thầy đã duyệt.
   - Pha B: Đã nạp thành công `newSpec10_12_88` và `newAiError10_12_88` vào `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json` (tổng 8 specs) và timeline `gateD101288` vào `src/lib/liveLesson/v4/lessonAdapter.ts`.
   - Đăng ký hệ thống: Thêm `10-12-88` vào `INTERACTIVE_SOURCE_KEYS`, `PULSE_CUE_IDS_BY_KEY`, danh mục `W11BATCH2` (nâng tổng gói portal lên 59 bài).
