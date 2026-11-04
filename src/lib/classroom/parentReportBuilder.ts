@@ -166,7 +166,7 @@ const round1 = (value: number | null): number | null => (value === null ? null :
 
 export const normalizeExamToSubmissionDoc = (exam: ExamSubmission): SubmissionDoc => ({
   id: exam.id,
-  assignmentId: exam.assignmentId,
+  assignmentId: exam.assignmentId ?? null,
   studentId: exam.studentId || '',
   classId: exam.classId || '',
   teacherId: '',
