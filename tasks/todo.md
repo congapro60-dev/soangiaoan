@@ -99,6 +99,15 @@ Hoá đơn TỰ PHÁT HÀNH ngày 1 (lập khi có người mở lần đầu sa
 - [x] Sửa: khoá riêng luôn chạy trước kể cả người trong nhóm (trước đây bị bỏ qua → trừ ví oan).
 - [ ] Chủ dự án tự làm: thêm tài khoản nhận tiền (mục 7), webhook SePay + biến Vercel `SEPAY_WEBHOOK_KEY` — xong trước 01/11.
 
+## TDS 959 DOCX audit — checkpoint 2026-11-04
+
+- [x] Preserve verified scope: P052–P054 project outputs/names; P116 and P117 PASS, no repeat.
+- [x] Reconcile canonical inventory after P135: 959 canonical, 962 DOCX, 17,054 XML/relationship parts; 0 missing, unexpected, hash drift, or ZIP/XML errors. Structural only.
+- [~] Deep audit: 50/959 PASS, 1 FAIL (P087), 908 not started; do not claim whole-folder content PASS.
+- [~] Fix verified failures and issue final evidence report; P135 fixed and promoted, P087 still unresolved.
+- [ ] Continue at P136; retain P078–P079 elective decisions and P052–P054 `_project` identities.
+- Evidence: `qa_artifacts/P135_review_20261104/P135_QA_REPORT_20261104.md`; ledger SHA-256 `509A3A3B98961DB124F30888DB39B15AB967F64A0A2F954F1B968D3620C13787`.
+
 # Kế hoạch 2026-09-29: báo cáo PH theo kì (tháng / GK1 / CK1 / GK2 / CK2 / cả năm)
 Chủ dự án chốt: chọn tay "từ ngày … đến ngày …" mỗi lần xuất; điểm thi định kì hiện TẤT CẢ cột (không phân kì →
 không tính ĐTB môn TT22); nhận xét GV = AI soạn nháp, GV sửa, lưu lại; xuất từng em + cả lớp (ZIP).
