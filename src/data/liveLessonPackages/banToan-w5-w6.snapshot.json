@@ -10343,69 +10343,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Tiệm cận xiên",
-      "focus": "Tìm tiệm cận xiên bằng giới hạn hoặc chia đa thức",
+      "focus": "Hình thành khái niệm và phương pháp tìm tiệm cận xiên trên trục chi phí sản xuất C(x) = (x² + 2x + 3)/(x + 1) = x + 1 + 2/(x+1) → tiệm cận xiên y = x + 1, tiệm cận đứng x = −1; phân biệt theo bậc tử/mẫu",
       "formulas": [
-        "y=ax+b",
-        "a=\\lim_{x\\to\\infty}\\frac{f(x)}x",
-        "b=\\lim_{x\\to\\infty}[f(x)-ax]",
-        "\\lim_{x\\to\\infty}[f(x)-(ax+b)]=0"
+        "f(x) = ax + b + \\dfrac{R(x)}{Q(x)}, \\ \\dfrac{R}{Q} \\to 0 \\Rightarrow y = ax + b \\ \\text{là tiệm cận xiên}",
+        "\\lim_{x\\to\\infty} [f(x) - (ax+b)] = 0",
+        "\\deg P = \\deg Q + 1 \\Rightarrow \\text{tiệm cận xiên}"
       ],
       "examples": [
         {
-          "question": "Tìm tiệm cận xiên của $y=\\frac{x^2+x+1}{x-1}$.",
-          "solution": "Chia đa thức: $\\frac{x^2+x+1}{x-1}=x+2+\\frac3{x-1}$; tiệm cận xiên là $y=x+2$."
+          "question": "Tìm tiệm cận xiên của C(x) = (x² + 2x + 3)/(x + 1).",
+          "solution": "Chia: C(x) = x + 1 + 2/(x+1). Vì 2/(x+1) → 0 khi x → ∞ nên tiệm cận xiên là y = x + 1. Kiểm: C(x) − (x+1) = 2/(x+1) → 0 ✓. Tiệm cận đứng x = −1."
         },
         {
-          "question": "Tìm tiệm cận xiên của $y=\\frac{2x^2-3}{x+2}$.",
-          "solution": "Chia được $2x-4+\\frac5{x+2}$; tiệm cận xiên là $y=2x-4$."
+          "question": "Hàm f(x) = (2x² + x + 1)/(x − 1) có tiệm cận xiên không? Tìm nếu có.",
+          "solution": "Chia: f(x) = 2x + 3 + 4/(x−1). Có tiệm cận xiên y = 2x + 3 (bậc tử hơn bậc mẫu đúng 1), tiệm cận đứng x = 1."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Nêu điều kiện giới hạn để $y=ax+b$ là tiệm cận xiên.",
-          "answer": "$\\lim_{x\\to\\infty}[f(x)-(ax+b)]=0$."
+          "question": "Khi nào đồ thị hàm phân thức có tiệm cận xiên?",
+          "answer": "Khi bậc của tử lớn hơn bậc của mẫu đúng 1 bậc (sau khi đã rút gọn)."
         },
         {
           "level": "NB",
-          "question": "Tìm tiệm cận xiên của $\\frac{x^2}{x-1}$.",
-          "answer": "$y=x+1$."
+          "question": "Nêu định nghĩa tiệm cận xiên y = ax + b.",
+          "answer": "Đường y = ax + b là tiệm cận xiên nếu lim [f(x) − (ax + b)] = 0 khi x → +∞ (hoặc −∞)."
         },
         {
           "level": "TH",
-          "question": "Tìm tiệm cận xiên của $\\frac{x^2-2x+3}{x+1}$.",
-          "answer": "Chia được $x-3+\\frac6{x+1}$; $y=x-3$."
+          "question": "Tìm tiệm cận xiên của f(x) = (x² + 1)/x.",
+          "answer": "f(x) = x + 1/x ⇒ tiệm cận xiên y = x; tiệm cận đứng x = 0."
         },
         {
           "level": "TH",
-          "question": "Tính $a,b$ của $f(x)=\\frac{3x^2+x}{x-2}$.",
-          "answer": "$a=3,b=7$; tiệm cận $y=3x+7$."
+          "question": "Tìm tiệm cận xiên của f(x) = (2x² + x + 1)/(x − 1).",
+          "answer": "f(x) = 2x + 3 + 4/(x−1) ⇒ tiệm cận xiên y = 2x + 3."
         },
         {
           "level": "VD",
-          "question": "Giải thích vì sao hàm bậc tử nhỏ hơn hoặc bằng bậc mẫu không có tiệm cận xiên.",
-          "answer": "Muốn có $ax+b$ với $a\ne0$, bậc tử phải cao hơn bậc mẫu đúng một đơn vị; nếu không, thương không có phần tuyến tính."
+          "question": "Hàm f(x) = (x³ + 1)/(x² + 1) có tiệm cận xiên không? Nếu có, tìm.",
+          "answer": "Chia: x³ + 1 = x(x² + 1) − x + 1 ⇒ f(x) = x + (1 − x)/(x²+1). Phần dư → 0 nên tiệm cận xiên y = x."
         },
         {
           "level": "VD",
-          "question": "Kiểm tra kết quả bằng giới hạn sau khi chia đa thức.",
-          "answer": "Lấy hiệu $f(x)-(ax+b)$; nếu giới hạn khi $x\\to\\infty$ bằng $0$ thì kết quả đúng."
+          "question": "Giải thích vì sao hàm f(x) = (x³ + x)/(x) không có tiệm cận xiên mà chỉ là đường thẳng.",
+          "answer": "Rút gọn f(x) = x² + 1 (với x ≠ 0) — đây là parabol, không phải phân thức có bậc tử hơn mẫu đúng 1. Không tồn tại đường thẳng mà hiệu tiến về 0."
         }
       ],
       "quick": [
         {
-          "question": "Tìm tiệm cận xiên của $\\frac{x^2+1}{x}$.",
-          "solution": "$y=x$."
+          "question": "Vì sao phần dư phải tiến về 0?",
+          "solution": "Vì tiệm cận xiên đòi hỏi f(x) − (ax+b) → 0; nếu phần dư tiến về số khác 0 thì đường ax+b không phải tiệm cận."
         },
         {
-          "question": "Trong bước tìm $b$, cần trừ đại lượng nào?",
-          "solution": "Phải tính $f(x)-ax$, không tính riêng giới hạn của $f(x)$."
+          "question": "Hàm (x² + 2x + 3)/(x + 1) có tiệm cận ngang không?",
+          "solution": "Không, vì bậc tử lớn hơn bậc mẫu nên không có tiệm cận ngang (chỉ có xiên và đứng)."
         }
       ],
       "mistakes": [
-        "Tính b nhưng quên trừ ax.",
-        "Kết luận có tiệm cận xiên khi bậc tử không cao hơn bậc mẫu.",
-        "Không kiểm tra phần dư tiến về 0."
+        "Bỏ phần hằng số của thương khi viết tiệm cận xiên.",
+        "Nhầm tiệm cận xiên với tiệm cận ngang khi bậc bằng nhau.",
+        "Không kiểm bằng giới hạn hiệu."
       ],
       "diagram": "graph",
       "global": true,
@@ -10645,7 +10644,19 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Tìm tiệm cận xiên bằng giới hạn hoặc chia đa thức, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Liên hệ tiệm cận với ngưỡng bão hòa trong mô hình tăng trưởng có giới hạn tài nguyên., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Định nghĩa",
+        "a. y = ax + b là tiệm cận xiên nếu lim [f(x) − (ax+b)] = 0.",
+        "2. Phương pháp",
+        "a. Chia tử cho mẫu: f = thương + dư/mẫu.",
+        "b. Nếu dư/mẫu → 0 thì thương bậc nhất là tiệm cận xiên.",
+        "3. Áp dụng",
+        "a. C(x) = x + 1 + 2/(x+1) ⇒ tiệm cận xiên y = x + 1.",
+        "b. Tiệm cận đứng x = −1.",
+        "c. Bậc tử hơn mẫu 1 bậc ⇒ xiên; bằng nhau ⇒ ngang."
+      ]
     },
     {
       "key": "12-5-27",
@@ -10655,72 +10666,68 @@
       "kind": "practice",
       "selfChoice": false,
       "title": "Luyện tập tiệm cận",
-      "focus": "Tìm đủ tiệm cận đứng, ngang và xiên của hàm phân thức",
+      "focus": "Luyện tập tìm đủ ba loại tiệm cận trên ba hàm chi phí: (3x−1)/(x+2) (đứng x = −2, ngang y = 3), (2x²+3x−1)/(x+1) (đứng x = −1, xiên y = 2x + 1), (x²+1)/x (đứng x = 0, xiên y = x); quy trình quét theo mẫu và bậc",
       "formulas": [
-        "x=x_0\\ \\text{là tiệm cận đứng nếu}\\ \\lim_{x\\to x_0}f(x)=\\pm\\infty",
-        "y=L\\ \\text{là tiệm cận ngang nếu}\\ \\lim_{x\\to\\pm\\infty}f(x)=L",
-        "y=ax+b\\ \\text{là tiệm cận xiên nếu}\\ \\lim_{x\\to\\infty}[f(x)-(ax+b)]=0",
-        "\\deg P=\\deg Q+1\\Rightarrow\\text{có thể có tiệm cận xiên}"
+        "\\text{Tiệm cận đứng: mẫu} = 0, \\text{ tử} \\ne 0",
+        "\\deg P = \\deg Q \\Rightarrow y = \\dfrac{a_n}{b_m}",
+        "\\deg P = \\deg Q + 1 \\Rightarrow \\text{chia đa thức để tìm xiên}"
       ],
       "examples": [
         {
-          "question": "Tìm các tiệm cận của $y=\\frac{x+1}{x-2}$. (tham khảo câu 1 SBT trang 90)",
-          "solution": "Tiệm cận đứng $x=2$; ngang $y=1$; không có tiệm cận xiên.",
-          "sourceRef": "tham khảo câu 1 SBT trang 90"
+          "question": "Tìm đủ tiệm cận của f(x) = (3x − 1)/(x + 2).",
+          "solution": "Mẫu = 0 tại x = −2, tử = −7 ≠ 0 ⇒ tiệm cận đứng x = −2. Bậc tử bằng bậc mẫu ⇒ tiệm cận ngang y = 3/1 = 3. Không có tiệm cận xiên."
         },
         {
-          "question": "Tìm các tiệm cận của $y=\\frac{x^2+1}{x-1}$.",
-          "solution": "Đứng $x=1$; chia đa thức $x+1+\\frac2{x-1}$, nên xiên $y=x+1$; không có ngang."
+          "question": "Tìm đủ tiệm cận của f(x) = (2x² + 3x − 1)/(x + 1).",
+          "solution": "Chia: 2x² + 3x − 1 = (x+1)(2x+1) − 2 ⇒ f = 2x + 1 − 2/(x+1). Tiệm cận xiên y = 2x + 1; tiệm cận đứng x = −1; không có tiệm cận ngang (bậc tử hơn mẫu 1 bậc)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tìm tiệm cận đứng của $\\frac1{x+3}$. (câu 1 SBT trang 101)",
-          "answer": "$x=-3$.",
-          "sourceRef": "câu 1 SBT trang 101"
+          "question": "Tìm tiệm cận đứng và ngang của f(x) = (2x + 1)/(x − 3).",
+          "answer": "Tiệm cận đứng x = 3; tiệm cận ngang y = 2."
         },
         {
           "level": "NB",
-          "question": "Tìm tiệm cận ngang của $\\frac{2x+1}{x-4}$.",
-          "answer": "$y=2$."
+          "question": "Khi nào hàm phân thức không có tiệm cận ngang?",
+          "answer": "Khi bậc tử lớn hơn bậc mẫu (khi đó có thể có tiệm cận xiên nếu hơn đúng 1 bậc)."
         },
         {
           "level": "TH",
-          "question": "Tìm ba loại tiệm cận của $\\frac{x^2+2x}{x^2-4}$. (câu 2 SBT trang 101)",
-          "answer": "Đứng $x=\\pm2$ sau khi kiểm không triệt tiêu; ngang $y=1$.",
-          "sourceRef": "câu 2 SBT trang 101"
+          "question": "Tìm tiệm cận xiên của f(x) = (x² + 2x + 1)/(x).",
+          "answer": "f = x + 2 + 1/x ⇒ tiệm cận xiên y = x + 2; tiệm cận đứng x = 0."
         },
         {
           "level": "TH",
-          "question": "Tìm tiệm cận của $\\frac{2x^2-5x+1}{x+1}$.",
-          "answer": "Đứng $x=-1$; chia đa thức cho xiên $y=2x-7$."
+          "question": "Tìm đủ tiệm cận của f(x) = (x² + 3x + 3)/(x + 1).",
+          "answer": "f = x + 2 + 1/(x+1) ⇒ xiên y = x + 2; đứng x = −1; không ngang."
         },
         {
           "level": "VD",
-          "question": "Phân tích trường hợp mẫu có nghiệm nhưng bị triệt tiêu với tử.",
-          "answer": "Nghiệm bị triệt tiêu là gián đoạn loại bỏ, không còn là tiệm cận đứng; phải rút gọn và kiểm tra lại."
+          "question": "Biện luận theo m số tiệm cận của f(x) = (mx + 1)/(x − 1).",
+          "answer": "Với m ≠ 0: có tiệm cận đứng x = 1 và tiệm cận ngang y = m (2 tiệm cận). Với m = 0: f = 1/(x−1) chỉ có tiệm cận đứng x = 1 và ngang y = 0 — vẫn 2 tiệm cận nhưng khác dạng; nếu m = 0 thì y = 0 là tiệm cận ngang."
         },
         {
           "level": "VD",
-          "question": "Dùng bảng biến thiên để đối chiếu tiệm cận đã tìm.",
-          "answer": "Xem giới hạn ở điểm làm mẫu bằng 0 và hai đầu vô cực; các giới hạn này phải khớp với kết quả đại số."
+          "question": "Phản biện: \"Hàm không có tiệm cận ngang thì không có tiệm cận nào\".",
+          "answer": "Sai. Ví dụ (x²+1)/x không có tiệm cận ngang nhưng có tiệm cận đứng x = 0 và tiệm cận xiên y = x. Ba loại tiệm cận độc lập nhau."
         }
       ],
       "quick": [
         {
-          "question": "Hàm $\\frac{2x+1}{x+1}$ có tiệm cận ngang nào?",
-          "solution": "$y=2$."
+          "question": "Vì sao phải rút gọn trước khi xét tiệm cận đứng?",
+          "solution": "Vì nhân tử chung có thể triệt tiêu, khi đó mẫu bằng 0 nhưng không tạo tiệm cận đứng (đó là điểm khuyết)."
         },
         {
-          "question": "Bậc tử cao hơn bậc mẫu hai đơn vị có tiệm cận xiên không?",
-          "solution": "Không theo dạng đường thẳng; thương có bậc hai."
+          "question": "Tiệm cận ngang của (3x−1)/(x+2) là bao nhiêu?",
+          "solution": "y = 3, vì bậc bằng nhau và tỉ số hệ số bậc cao nhất là 3/1."
         }
       ],
       "mistakes": [
-        "Bỏ sót tiệm cận đứng khi mẫu có hai nghiệm.",
-        "Nhầm tiệm cận ngang với giá trị tại một điểm.",
-        "Không kiểm tra nghiệm mẫu sau khi rút gọn."
+        "Bỏ qua tiệm cận đứng khi mẫu bằng 0.",
+        "Nhầm tiệm cận ngang với xiên.",
+        "Không rút gọn trước khi xét tiệm cận."
       ],
       "diagram": "graph",
       "global": true,
@@ -10960,7 +10967,18 @@
       },
       "guidingQuestion": "Khi gặp các bài về Tìm đủ tiệm cận đứng, ngang và xiên của hàm phân thức, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Đọc tiệm cận như giới hạn trong các mô hình có ngưỡng tài nguyên và tốc độ tăng trưởng., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Ba loại tiệm cận",
+        "a. Đứng: mẫu = 0, tử ≠ 0.",
+        "b. Ngang: bậc tử = bậc mẫu.",
+        "c. Xiên: bậc tử = bậc mẫu + 1.",
+        "2. Ba hàm luyện tập",
+        "a. (3x−1)/(x+2): x = −2; y = 3.",
+        "b. (2x²+3x−1)/(x+1): x = −1; y = 2x + 1.",
+        "c. (x²+1)/x: x = 0; y = x."
+      ]
     },
     {
       "key": "12-5-28",
@@ -10970,69 +10988,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Sơ đồ khảo sát và vẽ đồ thị hàm số bậc ba",
-      "focus": "Thực hiện đủ sáu bước khảo sát hàm số bậc ba",
+      "focus": "Hình thành quy trình 6 bước khảo sát và vẽ đồ thị hàm bậc ba trên trục lợi nhuận y = x³ − 3x + 1: cực đại (−1; 3), cực tiểu (1; −1), điểm uốn (0; 1), không tiệm cận; đọc hình dạng để chọn sản lượng",
       "formulas": [
-        "\\text{TXĐ}\\to y'\\to\\text{dấu }y'\\to\\text{BBT}\\to\\text{cực trị}\\to\\text{đồ thị}",
-        "y=x^3-3x+1",
-        "y'=3x^2-3=3(x-1)(x+1)",
-        "y''=6x\\ \\text{và điểm uốn}\\ x=0"
+        "y = x^3 - 3x + 1",
+        "y' = 3x^2 - 3 = 3(x-1)(x+1)",
+        "y'' = 6x"
       ],
       "examples": [
         {
-          "question": "Khảo sát $y=x^3-3x+1$.",
-          "solution": "TXĐ $\\mathbb R$; $y'=3(x-1)(x+1)$; tăng trên $(-\\infty,-1)$ và $(1,\\infty)$; giảm trên $(-1,1)$; cực đại $3$ tại $x=-1$, cực tiểu $-1$ tại $x=1$."
+          "question": "Khảo sát hàm y = x³ − 3x + 1: tìm cực trị và điểm uốn.",
+          "solution": "y′ = 3x² − 3 = 0 tại x = ±1. y′ > 0 ngoài (−1;1), < 0 trong (−1;1) ⇒ cực đại tại (−1; 3), cực tiểu tại (1; −1). y″ = 6x = 0 tại x = 0, y = 1 ⇒ điểm uốn (0; 1)."
         },
         {
-          "question": "Khảo sát $y=-x^3+3x^2$.",
-          "solution": "$y'=-3x(x-2)$; giảm trên $(-infty,0)$, tăng trên $(0,2)$, giảm trên $(2,infty)$; cực tiểu $0$ tại $x=0$, cực đại $4$ tại $x=2$."
+          "question": "Với đồ thị trên, phương trình x³ − 3x + 1 = m có ba nghiệm phân biệt khi nào?",
+          "solution": "Đường ngang y = m cắt đồ thị tại ba điểm khi m nằm giữa giá trị cực tiểu và cực đại: −1 < m < 3."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Bước đầu tiên khi khảo sát $y=f(x)$ là gì?",
-          "answer": "Tìm tập xác định."
+          "question": "Nêu 6 bước khảo sát hàm số bậc ba.",
+          "answer": "Tập xác định; đạo hàm và cực trị; giới hạn; bảng biến thiên; điểm uốn và giao trục; vẽ đồ thị."
         },
         {
           "level": "NB",
-          "question": "Đạo hàm của $x^3-3x+1$ là gì?",
-          "answer": "$3x^2-3$."
+          "question": "Cho y = x³ − 3x + 1, tính y′ và nghiệm của y′ = 0.",
+          "answer": "y′ = 3x² − 3; y′ = 0 ⇔ x = ±1."
         },
         {
           "level": "TH",
-          "question": "Tìm cực trị của $y=x^3-3x+1$.",
-          "answer": "Cực đại $3$ tại $x=-1$; cực tiểu $-1$ tại $x=1$."
+          "question": "Tìm cực trị của y = x³ − 3x + 1.",
+          "answer": "Cực đại (−1; 3); cực tiểu (1; −1)."
         },
         {
           "level": "TH",
-          "question": "Lập dấu $y'$ của $y=-x^3+3x^2$.",
-          "answer": "$y'=-3x(x-2)$: âm trên $(-infty,0)$, dương trên $(0,2)$, âm trên $(2,infty)$."
+          "question": "Tìm điểm uốn của y = x³ − 3x + 1.",
+          "answer": "y″ = 6x = 0 ⇒ x = 0, y = 1; điểm uốn (0; 1)."
         },
         {
           "level": "VD",
-          "question": "Biện luận số nghiệm của $x^3-3x+1=m$ theo đồ thị.",
-          "answer": "Số nghiệm là số giao điểm của đồ thị $y=x^3-3x+1$ với đường thẳng $y=m$; đọc theo mức cực đại $3$ và cực tiểu $-1$."
+          "question": "Khảo sát cực trị của y = −x³ + 3x² − 2.",
+          "answer": "y′ = −3x² + 6x = −3x(x−2); cực tiểu tại x = 0 (y = −2), cực đại tại x = 2 (y = 2)."
         },
         {
           "level": "VD",
-          "question": "Chỉ ra lỗi khi BBT thiếu giới hạn ở hai đầu.",
-          "answer": "Không thể định hướng nhánh đồ thị; phải ghi $\\lim_{x\\to\\pm\\infty}f(x)$ trước khi vẽ."
+          "question": "Biện luận theo m số nghiệm của x³ − 3x + 1 = m.",
+          "answer": "Dựa vào cực trị: m < −1 hoặc m > 3 → 1 nghiệm; m = −1 hoặc m = 3 → 2 nghiệm; −1 < m < 3 → 3 nghiệm."
         }
       ],
       "quick": [
         {
-          "question": "Với $y=x^3-3x+1$, điểm uốn có hoành độ nào?",
-          "solution": "$x=0$ vì $y''=6x$ đổi dấu tại $0$."
+          "question": "Vì sao cần điểm uốn khi vẽ đồ thị bậc ba?",
+          "solution": "Vì điểm uốn cho biết chỗ đồ thị đổi chiều cong (lồi sang lõm) — giúp vẽ đúng hình dạng chữ S."
         },
         {
-          "question": "BBT có thay thế được đồ thị không?",
-          "solution": "Không; BBT là cơ sở, vẫn cần điểm đặc biệt và hình dạng nhánh để vẽ."
+          "question": "Hàm bậc ba luôn có hai cực trị?",
+          "solution": "Không. Nếu y′ vô nghiệm hoặc có nghiệm kép thì hàm không có cực trị (ví dụ y = x³)."
         }
       ],
       "mistakes": [
-        "Thiếu dòng giới hạn trong BBT.",
-        "Đổi dấu đạo hàm sai tại nghiệm kép/đơn.",
-        "Vẽ đồ thị không đi qua điểm cực trị hoặc điểm uốn."
+        "Nhầm dấu cực đại/cực tiểu.",
+        "Bỏ bước điểm uốn.",
+        "Vẽ đồ thị không qua các điểm đã tìm."
       ],
       "diagram": "graph",
       "lessonType": "formation",
@@ -11270,7 +11287,21 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Thực hiện đủ sáu bước khảo sát hàm số bậc ba, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Sáu bước khảo sát",
+        "a. Tập xác định.",
+        "b. y′ và cực trị.",
+        "c. Giới hạn.",
+        "d. Bảng biến thiên.",
+        "e. y″ (điểm uốn) và giao trục.",
+        "f. Vẽ đồ thị.",
+        "2. Áp dụng y = x³ − 3x + 1",
+        "a. Cực đại (−1; 3); cực tiểu (1; −1).",
+        "b. Điểm uốn (0; 1).",
+        "c. Ba nghiệm khi −1 < m < 3."
+      ]
     },
     {
       "key": "12-5-29",
@@ -11280,71 +11311,68 @@
       "kind": "practice",
       "selfChoice": false,
       "title": "Luyện tập khảo sát hàm số bậc ba",
-      "focus": "Luyện khảo sát, vẽ đồ thị và biện luận số nghiệm theo tham số",
+      "focus": "Luyện khảo sát hàm bậc ba và biện luận số nghiệm: y = x³ − 3x + 1 (cực đại (−1;3), cực tiểu (1;−1)), y = −x³ + 3x² − 2 (cực tiểu (0;−2), cực đại (2;2)), biện luận x³ − 3x + 1 = m (3 nghiệm khi −1 < m < 3)",
       "formulas": [
-        "y'=0\\Rightarrow\\text{điểm tới hạn}",
-        "y''=0\\Rightarrow\\text{ứng viên điểm uốn}",
-        "\\lim_{x\\to\\pm\\infty}x^3=\\pm\\infty",
-        "f(x)=m\\Longleftrightarrow\\text{giao điểm của }y=f(x)\\text{ và }y=m"
+        "y = x^3 - 3x + 1",
+        "y = -x^3 + 3x^2 - 2",
+        "\\text{Số nghiệm} = \\text{số giao điểm với } y = m"
       ],
       "examples": [
         {
-          "question": "Khảo sát $y=x^3-3x^2+2$. (tham khảo câu 1 SBT trang 117)",
-          "solution": "$y'=3x(x-2)$; cực đại tại $x=0$, cực tiểu tại $x=2$; dùng giới hạn hai đầu để vẽ.",
-          "sourceRef": "tham khảo câu 1 SBT trang 117"
+          "question": "Tìm cực trị của y = −x³ + 3x² − 2.",
+          "solution": "y′ = −3x² + 6x = −3x(x − 2); y′ = 0 tại x = 0 và x = 2. y(0) = −2 (cực tiểu vì y′ đổi − sang +), y(2) = 2 (cực đại)."
         },
         {
-          "question": "Biện luận số nghiệm của $x^3-3x=m$.",
-          "solution": "Vì $f'(x)=3x^2-3$ nên cực đại của $f(x)=x^3-3x$ là $2$ tại $x=-1$, cực tiểu là $-2$ tại $x=1$. Do đó có ba nghiệm khi $-2<m<2$, hai nghiệm khi $m=pm2$, và một nghiệm khi $m<-2$ hoặc $m>2$."
+          "question": "Biện luận theo m số nghiệm của x³ − 3x + 1 = m.",
+          "solution": "Cực đại 3 tại x = −1, cực tiểu −1 tại x = 1. Suy ra: m < −1 hoặc m > 3 → 1 nghiệm; m = −1 hoặc m = 3 → 2 nghiệm; −1 < m < 3 → 3 nghiệm."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính $y'$ của $y=x^3-3x^2+2$.",
-          "answer": "$y'=3x(x-2)$."
+          "question": "Tìm nghiệm của y′ = 0 với y = x³ − 3x + 1.",
+          "answer": "y′ = 3x² − 3 = 0 ⇔ x = ±1."
         },
         {
           "level": "NB",
-          "question": "Nêu cách tìm giao trục $Oy$.",
-          "answer": "Cho $x=0$ rồi tính $y=f(0)$."
+          "question": "Tìm nghiệm của y′ = 0 với y = −x³ + 3x² − 2.",
+          "answer": "y′ = −3x² + 6x = −3x(x−2) = 0 ⇔ x = 0 hoặc x = 2."
         },
         {
           "level": "TH",
-          "question": "Tìm cực trị của $y=x^3-3x^2+2$. (tham khảo câu 1 SBT trang 117)",
-          "answer": "Cực đại $(0,2)$; cực tiểu $(2,-2)$.",
-          "sourceRef": "tham khảo câu 1 SBT trang 117"
+          "question": "Tìm cực trị của y = −x³ + 3x² − 2.",
+          "answer": "Cực tiểu (0; −2); cực đại (2; 2)."
         },
         {
           "level": "TH",
-          "question": "Vẽ phác đồ thị $y=x^3-3x$ qua các điểm đặc biệt.",
-          "answer": "Đi qua $(0,0)$, cực đại $(-1,2)$, cực tiểu $(1,-2)$, có điểm uốn $(0,0)$."
+          "question": "Với y = x³ − 3x + 1, tìm m để phương trình y = m có 3 nghiệm.",
+          "answer": "−1 < m < 3."
         },
         {
           "level": "VD",
-          "question": "Biện luận $x^3-3x=m$ theo $m$.",
-          "answer": "Dựa vào giá trị cực trị đúng: $-2<m<2$ cho ba nghiệm, $m=\\pm2$ cho nghiệm kép, ngoài ra có một nghiệm."
+          "question": "Tìm m để x³ − 3x + 1 = m có đúng 2 nghiệm.",
+          "answer": "m = −1 hoặc m = 3 (đường ngang tiếp xúc đồ thị tại một cực trị)."
         },
         {
           "level": "VD",
-          "question": "Sửa câu “đồ thị bậc ba luôn có hai cực trị”.",
-          "answer": "Không đúng; số nghiệm của $y'=0$ có thể là $0$, $1$ kép hoặc $2$ nghiệm phân biệt."
+          "question": "Phản biện: \"Hàm bậc ba luôn có 3 nghiệm\".",
+          "answer": "Sai. Ví dụ x³ − 3x + 1 = 4 (m = 4 > 3) chỉ có 1 nghiệm; và x³ = 0 chỉ có 1 nghiệm bội ba. Số nghiệm phụ thuộc vị trí đường y = m so với cực trị."
         }
       ],
       "quick": [
         {
-          "question": "Nếu $y'$ không đổi dấu qua nghiệm, điểm đó có phải cực trị không?",
-          "solution": "Không nhất thiết; phải xét dấu $y'$ hai phía."
+          "question": "Vì sao m = 3 cho đúng 2 nghiệm?",
+          "solution": "Vì đường y = 3 tiếp xúc đồ thị tại điểm cực đại (−1; 3), tạo một nghiệm kép cộng một nghiệm đơn."
         },
         {
-          "question": "Khi biện luận $f(x)=m$, đường so sánh là gì?",
-          "solution": "Đường ngang $y=m$."
+          "question": "Khi a < 0, cực đại nằm bên nào?",
+          "solution": "Bên phải (nếu có hai cực trị), vì nhánh phải đi xuống nên đổi từ tăng sang giảm tại điểm đó."
         }
       ],
       "mistakes": [
-        "Không xét dấu đạo hàm hai phía.",
-        "Dùng giá trị cực trị sai khi biện luận tham số.",
-        "Vẽ đồ thị không kiểm điểm uốn."
+        "Nhầm cực trị khi a < 0.",
+        "Biện luận thiếu khoảng bên trái cực tiểu.",
+        "Quên giá trị biên cho 2 nghiệm."
       ],
       "diagram": "graph",
       "lessonType": "practice",
@@ -11582,7 +11610,17 @@
       },
       "guidingQuestion": "Khi gặp các bài về Luyện khảo sát, vẽ đồ thị và biện luận số nghiệm theo tham số, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Hai hàm luyện tập",
+        "a. x³ − 3x + 1: cực đại (−1;3), cực tiểu (1;−1).",
+        "b. −x³ + 3x² − 2: cực tiểu (0;−2), cực đại (2;2).",
+        "2. Biện luận số nghiệm",
+        "a. 1 nghiệm: m < −1 hoặc m > 3.",
+        "b. 2 nghiệm: m = −1 hoặc m = 3.",
+        "c. 3 nghiệm: −1 < m < 3."
+      ]
     },
     {
       "key": "12-5-30",
@@ -11592,71 +11630,68 @@
       "kind": "practice",
       "selfChoice": false,
       "title": "Luyện tập hệ trục tọa độ Oxyz",
-      "focus": "Tọa độ điểm, khoảng cách, trung điểm và trọng tâm",
+      "focus": "Luyện tập hệ trục tọa độ Oxyz trên mô hình kho hàng: A(1;2;3), B(3;0;1) với trung điểm (2;1;2), AB = 2√3 ≈ 3,46 m; hình chiếu lên các mặt phẳng tọa độ và trọng tâm tam giác",
       "formulas": [
-        "M(x;y;z)",
-        "AB=\\sqrt{(x_B-x_A)^2+(y_B-y_A)^2+(z_B-z_A)^2}",
-        "I\\left(\\frac{x_A+x_B}{2};\\frac{y_A+y_B}{2};\\frac{z_A+z_B}{2}\\right)",
-        "G\\left(\\frac{x_A+x_B+x_C}{3};\\frac{y_A+y_B+y_C}{3};\\frac{z_A+z_B+z_C}{3}\\right)"
+        "I\\left(\\dfrac{x_A+x_B}{2}; \\dfrac{y_A+y_B}{2}; \\dfrac{z_A+z_B}{2}\\right)",
+        "AB = \\sqrt{(x_B-x_A)^2 + (y_B-y_A)^2 + (z_B-z_A)^2}",
+        "G\\left(\\dfrac{x_A+x_B+x_C}{3}; \\dfrac{y_A+y_B+y_C}{3}; \\dfrac{z_A+z_B+z_C}{3}\\right)"
       ],
       "examples": [
         {
-          "question": "Cho $A(1;2;-1), B(3;-2;2)$. Tính $AB$ và trung điểm $I$. (tham khảo câu 2 SBT trang 220)",
-          "solution": "$AB=\\sqrt{4+16+9}=\\sqrt{29}$; $I(2;0;\\frac12)$.",
-          "sourceRef": "tham khảo câu 2 SBT trang 220"
+          "question": "Kho có kệ A(1; 2; 3) và B(3; 0; 1). Tìm trung điểm và khoảng cách AB.",
+          "solution": "Trung điểm I = ((1+3)/2; (2+0)/2; (3+1)/2) = (2; 1; 2). AB = √((3−1)² + (0−2)² + (1−3)²) = √(4+4+4) = 2√3 ≈ 3,46 m."
         },
         {
-          "question": "Cho $A(1;0;2), B(3;2;-1), C(-2;1;4)$. Tìm trọng tâm $G$. (câu 1 SBT trang 250)",
-          "solution": "$G(\\frac23;1;\\frac53)$.",
-          "sourceRef": "câu 1 SBT trang 250"
+          "question": "Tìm hình chiếu của A(1; 2; 3) lên các mặt phẳng (Oxy), (Oxz), (Oyz).",
+          "solution": "Lên (Oxy): (1; 2; 0). Lên (Oxz): (1; 0; 3). Lên (Oyz): (0; 2; 3)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tọa độ điểm trong Oxyz viết theo mấy thành phần?",
-          "answer": "Ba thành phần $x;y;z$."
+          "question": "Nêu công thức tọa độ trung điểm của AB.",
+          "answer": "I = ((x_A + x_B)/2; (y_A + y_B)/2; (z_A + z_B)/2)."
         },
         {
           "level": "NB",
-          "question": "Tính $\\overrightarrow{AB}$ với $A(1;2;0),B(4;1;3)$.",
-          "answer": "$\\overrightarrow{AB}=(3;-1;3)$."
+          "question": "Điểm M(2; −1; 4) có hình chiếu lên (Oxy) là điểm nào?",
+          "answer": "(2; −1; 0)."
         },
         {
           "level": "TH",
-          "question": "Tính khoảng cách $AB$ với $A(-1;0;2),B(2;4;-2)$.",
-          "answer": "$AB=\\sqrt{9+16+16}=\\sqrt{41}$."
+          "question": "Tính khoảng cách giữa A(1; 2; 3) và B(3; 0; 1).",
+          "answer": "AB = √(4 + 4 + 4) = 2√3 ≈ 3,46."
         },
         {
           "level": "TH",
-          "question": "Tìm trung điểm của $AB$ với $A(2;-1;3),B(0;5;1)$.",
-          "answer": "$I(1;2;2)$."
+          "question": "Tìm trọng tâm tam giác A(1;0;0), B(0;2;0), C(0;0;3).",
+          "answer": "G((1+0+0)/3; (0+2+0)/3; (0+0+3)/3) = (1/3; 2/3; 1)."
         },
         {
           "level": "VD",
-          "question": "Tìm $M$ để $I(1;2;3)$ là trung điểm của $AM$ với $A(-2;4;1)$.",
-          "answer": "$M=2I-A=(4;0;5)$."
+          "question": "Tìm điểm M trên trục Oz cách đều A(1;0;0) và B(0;1;0).",
+          "answer": "M(0;0;z): MA² = 1 + z², MB² = 1 + z² ⇒ luôn bằng nhau với mọi z. Vậy mọi điểm trên Oz đều cách đều A và B."
         },
         {
           "level": "VD",
-          "question": "Kiểm tra ba điểm $A,B,C$ thẳng hàng bằng vectơ.",
-          "answer": "Tính $\\overrightarrow{AB}$ và $\\overrightarrow{AC}$; chúng cùng phương khi các tọa độ tỉ lệ."
+          "question": "Ba kệ có tọa độ A(0;0;0), B(3;0;0), C(0;4;0). Tính khoảng cách BC và nhận xét tam giác ABC.",
+          "answer": "BC = √(9 + 16) = 5. Tam giác vuông tại A với AB = 3, AC = 4, BC = 5."
         }
       ],
       "quick": [
         {
-          "question": "Khoảng cách trong Oxyz có cần căn bậc hai không?",
-          "solution": "Có, theo công thức khoảng cách Euclid; không được bỏ căn nếu đề hỏi độ dài."
+          "question": "Vì sao hình chiếu lên (Oxy) có z = 0?",
+          "solution": "Vì mặt phẳng (Oxy) gồm các điểm có cao độ bằng 0; chiếu vuông góc xuống đó là bỏ thành phần z."
         },
         {
-          "question": "Tìm trung điểm của $A(0;0;0),B(2;4;6)$.",
-          "solution": "$I(1;2;3)$."
+          "question": "Trung điểm của A và B khác trọng tâm tam giác ở đâu?",
+          "solution": "Trung điểm chia 2 (hai điểm), trọng tâm chia 3 (ba đỉnh)."
         }
       ],
       "mistakes": [
-        "Lẫn thứ tự tọa độ.",
-        "Quên bình phương hoặc căn khi tính khoảng cách.",
-        "Dùng công thức trung điểm cho trọng tâm."
+        "Quên chia 2 khi tính trung điểm.",
+        "Quên bình phương khi tính khoảng cách.",
+        "Nhầm thứ tự tọa độ (x; y; z)."
       ],
       "diagram": "xyz",
       "digital": true,
@@ -11895,7 +11930,18 @@
       },
       "guidingQuestion": "Khi gặp các bài về Tọa độ điểm, khoảng cách, trung điểm và trọng tâm, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Bốn công thức",
+        "a. Trung điểm: trung bình cộng từng tọa độ.",
+        "b. Khoảng cách: căn của tổng bình phương các hiệu.",
+        "c. Hình chiếu: đặt tọa độ vuông góc bằng 0.",
+        "d. Trọng tâm: trung bình cộng ba đỉnh.",
+        "2. Áp dụng kho hàng",
+        "a. A(1;2;3), B(3;0;1): trung điểm (2;1;2).",
+        "b. AB = 2√3 ≈ 3,46 m."
+      ]
     },
     {
       "key": "12-5-31",
@@ -11905,69 +11951,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Biểu thức tọa độ và phép toán vectơ",
-      "focus": "Cộng, trừ, nhân vectơ và tính độ dài trong Oxyz",
+      "focus": "Hình thành biểu thức tọa độ của phép toán vectơ trong Oxyz: a = (1;−2;3), b = (2;1;−1) với a+b = (3;−1;2), a−b = (−1;−3;4), 2a−b = (0;−5;7), |a| = √14; nhân vô hướng và vectơ đơn vị",
       "formulas": [
-        "\\vec a\\pm\\vec b=(x_1\\pm x_2;y_1\\pm y_2;z_1\\pm z_2)",
-        "k\\vec a=(kx;ky;kz)",
-        "\\lvert\\vec a\\rvert=\\sqrt{x^2+y^2+z^2}",
-        "\\vec{AB}=(x_B-x_A;y_B-y_A;z_B-z_A)"
+        "\\vec a \\pm \\vec b = (a_1 \\pm b_1; a_2 \\pm b_2; a_3 \\pm b_3)",
+        "k\\vec a = (ka_1; ka_2; ka_3)",
+        "|\\vec a| = \\sqrt{a_1^2 + a_2^2 + a_3^2}"
       ],
       "examples": [
         {
-          "question": "Cho $\\vec a=(1;-2;3),\\vec b=(2;1;-1)$. Tính $2\\vec a-3\\vec b$.",
-          "solution": "$2\\vec a-3\\vec b=(-4;-7;9)$."
+          "question": "Cho a = (1; −2; 3), b = (2; 1; −1). Tính a + b, a − b và 2a − b.",
+          "solution": "a + b = (3; −1; 2). a − b = (1−2; −2−1; 3+1) = (−1; −3; 4). 2a = (2; −4; 6) nên 2a − b = (0; −5; 7)."
         },
         {
-          "question": "Tính độ dài $\\vec a=(2;-1;2)$.",
-          "solution": "$\\lvert\\vec a\\rvert=\\sqrt{4+1+4}=3$."
+          "question": "Tính độ dài của a và b; tìm vectơ đơn vị của a.",
+          "solution": "|a| = √(1+4+9) = √14; |b| = √(4+1+1) = √6. Vectơ đơn vị của a là (1; −2; 3)/√14."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính $\\vec a+\\vec b$ với $\\vec a=(1;0;2),\\vec b=(-1;3;4)$.",
-          "answer": "$(0;3;6)$"
+          "question": "Nêu công thức cộng hai vectơ theo tọa độ.",
+          "answer": "a + b = (a₁ + b₁; a₂ + b₂; a₃ + b₃)."
         },
         {
           "level": "NB",
-          "question": "Tính $-2\\vec a$ với $\\vec a=(1;-3;2)$.",
-          "answer": "$(-2;6;-4)$."
+          "question": "Nêu công thức độ dài vectơ a = (a₁; a₂; a₃).",
+          "answer": "|a| = √(a₁² + a₂² + a₃²)."
         },
         {
           "level": "TH",
-          "question": "Tìm $\\overrightarrow{AB}$ với $A(1;2;3),B(-1;0;5)$.",
-          "answer": "$(-2;-2;2)$."
+          "question": "Cho a = (1; −2; 3), b = (2; 1; −1). Tính a + b và a − b.",
+          "answer": "a + b = (3; −1; 2); a − b = (−1; −3; 4)."
         },
         {
           "level": "TH",
-          "question": "Tìm $k$ để $k\\vec a=\\vec b$ với $\\vec a=(1;2;-1),\\vec b=(3;6;-3)$.",
-          "answer": "$k=3$."
+          "question": "Tính |a| với a = (1; −2; 3).",
+          "answer": "√14 ≈ 3,74."
         },
         {
           "level": "VD",
-          "question": "Chứng minh $\\lvert k\\vec a\\rvert=|k|\\lvert\\vec a\\rvert$.",
-          "answer": "Bình phương hai vế: cả hai đều bằng $k^2(x^2+y^2+z^2)$ rồi lấy căn không âm."
+          "question": "Tìm x biết a + x = b với a = (1; −2; 3), b = (2; 1; −1).",
+          "answer": "x = b − a = (1; 3; −4)."
         },
         {
           "level": "VD",
-          "question": "Dùng vectơ để kiểm tra hình bình hành $ABCD$.",
-          "answer": "Kiểm $\\overrightarrow{AB}=\\overrightarrow{DC}$ hoặc $\\overrightarrow{AD}=\\overrightarrow{BC}$."
+          "question": "Tìm vectơ đơn vị cùng hướng với a = (1; −2; 3).",
+          "answer": "a/|a| = (1; −2; 3)/√14 ≈ (0,27; −0,53; 0,80)."
         }
       ],
       "quick": [
         {
-          "question": "Độ dài $\\vec a=(0;3;4)$ là bao nhiêu?",
-          "solution": "$5$."
+          "question": "Vì sao nhân vô hướng phải nhân cả ba tọa độ?",
+          "solution": "Vì vectơ có ba thành phần; nhân chỉ một thành phần sẽ đổi hướng vectơ, không còn là phép nhân vô hướng."
         },
         {
-          "question": "Một phép cộng vectơ có được cộng chéo tọa độ không?",
-          "solution": "Không; cộng từng thành phần cùng vị trí."
+          "question": "Vectơ đơn vị có độ dài bao nhiêu?",
+          "solution": "Bằng 1, vì chia vectơ cho độ dài của chính nó."
         }
       ],
       "mistakes": [
-        "Quên dấu của tọa độ khi trừ.",
-        "Quên căn khi tính độ dài.",
-        "Dùng k thay vì |k| trong công thức độ dài."
+        "Trừ sai dấu tọa độ.",
+        "Nhân vô hướng chỉ vào một tọa độ.",
+        "Tính độ dài mà quên bình phương."
       ],
       "diagram": "xyz",
       "digital": true,
@@ -12206,7 +12251,19 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Cộng, trừ, nhân vectơ và tính độ dài trong Oxyz, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Phép toán",
+        "a. Cộng/trừ theo từng tọa độ.",
+        "b. Nhân vô hướng vào cả ba tọa độ.",
+        "c. Độ dài = căn tổng bình phương.",
+        "d. Vectơ đơn vị = a/|a|.",
+        "2. Ví dụ chuẩn",
+        "a. a = (1;−2;3), b = (2;1;−1).",
+        "b. a + b = (3;−1;2); a − b = (−1;−3;4); 2a − b = (0;−5;7).",
+        "c. |a| = √14; |b| = √6."
+      ]
     },
     {
       "key": "12-5-32",
@@ -12216,71 +12273,68 @@
       "kind": "practice",
       "selfChoice": false,
       "title": "Luyện tập biểu thức tọa độ vectơ",
-      "focus": "Phối hợp tọa độ điểm, vectơ, độ dài và thẳng hàng",
+      "focus": "Luyện biểu thức tọa độ vectơ: kiểm ba điểm thẳng hàng qua tỉ lệ (A(1;0;0), B(2;1;1), C(3;2;2) thẳng hàng vì AC = 2AB), tìm đỉnh thứ tư hình bình hành D = A + C − B, tính độ dài và trung điểm",
       "formulas": [
-        "\\vec{AB}=B-A",
-        "\\vec a\\pm\\vec b",
-        "\\lvert\\vec a\\rvert=\\sqrt{x^2+y^2+z^2}",
-        "\\vec a=\\lambda\\vec b\\Longleftrightarrow\\vec a,\\vec b\\ \\text{cùng phương}"
+        "\\vec{AB} = (x_B - x_A; y_B - y_A; z_B - z_A)",
+        "A, B, C \\text{ thẳng hàng} \\Leftrightarrow \\vec{AB} = k\\vec{AC}",
+        "ABCD \\text{ là hình bình hành} \\Leftrightarrow \\vec{AB} = \\vec{DC} \\Leftrightarrow D = A + C - B"
       ],
       "examples": [
         {
-          "question": "Cho $A(1;-1;2),B(3;2;0),C(-1;1;4)$. Tính $\\overrightarrow{AB}+\\overrightarrow{AC}$. (tham khảo câu 2 SBT trang 236)",
-          "solution": "$\\overrightarrow{AB}=(2;3;-2),\\overrightarrow{AC}=(-2;2;2)$; tổng $=(0;5;0)$",
-          "sourceRef": "tham khảo câu 2 SBT trang 236"
+          "question": "Kiểm tra A(1;0;0), B(2;1;1), C(3;2;2) có thẳng hàng không.",
+          "solution": "AB = (1;1;1); AC = (2;2;2) = 2·AB. Hai vectơ cùng phương và có điểm chung A nên A, B, C thẳng hàng, B nằm giữa A và C."
         },
         {
-          "question": "Tìm $M$ để $A,B,M$ thẳng hàng và $\\overrightarrow{AM}=2\\overrightarrow{AB}$.",
-          "solution": "Với $A(1;0;2), B(2;3;-1)$, $M=A+2(B-A)=(3;6;-4)$."
+          "question": "Cho A(1;0;0), B(0;1;0), C(0;0;1). Tìm D để ABCD là hình bình hành.",
+          "solution": "D = A + C − B = (1; −1; 1). Kiểm: AB = (−1;1;0) và DC = C − D = (−1;1;0) bằng nhau ✓."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính $\\overrightarrow{AB}$ với $A(0;1;2),B(2;-1;3)$. (tham khảo câu 1 SBT trang 244)",
-          "answer": "$(2;-2;1)$.",
-          "sourceRef": "tham khảo câu 1 SBT trang 244"
+          "question": "Nêu công thức tính vectơ AB từ tọa độ hai điểm.",
+          "answer": "AB = (x_B − x_A; y_B − y_A; z_B − z_A)."
         },
         {
           "level": "NB",
-          "question": "Tính $\\lvert(1;2;2)\\rvert$.",
-          "answer": "$3$."
+          "question": "Điều kiện để ba điểm A, B, C thẳng hàng là gì?",
+          "answer": "AB và AC cùng phương (tồn tại k sao cho AB = k·AC)."
         },
         {
           "level": "TH",
-          "question": "Tính $2\\vec a-\\vec b$ với $\\vec a=(1;-1;2),\\vec b=(3;0;-1)$.",
-          "answer": "$(-1;-2;5)$."
+          "question": "Cho A(1;0;0), B(2;1;1), C(3;2;2). Kiểm tra thẳng hàng.",
+          "answer": "AB = (1;1;1); AC = (2;2;2) = 2AB ⇒ thẳng hàng."
         },
         {
           "level": "TH",
-          "question": "Kiểm tra cùng phương của $\\vec a=(2;-4;6),\\vec b=(-1;2;-3)$.",
-          "answer": "Có $\\vec a=-2\\vec b$."
+          "question": "Cho A(1;0;0), B(0;1;0). Tìm M là trung điểm AB.",
+          "answer": "M = (1/2; 1/2; 0)."
         },
         {
           "level": "VD",
-          "question": "Tìm $M$ chia $AB$ theo tỉ số $AM:MB=2:1$ trong tọa độ.",
-          "answer": "Dùng $M=\\frac{A+2B}{3}$ và thay từng thành phần."
+          "question": "Tìm m để A(1;0;0), B(2;1;1), C(3;2;m) thẳng hàng.",
+          "answer": "AB = (1;1;1); AC = (2;2;m). Cần AC = 2AB ⇒ m = 2."
         },
         {
           "level": "VD",
-          "question": "Viết lời giải kiểm tra ba điểm thẳng hàng bằng định thức tọa độ vectơ.",
-          "answer": "Chứng minh $\\overrightarrow{AB}=\\lambda\\overrightarrow{AC}$ với cùng một $lambda$ ở cả ba thành phần."
+          "question": "Phản biện kết luận: \"AB và CD cùng độ dài nên AB // CD\".",
+          "answer": "Sai. Cùng độ dài không suy ra cùng phương: ví dụ AB = (1;0;0) và CD = (0;1;0) đều dài 1 nhưng vuông góc. Cần kiểm tỉ lệ tọa độ để kết luận song song."
         }
       ],
       "quick": [
         {
-          "question": "Nếu hai vectơ cùng phương thì độ dài có quan hệ gì?",
-          "solution": "Một độ dài bằng $|lambda|$ lần độ dài kia nếu $\\vec a=\\lambda\\vec b$."
+          "question": "Vì sao cùng phương chưa đủ để thẳng hàng?",
+          "solution": "Vì hai vectơ cùng phương có thể nằm trên hai đường song song khác nhau; cần thêm điểm chung (cùng gốc A)."
         },
         {
-          "question": "Tính trung điểm $A(1;2;3),B(3;4;5)$.",
-          "solution": "$I(2;3;4)$"
+          "question": "Công thức tìm D trong hình bình hành ABCD?",
+          "solution": "D = A + C − B, suy từ AB = DC."
         }
       ],
       "mistakes": [
-        "Đảo thứ tự B − A thành A − B.",
-        "Dùng sai công thức chia đoạn.",
-        "Không kiểm tra cùng một hệ số ở ba thành phần."
+        "Dùng độ dài để kết luận cùng phương.",
+        "Nhầm công thức đỉnh hình bình hành.",
+        "Tính vectơ AB = A − B thay vì B − A."
       ],
       "diagram": "xyz",
       "lessonType": "practice",
@@ -12518,7 +12572,19 @@
       },
       "guidingQuestion": "Khi gặp các bài về Phối hợp tọa độ điểm, vectơ, độ dài và thẳng hàng, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Vectơ và cùng phương",
+        "a. AB = (x_B − x_A; y_B − y_A; z_B − z_A).",
+        "b. Cùng phương: AB = k·AC.",
+        "c. Thẳng hàng: cùng phương + chung điểm.",
+        "2. Hình bình hành",
+        "a. AB = DC ⇔ D = A + C − B.",
+        "3. Ví dụ",
+        "a. A(1;0;0), B(2;1;1), C(3;2;2): thẳng hàng (AC = 2AB).",
+        "b. A(1;0;0), B(0;1;0), C(0;0;1): D = (1;−1;1)."
+      ]
     },
     {
       "key": "12-5-33",
@@ -12528,71 +12594,68 @@
       "kind": "practice",
       "selfChoice": true,
       "title": "Tự chọn: hệ trục tọa độ và khảo sát hàm số",
-      "focus": "Chọn một mạch tọa độ và một mạch khảo sát để giải quyết nhiệm vụ mở",
+      "focus": "Tự chọn một trong hai mạch: tọa độ Oxyz (A(1;2;3), B(3;0;1), C(2;1;2) thẳng hàng vì AB = 2AC; AB = 2√3) hoặc khảo sát hàm bậc ba y = x³ − 3x + 1 (cực đại (−1;3), cực tiểu (1;−1); 3 nghiệm khi −1 < m < 3); mỗi mạch đều có phép kiểm",
       "formulas": [
-        "AB=\\sqrt{(x_B-x_A)^2+(y_B-y_A)^2+(z_B-z_A)^2}",
-        "y'=f'(x)",
-        "y'=0\\Rightarrow\\text{điểm tới hạn}",
-        "G\\left(\\frac{x_1+x_2+x_3}{3};\\frac{y_1+y_2+y_3}{3};\\frac{z_1+z_2+z_3}{3}\\right)"
+        "\\vec{AB} = k\\vec{AC} \\Rightarrow A, B, C \\text{ thẳng hàng}",
+        "y' = 3x^2 - 3, \\ y'' = 6x",
+        "\\text{Số nghiệm} = \\text{số giao điểm với } y = m"
       ],
       "examples": [
         {
-          "question": "Tìm trung điểm của $A(-1;2;0),B(3;4;6)$ và kiểm tra bằng vectơ. (câu 1 SBT trang 250)",
-          "solution": "$I(1;3;3)$; kiểm $\\overrightarrow{AI}=\\overrightarrow{IB}$.",
-          "sourceRef": "câu 1 SBT trang 250"
+          "question": "Mạch A: kiểm tra A(1;2;3), B(3;0;1), C(2;1;2) có thẳng hàng không và tính AB.",
+          "solution": "AB = (2; −2; −2); AC = (1; −1; −1) = ½AB ⇒ cùng phương, có điểm chung A ⇒ thẳng hàng. AB = √(4+4+4) = 2√3 ≈ 3,46."
         },
         {
-          "question": "Khảo sát nhanh $y=x^3-3x$. (tham khảo câu 1 SBT trang 117)",
-          "solution": "$y'=3(x-1)(x+1)$; cực đại $2$, cực tiểu $-2$, đồ thị đối xứng tâm qua $O$.",
-          "sourceRef": "tham khảo câu 1 SBT trang 117"
+          "question": "Mạch B: tìm cực trị của y = x³ − 3x + 1 và biện luận số nghiệm của y = m.",
+          "solution": "y′ = 3x² − 3 = 0 tại x = ±1: cực đại (−1; 3), cực tiểu (1; −1). Phương trình y = m có 3 nghiệm khi −1 < m < 3, 2 nghiệm khi m = −1 hoặc m = 3, 1 nghiệm ngoài khoảng đó."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Nêu một công thức khoảng cách trong Oxyz.",
-          "answer": "$AB=\\sqrt{\\Delta x^2+\\Delta y^2+\\Delta z^2}$."
+          "question": "Nêu điều kiện thẳng hàng của ba điểm theo vectơ.",
+          "answer": "AB và AC cùng phương (AB = k·AC)."
         },
         {
           "level": "NB",
-          "question": "Nêu điều kiện điểm tới hạn.",
-          "answer": "$f'(x)=0$ hoặc đạo hàm không tồn tại, trong tập xác định."
+          "question": "Nêu công thức tìm cực trị của hàm bậc ba.",
+          "answer": "Tính y′, giải y′ = 0, xét dấu y′ để xác định cực đại/cực tiểu."
         },
         {
           "level": "TH",
-          "question": "Tìm trọng tâm ba điểm $(1;0;0),(0;1;0),(0;0;1)$.",
-          "answer": "$G(\\frac13;\\frac13;\\frac13)$"
+          "question": "Cho A(1;2;3), B(3;0;1). Tính AB và độ dài AB.",
+          "answer": "AB = (2; −2; −2); |AB| = √12 = 2√3 ≈ 3,46."
         },
         {
           "level": "TH",
-          "question": "Tìm cực trị của $y=x^3-3x$.",
-          "answer": "Cực đại tại $x=-1$, cực tiểu tại $x=1$."
+          "question": "Tìm cực trị của y = x³ − 3x + 1.",
+          "answer": "Cực đại (−1; 3), cực tiểu (1; −1)."
         },
         {
           "level": "VD",
-          "question": "Thiết kế một nhiệm vụ kết hợp khoảng cách và đồ thị.",
-          "answer": "Ví dụ: dùng khoảng cách giữa hai điểm để đặt tọa độ điểm trên đồ thị rồi kiểm điều kiện bằng đạo hàm."
+          "question": "Tìm m để x³ − 3x + 1 = m có đúng 1 nghiệm.",
+          "answer": "m < −1 hoặc m > 3."
         },
         {
           "level": "VD",
-          "question": "Giải thích cách tự chọn mạch kiến thức khi đề mở.",
-          "answer": "Đọc dữ kiện trước, xác định đại lượng cần tìm, chọn công thức ít bước nhất và ghi rõ phép kiểm."
+          "question": "Đặt 3 tiêu chí để chấm bài trình bày của nhóm bạn.",
+          "answer": "Ví dụ: (1) dùng đúng công cụ theo dữ kiện; (2) trình bày đủ bước, không nhảy bước; (3) có phép kiểm độc lập và kết luận rõ ràng. Có thể thêm tiêu chí đơn vị và cách trình bày."
         }
       ],
       "quick": [
         {
-          "question": "Chọn một công thức và nói cách kiểm bằng phép tính tay hoặc đối chiếu điều kiện.",
-          "solution": "Kết quả chỉ được chấp nhận khi học sinh đối chiếu với phép tính tay, điều kiện áp dụng và nêu kết luận."
+          "question": "Vì sao AB = −2AC vẫn cho ba điểm thẳng hàng?",
+          "solution": "Vì −2 là một số thực khác 0, hai vectơ vẫn cùng phương; dấu chỉ cho biết B và C nằm về hai phía của A."
         },
         {
-          "question": "Điều gì làm một lời giải mở vẫn có thể chấm được?",
-          "solution": "Dữ kiện, tiêu chí, công thức, sản phẩm và phép kiểm phải được nêu rõ."
+          "question": "Phép kiểm nhanh cho mạch khảo sát là gì?",
+          "solution": "Thử một giá trị m cụ thể, đếm số giao điểm trên đồ thị và so với kết luận biện luận."
         }
       ],
       "mistakes": [
-        "Chọn công thức theo từ khóa thay vì dữ kiện.",
-        "Dùng đáp số thay cho lập luận.",
-        "Không nêu tiêu chí sản phẩm của nhiệm vụ mở."
+        "Trừ tọa độ sai dấu.",
+        "Bỏ phép kiểm sau khi có kết quả.",
+        "Biện luận thiếu khoảng ngoài cực trị."
       ],
       "diagram": "xyz",
       "digital": true,
@@ -12831,7 +12894,16 @@
       },
       "guidingQuestion": "Khi gặp các bài về Chọn một mạch tọa độ và một mạch khảo sát để giải quyết nhiệm vụ mở, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Mạch A — tọa độ",
+        "a. AB = (2;−2;−2); AC = (1;−1;−1) ⇒ thẳng hàng.",
+        "b. |AB| = 2√3.",
+        "2. Mạch B — khảo sát",
+        "a. Cực đại (−1;3); cực tiểu (1;−1).",
+        "b. 3 nghiệm khi −1 < m < 3."
+      ]
     },
     {
       "key": "12-6-34",
@@ -12841,69 +12913,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Khảo sát hàm phân thức bậc nhất trên bậc nhất",
-      "focus": "Tiệm cận và đạo hàm của y = (ax+b)/(cx+d)",
+      "focus": "Khảo sát hàm bậc nhất/bậc nhất trên trục nồng độ thuốc C(t) = (2t+1)/(t+3): C′(t) = 5/(t+3)² > 0 (đồng biến), tiệm cận đứng t = −3, ngang y = 2, tâm đối xứng (−3; 2); C(0) = 1/3, C(97) = 1,95",
       "formulas": [
-        "x=-\\frac dc\\ \\text{là tiệm cận đứng}",
-        "y=\\frac ac\\ \\text{là tiệm cận ngang}",
-        "y'=\\frac{ad-bc}{(cx+d)^2}",
-        "ad-bc\\ne0"
+        "y = \\dfrac{ax+b}{cx+d}",
+        "y' = \\dfrac{ad - bc}{(cx+d)^2}",
+        "\\text{TCĐ } x = -\\dfrac{d}{c}; \\quad \\text{TCN } y = \\dfrac{a}{c}"
       ],
       "examples": [
         {
-          "question": "Khảo sát $y=\\frac{2x+1}{x-1}$.",
-          "solution": "TXĐ $\\mathbb R\\setminus\\{1\\}$; TCĐ $x=1$; TCN $y=2$; $y'=\\frac{-3}{(x-1)^2}<0$."
+          "question": "Khảo sát hàm C(t) = (2t + 1)/(t + 3): tìm đạo hàm, chiều biến thiên, tiệm cận.",
+          "solution": "Tập xác định t ≠ −3. C′(t) = (2(t+3) − (2t+1))/(t+3)² = 5/(t+3)² > 0 ⇒ đồng biến trên mỗi khoảng. Tiệm cận đứng t = −3; tiệm cận ngang y = 2; tâm đối xứng (−3; 2)."
         },
         {
-          "question": "Tìm tâm đối xứng của đồ thị $y=\\frac{2x+1}{x-1}$.",
-          "solution": "Giao hai tiệm cận là $I(1;2)$; đó là tâm đối xứng của hypebol."
+          "question": "Tính C(0), C(7) và nhận xét xu hướng.",
+          "solution": "C(0) = 1/3 ≈ 0,33; C(7) = 15/10 = 1,5. Nồng độ tăng dần và tiến về 2 mg/L (tiệm cận ngang)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tìm tiệm cận đứng, ngang của $\\frac{3x-2}{x+4}$.",
-          "answer": "$x=-4, y=3$."
+          "question": "Nêu tập xác định của y = (ax+b)/(cx+d).",
+          "answer": "x ≠ −d/c."
         },
         {
           "level": "NB",
-          "question": "Nêu dấu của đạo hàm khi $ad-bc>0$.",
-          "answer": "Đạo hàm dương trên mỗi khoảng xác định vì mẫu bình phương dương."
+          "question": "Nêu công thức đạo hàm của (ax+b)/(cx+d).",
+          "answer": "y′ = (ad − bc)/(cx + d)²."
         },
         {
           "level": "TH",
-          "question": "Khảo sát $y=\\frac{x-2}{x+1}$.",
-          "answer": "TCĐ $x=-1$; TCN $y=1$; $y'=\\frac3{(x+1)^2}>0$."
+          "question": "Khảo sát chiều biến thiên của y = (2x + 1)/(x + 3).",
+          "answer": "y′ = (2·3 − 1·1)/(x+3)² = 5/(x+3)² > 0 ⇒ đồng biến trên (−∞;−3) và (−3;+∞)."
         },
         {
           "level": "TH",
-          "question": "Tìm giao trục của $y=\\frac{2x+1}{x-1}$.",
-          "answer": "Giao $Ox$ tại $(-\\frac12;0)$; giao $Oy$ tại $(0;-1)$."
+          "question": "Tìm tiệm cận của y = (2x + 1)/(x + 3).",
+          "answer": "Tiệm cận đứng x = −3; tiệm cận ngang y = 2."
         },
         {
           "level": "VD",
-          "question": "Giải thích vì sao hàm trên không có cực trị khi $ad-bc\ne0$.",
-          "answer": "Đạo hàm không đổi dấu trên từng khoảng xác định; do đó không có điểm cực trị trong tập xác định."
+          "question": "Khảo sát y = (−x + 2)/(x − 1).",
+          "answer": "y′ = (−3)/(x−1)² < 0 ⇒ nghịch biến; TCĐ x = 1; TCN y = −1; tâm đối xứng (1; −1)."
         },
         {
           "level": "VD",
-          "question": "Đối chiếu hình dạng đồ thị với các đặc trưng đã tính nhưng không coi hình là bằng chứng duy nhất.",
-          "answer": "Đối chiếu tập xác định, tiệm cận và giao trục bằng phép tính tay trước khi kết luận; hình chỉ là minh họa."
+          "question": "Tìm m để hàm y = (mx + 1)/(x − 2) đồng biến trên từng khoảng xác định.",
+          "answer": "y′ = (m·(−2) − 1·1)/(x−2)² = (−2m − 1)/(x−2)². Đồng biến ⇔ −2m − 1 > 0 ⇔ m < −1/2."
         }
       ],
       "quick": [
         {
-          "question": "Với $y=\\frac{ax+b}{cx+d}$, tiệm cận đứng phụ thuộc vào gì?",
-          "solution": "Nghiệm của mẫu $cx+d=0$ sau khi kiểm tử không triệt tiêu."
+          "question": "Vì sao hàm bậc nhất/bậc nhất không có cực trị?",
+          "solution": "Vì đạo hàm không đổi dấu (tử ad − bc là hằng số, mẫu luôn dương) nên không có điểm mà y′ đổi dấu."
         },
         {
-          "question": "Đạo hàm của $\\frac{2x+1}{x-1}$ có đổi dấu không?",
-          "solution": "Không; $y'=-3/(x-1)^2<0$ trên cả hai khoảng xác định."
+          "question": "Tâm đối xứng của đồ thị hàm phân thức là giao của hai đường nào?",
+          "solution": "Giao của tiệm cận đứng và tiệm cận ngang."
         }
       ],
       "mistakes": [
-        "Kết luận có cực trị dù đạo hàm không đổi dấu.",
-        "Quên điều kiện mẫu khác không.",
-        "Nhầm tiệm cận ngang với giao trục."
+        "Tính đạo hàm sai dấu (dùng bc − ad).",
+        "Nhầm tâm đối xứng với gốc tọa độ.",
+        "Bỏ tập xác định khi kết luận biến thiên."
       ],
       "diagram": "graph",
       "digital": true,
@@ -13142,7 +13213,19 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Tiệm cận và đạo hàm của y = (ax+b)/(cx+d), đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Bốn bước khảo sát",
+        "a. Tập xác định x ≠ −d/c.",
+        "b. y′ = (ad − bc)/(cx+d)².",
+        "c. Tiệm cận đứng x = −d/c; ngang y = a/c.",
+        "d. Bảng biến thiên, tâm đối xứng, vẽ.",
+        "2. Áp dụng C(t) = (2t+1)/(t+3)",
+        "a. y′ = 5/(t+3)² > 0 ⇒ đồng biến.",
+        "b. TCĐ t = −3; TCN y = 2; tâm (−3; 2).",
+        "c. C(0) = 1/3; C(97) = 1,95."
+      ]
     },
     {
       "key": "12-6-35",
@@ -13152,69 +13235,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Khảo sát hàm phân thức bậc nhất trên bậc nhất — tiếp",
-      "focus": "Luyện tiệm cận, đơn điệu, giao trục và bài toán tham số",
+      "focus": "Khảo sát hàm bậc nhất/bậc nhất với a < 0 trên trục hiệu suất lọc E(x) = (−x+2)/(x−1): E′ = −3/(x−1)² < 0 (nghịch biến trên từng khoảng), TCĐ x = 1, TCN y = −1, giao trục (0;−2) và (2;0), tâm đối xứng (1;−1)",
       "formulas": [
-        "x=-\\frac dc",
-        "y=\\frac ac",
-        "y'=\\frac{ad-bc}{(cx+d)^2}",
-        "I\\left(-\\frac dc;\\frac ac\\right)"
+        "y = \\dfrac{-x+2}{x-1}",
+        "y' = \\dfrac{-3}{(x-1)^2}",
+        "\\text{Giao trục: } y(0) = \\dfrac{b}{d}; \\ y = 0 \\Leftrightarrow x = -\\dfrac{b}{a}"
       ],
       "examples": [
         {
-          "question": "Khảo sát $y=\\frac{-x+2}{x+1}$.",
-          "solution": "TCĐ $x=-1$, TCN $y=-1$; $y'=\\frac{-3}{(x+1)^2}<0$."
+          "question": "Khảo sát E(x) = (−x + 2)/(x − 1): chiều biến thiên, tiệm cận, giao trục.",
+          "solution": "Tập xác định x ≠ 1. E′ = (−1·1 − 2·1)/(x−1)² = −3/(x−1)² < 0 ⇒ nghịch biến trên mỗi khoảng. TCĐ x = 1; TCN y = −1. Giao trục tung (0; −2); giao trục hoành (2; 0). Tâm đối xứng (1; −1)."
         },
         {
-          "question": "Tìm $m$ để đồ thị $y=\\frac{x+m}{x-1}$ đi qua $A(2;3)$.",
-          "solution": "Thay vào: $3=2+m$ nên $m=1$."
+          "question": "Tìm m để y = (mx+1)/(x−2) đồng biến trên từng khoảng xác định.",
+          "solution": "y′ = (−2m − 1)/(x−2)². Đồng biến ⇔ −2m − 1 > 0 ⇔ m < −1/2."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tìm TCN của $\\frac{-2x+5}{x-3}$.",
-          "answer": "$y=-2$."
+          "question": "Tìm tiệm cận của y = (−x+2)/(x−1).",
+          "answer": "TCĐ x = 1; TCN y = −1."
         },
         {
           "level": "NB",
-          "question": "Tìm TCĐ của $\\frac{x+1}{2x-4}$.",
-          "answer": "$x=2$."
+          "question": "Nêu dấu đạo hàm của y = (ax+b)/(cx+d) theo ad − bc.",
+          "answer": "ad − bc > 0: đồng biến; ad − bc < 0: nghịch biến (trên từng khoảng xác định)."
         },
         {
           "level": "TH",
-          "question": "Tìm $m$ để $y=\\frac{x+m}{x-1}$ qua $A(0;2)$.",
-          "answer": "$m=-2$."
+          "question": "Tìm giao điểm với các trục của y = (−x+2)/(x−1).",
+          "answer": "Trục tung: (0; −2); trục hoành: (2; 0)."
         },
         {
           "level": "TH",
-          "question": "Tìm giao điểm hai tiệm cận của $y=\\frac{3x-1}{x+2}$.",
-          "answer": "$I(-2;3)$"
+          "question": "Tìm tâm đối xứng của đồ thị y = (−x+2)/(x−1).",
+          "answer": "Giao hai tiệm cận: (1; −1)."
         },
         {
           "level": "VD",
-          "question": "Biện luận số giao điểm của đồ thị với đường thẳng $y=t$.",
-          "answer": "So sánh $t$ với TCN và giải phương trình sau khi quy đồng; không nhân qua điểm làm mẫu bằng $0$."
+          "question": "Tìm m để y = (mx+1)/(x−2) nghịch biến trên từng khoảng xác định.",
+          "answer": "−2m − 1 < 0 ⇔ m > −1/2."
         },
         {
           "level": "VD",
-          "question": "Nêu cách kiểm chứng một giá trị tham số bằng tính toán độc lập.",
-          "answer": "Chọn một $x$ không làm mẫu bằng $0$, tính $y$ bằng tay, đối chiếu chữ số và nêu rõ điều kiện; không dùng hình ảnh làm chứng minh duy nhất."
+          "question": "Phản biện: \"Vì E′ < 0 với mọi x ≠ 1 nên E nghịch biến trên ℝ\".",
+          "answer": "Sai. Tập xác định không gồm x = 1, và trên hai khoảng riêng biệt hàm nghịch biến nhưng không so sánh được giá trị hai bên (ví dụ E(0) = −2 < E(2) = 0)."
         }
       ],
       "quick": [
         {
-          "question": "Đồ thị $y=\\frac{x+1}{x-2}$ có tâm đối xứng nào?",
-          "solution": "$I(2;1)$"
+          "question": "Vì sao không thể nói hàm nghịch biến trên ℝ?",
+          "solution": "Vì tập xác định bị khuyết điểm x = 1; tính đơn điệu chỉ xét trên từng khoảng liên tục."
         },
         {
-          "question": "Khi $ad-bc=0$ cần làm gì trước khi kết luận?",
-          "solution": "Rút gọn biểu thức; có thể đồ thị chỉ còn là đường thẳng bỏ một điểm, không còn dạng hypebol."
+          "question": "Giao trục hoành của (−x+2)/(x−1) ở đâu?",
+          "solution": "Giải −x + 2 = 0 (với x ≠ 1) được x = 2."
         }
       ],
       "mistakes": [
-        "Không xét trường hợp ad−bc = 0.",
-        "Nhân chéo qua giá trị cấm.",
-        "Đọc sai tâm từ hai tiệm cận."
+        "Kết luận đơn điệu trên toàn ℝ.",
+        "Tính giao trục sai dấu.",
+        "Bỏ qua tập xác định khi vẽ."
       ],
       "diagram": "graph",
       "lessonType": "formation",
@@ -13452,7 +13534,17 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Luyện tiệm cận, đơn điệu, giao trục và bài toán tham số, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Khảo sát E(x) = (−x+2)/(x−1)",
+        "a. y′ = −3/(x−1)² < 0.",
+        "b. TCĐ x = 1; TCN y = −1.",
+        "c. Giao trục: (0;−2) và (2;0).",
+        "d. Tâm đối xứng (1;−1).",
+        "2. Bài tham số",
+        "a. y = (mx+1)/(x−2) nghịch biến ⇔ −2m − 1 < 0 ⇔ m > −1/2."
+      ]
     },
     {
       "key": "12-6-36",
@@ -13462,69 +13554,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Khảo sát hàm phân thức bậc hai trên bậc nhất",
-      "focus": "Tiệm cận đứng, tiệm cận xiên và đạo hàm theo quy tắc thương",
+      "focus": "Khảo sát hàm bậc hai/bậc nhất trên trục chi phí trung bình y = (x²−2x+3)/(x−1) = x − 1 + 2/(x−1): tiệm cận xiên y = x − 1, tiệm cận đứng x = 1, hai cực trị tại x = 1 ± √2 với giá trị ±2√2",
       "formulas": [
-        "y=\\frac{ax^2+bx+c}{dx+e}",
-        "y=\\text{thương bậc nhất}+\\frac{\\text{phần dư}}{dx+e}",
-        "y'=\\frac{P'(x)Q(x)-P(x)Q'(x)}{Q(x)^2}",
-        "x=-\\frac ed\\ \\text{là tiệm cận đứng}"
+        "y = \\dfrac{x^2 - 2x + 3}{x - 1} = x - 1 + \\dfrac{2}{x-1}",
+        "y' = 1 - \\dfrac{2}{(x-1)^2}",
+        "x = 1 \\pm \\sqrt2, \\ y = \\pm 2\\sqrt2"
       ],
       "examples": [
         {
-          "question": "Tìm tiệm cận của $y=\\frac{x^2+x+1}{x-1}$.",
-          "solution": "Chia $x^2+x+1=(x-1)(x+2)+3$; TCĐ $x=1$, TCX $y=x+2$."
+          "question": "Chia đa thức và tìm tiệm cận của y = (x² − 2x + 3)/(x − 1).",
+          "solution": "y = x − 1 + 2/(x−1) ⇒ tiệm cận xiên y = x − 1; tiệm cận đứng x = 1 (phần dư khác 0)."
         },
         {
-          "question": "Tính đạo hàm $y=\\frac{x^2+1}{x-1}$.",
-          "solution": "Dùng quy tắc thương: $y'=\\frac{2x(x-1)-(x^2+1)}{(x-1)^2}=\\frac{x^2-2x-1}{(x-1)^2}$."
+          "question": "Tìm cực trị của y = (x² − 2x + 3)/(x − 1).",
+          "solution": "y′ = 1 − 2/(x−1)² = ((x−1)² − 2)/(x−1)²; y′ = 0 ⇔ x = 1 ± √2. Tại x = 1 + √2: y = 2√2 ≈ 2,83 (cực tiểu); tại x = 1 − √2: y = −2√2 (cực đại)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tìm TCĐ của $\\frac{x^2+1}{x+2}$.",
-          "answer": "$x=-2$."
+          "question": "Nêu cách tìm tiệm cận xiên của hàm bậc hai/bậc nhất.",
+          "answer": "Chia tử cho mẫu để được dạng mx + n + R/(cx+d); tiệm cận xiên là y = mx + n."
         },
         {
           "level": "NB",
-          "question": "Nêu dạng tiệm cận xiên của $\\frac{P_2(x)}{Q_1(x)}$.",
-          "answer": "Đường thẳng là phần thương bậc nhất khi chia đa thức."
+          "question": "Tìm tiệm cận đứng của y = (x²−2x+3)/(x−1).",
+          "answer": "x = 1."
         },
         {
           "level": "TH",
-          "question": "Tìm TCX của $\\frac{2x^2-3x+1}{x+1}$.",
-          "answer": "Chia được $2x-5+\\frac6{x+1}$; $y=2x-5$."
+          "question": "Tính y′ của y = (x²−2x+3)/(x−1).",
+          "answer": "y′ = 1 − 2/(x−1)²."
         },
         {
           "level": "TH",
-          "question": "Tìm nghiệm $y'$ của $y=\\frac{x^2+1}{x-1}$.",
-          "answer": "Giải $x^2-2x-1=0$; nghiệm $x=1\\pm\\sqrt2$."
+          "question": "Tìm cực trị của y = (x²−2x+3)/(x−1).",
+          "answer": "x = 1 ± √2; cực tiểu tại 1 + √2 (y = 2√2), cực đại tại 1 − √2 (y = −2√2)."
         },
         {
           "level": "VD",
-          "question": "Lập BBT của một hàm bậc hai trên bậc nhất sau khi tìm nghiệm đạo hàm.",
-          "answer": "Tách hai khoảng qua TCĐ, đưa nghiệm $y'$ vào từng khoảng và xét dấu; không nối BBT qua điểm cấm."
+          "question": "Khảo sát tiệm cận và cực trị của y = (x² + x − 1)/(x + 2).",
+          "answer": "y = x − 1 + 1/(x+2) ⇒ tiệm cận xiên y = x − 1; đứng x = −2. y′ = 1 − 1/(x+2)² = 0 ⇔ x = −1 hoặc x = −3."
         },
         {
           "level": "VD",
-          "question": "Chỉ ra lỗi khi bỏ tiệm cận xiên trong đồ thị.",
-          "answer": "Nhánh đồ thị sẽ bị vẽ sai hướng ở vô cực; phải dùng thương đa thức làm đường chuẩn."
+          "question": "Giải thích vì sao hàm bậc hai/bậc nhất không có tiệm cận ngang.",
+          "answer": "Vì bậc tử lớn hơn bậc mẫu đúng 1 bậc; khi x → ∞, y tiến theo đường thẳng mx + n chứ không tiến tới hằng số."
         }
       ],
       "quick": [
         {
-          "question": "Bậc tử cao hơn bậc mẫu một đơn vị gợi ý loại tiệm cận nào?",
-          "solution": "Tiệm cận xiên, sau phép chia đa thức."
+          "question": "Vì sao phải chia đa thức trước khi khảo sát?",
+          "solution": "Để tách phần đa thức (cho tiệm cận xiên) và phần dư tiến về 0; nhờ đó biết hình dạng đồ thị ở xa gốc."
         },
         {
-          "question": "Mẫu bình phương trong đạo hàm có thể bằng 0 ở đâu?",
-          "solution": "Tại nghiệm của mẫu gốc; đó là điểm loại khỏi tập xác định."
+          "question": "Hàm này có bao nhiêu cực trị?",
+          "solution": "Hai, tại x = 1 ± √2, vì y′ = 0 có hai nghiệm phân biệt."
         }
       ],
       "mistakes": [
-        "Quên tiệm cận xiên.",
-        "Dùng đạo hàm mà không tách điểm cấm.",
-        "Rút gọn sai phần dư khi chia đa thức."
+        "Quên tìm tiệm cận xiên.",
+        "Mất một cực trị khi giải (x−1)² = 2.",
+        "Nhầm cực đại với cực tiểu."
       ],
       "diagram": "graph",
       "lessonType": "formation",
@@ -13762,7 +13853,19 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Tiệm cận đứng, tiệm cận xiên và đạo hàm theo quy tắc thương, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Quy trình",
+        "a. Tập xác định.",
+        "b. Chia đa thức → tiệm cận xiên.",
+        "c. Đạo hàm → cực trị.",
+        "d. Bảng biến thiên, vẽ.",
+        "2. Áp dụng",
+        "a. y = x − 1 + 2/(x−1).",
+        "b. Tiệm cận xiên y = x − 1; đứng x = 1.",
+        "c. Cực trị tại x = 1 ± √2 với y = ±2√2."
+      ]
     },
     {
       "key": "12-6-37",
@@ -13772,69 +13875,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Khảo sát hàm phân thức bậc hai trên bậc nhất — tiếp",
-      "focus": "Luyện đồ thị, cực trị và tham số của hàm phân thức",
+      "focus": "Luyện khảo sát hàm bậc hai/bậc nhất và so sánh hai mô hình: y₁ = (x²+x−1)/(x+2) = x − 1 + 1/(x+2) (TCĐ x = −2; cực đại x = −3, y = −5; cực tiểu x = −1, y = −1) và y₂ = (x²−2x+3)/(x−1) (TCĐ x = 1; cực trị x = 1 ± √2)",
       "formulas": [
-        "y=\\frac{ax^2+bx+c}{dx+e}",
-        "y'=\\frac{P'Q-PQ'}{Q^2}",
-        "\\lim_{x\\to\\pm\\infty}[f(x)-(ax+b)]=0",
-        "Q(x)\\ne0"
+        "y_1 = x - 1 + \\dfrac{1}{x+2}",
+        "y_1' = 1 - \\dfrac{1}{(x+2)^2}",
+        "(x+2)^2 = 1 \\Leftrightarrow x = -1 \\ \\text{hoặc} \\ x = -3"
       ],
       "examples": [
         {
-          "question": "Khảo sát $y=\\frac{x^2-2x+2}{x-1}$.",
-          "solution": "Chia được $x-1+\\frac1{x-1}$; TCĐ $x=1$, TCX $y=x-1$; $y'=1-\\frac1{(x-1)^2}$."
+          "question": "Khảo sát cực trị và tiệm cận của y₁ = (x² + x − 1)/(x + 2).",
+          "solution": "Chia: y₁ = x − 1 + 1/(x+2) ⇒ tiệm cận xiên y = x − 1; tiệm cận đứng x = −2. y₁′ = 1 − 1/(x+2)² = 0 ⇔ x = −1 hoặc x = −3. y₁(−1) = −1 (cực tiểu), y₁(−3) = −5 (cực đại)."
         },
         {
-          "question": "Tìm cực trị của $y=\\frac{x^2-2x+2}{x-1}$.",
-          "solution": "Giải $(x-1)^2=1$ cho $x=0,2$; tính giá trị tương ứng và xét hai khoảng tách bởi $x=1$."
+          "question": "Hai hàm y₁ và y₂ cùng tiệm cận xiên y = x − 1. Chúng có cùng đồ thị không? Vì sao?",
+          "solution": "Không. Tiệm cận đứng khác nhau (x = −2 so với x = 1) và cực trị khác nhau; ví dụ y₁(0) = −1/2 còn y₂(0) = −3."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Nêu tập xác định của $\\frac{x^2+1}{x-3}$.",
-          "answer": "$\\mathbb R\\setminus\\{3\\}$."
+          "question": "Tìm tiệm cận xiên và đứng của y = (x²+x−1)/(x+2).",
+          "answer": "Chia: y = x − 1 + 1/(x+2) ⇒ tiệm cận xiên y = x − 1; tiệm cận đứng x = −2."
         },
         {
           "level": "NB",
-          "question": "Tìm TCX của $\\frac{x^2-1}{x+1}$.",
-          "answer": "Sau rút gọn còn $x-1$ với điểm loại $x=-1$; không có hypebol đầy đủ."
+          "question": "Nêu điều kiện để hàm bậc hai/bậc nhất có hai cực trị.",
+          "answer": "Phương trình y′ = 0 có hai nghiệm phân biệt (thường dạng 1 − R/(cx+d)² = 0 với R > 0)."
         },
         {
           "level": "TH",
-          "question": "Tính đạo hàm của $\\frac{x^2-2x+2}{x-1}$.",
-          "answer": "$y'=1-\\frac1{(x-1)^2}$."
+          "question": "Tìm cực trị của y = (x²+x−1)/(x+2).",
+          "answer": "Cực đại (−3; −5); cực tiểu (−1; −1)."
         },
         {
           "level": "TH",
-          "question": "Xét dấu đạo hàm trên $(-infty,1)$ và $(1,infty)$.",
-          "answer": "Dựa vào $(x-1)^2$: âm khi $|x-1|<1$, dương khi $|x-1|>1$, sau đó giao với hai khoảng xác định."
+          "question": "Tính y(0) của hai hàm y₁, y₂ để so sánh.",
+          "answer": "y₁(0) = −1/2 = −0,5; y₂(0) = 3/(−1) = −3."
         },
         {
           "level": "VD",
-          "question": "Tìm tham số để đồ thị có hai cực trị phân biệt.",
-          "answer": "Giải phương trình tử của $y'$; yêu cầu có hai nghiệm thực phân biệt và không trùng nghiệm mẫu."
+          "question": "Tìm m để hàm y = (x² + mx + 1)/(x − 1) có hai cực trị.",
+          "answer": "Chia: y = x + (m+1) + (m+2)/(x−1). y′ = 1 − (m+2)/(x−1)²; y′ = 0 ⇔ (x−1)² = m+2. Có hai nghiệm ⇔ m + 2 > 0 ⇔ m > −2."
         },
         {
           "level": "VD",
-          "question": "Đối chiếu BBT bằng đồ thị số.",
-          "answer": "Dựng đồ thị, đánh dấu TCĐ/TCX, cực trị; nếu hình không khớp BBT thì kiểm lại đạo hàm và miền xác định."
+          "question": "Phản biện: \"Hai hàm có cùng tiệm cận xiên thì có cùng hình dạng\".",
+          "answer": "Sai. Tiệm cận xiên chỉ mô tả hành vi ở xa gốc; gần tiệm cận đứng và vùng cực trị hai đồ thị khác nhau hoàn toàn (ví dụ y₁(0) = −0,5 và y₂(0) = −3)."
         }
       ],
       "quick": [
         {
-          "question": "Hàm rút gọn còn đường thẳng bỏ một điểm có tiệm cận xiên không?",
-          "solution": "Không gọi theo cùng cách của hàm phân thức; cần nêu rõ điểm loại và đường thẳng còn lại."
+          "question": "Vì sao y₁ có cực đại tại x = −3 nhưng giá trị −5 lại nhỏ hơn cực tiểu −1?",
+          "solution": "Vì \"cực đại/cực tiểu\" là tính chất địa phương (so với lân cận), không phải so sánh toàn cục; −5 là giá trị lớn nhất trong lân cận bên trái của nó."
         },
         {
-          "question": "Tại điểm TCĐ có được ghi giá trị hàm không?",
-          "solution": "Không; điểm đó không thuộc tập xác định."
+          "question": "Tiệm cận xiên của hai hàm có giống nhau không?",
+          "solution": "Có, cùng là y = x − 1, vì phần đa thức sau khi chia giống nhau."
         }
       ],
       "mistakes": [
-        "Nối hai nhánh qua tiệm cận đứng.",
-        "Bỏ điểm loại sau khi rút gọn.",
-        "Xét cực trị tại điểm không thuộc tập xác định."
+        "Nhầm cực đại/cực tiểu.",
+        "Kết luận hai hàm cùng đồ thị vì cùng tiệm cận.",
+        "Chia đa thức sai dấu."
       ],
       "diagram": "graph",
       "lessonType": "formation",
@@ -14072,7 +14174,15 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Luyện đồ thị, cực trị và tham số của hàm phân thức, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Hai hàm so sánh",
+        "a. y₁ = x − 1 + 1/(x+2): TCĐ x = −2; cực đại (−3;−5); cực tiểu (−1;−1).",
+        "b. y₂ = x − 1 + 2/(x−1): TCĐ x = 1; cực trị x = 1 ± √2.",
+        "2. Bài tham số",
+        "a. (x−1)² = m + 2 có hai nghiệm ⇔ m > −2."
+      ]
     },
     {
       "key": "12-6-38",
@@ -14082,71 +14192,68 @@
       "kind": "practice",
       "selfChoice": false,
       "title": "Luyện tập khảo sát tổng hợp",
-      "focus": "Tổng hợp khảo sát bậc ba và phân thức",
+      "focus": "Luyện khảo sát tổng hợp hai loại hàm: đa thức bậc ba y = x³ − 3x + 1 (cực đại (−1;3), cực tiểu (1;−1), điểm uốn (0;1), không tiệm cận) và phân thức y = (x²−2x+3)/(x−1) (TCĐ x = 1, TCX y = x − 1, cực trị x = 1 ± √2)",
       "formulas": [
-        "\\text{TXĐ}\\to y'\\to\\text{BBT}\\to\\text{cực trị}\\to\\text{giới hạn}\\to\\text{đồ thị}",
-        "y'=0",
-        "\\lim_{x\\to x_0}f(x)=\\pm\\infty",
-        "y=ax+b"
+        "y_1 = x^3 - 3x + 1",
+        "y_2 = x - 1 + \\dfrac{2}{x-1}",
+        "\\text{Đa thức: } y', y''; \\quad \\text{Phân thức: tiệm cận } + y'"
       ],
       "examples": [
         {
-          "question": "Lập bảng tiêu chí khảo sát cho $y=x^3-3x+1$. (tham khảo câu 1 SBT trang 117)",
-          "solution": "Tập xác định, đạo hàm, dấu đạo hàm, BBT, cực trị, giới hạn, giao trục và đồ thị.",
-          "sourceRef": "tham khảo câu 1 SBT trang 117"
+          "question": "So sánh quy trình khảo sát y₁ = x³ − 3x + 1 và y₂ = (x²−2x+3)/(x−1).",
+          "solution": "y₁: tập xác định ℝ, y′ = 3x² − 3 (cực đại (−1;3), cực tiểu (1;−1)), y″ = 6x (điểm uốn (0;1)), không tiệm cận. y₂: tập xác định x ≠ 1, chia được x − 1 + 2/(x−1) (TCĐ x = 1, TCX y = x − 1), y′ = 1 − 2/(x−1)² (cực trị x = 1 ± √2)."
         },
         {
-          "question": "So sánh quy trình khảo sát bậc ba với $y=\\frac{x^2+1}{x-1}$. (tham khảo câu 1 SBT trang 90)",
-          "solution": "Cả hai đều dùng đạo hàm và BBT; hàm phân thức phải tách điểm cấm và tiệm cận trước khi vẽ.",
-          "sourceRef": "tham khảo câu 1 SBT trang 90"
+          "question": "Vì sao không thể khảo sát hàm phân thức bằng đúng quy trình đa thức?",
+          "solution": "Vì phân thức có tập xác định bị khuyết (mẫu bằng 0) và có tiệm cận; bỏ qua hai yếu tố này sẽ vẽ sai hình dạng đồ thị gần điểm khuyết và ở xa gốc."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính đạo hàm $x^3-3x$.",
-          "answer": "$3x^2-3$."
+          "question": "Nêu điểm khác nhau cơ bản giữa khảo sát đa thức và phân thức.",
+          "answer": "Phân thức cần tìm tập xác định khuyết và tiệm cận; đa thức xác định trên ℝ và không có tiệm cận (trừ trường hợp đặc biệt)."
         },
         {
           "level": "NB",
-          "question": "Tìm TCĐ của $\\frac1{x+2}$.",
-          "answer": "$x=-2$."
+          "question": "Tìm cực trị của y = x³ − 3x + 1.",
+          "answer": "Cực đại (−1; 3); cực tiểu (1; −1)."
         },
         {
           "level": "TH",
-          "question": "Khảo sát nhanh $y=x^3-3x$.",
-          "answer": "Cực đại $2$ tại $x=-1$, cực tiểu $-2$ tại $x=1$, điểm uốn $O$."
+          "question": "Tìm tiệm cận của y = (x² − 2x + 3)/(x − 1).",
+          "answer": "Tiệm cận đứng x = 1; tiệm cận xiên y = x − 1."
         },
         {
           "level": "TH",
-          "question": "Tìm TCX của $\\frac{x^2+x+1}{x-1}$.",
-          "answer": "$y=x+2$."
+          "question": "Tìm nghiệm của y′ = 0 với y = (x² − 2x + 3)/(x − 1).",
+          "answer": "y′ = 1 − 2/(x−1)² = 0 ⇔ (x−1)² = 2 ⇔ x = 1 ± √2."
         },
         {
           "level": "VD",
-          "question": "Chọn một trong bốn hàm và giải thích vì sao đồ thị có số nhánh tương ứng.",
-          "answer": "Số nhánh bị chi phối bởi điểm cấm; hướng nhánh bởi dấu đạo hàm, giới hạn và tiệm cận."
+          "question": "Biện luận số nghiệm của (x² − 2x + 3)/(x − 1) = m theo m.",
+          "answer": "Phương trình tương đương x² − 2x + 3 = m(x − 1) ⇔ x² − (m+2)x + (m+3) = 0 (x ≠ 1). Số nghiệm phụ thuộc biệt số Δ = (m+2)² − 4(m+3) = m² − 8. Có hai nghiệm khi m² > 8, một nghiệm khi m = ±2√2, vô nghiệm khi |m| < 2√2 — kèm điều kiện loại x = 1."
         },
         {
           "level": "VD",
-          "question": "Dùng bảng so sánh để phát hiện một lời giải trộn sai hai dạng hàm.",
-          "answer": "Đối chiếu tập xác định, bậc đa thức, loại tiệm cận, điểm cực trị và giới hạn."
+          "question": "Phản biện lời giải khảo sát hàm phân thức mà không tìm tiệm cận.",
+          "answer": "Thiếu tiệm cận thì không biết hình dạng đồ thị ở xa gốc và gần điểm khuyết; bảng biến thiên cũng thiếu nhánh. Phải tìm tiệm cận đứng (mẫu = 0) và tiệm cận xiên (chia đa thức) trước khi vẽ."
         }
       ],
       "quick": [
         {
-          "question": "Nêu một điểm bắt buộc của mọi BBT.",
-          "solution": "Phải có miền xét và dấu đạo hàm/chiều biến thiên."
+          "question": "Vì sao hàm phân thức cần xét giới hạn tại điểm mẫu bằng 0?",
+          "solution": "Vì tại đó hàm không xác định và thường có tiệm cận đứng, quyết định hình dạng nhánh đồ thị."
         },
         {
-          "question": "Trong hàm phân thức, điểm cấm được ghi ở đâu?",
-          "solution": "Trong tập xác định và trên trục $Ox$/đồ thị để tách các khoảng."
+          "question": "Hàm đa thức bậc ba có tiệm cận không?",
+          "solution": "Không, vì xác định trên ℝ và khi x → ±∞ thì y → ±∞ theo đa thức, không tiến sát đường thẳng nào."
         }
       ],
       "mistakes": [
-        "Dùng một quy trình cho mọi hàm mà không xét miền xác định.",
-        "Đọc đồ thị mà bỏ điều kiện tiệm cận.",
-        "Bỏ giới hạn ở vô cực."
+        "Áp quy trình đa thức cho phân thức.",
+        "Bỏ tiệm cận xiên.",
+        "Quên loại điểm mẫu bằng 0 khi biện luận."
       ],
       "diagram": "graph",
       "digital": false,
@@ -14387,7 +14494,16 @@
       },
       "guidingQuestion": "Khi gặp các bài về Tổng hợp khảo sát bậc ba và phân thức, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Phân tích một mô hình tăng trưởng có giới hạn tài nguyên: đồ thị chỉ là công cụ, kết luận phải dựa trên giới hạn và dữ kiện., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. So sánh quy trình",
+        "a. Đa thức: ℝ; y′; y″; giới hạn; bảng; vẽ.",
+        "b. Phân thức: tập xác định khuyết; chia đa thức; tiệm cận; y′; bảng; vẽ.",
+        "2. Kết quả mẫu",
+        "a. y₁: cực đại (−1;3), cực tiểu (1;−1), điểm uốn (0;1).",
+        "b. y₂: TCĐ x = 1, TCX y = x − 1, cực trị x = 1 ± √2."
+      ]
     },
     {
       "key": "12-6-39",
@@ -14397,69 +14513,68 @@
       "kind": "formation",
       "selfChoice": false,
       "title": "Biểu thức tọa độ của tích vô hướng",
-      "focus": "Tính tích vô hướng, góc và điều kiện vuông góc trong Oxyz",
+      "focus": "Hình thành biểu thức tọa độ của tích vô hướng trên hai hướng vận chuyển trong kho a = (1;2;3), b = (2;−1;1): a·b = 3, |a| = √14, |b| = √6, góc ≈ 70,9°; điều kiện vuông góc a·b = 0",
       "formulas": [
-        "\\vec a\\cdot\\vec b=x_1x_2+y_1y_2+z_1z_2",
-        "\\cos(\\vec a,\\vec b)=\\frac{\\vec a\\cdot\\vec b}{\\lvert\\vec a\\rvert\\lvert\\vec b\\rvert}",
-        "\\vec a\\perp\\vec b\\Longleftrightarrow\\vec a\\cdot\\vec b=0",
-        "\\lvert\\vec a\\rvert=\\sqrt{x_1^2+y_1^2+z_1^2}"
+        "\\vec a\\cdot\\vec b = a_1b_1 + a_2b_2 + a_3b_3",
+        "|\\vec a| = \\sqrt{\\vec a\\cdot\\vec a}",
+        "\\cos\\alpha = \\dfrac{\\vec a\\cdot\\vec b}{|\\vec a||\\vec b|}"
       ],
       "examples": [
         {
-          "question": "Tính $\\vec a\\cdot\\vec b$ với $\\vec a=(1;2;-1),\\vec b=(2;-1;3)$.",
-          "solution": "$\\vec a\\cdot\\vec b=2-2-3=-3$."
+          "question": "Cho a = (1; 2; 3) và b = (2; −1; 1). Tính tích vô hướng và góc giữa hai vectơ.",
+          "solution": "a·b = 2 − 2 + 3 = 3. |a| = √14, |b| = √6. cos α = 3/(√14·√6) = √21/14 ≈ 0,327 ⇒ α ≈ 70,9°."
         },
         {
-          "question": "Kiểm tra vuông góc của $\\vec a=(1;2;1),\\vec b=(1;0;-1)$.",
-          "solution": "Tích vô hướng $1+0-1=0$, nên hai vectơ vuông góc."
+          "question": "Tìm m để b = (2; 1; m) vuông góc với a = (1; 2; 3).",
+          "solution": "a·b = 2 + 2 + 3m = 0 ⇒ m = −4/3."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính $(1;0;2)\\cdot(3;-1;1)$.",
-          "answer": "$5$."
+          "question": "Nêu công thức tích vô hướng theo tọa độ.",
+          "answer": "a·b = a₁b₁ + a₂b₂ + a₃b₃."
         },
         {
           "level": "NB",
-          "question": "Điều kiện vuông góc của hai vectơ là gì?",
-          "answer": "$\\vec a\\cdot\\vec b=0$."
+          "question": "Khi nào hai vectơ vuông góc?",
+          "answer": "Khi tích vô hướng của chúng bằng 0."
         },
         {
           "level": "TH",
-          "question": "Tính cosin góc giữa $\\vec a=(1;0;0),\\vec b=(1;1;0)$.",
-          "answer": "$\\cos=\\frac1{\\sqrt2}$."
+          "question": "Tính a·b với a = (1; 2; 3), b = (2; −1; 1).",
+          "answer": "2 − 2 + 3 = 3."
         },
         {
           "level": "TH",
-          "question": "Tìm $m$ để $\\vec a=(m;1;2),\\vec b=(1;-2;0)$ vuông góc.",
-          "answer": "$m-2=0$ nên $m=2$."
+          "question": "Tính cos góc giữa a = (1;2;3) và b = (2;−1;1).",
+          "answer": "cos α = 3/(√14·√6) = √21/14 ≈ 0,327."
         },
         {
           "level": "VD",
-          "question": "Chứng minh công thức cosin không thể dùng khi một vectơ không.",
-          "answer": "Mẫu $|\\vec a||\\vec b|$ bằng $0$ nếu một vectơ không; khi đó góc giữa hai vectơ không xác định."
+          "question": "Tìm m để (1; 2; 3) vuông góc với (2; m; 1).",
+          "answer": "2 + 2m + 3 = 0 ⇒ m = −5/2."
         },
         {
           "level": "VD",
-          "question": "Dùng sản phẩm vô hướng để kiểm tra hai đường thẳng vuông góc.",
-          "answer": "Lấy vectơ chỉ phương của hai đường; tích vô hướng bằng $0$ thì hai đường vuông góc nếu cắt nhau hoặc xét quan hệ theo ngữ cảnh."
+          "question": "Cho a = (1; 1; 0), b = (1; 0; 1). Tính góc giữa hai vectơ.",
+          "answer": "a·b = 1; |a| = |b| = √2 ⇒ cos α = 1/2 ⇒ α = 60°."
         }
       ],
       "quick": [
         {
-          "question": "Tính $(2;-1;0)\\cdot(0;3;4)$.",
-          "solution": "$-3$."
+          "question": "Vì sao góc nhọn cho tích vô hướng dương?",
+          "solution": "Vì a·b = |a||b|cos α và cos α > 0 khi α < 90°."
         },
         {
-          "question": "Nếu tích vô hướng dương thì góc nhọn hay tù?",
-          "solution": "Góc nhọn vì cosin dương, với hai vectơ khác không."
+          "question": "Tích vô hướng bằng 0 nghĩa là gì về hình học?",
+          "solution": "Hai vectơ vuông góc (hoặc một vectơ bằng 0)."
         }
       ],
       "mistakes": [
-        "Quên chia độ dài khi tính cosin.",
-        "Nhầm tích vô hướng với tích tọa độ.",
-        "Kết luận góc khi một vectơ bằng không."
+        "Bỏ sót một tọa độ khi tính tổng.",
+        "Nhầm dấu tọa độ âm.",
+        "Kết luận vuông góc khi tích chỉ nhỏ nhưng khác 0."
       ],
       "diagram": "dot",
       "digital": true,
@@ -14700,7 +14815,19 @@
       },
       "guidingQuestion": "Từ những dữ kiện và trường hợp cụ thể, làm thế nào để em tự phát hiện, phát biểu và giải thích quy tắc của Tính tích vô hướng, góc và điều kiện vuông góc trong Oxyz, đồng thời biết điều kiện nào phải kiểm trước khi kết luận?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Ứng dụng hướng vectơ trong định hướng tấm pin và kiểm tra góc chiếu sáng trong bài toán năng lượng., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Ba công thức",
+        "a. a·b = a₁b₁ + a₂b₂ + a₃b₃.",
+        "b. |a| = √(a·a).",
+        "c. cos α = (a·b)/(|a||b|).",
+        "2. Vuông góc",
+        "a. a ⊥ b ⇔ a·b = 0.",
+        "3. Áp dụng",
+        "a. a = (1;2;3), b = (2;−1;1): a·b = 3; α ≈ 70,9°.",
+        "b. b′ = (2;1;−4/3) vuông góc a."
+      ]
     },
     {
       "key": "12-6-40",
@@ -14710,72 +14837,68 @@
       "kind": "practice",
       "selfChoice": false,
       "title": "Luyện tập tích vô hướng tọa độ",
-      "focus": "Luyện góc, vuông góc và tham số trong Oxyz",
+      "focus": "Luyện tích vô hướng tọa độ trên tam giác ba trụ A(1;0;0), B(0;1;0), C(0;0;1): AB·AC = 1, ba cạnh bằng √2, góc A = 60° (tam giác đều); rèn nhận dạng tam giác và bài toán tham số vuông góc",
       "formulas": [
-        "\\vec a\\cdot\\vec b=x_1x_2+y_1y_2+z_1z_2",
-        "\\cos(\\vec a,\\vec b)=\\frac{\\vec a\\cdot\\vec b}{\\lvert\\vec a\\rvert\\lvert\\vec b\\rvert}",
-        "\\vec a\\perp\\vec b\\Longleftrightarrow\\vec a\\cdot\\vec b=0",
-        "\\lvert\\vec a\\pm\\vec b\\rvert^2=\\lvert\\vec a\\rvert^2+\\lvert\\vec b\\rvert^2\\pm2\\vec a\\cdot\\vec b"
+        "\\cos\\alpha = \\dfrac{\\vec u\\cdot\\vec v}{|\\vec u||\\vec v|}",
+        "\\vec u \\perp \\vec v \\Leftrightarrow \\vec u\\cdot\\vec v = 0",
+        "AB = AC = BC = \\sqrt2 \\Rightarrow \\text{tam giác đều}"
       ],
       "examples": [
         {
-          "question": "Tính góc giữa $\\vec a=(1;1;0),\\vec b=(1;0;1)$. (tham khảo câu 1 SBT trang 244)",
-          "solution": "Tích bằng $1$, hai độ dài đều $\\sqrt2$, nên $\\cos=\\frac12$ và góc $60$ độ.",
-          "sourceRef": "tham khảo câu 1 SBT trang 244"
+          "question": "Cho A(1;0;0), B(0;1;0), C(0;0;1). Tính góc A và nhận dạng tam giác.",
+          "solution": "AB = (−1;1;0), AC = (−1;0;1); AB·AC = 1; |AB| = |AC| = √2 ⇒ cos A = 1/2 ⇒ A = 60°. BC = (0;−1;1) có độ dài √2 nên tam giác đều."
         },
         {
-          "question": "Tìm $m$ để $\\vec a=(m;1;1),\\vec b=(2;-1;3)$ vuông góc. (tham khảo ví dụ 5 SBT trang 243)",
-          "solution": "Điều kiện $2m-1+3=0$ nên $m=-1$.",
-          "sourceRef": "tham khảo ví dụ 5 SBT trang 243"
+          "question": "Tìm m để tam giác với A(0;0;0), B(1;1;0), C(1;0;m) vuông tại A.",
+          "solution": "AB·AC = (1;1;0)·(1;0;m) = 1 ≠ 0 với mọi m ⇒ không thể vuông tại A. Muốn vuông tại A phải đổi tọa độ B hoặc C."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính $(1;2;3)\\cdot(0;1;-1)$. (tham khảo câu 1 SBT trang 244)",
-          "answer": "$-1$.",
-          "sourceRef": "tham khảo câu 1 SBT trang 244"
+          "question": "Nêu công thức cos góc giữa hai vectơ.",
+          "answer": "cos α = (u·v)/(|u||v|)."
         },
         {
           "level": "NB",
-          "question": "Nêu công thức độ dài vectơ trong Oxyz.",
-          "answer": "$|\\vec a|=\\sqrt{x^2+y^2+z^2}$."
+          "question": "Tam giác vuông tại A khi nào?",
+          "answer": "Khi AB·AC = 0."
         },
         {
           "level": "TH",
-          "question": "Tìm $m$ để $(m;2;1)\\cdot(1;-1;0)=0$.",
-          "answer": "$m-2=0$ nên $m=2$."
+          "question": "Tính góc A của tam giác A(1;0;0), B(0;1;0), C(0;0;1).",
+          "answer": "AB·AC = 1; |AB| = |AC| = √2 ⇒ cos A = 1/2 ⇒ A = 60°."
         },
         {
           "level": "TH",
-          "question": "Tính $\\cos(\\vec a,\\vec b)$ với $\\vec a=(1;0;1),\\vec b=(0;1;1)$.",
-          "answer": "$\\cos=\\frac12$."
+          "question": "Tính độ dài BC trong tam giác trên.",
+          "answer": "BC = (0;−1;1) ⇒ |BC| = √2."
         },
         {
           "level": "VD",
-          "question": "Chứng minh đẳng thức $|\\vec a+\\vec b|^2=|\\vec a|^2+|\\vec b|^2+2\\vec a\\cdot\\vec b$.",
-          "answer": "Khai triển theo tọa độ từng thành phần rồi nhóm các tích $x_1x_2+y_1y_2+z_1z_2$."
+          "question": "Tìm m để (1; 2; 3) vuông góc với (2; 1; m).",
+          "answer": "2 + 2 + 3m = 0 ⇒ m = −4/3."
         },
         {
           "level": "VD",
-          "question": "Tạo một bài tìm tham số để góc giữa hai vectơ là $60$ độ.",
-          "answer": "Dùng $\\vec a\\cdot\\vec b=\\frac12|\\vec a||\\vec b|$ rồi giải phương trình theo tham số."
+          "question": "Phản biện: \"Tích vô hướng dương nghĩa là hai vectơ vuông góc\".",
+          "answer": "Sai. Vuông góc khi tích bằng 0. Tích dương nghĩa là góc nhọn (cos > 0), ví dụ tam giác đều có góc 60° và tích dương."
         }
       ],
       "quick": [
         {
-          "question": "Tích vô hướng bằng $0$ cho biết điều gì?",
-          "solution": "Hai vectơ khác không vuông góc."
+          "question": "Vì sao tam giác trên là tam giác đều?",
+          "solution": "Vì ba cạnh đều bằng √2 (AB = AC = BC)."
         },
         {
-          "question": "Khi tính cosin, đại lượng nào dễ bị quên?",
-          "solution": "Hai độ dài ở mẫu."
+          "question": "Tích vô hướng âm cho biết gì?",
+          "solution": "Góc giữa hai vectơ là góc tù (cos α < 0)."
         }
       ],
       "mistakes": [
-        "Quên một tích tọa độ.",
-        "Nhầm dấu trong tham số.",
-        "Dùng đơn vị độ/radian không nhất quán khi tính góc."
+        "Kết luận vuông góc khi tích dương.",
+        "Tính sai vectơ (đảo chiều).",
+        "Nhầm góc 60° với 120°."
       ],
       "diagram": "dot",
       "lessonType": "practice",
@@ -15013,7 +15136,16 @@
       },
       "guidingQuestion": "Khi gặp các bài về Luyện góc, vuông góc và tham số trong Oxyz, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "Không gán bối cảnh toàn cầu nếu không phục vụ mục tiêu Toán; có thể mở rộng bằng một câu hỏi so sánh nếu còn thời gian.",
-      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế."
+      "digitalCompetency": "Nếu dùng công cụ số, chỉ dùng để hiển thị/thu câu trả lời và luôn có sản phẩm vở/phiếu thay thế.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Ba kỹ năng",
+        "a. Tính góc qua cos.",
+        "b. Kiểm vuông góc qua tích = 0.",
+        "c. Nhận dạng tam giác qua độ dài.",
+        "2. Áp dụng",
+        "a. A(1;0;0), B(0;1;0), C(0;0;1): AB·AC = 1; A = 60°; tam giác đều cạnh √2."
+      ]
     },
     {
       "key": "12-6-41",
@@ -15023,72 +15155,68 @@
       "kind": "practice",
       "selfChoice": true,
       "title": "Tự chọn: khảo sát và tích vô hướng",
-      "focus": "Chọn nhiệm vụ mở kết hợp đồ thị, tọa độ và góc",
+      "focus": "Tự chọn một trong hai mạch: khảo sát hàm phân thức y = (x²−2x+3)/(x−1) (TCĐ x = 1, TCX y = x − 1, cực trị x = 1 ± √2) hoặc tích vô hướng với điều kiện vuông góc (a = (1;2;3), b = (2;1;m) ⇒ m = −4/3); mỗi mạch đều có phép kiểm",
       "formulas": [
-        "y'=f'(x)",
-        "\\vec a\\cdot\\vec b=x_1x_2+y_1y_2+z_1z_2",
-        "\\cos(\\vec a,\\vec b)=\\frac{\\vec a\\cdot\\vec b}{\\lvert\\vec a\\rvert\\lvert\\vec b\\rvert}",
-        "\\vec a\\perp\\vec b\\Longleftrightarrow\\vec a\\cdot\\vec b=0"
+        "y = x - 1 + \\dfrac{2}{x-1}",
+        "\\vec a\\cdot\\vec b = 2 + 2 + 3m",
+        "\\vec a \\perp \\vec b \\Leftrightarrow m = -\\dfrac43"
       ],
       "examples": [
         {
-          "question": "Cho $f(x)=\\frac{x^2+1}{x-1}$ và $\\vec a=(1;1;0),\\vec b=(1;0;1)$. Hãy lập nhiệm vụ mở kết hợp khảo sát và góc. (tham khảo câu 1 SBT trang 90)",
-          "solution": "Tập xác định $\\mathbb R\\setminus\\{1\\}$; tiệm cận xiên $y=x+1$; $\\vec a\\cdot\\vec b=1$ và $\\cos(\\vec a,\\vec b)=\\frac12$. Sản phẩm gồm bảng khảo sát, phép tính góc và một phép kiểm độc lập bằng tính toán tay.",
-          "sourceRef": "tham khảo câu 1 SBT trang 90"
+          "question": "Mạch A: tìm tiệm cận và cực trị của y = (x² − 2x + 3)/(x − 1).",
+          "solution": "y = x − 1 + 2/(x−1) ⇒ TCĐ x = 1, TCX y = x − 1. y′ = 1 − 2/(x−1)² = 0 ⇒ x = 1 ± √2 (cực tiểu tại 1 + √2 với y = 2√2; cực đại tại 1 − √2)."
         },
         {
-          "question": "Cho hai vectơ $\\vec a=(1;0;1),\\vec b=(1;1;0)$. Tính tích vô hướng và cosin góc giữa hai vectơ. (tham khảo câu 1 SBT trang 244)",
-          "solution": "$\\vec a\\cdot\\vec b=1$; mỗi vectơ có độ dài $\\sqrt2$, nên $\\cos(\\vec a,\\vec b)=\\frac12$ và góc giữa chúng là $60^\\circ$.",
-          "sourceRef": "tham khảo câu 1 SBT trang 244"
+          "question": "Mạch B: tìm m để a = (1;2;3) vuông góc với b = (2;1;m) và kiểm lại.",
+          "solution": "a·b = 2 + 2 + 3m = 0 ⇒ m = −4/3. Kiểm: 4 + 3·(−4/3) = 4 − 4 = 0 ✓."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tính $(1;1;1)\\cdot(1;-1;0)$.",
-          "answer": "$0$."
+          "question": "Nêu điều kiện vuông góc của hai vectơ theo tọa độ.",
+          "answer": "a₁b₁ + a₂b₂ + a₃b₃ = 0."
         },
         {
           "level": "NB",
-          "question": "Nêu một bước khảo sát hàm số.",
-          "answer": "Tìm tập xác định hoặc đạo hàm và bảng biến thiên."
+          "question": "Nêu cách tìm tiệm cận xiên của hàm bậc hai/bậc nhất.",
+          "answer": "Chia tử cho mẫu, lấy phần đa thức bậc nhất làm tiệm cận xiên."
         },
         {
           "level": "TH",
-          "question": "Tìm góc giữa $(1;0;0)$ và $(1;1;0)$. (tham khảo câu 1 SBT trang 244)",
-          "answer": "$\\cos=\\frac1{\\sqrt{2}}$.",
-          "sourceRef": "tham khảo câu 1 SBT trang 244"
+          "question": "Tìm m để (1;2;3) vuông góc (2;1;m).",
+          "answer": "2 + 2 + 3m = 0 ⇒ m = −4/3."
         },
         {
           "level": "TH",
-          "question": "Tìm $m$ để $(m;1;0)$ vuông góc $(2;-1;3)$.",
-          "answer": "$2m-1=0$ nên $m=\\frac12$."
+          "question": "Tìm tiệm cận của y = (x² − 2x + 3)/(x − 1).",
+          "answer": "TCĐ x = 1; TCX y = x − 1."
         },
         {
           "level": "VD",
-          "question": "Với $\\vec a=(1;0;1),\\vec b=(1;1;0$, lập rubric 10 điểm cho lời giải tính góc giữa hai vectơ.",
-          "answer": "Dữ kiện và công thức 2 điểm; tích vô hướng 2 điểm; hai độ dài 2 điểm; thay vào công thức cosin 2 điểm; kết luận góc và phép kiểm 2 điểm."
+          "question": "Tìm cực trị của y = (x² − 2x + 3)/(x − 1).",
+          "answer": "x = 1 ± √2; cực tiểu (1+√2; 2√2), cực đại (1−√2; −2√2)."
         },
         {
           "level": "VD",
-          "question": "Nêu cách phản biện một kết quả tính toán được đề xuất.",
-          "answer": "Thay lại dữ kiện, ước lượng dấu/độ lớn, kiểm bằng công thức độc lập và ghi rõ điểm không chắc chắn."
+          "question": "Nêu 3 tiêu chí chấm bài trình bày của nhóm bạn.",
+          "answer": "Ví dụ: (1) chọn đúng công cụ theo dữ kiện; (2) trình bày đủ bước, có lập luận; (3) có phép kiểm độc lập và kết luận rõ ràng."
         }
       ],
       "quick": [
         {
-          "question": "Một kết quả đúng hình nhưng sai công thức có được chấp nhận không?",
-          "solution": "Không; phải có lập luận và phép kiểm độc lập."
+          "question": "Vì sao phải kiểm lại m sau khi giải?",
+          "solution": "Vì lỗi dấu khi chuyển vế rất phổ biến; thay lại vào tích vô hướng là phép kiểm nhanh và chắc chắn."
         },
         {
-          "question": "Tự định hướng cuối tiết cần ghi gì?",
-          "solution": "Mục tiêu tiếp theo, bằng chứng còn thiếu và một hành động cụ thể trước tiết sau."
+          "question": "Hàm phân thức có tiệm cận ngang không?",
+          "solution": "Không, vì bậc tử lớn hơn bậc mẫu; chỉ có tiệm cận đứng và xiên."
         }
       ],
       "mistakes": [
-        "Gọi hình vẽ là bằng chứng duy nhất.",
-        "Quên một thành phần khi tính tích vô hướng.",
-        "Rubric không gắn với sản phẩm cụ thể."
+        "Sai dấu khi chuyển vế.",
+        "Bỏ tiệm cận xiên.",
+        "Không có phép kiểm."
       ],
       "diagram": "dot",
       "digital": true,
@@ -15329,7 +15457,17 @@
       },
       "guidingQuestion": "Khi gặp các bài về Chọn nhiệm vụ mở kết hợp đồ thị, tọa độ và góc, dựa vào dấu hiệu nào để em chọn chiến lược phù hợp, trình bày lời giải có căn cứ và tự kiểm được kết quả?",
       "globalCompetency": "HS đặt cạnh nhau ít nhất hai góc nhìn/dữ liệu trong bối cảnh Đánh giá một mô hình định hướng/đo đạc có ý nghĩa quốc tế bằng dữ kiện, vectơ và phép kiểm minh bạch., ghi nguồn/giả định và nói rõ giới hạn của mô hình.",
-      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất."
+      "digitalCompetency": "HS dùng công cụ số để khám phá/đối chiếu, ghi đầu vào và phép kiểm độc lập; không coi hình ảnh hoặc kết quả phần mềm là lập luận duy nhất.",
+      "boardKnowledge": [
+        "II. NỘI DUNG",
+        "1. Mạch A",
+        "a. y = x − 1 + 2/(x−1).",
+        "b. TCĐ x = 1; TCX y = x − 1.",
+        "c. Cực trị x = 1 ± √2.",
+        "2. Mạch B",
+        "a. a·b = 2 + 2 + 3m.",
+        "b. Vuông góc ⇔ m = −4/3."
+      ]
     },
     {
       "key": "10-11-79",
@@ -16056,224 +16194,224 @@
       "key": "12-5-26",
       "mode": "micro",
       "category": "Lỗi đại số",
-      "wrongSolution": "Với f(x) = (x² + 1)/x, AI chia đa thức thành f(x) = x + 1 nên kết luận tiệm cận xiên là y = x + 1.",
-      "correction": "x² + 1 chia cho x cho thương x và dư 1, nên f(x) = x + 1/x; tiệm cận xiên là y = x.",
-      "proof": "f(x) − x = 1/x → 0 khi x → ±∞; còn f(x) − (x + 1) = 1/x − 1 không tiến về 0.",
-      "teacherPrompt": "Phần dư sau chia đa thức là gì? Em dùng giới hạn hiệu để kiểm đường tiệm cận.",
-      "studentProduct": "Sửa thương/phần dư, phân loại lỗi và tính giới hạn hiệu với đường thẳng sửa.",
-      "boardPrompt": "Tiệm cận xiên: thương + phần dư → kiểm giới hạn hiệu.",
-      "libraryTitle": "Tiệm cận xiên: chia đa thức sai phần dư",
-      "whyAiError": "Đầu ra có thể nối đúng các ký hiệu nhưng bỏ sót dấu, hệ số hoặc bước biến đổi; vì vậy phải kiểm tra lại bằng phép tính độc lập.",
+      "wrongSolution": "AI kết luận: \"C(x) = (x² + 2x + 3)/(x+1) ≈ x nên tiệm cận xiên là y = x.\" (bỏ phần hằng số +1 của thương).",
+      "correction": "Thương đầy đủ là x + 1; tiệm cận xiên là y = x + 1.",
+      "proof": "Kiểm bằng định nghĩa: C(x) − x = 1 + 2/(x+1) → 1 ≠ 0, nên y = x không phải tiệm cận. Còn C(x) − (x+1) = 2/(x+1) → 0, nên y = x + 1 đúng.",
+      "teacherPrompt": "Em tính C(x) − x và C(x) − (x+1) để kiểm, rồi sửa lại tiệm cận xiên của AI.",
+      "studentProduct": "Thẻ Đ/S + hai giới hạn hiệu chứng minh y = x + 1.",
+      "boardPrompt": "AI nói tiệm cận xiên là y = x. Tính C(x) − x.",
+      "libraryTitle": "Lỗi AI bỏ hằng số khi tìm tiệm cận xiên",
+      "whyAiError": "Mô hình chỉ giữ số hạng bậc cao nhất của thương, bỏ hằng số — lỗi rút gọn quá mức khi chia đa thức.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-5-27": {
       "key": "12-5-27",
       "mode": "full",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "Với f(x) = (x² − 1)/(x − 1), AI rút gọn f(x) = x + 1 rồi kết luận có tiệm cận đứng x = 1.",
-      "correction": "Với x ≠ 1, f(x) = x + 1; tại x = 1 hàm không xác định, tạo điểm khuyết chứ không tạo tiệm cận đứng.",
-      "proof": "lim khi x → 1 của f(x) = lim(x + 1) = 2 hữu hạn, nên x = 1 không là tiệm cận đứng.",
-      "teacherPrompt": "Sau khi rút gọn, điều kiện x ≠ 1 còn được giữ không? Giới hạn tại x = 1 phân biệt điểm khuyết với tiệm cận thế nào?",
-      "studentProduct": "Ghi miền xác định, sửa loại tiệm cận/điểm khuyết và chứng minh bằng giới hạn.",
-      "boardPrompt": "Rút gọn không xóa điều kiện điểm cấm.",
-      "libraryTitle": "Hàm phân thức: điểm khuyết bị nhầm thành tiệm cận đứng",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận: \"f(x) = (2x² + 3x − 1)/(x + 1) có tiệm cận ngang y = 2 vì hệ số bậc cao nhất của tử là 2 và của mẫu là 1.\"",
+      "correction": "Bậc tử (2) lớn hơn bậc mẫu (1) nên không có tiệm cận ngang. Hàm có tiệm cận xiên y = 2x + 1 (và tiệm cận đứng x = −1).",
+      "proof": "Tính f(100) = (20000 + 300 − 1)/101 ≈ 201,0 — không tiến về 2. Chia đa thức: f = 2x + 1 − 2/(x+1), nên đường tiệm cận là y = 2x + 1.",
+      "teacherPrompt": "Em so bậc tử và mẫu, tính f(100) rồi sửa lại kết luận tiệm cận của AI.",
+      "studentProduct": "Thẻ Đ/S + phép chia đa thức và giá trị f(100) bác bỏ tiệm cận ngang.",
+      "boardPrompt": "AI nói tiệm cận ngang y = 2. Tính f(100).",
+      "libraryTitle": "Lỗi AI áp công thức tiệm cận ngang khi bậc khác nhau",
+      "whyAiError": "Mô hình áp công thức tỉ số hệ số bậc cao nhất mà không kiểm điều kiện bậc bằng nhau.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-5-28": {
       "key": "12-5-28",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "AI khảo sát hàm bậc ba bằng cách tìm y′ và lập bảng biến thiên nhưng bỏ qua giới hạn ở hai đầu vì đồ thị bậc ba luôn đi qua hai cực trị.",
-      "correction": "Phải ghi giới hạn khi x → ±∞ để xác định hướng đi của hai nhánh trước khi vẽ đồ thị.",
-      "proof": "Hai hàm có cùng các điểm cực trị nhưng hệ số bậc cao nhất trái dấu sẽ đi về vô cực theo hai hướng khác nhau.",
-      "teacherPrompt": "Bảng biến thiên thiếu dòng nào khiến hình vẽ chưa được xác định? Em nêu vai trò của giới hạn hai đầu.",
-      "studentProduct": "Đánh dấu mục thiếu, bổ sung giới hạn và sửa một đoạn đồ thị theo chiều đi đúng.",
-      "boardPrompt": "Khảo sát hàm: giới hạn hai đầu trước khi vẽ.",
-      "libraryTitle": "Khảo sát hàm bậc ba: vẽ đồ thị khi thiếu giới hạn vô cực",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận: \"y = x³ − 3x + 1 có cực tiểu tại (−1; 3) và cực đại tại (1; −1) vì y′ đổi dấu tại hai điểm này.\"",
+      "correction": "Với hệ số a = 1 > 0: y′ > 0 trên (−∞;−1), < 0 trên (−1;1) nên (−1;3) là cực ĐẠI; (1;−1) là cực TIỂU.",
+      "proof": "Lập bảng dấu y′ = 3(x−1)(x+1): dương khi x < −1, âm khi −1 < x < 1, dương khi x > 1. Đổi từ + sang − tại x = −1 ⇒ cực đại; đổi từ − sang + tại x = 1 ⇒ cực tiểu.",
+      "teacherPrompt": "Em lập bảng dấu y′ rồi sửa lại nhãn cực đại/cực tiểu của AI.",
+      "studentProduct": "Thẻ Đ/S + bảng dấu y′ và kết luận cực đại (−1;3), cực tiểu (1;−1).",
+      "boardPrompt": "AI đổi nhãn cực trị. Bảng dấu y′ nói gì?",
+      "libraryTitle": "Lỗi AI đảo nhãn cực đại và cực tiểu",
+      "whyAiError": "Mô hình gán nhãn cực trị theo vị trí trái/phải thay vì xét chiều đổi dấu của đạo hàm.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-5-29": {
       "key": "12-5-29",
       "mode": "full",
       "category": "Lỗi logic",
-      "wrongSolution": "Với f′(x) = (x − 1)², AI kết luận x = 1 là điểm cực trị vì đạo hàm bằng 0 tại đó.",
-      "correction": "f′(x) ≥ 0 ở cả hai phía và không đổi dấu qua x = 1; x = 1 không phải điểm cực trị theo tiêu chí đổi dấu.",
-      "proof": "Chọn x = 0, f′(0) = 1 > 0 và x = 2, f′(2) = 1 > 0; hàm vẫn tăng qua x = 1.",
-      "teacherPrompt": "Đạo hàm bằng 0 đã đủ kết luận cực trị chưa? Em kiểm dấu ở hai phía của điểm nghi ngờ.",
-      "studentProduct": "Phân loại lỗi logic, lập bảng dấu hai phía và sửa kết luận cực trị.",
-      "boardPrompt": "f′ = 0 chỉ là ứng viên; phải kiểm dấu hai phía.",
-      "libraryTitle": "Khảo sát hàm: nhầm nghiệm đạo hàm với điểm cực trị",
-      "whyAiError": "Đầu ra có thể nhảy từ một hình ảnh, một trường hợp hoặc một kết quả riêng sang kết luận chung mà chưa chứng minh quan hệ kéo theo.",
+      "wrongSolution": "AI biện luận: \"Phương trình x³ − 3x + 1 = m có 3 nghiệm khi m < 3, vì cực đại bằng 3 nên m dưới 3 là cắt ba lần.\"",
+      "correction": "Phải chặn cả hai phía: 3 nghiệm chỉ khi −1 < m < 3 (giữa cực tiểu và cực đại). Với m < −1 đường ngang nằm dưới cực tiểu nên chỉ 1 nghiệm.",
+      "proof": "Thử m = −2: phương trình x³ − 3x + 3 = 0. Hàm có cực tiểu −1 > −2 nên đồ thị luôn nằm trên đường y = −2 tại mọi cực trị, chỉ cắt một lần ở nhánh trái. Kiểm bằng bảng giá trị: y(−2) = −8 + 6 + 1 = −1 > −2, nghĩa là đồ thị đã vượt lên trên.",
+      "teacherPrompt": "Em thử m = −2 và đếm số giao điểm để sửa lại miền biện luận của AI.",
+      "studentProduct": "Thẻ Đ/S + thử m = −2 (1 nghiệm) và kết luận miền đúng −1 < m < 3.",
+      "boardPrompt": "AI nói m < 3 có 3 nghiệm. Thử m = −2.",
+      "libraryTitle": "Lỗi AI biện luận chỉ dùng một cực trị",
+      "whyAiError": "Mô hình chỉ dùng một cực trị (cực đại) làm ngưỡng, bỏ qua cực tiểu.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-5-30": {
       "key": "12-5-30",
       "mode": "micro",
       "category": "Lỗi đại số",
-      "wrongSolution": "Với A(1;2;3), B(4;6;3), AI tính AB = √(3² + 6² + 0²) = √45 vì lấy tung độ của B thay cho hiệu tung độ.",
-      "correction": "AB = √[(4−1)² + (6−2)² + (3−3)²] = √25 = 5.",
-      "proof": "Vectơ AB có tọa độ (3;4;0), nên độ dài là √(9 + 16) = 5.",
-      "teacherPrompt": "Mỗi thành phần của vectơ AB phải lấy từ phép trừ nào? Em viết vectơ trước rồi mới tính độ dài.",
-      "studentProduct": "Sửa ba thành phần, phân loại lỗi và kiểm khoảng cách bằng vectơ AB.",
-      "boardPrompt": "Khoảng cách: hiệu từng tọa độ rồi mới bình phương.",
-      "libraryTitle": "Oxyz: lấy tọa độ thay vì hiệu tọa độ khi tính khoảng cách",
-      "whyAiError": "Đầu ra có thể nối đúng các ký hiệu nhưng bỏ sót dấu, hệ số hoặc bước biến đổi; vì vậy phải kiểm tra lại bằng phép tính độc lập.",
+      "wrongSolution": "AI tính: \"AB = √((3 − 1) + (0 − 2) + (1 − 3)) = √(2 − 2 − 2) = √(−2), vậy AB ≈ 1,41.\"",
+      "correction": "Công thức khoảng cách dùng bình phương từng hiệu: AB² = 2² + (−2)² + (−2)² = 12 ⇒ AB = 2√3 ≈ 3,46.",
+      "proof": "Kết quả √(−2) không tồn tại trong ℝ — dấu hiệu chắc chắn của việc bỏ bình phương. Kiểm bằng tọa độ: hiệu các tọa độ là 2, −2, −2 nên tổng bình phương là 4 + 4 + 4 = 12.",
+      "teacherPrompt": "Em kiểm kết quả √(−2) của AI: căn của số âm có tồn tại không? Sửa lại công thức.",
+      "studentProduct": "Thẻ Đ/S + chỉ ra căn âm vô lý và tính lại AB = 2√3.",
+      "boardPrompt": "AI ra AB = √(−2). Sai ở bước nào?",
+      "libraryTitle": "Lỗi AI bỏ bình phương trong công thức khoảng cách",
+      "whyAiError": "Mô hình rút gọn công thức khoảng cách thành tổng các hiệu, bỏ phép bình phương.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-5-31": {
       "key": "12-5-31",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "AI dùng công thức |k a| = k|a| cho mọi số k; với k = −2, AI cho độ dài là −2|a|.",
-      "correction": "Độ dài không âm nên |k a| = |k|·|a|; với k = −2, kết quả là 2|a|.",
-      "proof": "Lấy a khác vectơ không; độ dài của −2a luôn dương, không thể bằng số âm −2|a|.",
-      "teacherPrompt": "Điều kiện nào của đại lượng độ dài bị AI bỏ? Em thử k âm để kiểm công thức.",
-      "studentProduct": "Bổ sung trị tuyệt đối, phân loại lỗi và kiểm bằng một vectơ cụ thể.",
-      "boardPrompt": "Độ dài không âm: hệ số phải qua trị tuyệt đối.",
-      "libraryTitle": "Vectơ: bỏ trị tuyệt đối của hệ số khi tính độ dài",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI tính: \"2a − b với a = (1; −2; 3), b = (2; 1; −1): 2a = (2; −4; 6); trừ b được (2 − 2; −4 − 1; 6 − 1) = (0; −5; 5).\"",
+      "correction": "Tọa độ thứ ba sai: 6 − (−1) = 7, không phải 6 − 1 = 5. Kết quả đúng là (0; −5; 7).",
+      "proof": "Kiểm ngược: (2a − b) + b phải bằng 2a. Với (0; −5; 5) + (2; 1; −1) = (2; −4; 4) ≠ (2; −4; 6). Với (0; −5; 7): tổng = (2; −4; 6) ✓.",
+      "teacherPrompt": "Em kiểm bằng phép cộng ngược (2a − b) + b rồi sửa lại tọa độ thứ ba.",
+      "studentProduct": "Thẻ Đ/S + phép kiểm ngược và kết quả (0; −5; 7).",
+      "boardPrompt": "AI ra (0; −5; 5). Cộng lại với b xem có bằng 2a?",
+      "libraryTitle": "Lỗi AI rơi dấu âm khi trừ vectơ",
+      "whyAiError": "Mô hình đánh rơi dấu âm của tọa độ b₃ = −1 khi thực hiện phép trừ.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-5-32": {
       "key": "12-5-32",
       "mode": "full",
-      "category": "Lỗi đại số",
-      "wrongSolution": "Với A(1;2;3), B(4;0;5), AI viết vectơ AB = A − B = (−3;2;−2).",
-      "correction": "Vectơ AB = B − A = (3;−2;2); A − B là vectơ BA.",
-      "proof": "A + AB = (1;2;3) + (3;−2;2) = (4;0;5) = B.",
-      "teacherPrompt": "Mũi tên AB bắt đầu ở đâu và kết thúc ở đâu? Em dùng đẳng thức A + AB = B để kiểm.",
-      "studentProduct": "Sửa thứ tự trừ, ghi loại lỗi và kiểm bằng phép cộng điểm–vectơ.",
-      "boardPrompt": "Vectơ AB = B − A; kiểm bằng A + AB = B.",
-      "libraryTitle": "Vectơ tọa độ: đảo thứ tự hai đầu mút",
-      "whyAiError": "Đầu ra có thể nối đúng các ký hiệu nhưng bỏ sót dấu, hệ số hoặc bước biến đổi; vì vậy phải kiểm tra lại bằng phép tính độc lập.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận: \"A(1; 0; 0), B(0; 1; 0), C(0; 0; 1) thẳng hàng vì AB = AC = √2.\"",
+      "correction": "Bằng độ dài không suy ra cùng phương. AB = (−1; 1; 0), AC = (−1; 0; 1) không tỉ lệ nên ba điểm không thẳng hàng.",
+      "proof": "Nếu cùng phương phải có k với (−1;1;0) = k(−1;0;1). Từ tọa độ thứ hai: 1 = 0·k ⇒ vô lý. Vậy không tồn tại k, ba điểm không thẳng hàng.",
+      "teacherPrompt": "Em lập tỉ lệ tọa độ của AB và AC để kiểm, rồi sửa lại kết luận của AI.",
+      "studentProduct": "Thẻ Đ/S + phép thử tìm k cho thấy vô nghiệm, kết luận không thẳng hàng.",
+      "boardPrompt": "AI nói thẳng hàng vì AB = AC. Kiểm tỉ lệ tọa độ.",
+      "libraryTitle": "Lỗi AI nhầm cùng độ dài với cùng phương",
+      "whyAiError": "Mô hình dùng đại lượng vô hướng (độ dài) để suy ra quan hệ phương của vectơ.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-5-33": {
       "key": "12-5-33",
       "mode": "full",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "Với f(x) = (x² − 1)/(x − 1), AI rút gọn thành x + 1 rồi tính f(1) = 2 vì biểu thức mới đã không còn mẫu.",
-      "correction": "Điều kiện ban đầu x ≠ 1 vẫn giữ nguyên; f(1) không xác định, đồ thị có điểm khuyết (1;2).",
-      "proof": "Mẫu số ban đầu bằng 0 tại x = 1; rút gọn chỉ đúng trên miền x ≠ 1, không được gán lại giá trị tại điểm cấm.",
-      "teacherPrompt": "Phép rút gọn có khôi phục được giá trị tại điểm cấm không? Em ghi miền xác định trước khi kết luận.",
-      "studentProduct": "Chỉ ra điều kiện bị rơi, sửa giá trị/đồ thị và chứng minh bằng mẫu số ban đầu.",
-      "boardPrompt": "Mọi biến đổi hàm phân thức phải giữ miền xác định.",
-      "libraryTitle": "Nhiệm vụ mở: rút gọn đúng nhưng gán sai giá trị tại điểm cấm",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI tính: \"AC = C − A với A(1; 2; 3), C(2; 1; 2) nên AC = (−1; 1; 1). Vì AB = (2; −2; −2) = −2·AC nên A, B, C thẳng hàng và B, C nằm cùng phía A.\"",
+      "correction": "AC = C − A = (2−1; 1−2; 2−3) = (1; −1; −1). Khi đó AB = 2·AC (không phải −2), nên B và C nằm cùng phía A.",
+      "proof": "Kiểm từng tọa độ: 2 − 1 = 1 (không phải −1); 1 − 2 = −1; 2 − 3 = −1. Dấu của cả ba tọa độ đều bị đảo trong kết quả của AI.",
+      "teacherPrompt": "Em tính C − A theo từng tọa độ rồi sửa lại dấu và kết luận vị trí của B, C.",
+      "studentProduct": "Thẻ Đ/S + phép trừ đúng ba tọa độ và kết luận AB = 2AC (cùng phía).",
+      "boardPrompt": "AI ra AC = (−1;1;1). Tính 2 − 1 bằng bao nhiêu?",
+      "libraryTitle": "Lỗi AI trừ ngược thứ tự khi tính vectơ",
+      "whyAiError": "Mô hình trừ ngược thứ tự (A − C) thay vì (C − A), làm đảo dấu toàn bộ vectơ.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-6-34": {
       "key": "12-6-34",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "Với f(x) = (2x + 1)/(x − 1), AI cho miền xác định là R vì biểu thức đã có công thức với mọi x.",
-      "correction": "Miền xác định là R bỏ {1}; tại x = 1 mẫu số bằng 0.",
-      "proof": "Thay x = 1 vào mẫu x − 1 được 0, nên giá trị hàm không tồn tại.",
-      "teacherPrompt": "Trước khi đạo hàm và khảo sát, điều kiện nào phải viết? Em tìm điểm làm mẫu số bằng 0.",
-      "studentProduct": "Bổ sung miền loại, ghi loại lỗi và kiểm bằng mẫu số.",
-      "boardPrompt": "Hàm phân thức: ghi miền xác định trước đạo hàm.",
-      "libraryTitle": "Hàm phân thức bậc nhất: bỏ điểm cấm trước khi khảo sát",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI kết luận: \"Hàm C(t) = (2t+1)/(t+3) nghịch biến vì khi t tăng thì mẫu t + 3 tăng, làm phân số giảm.\"",
+      "correction": "Phải xét đạo hàm: C′(t) = 5/(t+3)² > 0 nên hàm đồng biến trên mỗi khoảng xác định.",
+      "proof": "Kiểm bằng giá trị: C(0) = 0,33; C(7) = 1,5; C(97) = 1,95 — tăng dần. Nếu nghịch biến thì các giá trị phải giảm.",
+      "teacherPrompt": "Em tính C(0), C(7), C(97) và đạo hàm để sửa lại kết luận của AI.",
+      "studentProduct": "Thẻ Đ/S + ba giá trị tăng dần và đạo hàm dương, kết luận đồng biến.",
+      "boardPrompt": "AI nói nghịch biến. Tính C(0) và C(97).",
+      "libraryTitle": "Lỗi AI suy biến thiên từ trực giác mẫu tăng",
+      "whyAiError": "Mô hình suy luận theo trực giác \"mẫu tăng thì phân số giảm\", bỏ qua việc tử cũng tăng.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-6-35": {
       "key": "12-6-35",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "Với f(x) = (2x + 2)/(x + 1), AI rút gọn f(x) = 2 và vẽ cả đường thẳng y = 2, không đánh dấu điểm bị loại.",
-      "correction": "f(x) = 2 với x ≠ −1; đồ thị là đường y = 2 bỏ điểm (−1;2), vì −1 không thuộc miền xác định.",
-      "proof": "Mẫu x + 1 bằng 0 tại x = −1; phép rút gọn không làm điểm cấm trở thành điểm thuộc đồ thị.",
-      "teacherPrompt": "Trường hợp ad − bc = 0 có làm mất điều kiện mẫu không? Em chỉ ra vị trí điểm khuyết trên đồ thị.",
-      "studentProduct": "Sửa đồ thị, ghi miền xác định và giải thích vì sao có điểm khuyết.",
-      "boardPrompt": "Rút gọn thành hằng số vẫn giữ điểm cấm.",
-      "libraryTitle": "Hàm phân thức: đường thẳng có một điểm khuyết",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận: \"Vì E′(x) = −3/(x−1)² < 0 với mọi x ≠ 1 nên hàm số nghịch biến trên toàn bộ ℝ.\"",
+      "correction": "Hàm chỉ nghịch biến trên từng khoảng (−∞; 1) và (1; +∞); không xác định tại x = 1 nên không thể nói nghịch biến trên ℝ.",
+      "proof": "Phản ví dụ: E(0) = −2 và E(2) = 0, mà 0 < 2 nhưng E(0) < E(2). Nếu nghịch biến trên ℝ thì x₁ < x₂ phải cho E(x₁) > E(x₂) — mâu thuẫn.",
+      "teacherPrompt": "Em so sánh E(0) và E(2) để thấy mâu thuẫn, rồi sửa lại phạm vi đơn điệu của AI.",
+      "studentProduct": "Thẻ Đ/S + phản ví dụ E(0) < E(2) và phát biểu đúng \"trên từng khoảng\".",
+      "boardPrompt": "AI nói nghịch biến trên ℝ. So E(0) với E(2).",
+      "libraryTitle": "Lỗi AI bỏ tập xác định khi phát biểu đơn điệu",
+      "whyAiError": "Mô hình bỏ qua tập xác định khi phát biểu tính đơn điệu.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-6-36": {
       "key": "12-6-36",
       "mode": "micro",
-      "category": "Lỗi khái niệm",
-      "wrongSolution": "Với f(x) = (x² + 1)/(x − 1), AI nói không có tiệm cận xiên vì bậc tử lớn hơn bậc mẫu nên chỉ xét tiệm cận đứng.",
-      "correction": "Bậc tử hơn bậc mẫu đúng một đơn vị nên có thể có tiệm cận xiên; chia đa thức để tìm đường thẳng và kiểm phần dư.",
-      "proof": "x² + 1 = (x − 1)(x + 1) + 2 nên f(x) = x + 1 + 2/(x − 1); phần dư tiến về 0 ở vô cực.",
-      "teacherPrompt": "Quan hệ giữa hai bậc là điều kiện đủ hay dấu hiệu cần xét? Em thực hiện phép chia để kiểm.",
-      "studentProduct": "Phân loại lỗi khái niệm, tìm tiệm cận xiên và chứng minh bằng giới hạn phần dư.",
-      "boardPrompt": "Bậc tử hơn mẫu một: chia đa thức để xét tiệm cận xiên.",
-      "libraryTitle": "Hàm phân thức bậc hai trên bậc nhất: bỏ tiệm cận xiên",
-      "whyAiError": "Đầu ra có thể áp dụng nhầm một quy tắc quen thuộc cho đối tượng hoặc điều kiện khác; câu trả lời trông hợp lý nhưng chưa được đối chiếu với định nghĩa.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI giải: \"y′ = 1 − 2/(x−1)² = 0 ⇒ (x−1)² = 2 ⇒ x = 1 + √2. Vậy hàm có một cực trị.\"",
+      "correction": "Phương trình (x−1)² = 2 có hai nghiệm: x = 1 + √2 và x = 1 − √2. Hàm có hai cực trị với giá trị 2√2 và −2√2.",
+      "proof": "Khai căn phải kèm ±: x − 1 = ±√2. Kiểm: tại x = 1 − √2 ≈ −0,41, y′ = 1 − 2/(−√2)² = 1 − 1 = 0 ✓ nên đây cũng là điểm tới hạn.",
+      "teacherPrompt": "Em giải lại phương trình bậc hai (x−1)² = 2 và sửa lại số cực trị của AI.",
+      "studentProduct": "Thẻ Đ/S + hai nghiệm 1 ± √2 và kết luận hai cực trị.",
+      "boardPrompt": "AI ra một cực trị. (x−1)² = 2 có mấy nghiệm?",
+      "libraryTitle": "Lỗi AI mất nghiệm âm khi khai căn",
+      "whyAiError": "Mô hình chỉ lấy nghiệm dương khi khai căn bậc hai.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-6-37": {
       "key": "12-6-37",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "AI rút gọn (x² − 1)/(x − 1) thành x + 1 rồi nối liền đồ thị qua điểm x = 1 vì hai biểu thức có cùng công thức.",
-      "correction": "Đồ thị là y = x + 1 nhưng bỏ điểm (1;2); điều kiện x ≠ 1 vẫn còn sau rút gọn.",
-      "proof": "Tại x = 1, hàm ban đầu không xác định; giới hạn bằng 2 chỉ cho tọa độ điểm khuyết, không tạo giá trị hàm.",
-      "teacherPrompt": "Điểm cấm được xử lý thế nào khi vẽ hai nhánh? Em đánh dấu điểm khuyết thay vì nối liền.",
-      "studentProduct": "Sửa hình vẽ, ghi điều kiện và dùng giới hạn để xác định điểm khuyết.",
-      "boardPrompt": "Đồ thị sau rút gọn: ghi rõ điểm khuyết.",
-      "libraryTitle": "Đồ thị hàm phân thức: nối qua điểm không thuộc miền xác định",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI kết luận: \"Vì y₁ và y₂ cùng có tiệm cận xiên y = x − 1 nên hai đồ thị chỉ khác nhau ở vị trí, hình dạng hoàn toàn giống nhau; có thể dùng chung một bảng biến thiên.\"",
+      "correction": "Hai hàm khác tiệm cận đứng và khác cực trị nên bảng biến thiên khác nhau. Chỉ tiệm cận xiên trùng.",
+      "proof": "So sánh giá trị tại x = 0: y₁(0) = −0,5; y₂(0) = −3. Nếu cùng hình dạng thì giá trị phải trùng (hoặc sai khác không đổi), nhưng ở đây khác biệt và còn khác cả vị trí tiệm cận đứng (x = −2 so với x = 1).",
+      "teacherPrompt": "Em so sánh y₁(0) với y₂(0) và vị trí tiệm cận đứng, rồi sửa lại kết luận của AI.",
+      "studentProduct": "Thẻ Đ/S + hai giá trị tại x = 0 và hai tiệm cận đứng khác nhau.",
+      "boardPrompt": "AI nói hai đồ thị giống nhau. Tính y₁(0) và y₂(0).",
+      "libraryTitle": "Lỗi AI đồng nhất cùng tiệm cận với cùng hàm số",
+      "whyAiError": "Mô hình đồng nhất \"cùng tiệm cận\" với \"cùng hàm\", bỏ qua phần dư quyết định hình dạng gần tiệm cận đứng.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-6-38": {
       "key": "12-6-38",
       "mode": "full",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "AI khảo sát mọi hàm phân thức bằng cùng một quy trình nhưng bỏ qua miền xác định; với (x² − 1)/(x − 1), AI vẽ đường y = x + 1 liền mạch.",
-      "correction": "Phải ghi miền xác định trước, phân biệt tiệm cận/điểm khuyết, rồi mới lập bảng biến thiên và vẽ đồ thị.",
-      "proof": "Mẫu số bằng 0 tại x = 1; hàm không nhận giá trị ở đó dù giới hạn hữu hạn.",
-      "teacherPrompt": "Bước nào phải đứng trước mọi phép đạo hàm/rút gọn? Em dùng miền xác định để sửa quy trình khảo sát.",
-      "studentProduct": "Đánh dấu điều kiện rơi, viết lại quy trình, sửa đồ thị và chứng minh điểm bị loại.",
-      "boardPrompt": "Quy trình khảo sát: miền xác định trước mọi bước.",
-      "libraryTitle": "Khảo sát tổng hợp: dùng một quy trình nhưng bỏ miền xác định",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi khái niệm",
+      "wrongSolution": "AI khảo sát: \"y = (x² − 2x + 3)/(x − 1) xác định trên ℝ, y′ = 1 − 2/(x−1)², cực trị tại x = 1 ± √2. Đồ thị không có tiệm cận.\"",
+      "correction": "Sai hai chỗ: hàm không xác định tại x = 1 (tập xác định ℝ \\ {1}) và có tiệm cận đứng x = 1, tiệm cận xiên y = x − 1.",
+      "proof": "Thay x = 1: mẫu bằng 0 nên hàm không xác định. Chia đa thức: y = x − 1 + 2/(x−1); khi x → 1 thì phần dư → ±∞ (tiệm cận đứng), khi x → ∞ thì phần dư → 0 (tiệm cận xiên y = x − 1).",
+      "teacherPrompt": "Em kiểm x = 1 có thuộc tập xác định không, rồi chia đa thức để sửa lại phần tiệm cận.",
+      "studentProduct": "Thẻ Đ/S + chỉ ra mẫu bằng 0 tại x = 1 và hai tiệm cận.",
+      "boardPrompt": "AI nói hàm xác định trên ℝ và không có tiệm cận. Thay x = 1.",
+      "libraryTitle": "Lỗi AI áp quy trình đa thức cho hàm phân thức",
+      "whyAiError": "Mô hình tái sử dụng quy trình đa thức cho hàm phân thức, bỏ qua mẫu số và phép chia đa thức.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-6-39": {
       "key": "12-6-39",
       "mode": "micro",
-      "category": "Thiếu điều kiện",
-      "wrongSolution": "AI kết luận hai vectơ vuông góc và góc giữa chúng bằng 90° từ a · b = 0 mà không xét vectơ có khác vectơ không hay không.",
-      "correction": "Góc giữa hai vectơ chỉ xác định khi cả hai vectơ khác vectơ không; sau đó a · b = 0 mới suy ra vuông góc.",
-      "proof": "Vectơ không có hướng xác định; công thức cos góc có mẫu |a||b| bằng 0 nếu một vectơ bằng 0.",
-      "teacherPrompt": "Công thức góc có điều kiện mẫu nào? Em nêu trường hợp làm kết luận AI không có nghĩa.",
-      "studentProduct": "Bổ sung điều kiện vectơ khác không, phân loại lỗi và kiểm mẫu số công thức cos.",
-      "boardPrompt": "Tích vô hướng: kiểm vectơ khác không trước khi nói góc.",
-      "libraryTitle": "Tích vô hướng: suy ra góc khi chưa kiểm vectơ khác không",
-      "whyAiError": "Đầu ra có thể tóm tắt phần tính toán nhưng làm rơi miền xác định, điều kiện biên, khoảng xét hoặc giả định của bài toán.",
+      "category": "Lỗi đại số",
+      "wrongSolution": "AI tính: \"a·b = 1·2 + 2·1 + 3·1 = 7 với a = (1; 2; 3), b = (2; −1; 1). Suy ra góc giữa hai vectơ là góc nhọn lớn (khoảng 40°).\"",
+      "correction": "b₂ = −1 nên a·b = 2 − 2 + 3 = 3. Từ đó cos α = 3/(√14·√6) ≈ 0,327 ⇒ α ≈ 70,9° (không phải 40°).",
+      "proof": "Kiểm từng số hạng: 1·2 = 2; 2·(−1) = −2; 3·1 = 3; tổng = 3. Nếu dùng b₂ = 1 thì tổng là 7 — sai vì tọa độ thứ hai của b là −1.",
+      "teacherPrompt": "Em viết lại tọa độ b theo từng hàng rồi sửa phép thay số của AI.",
+      "studentProduct": "Thẻ Đ/S + ba số hạng 2; −2; 3 và kết quả a·b = 3.",
+      "boardPrompt": "AI ra a·b = 7. Tọa độ thứ hai của b là bao nhiêu?",
+      "libraryTitle": "Lỗi AI bỏ dấu âm trong tích vô hướng",
+      "whyAiError": "Mô hình đánh rơi dấu âm của tọa độ khi thay số vào công thức tích vô hướng.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-6-40": {
       "key": "12-6-40",
       "mode": "full",
       "category": "Lỗi khái niệm",
-      "wrongSolution": "Với a = (1;2;−1), b = (2;0;2), AI tính a · b = 0 rồi kết luận góc giữa hai vectơ là 0° vì “cos bằng 0”.",
-      "correction": "cos góc bằng 0 nên góc là 90°, không phải 0°; tích vô hướng bằng 0 biểu thị vuông góc khi hai vectơ khác không.",
-      "proof": "cos 90° = 0 và a, b đều khác vectơ không; kiểm trực tiếp 1·2 + 2·0 + (−1)·2 = 0.",
-      "teacherPrompt": "AI đã đổi giá trị cos thành góc sai ở đâu? Em đối chiếu bảng giá trị đặc biệt.",
-      "studentProduct": "Sửa góc, phân loại lỗi, tính lại tích vô hướng và ghi điều kiện áp dụng.",
-      "boardPrompt": "a · b = 0 → vuông góc → góc 90° (khi vectơ khác không).",
-      "libraryTitle": "Tích vô hướng: đọc sai ý nghĩa của cos bằng không",
-      "whyAiError": "Đầu ra có thể áp dụng nhầm một quy tắc quen thuộc cho đối tượng hoặc điều kiện khác; câu trả lời trông hợp lý nhưng chưa được đối chiếu với định nghĩa.",
+      "wrongSolution": "AI kết luận: \"Tam giác ABC với A(1;0;0), B(0;1;0), C(0;0;1) vuông tại A vì AB·AC = 1 > 0, chứng tỏ hai cạnh vuông góc.\"",
+      "correction": "Vuông góc khi tích vô hướng bằng 0, không phải dương. Ở đây AB·AC = 1 nên cos A = 1/2, góc A = 60°; tam giác đều cạnh √2.",
+      "proof": "Tính BC = √2, AB = AC = √2 ⇒ ba cạnh bằng nhau ⇒ tam giác đều, mọi góc 60°. Nếu vuông tại A thì BC² = AB² + AC² = 4, tức BC = 2 ≠ √2.",
+      "teacherPrompt": "Em kiểm định lý Pythagore cho tam giác này rồi sửa lại kết luận của AI.",
+      "studentProduct": "Thẻ Đ/S + BC = √2 và phép kiểm Pythagore (BC² = 2 ≠ 4), kết luận tam giác đều.",
+      "boardPrompt": "AI nói vuông vì tích dương. Kiểm BC² với AB² + AC².",
+      "libraryTitle": "Lỗi AI nhầm tích vô hướng dương với vuông góc",
+      "whyAiError": "Mô hình nhầm điều kiện vuông góc (tích = 0) với điều kiện tích dương.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "12-6-41": {
       "key": "12-6-41",
       "mode": "full",
       "category": "Lỗi đại số",
-      "wrongSolution": "Với a = (1;1;0), b = (1;0;0), AI tính a · b = 1 + 0 + 0 = 0 nên kết luận a vuông góc b.",
-      "correction": "a · b = 1·1 + 1·0 + 0·0 = 1 ≠ 0; hai vectơ không vuông góc.",
-      "proof": "Điều kiện vuông góc là tích vô hướng bằng 0; phép tính đúng cho 1 nên kết luận của AI bị bác bỏ.",
-      "teacherPrompt": "AI đã bỏ tích tọa độ nào? Em viết đủ ba tích rồi mới kết luận quan hệ hình học.",
-      "studentProduct": "Khoanh hạng tử bị bỏ, sửa tích vô hướng, kiểm điều kiện vuông góc và nêu lý do.",
-      "boardPrompt": "Tích vô hướng: đủ ba tích tọa độ rồi mới kết luận.",
-      "libraryTitle": "Tích vô hướng: bỏ một tích tọa độ nhưng vẫn kết luận vuông góc",
-      "whyAiError": "Đầu ra có thể nối đúng các ký hiệu nhưng bỏ sót dấu, hệ số hoặc bước biến đổi; vì vậy phải kiểm tra lại bằng phép tính độc lập.",
+      "wrongSolution": "AI giải: \"a·b = 2 + 2 + 3m = 8 + 3m. Cho bằng 0 được m = −8/3.\"",
+      "correction": "2 + 2 = 4 (không phải 8), nên 4 + 3m = 0 ⇒ m = −4/3.",
+      "proof": "Kiểm với m = −4/3: 2 + 2 + 3·(−4/3) = 4 − 4 = 0 ✓. Với m = −8/3: 4 + 3·(−8/3) = 4 − 8 = −4 ≠ 0.",
+      "teacherPrompt": "Em cộng lại 2 + 2 và thay cả hai giá trị m để sửa lỗi của AI.",
+      "studentProduct": "Thẻ Đ/S + phép thử hai giá trị m, kết luận m = −4/3.",
+      "boardPrompt": "AI ra m = −8/3. Thay lại vào tích.",
+      "libraryTitle": "Lỗi AI cộng sai số hạng khi giải phương trình vuông góc",
+      "whyAiError": "Mô hình cộng sai hai số hạng đầu (2 + 2 = 8) trước khi giải phương trình.",
       "offlineFallback": "Nếu mạng/tài khoản/thiết bị không sẵn sàng: GV in hoặc chiếu thẻ, HS ghi vào vở/phiếu, GV chọn 2–3 sản phẩm theo mã nhóm và vẫn dùng cùng câu hỏi cùng phép kiểm."
     },
     "10-11-79": {
@@ -16284,7 +16422,10 @@
       "correction": "d = 0,2 có chữ số khác 0 đầu tiên ở hàng phần mười, nên hàng quy tròn là hàng liền trước, tức hàng đơn vị: 3 147,3 ≈ 3 147 m.",
       "proof": "Quy tắc: hàng quy tròn là hàng liền trước hàng của chữ số khác 0 đầu tiên của d. Chữ số đó ở hàng phần mười nên phải quy tròn tới hàng đơn vị.",
       "teacherPrompt": "Dòng nào trong lời giải AI sai? Em chỉ ra quy tắc bị áp dụng ngược và sửa lại kết quả.",
-      "studentProduct": "Khoanh dòng sai, ghi “lỗi logic”, sửa thành 3 147 m và nêu quy tắc hàng liền trước."
+      "studentProduct": "Khoanh dòng sai, ghi “lỗi logic”, sửa thành 3 147 m và nêu quy tắc hàng liền trước.",
+      "whyAiError": "Mô hình hiểu \"độ chính xác d\" là hàng cần giữ thay vì hàng sai số cho phép, nên không lùi một hàng khi quy tròn.",
+      "boardPrompt": "AI quy tròn 3 147,3 đến hàng phần mười với d = 0,2. Quy tắc nói gì?",
+      "libraryTitle": "Lỗi AI quy tròn sai hàng theo độ chính xác"
     },
     "11-11-75": {
       "key": "11-11-75",

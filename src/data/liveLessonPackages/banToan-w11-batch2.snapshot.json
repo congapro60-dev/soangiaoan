@@ -1416,8 +1416,11 @@
       "wrongSolution": "Bạn An tính chiều cao trung bình: x̄ = (12×4 + 15×3 + 18×2 + 20×1)/4 = 37,25 cm.",
       "correction": "n = 4 + 3 + 2 + 1 = 10; x̄ = 149/10 = 14,9 cm — mẫu số liệu có 10 số liệu, không phải 4.",
       "proof": "12×4 + 15×3 + 18×2 + 20×1 = 48 + 45 + 36 + 20 = 149; 149/10 = 14,9 cm; 149/4 = 37,25 cm > giá trị lớn nhất 20 cm → vô lý, xác nhận chia sai mẫu. Bảng lớn tại chặng AI-error (PA1): bảng tần số 4 dòng (12/4, 15/3, 18/2, 20/1) cạnh phép chia sai 149÷4 = 37,25, gạch chân n = m₁ + m₂ + m₃ + m₄ = 10 — không viết phép chia đúng lên bảng, số đúng chỉ đối chiếu ở S6.",
-      "teacherPrompt": "Em đồng ý hay phản đối? Vì sao?",
-      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (chỉ ra mẫu đúng n = 10 hoặc lập luận “trung bình không vượt giá trị lớn nhất”)."
+      "teacherPrompt": "Hãy chỉ lỗi và sửa lại lời giải: em chia cho số nào mới đúng?",
+      "studentProduct": "Thẻ Đ/S trên máy + 1 dòng phản biện (chỉ ra mẫu đúng n = 10 hoặc lập luận “trung bình không vượt giá trị lớn nhất”).",
+      "whyAiError": "Mô hình dùng số nhóm (số dòng bảng) làm mẫu số thay vì tổng tần số, dẫn tới trung bình bị phóng đại.",
+      "boardPrompt": "AI chia cho 4. Bảng có bao nhiêu số liệu thật?",
+      "libraryTitle": "Lỗi AI chia cho số nhóm thay vì tổng tần số"
     },
     "11-11-76": {
       "key": "11-11-76",

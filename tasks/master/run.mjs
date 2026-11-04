@@ -28,6 +28,31 @@ const TIMELINES = {
     ['P18', 1080, 1140], ['P19', 1140, 1560], ['P26', 1560, 1740], ['P29', 1740, 2040],
     ['P34', 2040, 2220], ['P37', 2220, 2400],
   ],
+  gateD78: [
+    ['P00', 0, 60], ['P01', 60, 180], ['P03', 180, 300], ['P05', 300, 600], ['P10', 600, 780],
+    ['P13', 780, 840], ['P14', 840, 1260], ['P21', 1260, 1440], ['P24', 1440, 1740],
+    ['P29', 1740, 2220], ['P37', 2220, 2400],
+  ],
+  gateD79: [
+    ['P00', 0, 60], ['P01', 60, 300], ['P03', 300, 420], ['P05', 420, 720], ['P10', 720, 900],
+    ['P13', 900, 960], ['P14', 960, 1440], ['P21', 1440, 1740], ['P24', 1740, 2100],
+    ['P29', 2100, 2280], ['P37', 2280, 2400],
+  ],
+  gateD77: [
+    ['P00', 0, 60], ['P01', 60, 360], ['P03', 360, 540], ['P05', 540, 780], ['P10', 780, 960],
+    ['P13', 960, 1020], ['P14', 1020, 1320], ['P21', 1320, 1560], ['P24', 1560, 1980],
+    ['P29', 1980, 2280], ['P37', 2280, 2400],
+  ],
+  gateD1278: [
+    ['P00', 0, 60], ['P01', 60, 300], ['P03', 300, 480], ['P05', 480, 720], ['P10', 720, 900],
+    ['P13', 900, 960], ['P14', 960, 1440], ['P21', 1440, 1740], ['P24', 1740, 2100],
+    ['P29', 2100, 2340], ['P37', 2340, 2400],
+  ],
+  gateD1279: [
+    ['P00', 0, 60], ['P01', 60, 300], ['P03', 300, 420], ['P05', 420, 720], ['P10', 720, 840],
+    ['P13', 840, 900], ['P14', 900, 1380], ['P21', 1380, 1500], ['P24', 1500, 1920],
+    ['P29', 1920, 2160], ['P37', 2160, 2400],
+  ],
 };
 
 const timelineFor = (key) => TIMELINES[key || 'default'] || DEFAULT_TIMELINE;
@@ -330,10 +355,13 @@ for (const lesson of lessons) {
   const levels = new Set(s.exercises.map((e) => e.level));
   for (const lv of ['NB', 'TH', 'VD']) if (!levels.has(lv)) problems.push(`${lesson.key}: thiếu mức ${lv}`);
   if (lesson.seg.length !== 11) problems.push(`${lesson.key}: seg=${lesson.seg.length} (cần 11)`);
+  const hostEntry = Object.entries(snaps).find(([, snap]) => snap.lessonSpecs.some((x) => x.key === lesson.key));
+  const existingAE = hostEntry ? (hostEntry[1].aiErrors[lesson.key] || {}) : {};
+  const mergedAE = { ...existingAE, ...lesson.aiError };
   for (const f of ['category', 'wrongSolution', 'correction', 'proof', 'whyAiError', 'teacherPrompt', 'studentProduct', 'boardPrompt', 'libraryTitle']) {
-    if (!lesson.aiError[f]) problems.push(`${lesson.key}: aiError thiếu ${f}`);
+    if (!mergedAE[f]) problems.push(`${lesson.key}: aiError thiếu ${f}`);
   }
-  if (!/sửa/i.test(lesson.aiError.teacherPrompt)) problems.push(`${lesson.key}: teacherPrompt phải có chữ "sửa" (yêu cầu HS sửa lời giải)`);
+  if (!/sửa/i.test(mergedAE.teacherPrompt)) problems.push(`${lesson.key}: teacherPrompt phải có chữ "sửa" (yêu cầu HS sửa lời giải)`);
 
   let host = null;
   for (const [name, snap] of Object.entries(snaps)) {
