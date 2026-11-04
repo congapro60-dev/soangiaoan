@@ -12,7 +12,7 @@ import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
 import { secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
 import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
-import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasLiveAssignmentSession, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
+import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
 import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveGroupImage, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
 import { requestRegrade } from './_assistant-ph-hs-regrade.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
@@ -166,6 +166,9 @@ const dispatchPhotoMessage = async (token: string, botId: string, userId: string
   if (!classId || !studentId) return MENU_REPLIES.noData;
   // (a) Đang nộp bài → giữ nguyên luồng nhận ảnh bài làm.
   if (await hasLiveAssignmentSession(botId, userId)) return photoReceivedReply(botId, userId, photoUrl);
+  // (a2) Phiên nộp vừa hết hạn (HS làm bài lâu) → nhắc chọn lại bài, KHÔNG đem ảnh đi giải đề
+  // (sự cố 3–4/11: ảnh bài làm bị coi là đề nhờ giải nên web không có bài nộp nào).
+  if (await hasExpiredAssignmentSession(botId, userId)) return PHOTO_REPLIES.expiredSession;
   // (b) Không có phiên nộp → GIẢI ĐỀ TỪ ẢNH (HS nhờ giải bài).
   await solvePhotoAsQuestion(token, botId, chatId, classId, studentId, role, photoUrl);
   return '';
@@ -556,6 +559,10 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
       res.status(200).json({ ok: true }); return true;
     }
     reply = await dispatch(token, botId, senderId, chatId, msgText);
-  } catch { reply = 'Không thể thực hiện yêu cầu. Dùng /help để xem lệnh.'; }
+  } catch (error) {
+    // Log CHỈ loại lỗi + message ngắn (không log nội dung tin nhắn/URL ảnh — có định danh).
+    console.error(`[zalo-bot] dispatch failed event=${eventName} image=${isImageEvent} error=${error instanceof Error ? `${error.name}: ${error.message.slice(0, 160)}` : 'unknown'}`);
+    reply = 'Không thể thực hiện yêu cầu. Dùng /help để xem lệnh.';
+  }
   if (reply) await send(token, chatId, reply); res.status(200).json({ ok: true }); return true;
 }

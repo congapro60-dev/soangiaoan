@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeDb } from './_fake-db.js';
 import {
   PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply,
-  assistTargetReply, cancelPhotoSession, finishPhotoSession, openPhotoSession,
-  parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply,
+  assistTargetReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession,
+  hasLiveAssignmentSession, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent,
+  photoListReply, photoReceivedReply,
 } from '../_assistant-ph-hs-photo.js';
 import { emptyQuota, chayNgam, getGradingChain } from '../_grading-core';
 import { gradeContextFor, gradeOneSubmission } from '../grade-homework';
@@ -239,6 +240,28 @@ describe('phiên nhận ảnh', () => {
     await openSessionForA1();
     h.db.put(SESSION_PATH, { ...h.db.rows.get(SESSION_PATH), expiresAt: Date.now() - 1 });
     expect(await photoReceivedReply(BOT, USER, 'https://photo.zalo/x.jpg')).toBe(PHOTO_REPLIES.noSession);
+  });
+
+  // Sự cố 3–4/11: HS chọn bài, làm bài quá 10 phút, gửi ảnh thì phiên đã hết hạn → ảnh bị coi là
+  // "đề nhờ giải", web không có bài nộp nào. Giờ phải nhận ra "vừa hết hạn" để nhắc chọn lại bài.
+  it('phiên nộp vừa hết hạn → hasExpiredAssignmentSession = true (nhắc chọn lại bài)', async () => {
+    seedClass();
+    await openSessionForA1();
+    h.db.put(SESSION_PATH, { ...h.db.rows.get(SESSION_PATH), expiresAt: Date.now() - 60_000 });
+    expect(await hasExpiredAssignmentSession(BOT, USER)).toBe(true);
+    expect(await hasLiveAssignmentSession(BOT, USER)).toBe(false);
+  });
+
+  it('không có phiên / hết hạn quá lâu / phiên chờ chọn bài → không coi là "vừa hết hạn"', async () => {
+    expect(await hasExpiredAssignmentSession(BOT, USER)).toBe(false);
+    seedClass();
+    await openSessionForA1();
+    // Quá 6 giờ: coi như phiên cũ, không nhắc nữa.
+    h.db.put(SESSION_PATH, { ...h.db.rows.get(SESSION_PATH), expiresAt: Date.now() - 7 * 60 * 60 * 1000 });
+    expect(await hasExpiredAssignmentSession(BOT, USER)).toBe(false);
+    // Phiên chờ chọn bài (chưa có assignment) không tính.
+    h.db.put(SESSION_PATH, { botId: BOT, userId: USER, studentId: 's1', classId: 'c1', assignmentId: '', expiresAt: Date.now() - 1, photos: [], awaitingPick: true });
+    expect(await hasExpiredAssignmentSession(BOT, USER)).toBe(false);
   });
   it('nhận ảnh hợp lệ: tải về, đẩy Storage đúng đường + token, cập nhật phiên', async () => {
     seedClass();

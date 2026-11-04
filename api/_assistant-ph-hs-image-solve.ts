@@ -13,6 +13,7 @@
  */
 import { getAdminDb } from './_exam-core.js';
 import { callOpenAiCompatibleVision, type InlineImage } from './_grading-core.js';
+import { downloadImage } from './_assistant-photo-file.js';
 import { AI_MENU_HINT, buildGroupSystemPrompt, buildSystemPrompt, composeAiReply, sanitizeAiReply, type ChatRole } from './_assistant-ph-hs-chat.js';
 import { extractGeometryReply, type GeometrySpec } from './_assistant-geometry.js';
 import { hasLatexFormula } from './_assistant-math-image.js';
@@ -21,7 +22,6 @@ import { buildAiContext } from './_assistant-ph-hs-chat.js';
 import type { ParentSafeReport } from '../src/lib/classroom/parentSafeReport.js';
 
 const MAX_BYTES = 8 * 1024 * 1024;
-const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
 /** Prompt riêng cho ảnh: nhấn mạnh ĐỌC ĐỀ TRONG ẢNH rồi giải, không bịa đề khác. */
 export const IMAGE_SOLVE_RULE = [
@@ -34,20 +34,9 @@ export const IMAGE_SOLVE_RULE = [
 
 export type ImageSolveAnswer = { text: string; mathSource: string; geometry: GeometrySpec | null; hasMath: boolean };
 
-/** Tải ảnh Zalo về buffer. Trả null nếu lỗi/quá lớn/sai định dạng. */
-export const fetchPhotoBuffer = async (photoUrl: string): Promise<{ buffer: Buffer; mimeType: string } | null> => {
-  try {
-    const res = await fetch(photoUrl, { signal: AbortSignal.timeout(15_000), redirect: 'follow' });
-    if (!res.ok) return null;
-    const mimeType = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-    const array = await res.arrayBuffer();
-    if (array.byteLength < 1 || array.byteLength >= MAX_BYTES) return null;
-    if (!IMAGE_MIMES.includes(mimeType)) return null;
-    return { buffer: Buffer.from(array), mimeType };
-  } catch {
-    return null;
-  }
-};
+/** Tải ảnh Zalo về buffer. Dùng chung `downloadImage` (sniff magic bytes + thử lại 2 lần). */
+export const fetchPhotoBuffer = async (photoUrl: string): Promise<{ buffer: Buffer; mimeType: string } | null> =>
+  downloadImage(photoUrl, MAX_BYTES);
 
 /**
  * Danh sách (key, model) để thử ĐỌC ẢNH — theo thứ tự ưu tiên.

@@ -16,7 +16,7 @@ vi.mock('../_assistant-ph-hs-link', async () => ({
 vi.mock('../_bot-pin-guard', () => ({ canReplyToStranger: vi.fn(async () => true) }));
 // Việc 4 — mock TOÀN BỘ photo module để không kéo grade-homework/_grading-core vào test bot.
 vi.mock('../_assistant-ph-hs-photo', () => ({
-  PHOTO_REPLIES: { noSession: 'NO_SESSION_REPLY', max: 'MAX_REPLY', badImage: 'BAD_IMAGE_REPLY', assistIncomplete: 'ASSIST_INCOMPLETE_REPLY' },
+  PHOTO_REPLIES: { noSession: 'NO_SESSION_REPLY', max: 'MAX_REPLY', badImage: 'BAD_IMAGE_REPLY', assistIncomplete: 'ASSIST_INCOMPLETE_REPLY', expiredSession: 'EXPIRED_SESSION_REPLY' },
   cancelPhotoSession: vi.fn(async () => undefined),
   finishPhotoSession: vi.fn(async () => 'FINISH_OK'),
   openPhotoSession: vi.fn(async () => 'OPEN_OK'),
@@ -44,6 +44,8 @@ vi.mock('../_assistant-ph-hs-photo', () => ({
   pickAssignmentByNumber: vi.fn(async () => null),
   // Phân biệt ẢNH NỘP BÀI với ẢNH ĐỀ BÀI nhờ giải (29/10). Mặc định KHÔNG có phiên nộp.
   hasLiveAssignmentSession: vi.fn(async () => false),
+  // Phiên nộp vừa hết hạn (sự cố 3–4/11). Mặc định coi như không có.
+  hasExpiredAssignmentSession: vi.fn(async () => false),
 }));
 // Giải đề từ ảnh: mock để không gọi vision thật. fetchPhotoBuffer trả null (ảnh test không tải được).
 const { fetchPhotoMock, solveGroupImageMock } = vi.hoisted(() => ({ fetchPhotoMock: vi.fn(async () => null as unknown), solveGroupImageMock: vi.fn(async () => null) }));
@@ -75,7 +77,7 @@ import { linkByPin, switchBotRole } from '../_assistant-ph-hs-link';
 import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
 import { parentMenuReply, loadParentReport } from '../_assistant-ph-hs-menu';
-import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasLiveAssignmentSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
+import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
 
 
 
@@ -498,6 +500,18 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     expect((await request(imageEvent(null))).code).toBe(400);
     expect((await request(imageEvent('ftp://x'))).code).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+  // Sự cố 3–4/11: phiên nộp hết hạn (HS làm bài lâu) → ảnh bài làm từng bị đem đi "giải đề"
+  // nên web không có bài nộp. Giờ phải nhắc chọn lại bài, không tải ảnh, không gọi AI.
+  it('ảnh gửi khi phiên nộp VỪA HẾT HẠN → nhắc chọn lại bài, không giải đề', async () => {
+    mockStudent();
+    vi.mocked(hasExpiredAssignmentSession).mockResolvedValueOnce(true);
+    const result = await request(imageEvent('https://photo.zalo/late.jpg', 'image-late'));
+    expect(result.code).toBe(200);
+    expect(photoReceivedReply).not.toHaveBeenCalled();
+    expect(fetchPhotoMock).not.toHaveBeenCalled(); // không tải ảnh, không đốt phí AI
+    expect(solveGroupImageMock).not.toHaveBeenCalled();
+    expect(JSON.parse(sent()[0][1].body).text).toBe('EXPIRED_SESSION_REPLY');
   });
   it('người lạ gửi ảnh → nhận hướng dẫn liên kết (guard chống spam), không vào luồng HS', async () => {
     vi.mocked(resolveChannelActor).mockRejectedValue(new Error('Channel is not linked'));

@@ -1,6 +1,6 @@
 // Việc 4 — HS chụp bài gửi bot Zalo tự chấm.
 //
-// Luồng: HS nhắn 8 → chọn bài (chấm <số>) → gửi ảnh (tối đa 3, trong 10 phút) → nhắn xong
+// Luồng: HS nhắn 8 → chọn bài (chấm <số>) → gửi ảnh (tối đa 3, trong 60 phút) → nhắn xong
 // → bot tải ảnh Zalo (URL tạm thời) về, đẩy Firebase Storage đúng đường `accepted-homework/`
 // như luồng web, tạo submission rồi chấm bằng CHÍNH `gradeOneSubmission` của luồng web
 // (điểm/nhận xét/lịch sử khớp 100% web). Chấm chạy trong `chayNgam`; xong thì bot gửi tin
@@ -20,17 +20,21 @@ import { gradeContextFor, gradeOneSubmission } from './grade-homework.js';
 import { sendStyled } from './_assistant-zalo-send.js';
 import { MENU_HINT, fitZaloList } from './_assistant-ph-hs-menu.js';
 import { notifyTeacherNewSubmission } from './_assistant-ph-hs-teacher.js';
+import { downloadImage } from './_assistant-photo-file.js';
 import type { SubmissionDoc } from '../src/lib/classroom/types.js';
 
 const db = () => getAdminDb();
 const SESSIONS = 'assistantPhotoSessions';
-const SESSION_MS = 10 * 60 * 1000;
+// 60 phút (sửa 4/11): trước đây 10 phút — HS chọn bài xong làm bài rồi mới chụp, quá 10 phút là
+// phiên hết hạn nên ảnh bị coi là "đề nhờ giải": bot báo lỗi, web không có ảnh nào. 60 phút đủ cho
+// một buổi làm bài mà vẫn tự dọn phiên cũ.
+const SESSION_MINUTES = 60;
+const SESSION_MS = SESSION_MINUTES * 60 * 1000;
 const MAX_PHOTOS = 3;
 const MAX_BYTES = 10 * 1024 * 1024;
 /** Ngân sách chấm bot: function webhook ~90s → chấm phải xong trước đó, kèm margin tải ảnh + ghi doc. */
 const GRADE_BUDGET_MS = 55_000;
 const GRADE_MARGIN_MS = 10_000;
-const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
 export interface PhotoSessionData {
   /** Phiên lưu trước bản sửa chưa có mã; mọi phiên mới đều có mã riêng. */
@@ -68,6 +72,7 @@ export const PHOTO_REPLIES = {
   assistIncomplete: '⚠️ Chưa chọn xong bạn và bài để nộp hộ nên chưa thể nhận ảnh.\n\nNhắn "nộp hộ" để làm lại, hoặc nhắn 0 để hủy.\n\n' + MENU_HINT,
   sessionChanged: 'ℹ️ Phiên nộp bài đã thay đổi.\n\nEm tiếp tục phiên hiện tại rồi gửi lại lệnh nhé.\n\n' + MENU_HINT,
   cancelSuccess: '🔄 Đã hủy phiên chọn bài.\n\nEm nhắn 8 để chọn lại bài khác, hoặc nhắn 0 để xem menu.\n\n' + MENU_HINT,
+  expiredSession: `⏰ Phiên nộp bài trước đã hết hạn.\n\n📌 HƯỚNG DẪN:\n   • Nhắn 8 để xem lại danh sách bài.\n   • Chọn số thứ tự bài rồi gửi ảnh bài làm.\n\n⚠️ LƯU Ý: Ảnh chỉ được tính là BÀI NỘP khi em đã chọn bài. Muốn nhờ giải đề trong ảnh thì nhắn 0 về menu rồi gửi ảnh.\n\n` + MENU_HINT,
 } as const;
 
 export type PhotoCommand =
@@ -194,7 +199,7 @@ export const photoListReply = (
       '   • Nộp hộ bạn cùng lớp: nhắn "nộp hộ".',
       '⚠️ LƯU Ý:',
       '   • Bài [quá hạn] vẫn nộp được, nhưng điểm có thể bị trừ.',
-      '   • Mỗi bài tối đa 3 ảnh, trong 10 phút.',
+      `   • Mỗi bài tối đa ${MAX_PHOTOS} ảnh, trong ${SESSION_MINUTES} phút.`,
       '   • Nhấn link file (nếu có) để xem đề bài trước khi làm.',
     ],
   );
@@ -452,7 +457,7 @@ export const openPhotoSession = async (
   lines.push(
     `📤 HƯỚNG DẪN NỘP BÀI:`,
     `   1. Chụp ẢNH RÕ NÉT bài làm (không mờ, không cắt xén).`,
-    `   2. Gửi ảnh vào chat này — tối đa ${MAX_PHOTOS} ảnh/bài, trong 10 phút.`,
+    `   2. Gửi ảnh vào chat này — tối đa ${MAX_PHOTOS} ảnh/bài, trong ${SESSION_MINUTES} phút.`,
     `   3. Gửi xong nhắn: xong — máy sẽ chấm bài và báo điểm cho em.`,
     `⚠️ LƯU Ý:`,
     `   • Ảnh phải là JPG/PNG/WEBP (không hỗ trợ HEIC/HEIF), dưới 10MB.`,
@@ -493,6 +498,19 @@ export const hasLiveAssignmentSession = async (botId: string, userId: string): P
 };
 
 /**
+ * Phiên nộp bài ĐÃ HẾT HẠN gần đây (còn doc, quá hạn nhưng chưa quá 6 giờ).
+ * Dùng để nhắc HS "chọn lại bài" thay vì đem ảnh bài làm đi giải đề — sự cố 3–4/11:
+ * HS chọn bài, làm bài quá 10 phút, gửi ảnh thì bot coi là đề nhờ giải và không có bài nộp nào.
+ */
+export const hasExpiredAssignmentSession = async (botId: string, userId: string): Promise<boolean> => {
+  const snap = await db().collection(SESSIONS).doc(sessionId(botId, userId)).get();
+  const data = snap.data() as PhotoSessionData | undefined;
+  if (!data || !data.assignmentId) return false;
+  const age = Date.now() - Number(data.expiresAt ?? 0);
+  return age > 0 && age < 6 * 60 * 60 * 1000;
+};
+
+/**
  * Nhận 1 ảnh từ Zalo: tải về (URL tạm thời), đẩy Storage `accepted-homework/` + download token —
  * URL đúng format web nên `gradeOneSubmission` và GV xem trên web dùng như ảnh nộp thường.
  */
@@ -506,15 +524,13 @@ export const photoReceivedReply = async (botId: string, userId: string, photoUrl
   if (session.data.photos.length >= MAX_PHOTOS) return PHOTO_REPLIES.max;
   let buffer: Buffer;
   let mimeType = '';
-  try {
-    const res = await fetch(photoUrl, { signal: AbortSignal.timeout(15_000), redirect: 'follow' });
-    if (!res.ok) return PHOTO_REPLIES.badImage;
-    mimeType = (res.headers.get('content-type') || '').split(';')[0].trim();
-    const array = await res.arrayBuffer();
-    if (array.byteLength < 1 || array.byteLength >= MAX_BYTES) return PHOTO_REPLIES.badImage;
-    buffer = Buffer.from(array);
-  } catch { return PHOTO_REPLIES.badImage; }
-  if (!IMAGE_MIMES.includes(mimeType)) return PHOTO_REPLIES.badImage;
+  const image = await downloadImage(photoUrl, MAX_BYTES);
+  if (!image) {
+    // Log đã nằm trong downloadImage (chỉ metadata) — HS nhận câu hướng dẫn cụ thể bên dưới.
+    return PHOTO_REPLIES.badImage;
+  }
+  buffer = image.buffer;
+  mimeType = image.mimeType;
   const batchId = randomUUID();
   // Ảnh của bài nộp hộ lưu vào thư mục của EM ĐƯỢC NỘP HỘ — như ảnh nộp thường của em đó trên web.
   const targetStudentId = session.data.assist?.targetStudentId ?? session.data.studentId;
