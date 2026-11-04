@@ -90,11 +90,16 @@ describe('lượt gọi Gemini: phần cố định đứng trước phần đ�
   const urls: string[] = [];
 
   beforeEach(() => {
+    vi.stubEnv('GRADING_GEMINI_API_KEY', 'k-gem');
+    vi.stubEnv('GEMINI_API_KEY', 'k-gem');
     h.store = {};
     bodies.length = 0;
     urls.length = 0;
   });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
 
   it('tiền tố (chữ + ảnh đề/đáp án) đứng trước phần đổi theo em → cache tiền tố cho cả lớp', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string, init: { body?: unknown }) => {

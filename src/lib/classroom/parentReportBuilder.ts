@@ -3,6 +3,7 @@
  * để hai đường luôn ra cùng một nội dung.
  */
 import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types.js';
+import type { ExamSubmission } from '../../types.js';
 import type { StudentScoreView } from './scoreBook.js';
 import { buildParentSafeReport, validScorePair, type ParentSafeReport } from './parentSafeReport.js';
 import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements.js';
@@ -23,6 +24,8 @@ export interface ParentReportSource {
   assignments: readonly AssignmentDoc[];
   /** Bài nộp của CHÍNH học sinh này. */
   submissions: readonly SubmissionDoc[];
+  /** Bài thi online trắc nghiệm nếu có */
+  examSubmissions?: readonly ExamSubmission[];
   profile: StudentProfileDoc | null;
   scoreView: StudentScoreView | null;
 }
@@ -161,16 +164,45 @@ const buildEvidenceRows = (
 
 const round1 = (value: number | null): number | null => (value === null ? null : Math.round(value * 10) / 10);
 
+export const normalizeExamToSubmissionDoc = (exam: ExamSubmission): SubmissionDoc => ({
+  id: exam.id,
+  assignmentId: exam.assignmentId ?? null,
+  studentId: exam.studentId || '',
+  classId: exam.classId || '',
+  teacherId: '',
+  fileUrls: [],
+  note: '',
+  status: exam.status === 'graded' ? 'graded' : exam.status === 'in_progress' ? 'grading' : 'submitted',
+  grade: exam.grade || (exam.totalScore !== undefined ? {
+    score: exam.totalScore,
+    maxScore: exam.maxScore,
+    feedback: '',
+    gradedAt: exam.submittedAt || exam.startedAt || '',
+    teacherApproved: Boolean(exam.gradeState === 'official' || exam.teacherApprovedAt || exam.approvalMode === 'automatic_policy'),
+    strengths: [],
+    weaknesses: [],
+    weakTopics: [],
+  } : undefined),
+  createdAt: exam.submittedAt || exam.startedAt || '',
+  updatedAt: exam.submittedAt || exam.startedAt || '',
+});
+
 /** `period` null = báo cáo chung từ đầu năm như trước. */
 /** `today` (yyyy-mm-dd, giờ VN) để biết kì đã kết thúc chưa — mặc định hôm nay. */
 export const buildPeriodParentReport = (src: ParentReportSource, period: ReportPeriod | null, today = vnDay(new Date().toISOString())): PeriodParentReport => {
+  const existingIds = new Set(src.submissions.map(s => s.id));
+  const convertedExams = (src.examSubmissions || [])
+    .filter(e => !existingIds.has(e.id))
+    .map(normalizeExamToSubmissionDoc);
+  const allSubmissions = convertedExams.length > 0 ? [...src.submissions, ...convertedExams] : src.submissions;
+
   // Bài giao riêng cho nhóm khác (targetStudentIds) không phải của em này — không tính "chưa nộp".
   const assignments = src.assignments.filter(a => !a.targetStudentIds?.length || a.targetStudentIds.includes(src.studentId));
   const base = { studentId: src.studentId, studentName: src.studentName, className: src.className, profile: src.profile };
   const hs1All = src.scoreView?.hs1 ?? [];
   const scoped = period
-    ? filterForPeriod(period, { assignments, submissions: src.submissions, hs1: hs1All })
-    : { assignments: [...assignments], submissions: [...src.submissions], hs1: hs1All };
+    ? filterForPeriod(period, { assignments, submissions: allSubmissions, hs1: hs1All })
+    : { assignments: [...assignments], submissions: [...allSubmissions], hs1: hs1All };
   // Bài kiểm tra định kì: điểm chính thức đã ở "Điểm thi định kì" (sổ điểm) → không cộng vào số liệu BTVN
   // (điểm TB, xu hướng, từng bài, chưa nộp) và hồ sơ năng lực; chỉ làm căn cứ từng câu cho "Bản đồ theo bài SGK".
   const periodicIds = new Set(assignments.filter(a => a.periodicTest).map(a => a.id));
@@ -179,7 +211,7 @@ export const buildPeriodParentReport = (src: ParentReportSource, period: ReportP
     submissions: data.submissions.filter(s => !s.assignmentId || !periodicIds.has(s.assignmentId)),
   });
   const scopedHomework = homework(scoped);
-  const allHomework = homework({ assignments, submissions: src.submissions });
+  const allHomework = homework({ assignments, submissions: allSubmissions });
   const report = buildParentSafeReport({ ...base, ...scopedHomework });
 
   let comparison = null;
