@@ -90,12 +90,12 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
   const [dangTai, setDangTai] = useState(true);
-  const [viewMode, setViewMode] = useState<'teacher' | 'parent'>(forAdult ? 'teacher' : 'parent');
+  const [viewMode, setViewMode] = useState<'teacher' | 'parent'>('parent');
   const [dangXuatPdf, setDangXuatPdf] = useState(false);
   // Điểm thi định kì + hệ số 1 lấy từ Sổ điểm của lớp (một nguồn cho giáo viên, học sinh, phụ huynh).
   const [soDiem, setSoDiem] = useState<StudentScoreView | null>(null);
-  // Báo cáo theo tháng/kì/năm (chỉ bản người lớn): null = tổng hợp từ đầu năm như trước.
-  const [kyBaoCao, setKyBaoCao] = useState<ReportPeriod | null>(null);
+  // Báo cáo theo tháng/kì/năm: mặc định tháng hiện tại.
+  const [kyBaoCao, setKyBaoCao] = useState<ReportPeriod | null>(() => defaultPeriod('month', vnDay(new Date().toISOString())));
   const [nhanXet, setNhanXet] = useState('');
   const [nhanXetDaLuu, setNhanXetDaLuu] = useState('');
   // Kết quả theo yêu cầu cần đạt (AI ghép, giáo viên soát) — lưu cùng nhận xét, theo đúng kì.
@@ -129,10 +129,6 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     void tai();
     return () => { huy = true; };
   }, [classId, className, studentId, teacherId]);
-
-  useEffect(() => {
-    setViewMode(forAdult ? 'teacher' : 'parent');
-  }, [forAdult]);
 
   const model = buildStudentReportModel(submissions);
   const loiKy = kyBaoCao ? periodError(kyBaoCao) : null;
@@ -258,7 +254,12 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     if (dangXuatPdf) return;
     setDangXuatPdf(true);
     try {
-      await exportParentReportToPdf({ ...inputHienThi, teacherComment: kyHopLe ? nhanXet : undefined, requirements: kyHopLe ? yccd : null, branding: brandingForReport(effectiveBranding()) });
+      await exportParentReportToPdf({
+        ...baoCaoPH.printInput,
+        teacherComment: nhanXet.trim() ? nhanXet : undefined,
+        requirements: yccd.length > 0 ? yccd : null,
+        branding: brandingForReport(effectiveBranding()),
+      });
     } catch (error) {
       console.error('Xuất PDF bản phụ huynh thất bại:', error);
       alert('Không tạo được PDF. Vui lòng thử lại.');
@@ -362,8 +363,11 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
       <div className="space-y-4" data-report-view="parent-safe">
         {forAdult && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-3">
-            <p className="text-sm font-black text-indigo-950">Đang xem bản an toàn để gửi phụ huynh</p>
-            <button type="button" onClick={() => setViewMode('teacher')} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-indigo-700 shadow-sm hover:bg-indigo-100">Về bản giáo viên</button>
+            <div>
+              <p className="text-sm font-black text-indigo-950">Báo cáo học tập định kì (chuẩn đồng bộ Phụ huynh &amp; Học sinh)</p>
+              <p className="text-xs font-semibold text-indigo-700">Đầy đủ nhận xét giáo viên, yêu cầu cần đạt, điểm kiểm tra định kì và năng lực.</p>
+            </div>
+            <button type="button" onClick={() => setViewMode('teacher')} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-indigo-700 shadow-sm hover:bg-indigo-100">Xem chi tiết từng bài &amp; câu hỏi</button>
           </div>
         )}
         {forAdult && (
@@ -460,8 +464,13 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             <ul className="list-disc space-y-1.5 pl-5 text-sm font-semibold leading-6 text-slate-700">{parentReport.teacherActions.map(step => <li key={step}>{step}</li>)}</ul>
           </div>
         </div>
-        <p className="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold leading-5 text-slate-500">Bài đang chờ xử lý không hiển thị điểm, đáp án hoặc ghi chú nội bộ.</p>
-        <button type="button" onClick={inBaoCaoPhuHuynh} disabled={dangXuatPdf} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"><Printer className="h-4 w-4" /> {dangXuatPdf ? 'Đang tạo PDF…' : 'Tải PDF bản phụ huynh'}</button>
+        <p className="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold leading-5 text-slate-500">Bản này chỉ sử dụng kết quả đã được thầy cô xem và duyệt. Bài đang chờ xử lý không hiển thị điểm, đáp án hoặc ghi chú nội bộ.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={inBaoCaoPhuHuynh} disabled={dangXuatPdf} className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-60"><Printer className="h-4 w-4" /> {dangXuatPdf ? 'Đang tạo PDF…' : 'Tải / In PDF báo cáo đầy đủ'}</button>
+          {forAdult && (
+            <button type="button" onClick={taiCsv} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-50"><Download className="h-4 w-4" /> Tải CSV chi tiết</button>
+          )}
+        </div>
       </div>
     );
   }
@@ -471,7 +480,15 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
       <KpiGrid items={chiSoChung} />
       {kyHopLe && <p className="text-xs font-semibold text-slate-500">Số liệu trên tính theo {rangeLabel(kyHopLe)} — giống bản phụ huynh.</p>}
 
-      {forAdult && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3"><p className="text-sm font-black text-slate-700">Bản giáo viên: có thể xem đầy đủ chi tiết để rà soát.</p><button type="button" onClick={() => setViewMode('parent')} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-indigo-700 shadow-sm hover:bg-indigo-50">Xem trước bản phụ huynh</button></div>}
+      {forAdult && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3">
+          <div>
+            <p className="text-sm font-black text-slate-700">Đang xem chi tiết kỹ thuật từng bài nộp &amp; câu hỏi.</p>
+            <p className="text-xs font-semibold text-slate-500">Dành cho giáo viên rà soát chi tiết bài làm của học sinh.</p>
+          </div>
+          <button type="button" onClick={() => setViewMode('parent')} className="rounded-xl bg-indigo-600 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-indigo-700">Quay lại Báo cáo định kì (chuẩn)</button>
+        </div>
+      )}
 
       {forAdult && <div className="space-y-4">{khoiChung}</div>}
 
@@ -559,7 +576,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             }}
             className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
           >
-            <Printer className="h-4 w-4" /> In / lưu PDF
+            <Printer className="h-4 w-4" /> In / lưu PDF báo cáo đầy đủ
           </button>
           <button
             onClick={taiCsv}

@@ -13,7 +13,7 @@ describe('adaptiveLessonToDeweyContent — V4 self-study practice', () => {
     expect(questions.every(question => question && !question.id.startsWith('placeholder-'))).toBe(true);
     expect(questions.every(question => !question.prompt.includes('Câu hỏi đang được chuẩn bị'))).toBe(true);
     expect(new Set(questions.map(question => question?.prompt)).size).toBe(3);
-    expect(questions[0]?.prompt).toContain('có dạng nào');
+    expect(questions[0]?.prompt).toContain('dạng tổng quát');
     expect(questions[1]?.prompt).toContain('thỏa mô hình');
     expect(questions[2]?.prompt).toContain('dùng dấu');
   });
