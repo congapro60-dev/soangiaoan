@@ -3,8 +3,8 @@ import { FakeDb } from './_fake-db.js';
 import {
   PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply,
   assistTargetReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession,
-  hasLiveAssignmentSession, isPendingListQuestion, openPhotoSession, parsePhotoCommand,
-  pendingAssignmentsForStudent, photoListReply, photoReceivedReply,
+  hasLiveAssignmentSession, isCongratulation, isPendingListQuestion, openPhotoSession,
+  parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply,
 } from '../_assistant-ph-hs-photo.js';
 import { emptyQuota, chayNgam, getGradingChain } from '../_grading-core';
 import { gradeContextFor, gradeOneSubmission } from '../grade-homework';
@@ -870,6 +870,23 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     expect(await opening).toBe(PHOTO_REPLIES.sessionChanged);
     expect(h.db.rows.get(SESSION_PATH)).toEqual(reopened);
     expect([...h.db.rows.keys()].filter(path => path.startsWith('submissions/'))).toHaveLength(0);
+  });
+});
+
+describe('isCongratulation — sticker chúc mừng chỉ khi điểm cao đã duyệt', () => {
+  it('đã duyệt + đạt ≥ 80% → chúc mừng', () => {
+    expect(isCongratulation(8, 10, true)).toBe(true);
+    expect(isCongratulation(10, 10, true)).toBe(true);
+    expect(isCongratulation(16, 20, true)).toBe(true);
+  });
+  it('chưa duyệt → KHÔNG chúc mừng (điểm chưa chính thức)', () => {
+    expect(isCongratulation(10, 10, false)).toBe(false);
+  });
+  it('điểm thấp hoặc dữ liệu hỏng → KHÔNG chúc mừng', () => {
+    expect(isCongratulation(7.5, 10, true)).toBe(false);
+    expect(isCongratulation(0, 10, true)).toBe(false);
+    expect(isCongratulation(5, 0, true)).toBe(false);
+    expect(isCongratulation(Number.NaN, 10, true)).toBe(false);
   });
 });
 

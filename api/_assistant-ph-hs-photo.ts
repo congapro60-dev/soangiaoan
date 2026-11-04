@@ -17,21 +17,38 @@ import { chayNgam, getGradingChain, remainingQuota, bumpQuota, rollQuota, today 
 import type { QuotaDoc } from './_grading-core.js';
 import { AiKeyRequiredError } from './_ai-keys.js';
 import { gradeContextFor, gradeOneSubmission } from './grade-homework.js';
-import { sendStyled } from './_assistant-zalo-send.js';
+import { sendStyled, sendSticker } from './_assistant-zalo-send.js';
 import { MENU_HINT, fitZaloList } from './_assistant-ph-hs-menu.js';
 import { notifyTeacherNewSubmission } from './_assistant-ph-hs-teacher.js';
 import { downloadImage } from './_assistant-photo-file.js';
 import type { SubmissionDoc } from '../src/lib/classroom/types.js';
 
 const db = () => getAdminDb();
-const SESSIONS = 'assistantPhotoSessions';
-// 60 phút (sửa 4/11): trước đây 10 phút — HS chọn bài xong làm bài rồi mới chụp, quá 10 phút là
+const SESSIONS = 'assistantPhotoSessions';// 60 phút (sửa 4/11): trước đây 10 phút — HS chọn bài xong làm bài rồi mới chụp, quá 10 phút là
 // phiên hết hạn nên ảnh bị coi là "đề nhờ giải": bot báo lỗi, web không có ảnh nào. 60 phút đủ cho
 // một buổi làm bài mà vẫn tự dọn phiên cũ.
 const SESSION_MINUTES = 60;
 const SESSION_MS = SESSION_MINUTES * 60 * 1000;
 const MAX_PHOTOS = 3;
 const MAX_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Có nên gửi sticker chúc mừng không (chốt 4/11): chỉ khi điểm đã được GV duyệt và đạt ≥ 80%.
+ * Không chúc mừng điểm thấp/chưa duyệt — tránh phản cảm và tránh báo "chính thức" sai.
+ */
+export const isCongratulation = (score: number, maxScore: number, approved: boolean): boolean => {
+  if (!approved) return false;
+  const max = Number(maxScore);
+  const got = Number(score);
+  if (!Number.isFinite(max) || !Number.isFinite(got) || max <= 0) return false;
+  return got / max >= 0.8;
+};
+
+/**
+ * Sticker chúc mừng — để trong env vì Zalo yêu cầu ID sticker do tài khoản bot cấp
+ * (`ZALO_BOT_CONGRA_STICKER`). Rỗng = không gửi sticker, mọi thứ khác giữ nguyên.
+ */
+export const CONGRATS_STICKER = () => String(process.env.ZALO_BOT_CONGRA_STICKER || '').trim();
 /** Ngân sách chấm bot: function webhook ~90s → chấm phải xong trước đó, kèm margin tải ảnh + ghi doc. */
 const GRADE_BUDGET_MS = 55_000;
 const GRADE_MARGIN_MS = 10_000;
@@ -713,6 +730,10 @@ const gradeAndNotify = async (token: string, chatId: string, submissionId: strin
     const fresh = (await db().collection('submissions').doc(submissionId).get()).data() as (SubmissionDoc & { errorMessage?: string }) | undefined;
     if (fresh?.status === 'graded' && fresh.grade) {
       const approved = fresh.grade.teacherApproved === true;
+      // Sticker chúc mừng (chốt 4/11): chỉ khi đã duyệt và điểm từ 8/10 trở lên — "có cảm xúc"
+      // như người thật, không lạm dụng. Sticker lỗi thì bỏ qua, không chặn tin điểm.
+      const msg = isCongratulation(fresh.grade.score, fresh.grade.maxScore, approved) ? CONGRATS_STICKER() : '';
+      if (msg) await sendSticker(token, chatId, msg).catch(() => false);
       await sendStyled(token, chatId, [`📝 Chấm xong bài "${s.assignmentTitle}"${baiCua}: ${fresh.grade.score}/${fresh.grade.maxScore} điểm`,
         approved ? '✅ Thầy cô đã duyệt — điểm chính thức.' : '⏳ Máy chấm trước, thầy cô duyệt sau rồi điểm mới chính thức.',
         // A3: người nộp hộ không xem được bài của bạn qua mục 2 — dẫn đúng nơi xem.

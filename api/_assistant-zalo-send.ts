@@ -48,6 +48,34 @@ export const sendPhoto = async (token: string, chatId: string, photoUrl: string,
   } catch { return false; }
 };
 
+/**
+ * Gửi sticker (chốt 4/11 — kiểm chứng TRỰC TIẾP API: `/sendSticker` có thật với tham số `sticker`;
+ * reaction thì KHÔNG hỗ trợ, trả 404). Dùng để bot "có cảm xúc" như người thật: thả 1 sticker
+ * chúc mừng khi HS nộp bài / được điểm cao.
+ *
+ * KHÔNG throw — trả false khi lỗi, caller coi như không có sticker (không được làm hỏng luồng chính).
+ */
+export const sendSticker = async (token: string, chatId: string, sticker: string): Promise<boolean> => {
+  try {
+    const res = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/sendSticker`, {
+      method: 'POST',
+      redirect: 'error',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, sticker: String(sticker || '').slice(0, 120) }),
+    });
+    const body = await res.json().catch(() => null);
+    if (!res.ok || body?.ok !== true) {
+      // Log CHỈ mã lỗi — không log chat_id (định danh người nhận).
+      console.error(`[zalo-send] sendSticker failed: http=${res.status} code=${body?.error_code ?? '-'} ${String(body?.description ?? '').slice(0, 120)}`);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error(`[zalo-send] sendSticker error: ${error instanceof Error ? error.message.slice(0, 120) : 'unknown'}`);
+    return false;
+  }
+};
+
 export const secretEqual = (a: string, b: string) => {
   const aa = Buffer.from(a); const bb = Buffer.from(b);
   return aa.length === bb.length && crypto.timingSafeEqual(aa, bb);
