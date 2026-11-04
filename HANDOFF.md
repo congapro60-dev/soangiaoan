@@ -1,27 +1,27 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 04/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 13 CẢ 3 KHỐI: 100/100 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
+> Cập nhật: 04/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 14 CẢ 3 KHỐI: 124/124 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
 
 ## 1. Trạng thái hiện tại
-- **TOÀN BỘ 100/100 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
-  - Khối 10: **32 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8/8 bài `10-13-96`..`103`).
-  - Khối 11: **34 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8/8 bài `11-13-90`..`97`).
-  - Khối 12: **34 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8/8 bài `12-13-90`..`97`).
-- **Tuần 13 đã khép kín 100% cả 3 khối (24/24 bài):**
-  - Khối 10: `10-13-96` (Dự án thống kê 1), `10-13-97` (Dự án thống kê 2), `10-13-98` (Luyện tập tích vectơ với số), `10-13-99` (Tọa độ của vectơ), `10-13-100` (Biểu thức tọa độ và độ dài), `10-13-101` (Luyện tập tọa độ vectơ), `10-13-102` (Tự chọn: Ứng dụng tọa độ), `10-13-103` (Tự chọn: Định vị và chuyển động).
-  - Khối 11: `11-13-90` (Giới hạn vô cực của dãy số), `11-13-91` (Luyện tập giới hạn dãy số), `11-13-92` (Giới hạn hữu hạn tại một điểm), `11-13-93` (Giới hạn một bên của hàm số), `11-13-94` (Phép chiếu song song và hình biểu diễn), `11-13-95` (Luyện tập phép chiếu song song), `11-13-96` (Tự chọn: Khử dạng vô định), `11-13-97` (Tự chọn: Hình biểu diễn đa diện).
-  - Khối 12: `12-13-90` (Luyện tập đổi biến nguyên hàm), `12-13-91` (Luyện tập nguyên hàm từng phần), `12-13-92` (Diện tích hình thang cong & tích phân), `12-13-93` (Định nghĩa tích phân & công thức Newton), `12-13-94` (Tính chất tuyến tính & cộng đoạn), `12-13-95` (Tính chất đổi cận & hàm chẵn lẻ), `12-13-96` (Luyện tập tính tích phân cơ bản), `12-13-97` (Tự chọn: Kỹ thuật tính nhanh tích phân).
+- **TOÀN BỘ 124/124 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
+  - Khối 10: **40 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8/8 bài `10-14-104`..`111`).
+  - Khối 11: **42 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8/8 bài `11-14-98`..`105`).
+  - Khối 12: **42 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8/8 bài `12-14-98`..`105`).
+- **Tuần 14 đã khép kín 100% cả 3 khối (24/24 bài):**
+  - Khối 10: `10-14-104` (Luyện tập tọa độ vectơ và độ dài), `10-14-105` (Góc giữa hai vectơ và tích vô hướng), `10-14-106` (Luyện tập góc và tích vô hướng), `10-14-107` (Biểu thức tọa độ của tích vô hướng), `10-14-108` (Luyện tập biểu thức tọa độ tích vô hướng), `10-14-109` (Luyện tập tổng hợp tích vô hướng), `10-14-110` (Tự chọn: Chứng minh vuông góc bằng tích vô hướng), `10-14-111` (Tự chọn: Bài toán thực tế công sinh bởi lực).
+  - Khối 11: `11-14-98` (Giới hạn của hàm số tại vô cực), `11-14-99` (Giới hạn vô cực của hàm số tại một điểm), `11-14-100` (Luyện tập giới hạn hàm số), `11-14-101` (Hàm số liên tục tại một điểm), `11-14-102` (Ôn tập chương IV: Dãy số và giới hạn), `11-14-103` (Ôn tập chương IV: Hàm số liên tục), `11-14-104` (Tự chọn: Phương pháp khử dạng vô định vô cực trừ vô cực), `11-14-105` (Tự chọn: Khảo sát hàm số liên tục có tham số).
+  - Khối 12: `12-14-98` (Luyện tập tính chất và kỹ thuật tích phân), `12-14-99` (Ứng dụng tích phân tính diện tích hình phẳng), `12-14-100` (Luyện tập diện tích hình phẳng một đồ thị), `12-14-101` (Kỹ thuật tách cận tính diện tích hình phẳng), `12-14-102` (Luyện tập tổng hợp diện tích một đường cong), `12-14-103` (Diện tích hình phẳng giới hạn bởi hai đồ thị), `12-14-104` (Luyện tập diện tích giới hạn bởi hai đồ thị), `12-14-105` (Tự chọn: Ứng dụng tích phân tính diện tích thực tế).
 - **Bộ dữ liệu chuẩn hóa:**
   - `src/data/liveLessonPackages/banToan-w5-w6.snapshot.json`: 51 bài.
-  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 49 bài (tổng cộng 100 bài).
-  - Đăng ký đầy đủ 49 bài trong `W11BATCH2` và 52 bài trong `INTERACTIVE_SOURCE_KEYS`.
+  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 73 bài (tổng cộng 124 bài).
+  - Đăng ký đầy đủ 73 bài trong `W11BATCH2` và 76 bài trong `INTERACTIVE_SOURCE_KEYS`.
   - Mọi `aiError` đều đủ 9 trường, thuộc đúng 4 categories chuẩn và `teacherPrompt` chứa "sửa".
-  - Kiểm chứng `displayTitleUnique.test.ts`: 100/100 bài có display title duy nhất trong từng khối lớp.
+  - Kiểm chứng `displayTitleUnique.test.ts`: 124/124 bài có display title duy nhất trong từng khối lớp (K10: 40 bài, K11: 42 bài, K12: 42 bài).
 - **Kiểm định chất lượng:**
-  - Vitest test suite: `src/lib/liveLesson/v4` đạt **439/439 PASS** (28 test files).
+  - Vitest test suite: `src/lib/liveLesson/v4` đạt **511/511 PASS** (28 test files).
   - Production build: `npm run build` thành công, 0 lỗi TypeScript, 0 lỗi bundle.
 - **Đồng bộ mã nguồn:**
-  - Sẵn sàng đồng bộ commit và push cả `feat/nop-bai-da-cham` và `main`.
+  - Đang đồng bộ commit và push cả `feat/nop-bai-da-cham` và `main`.
 
   - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-10-12-88.md` và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-10-12-88.md` (commit `8482b87`). Thầy đã duyệt.
   - Pha B: Đã nạp thành công `newSpec10_12_88` và `newAiError10_12_88` vào `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json` (tổng 8 specs) và timeline `gateD101288` vào `src/lib/liveLesson/v4/lessonAdapter.ts`.

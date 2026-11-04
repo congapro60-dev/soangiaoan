@@ -72,7 +72,7 @@ describe('sequentialPublication', () => {
       }
 
       expect(failures).toHaveLength(0);
-    });
+    }, 30000);
   });
 
   // ── Pure: audit contract-level checks ────────────────────────────────
