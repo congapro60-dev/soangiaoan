@@ -176,6 +176,8 @@ export const normalizeExamToSubmissionDoc = (exam: ExamSubmission): SubmissionDo
   grade: exam.grade || (exam.totalScore !== undefined ? {
     score: exam.totalScore,
     maxScore: exam.maxScore,
+    feedback: '',
+    gradedAt: exam.submittedAt || exam.startedAt || '',
     teacherApproved: Boolean(exam.gradeState === 'official' || exam.teacherApprovedAt || exam.approvalMode === 'automatic_policy'),
     strengths: [],
     weaknesses: [],

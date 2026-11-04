@@ -258,7 +258,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
         ...baoCaoPH.printInput,
         teacherComment: nhanXet.trim() ? nhanXet : undefined,
         requirements: yccd.length > 0 ? yccd : null,
-        branding: brandingForReport(loadParentBranding()),
+        branding: brandingForReport(effectiveBranding()),
       });
     } catch (error) {
       console.error('Xuất PDF bản phụ huynh thất bại:', error);

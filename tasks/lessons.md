@@ -3,6 +3,8 @@
 > Updated after every correction. Reviewed at session start.
 
 - **Điểm thi đã duyệt phải vào sổ theo nguồn sống** — Theo quyết định 26/10/2026: bài đã duyệt (GV/AI/timeout) tự ghép đúng cột định kì; GV sửa bài đã duyệt thì giữ duyệt và sổ cập nhật, không ép duyệt lại. Giữ nháp nhập điểm khi stream cập nhật; chỉ lưu ô thay đổi, kiểm xung đột cùng ô. Đọc số từ Sheet gốc thay vì suy ô trống trong screenshot.
+- **Tên project không được nhận nhãn luyện tập mặc định** — tiêu đề riêng từng buổi đã chứa mục tiêu và số tiết; bộ dựng phải bỏ nhãn “Luyện tập” cho project, đồng thời lưu mỗi file với hậu tố `_project` để không đè file tự chọn cùng số tiết. Kiểm tên file, tiêu đề trong Word, backup và Word render sau khi sửa.
+- **Mục tiêu giáo án phải ngắn, quan sát được và tăng dần** — mỗi mức MUST/SHOULD/COULD mở đầu “Em có thể…”; MUST nêu nền tảng, SHOULD nêu vận dụng chính, COULD mở rộng tư duy của bài. Không dùng thao tác tự kiểm đơn thuần làm mục tiêu COULD.
 
 - **Live lesson close mapping must separate roster IDs from adaptive IDs** — `studentLinks/{uid}.studentId` points to an arbitrary roster document ID (for example `student-a`), while adaptive records use `${teacherUid}_${normalizeStudentCode(roster.code)}`. Always verify the link against the roster document first, then derive the adaptive ID from the server roster code; never copy the roster ID into `StudentLearningProfile`/`StudentSessionProgressRecord`. *(2026-08-25)*
 - **Never infer live route from G1/G2/G3 or default it during close** — route must come from a server-confirmed `route` response or a trusted adaptive profile; mark a participant incomplete when neither exists. *(2026-08-25)*
@@ -334,6 +336,8 @@
 ## TDS DOCX fidelity (2026-08-17)
 - Khi người dùng yêu cầu bám mẫu giáo án, không được tạo template tổng quát: phải phân tích trực tiếp DOCX canonical ở khối 10/11, giữ cấu trúc section, table, style, lề và nhịp hoạt động; kiểm tra số bảng/OMML trước khi bàn giao.
 - Trước khi thay bản cũ, phải tạo bản nháp riêng, đối chiếu trực quan/nội tại với mẫu và chỉ đặt bản đạt vào thư mục tuần tương ứng.
+- Mục tiêu học tập dùng ba mức MUST/SHOULD/COULD; mỗi ý ngắn, quan sát được, mở đầu “Em có thể…”. Giữ cùng nội dung ở bảng mục tiêu và cột ghi bảng.
+- Khi sửa OOXML bằng ElementTree, giữ các namespace được nhắc trong `mc:Ignorable`; XML parse/ZIP hợp lệ chưa đủ. Mở/xuất bằng Word, so khớp số trang PNG/PDF, xem từng trang trước khi promote.
 
 
 ## TDS production pipeline — pre-batch 2026-08-19
@@ -795,7 +799,6 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Sai: cửa sổ Chrome bị che → trang `visibilityState: hidden` → `page.click()` treo; tưởng web lỗi. Đánh dấu nút bằng thuộc tính mà không xoá dấu cũ → bấm nhầm nút khác, tưởng nút "Xuất" hỏng.
 - Luật: mở Chrome QA kèm `--disable-backgrounding-occluded-windows --disable-renderer-backgrounding --disable-background-timer-throttling --disable-features=CalculateNativeWinOcclusion`; trước mỗi lần đánh dấu phần tử thì xoá mọi dấu cũ; trang báo dữ liệu "không phản hồi" thì thử Chrome mới trước khi kết luận lỗi web.
 
-
 ## 2026-10-01 — Dữ liệu mẫu/báo cáo phải đúng giai đoạn dạy (đối chiếu PPCT + file Chiều dọc)
 - Sai: dựng báo cáo mẫu "tháng 9 lớp 10" với bài "Hàm số bậc hai" và mục "đã đánh giá 3/17 năng lực" — Hàm số bậc hai là Bài 16 (HK2); mẫu số 17 đếm cả năng lực chưa học. Chủ dự án bắt được ngay.
 - Luật: đặt nội dung mẫu/giới hạn hiển thị theo giai đoạn thì đối chiếu `src/data/ppct/*.json` (tuần dạy) + file trường "Chiều dọc Toán THPT" (bài HK1) + số Bài trong `yccdToan.ts`; đừng đoán theo trí nhớ. TDS và MOET xếp khác nhau ở vài bài biên → tính cho cả hai học kì. Logic ở `src/lib/classroom/reportStage.ts` (có test đếm 8 + 9 = 17 năng lực lớp 10).
@@ -975,3 +978,18 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - **Chuỗi người dùng nhìn thấy có thể chứa LaTeX: mọi nơi in `studentAnswer`/`reading` ra màn hình phải qua `NhanXetMarkdown`**, không đặt `{text}` trực tiếp (grep `reading`/`studentAnswer` trong JSX khi thêm màn mới). *(2026-10-29)*
 - **Câu ngắn của chủ dự án có thể là lời trách, không phải lệnh bỏ** — "ko dùng skill lady first của tôi rồi" nghĩa là "sao bạn không dùng", không phải "tôi bỏ nó". Câu mơ hồ mà hệ quả là ĐỔI THÓI QUEN LÀM VIỆC (bỏ luật, bỏ quy trình) → giữ hành vi cũ và hỏi lại một câu, đừng tự ghi nhớ thành luật mới. *(2026-10-29)*
 - **Máy dò phiếu tô: kiểm bằng ảnh thật trước khi tin test tổng hợp** — 3 test ảnh vẽ đạt ngay lượt đầu nhưng phiếu thật lệch vài px vì giấy cong, ảnh mất một góc, chì tô nhạt; mỗi lỗi chỉ lộ ra trên ảnh chụp thật. Đo `fill` từng ô (script debug) trước khi chỉnh ngưỡng. *(2026-10-29)*
+
+## 2026-10-29 — DOCX QA must verify OOXML equations semantically
+- Do not assert a formatted equation by searching for one exact Unicode/LaTeX string in extracted text. Word equations may split across runs or store math in OMML. Check the lesson source/contract, extract paragraph math tokens or inspect the rendered page, then verify the mathematical value independently.
+- Contact-sheet screening is a triage signal, not proof of every page’s layout. Record renderer and zoom level; reserve PASS for pages inspected at readable scale.
+
+## 2026-11-02/03 — Viết mục tiêu giáo án
+- Ghi rõ ba nhãn MUST/SHOULD/COULD; mỗi dòng nêu một hành động quan sát được, ngắn và đúng bài, mở đầu bằng “Em có thể…”. Không thêm đoạn diễn giải dài hoặc lặp ý.
+- Không viết đoạn mục tiêu diễn giải dài hoặc lặp lại cả chủ đề; đồng bộ ba câu giữa bảng mục tiêu và cột ghi bảng.
+- Loại câu mục tiêu cũ/focus sinh tự động lặp lại; cột ghi bảng chỉ giữ nội dung GV thực sự ghi.
+- Không đưa ghi chú sau giờ như “rút kinh nghiệm” vào cột ghi bảng; để cột này chỉ chứa nội dung sẽ viết cho học sinh.
+- Áp dụng nguyên tắc này cả với tiết tự chọn; giữ tên slot PPCT, mục tiêu vẫn phải cụ thể theo nội dung đã học.
+
+## 2026-11-04 — Kiểm tra nhanh phải có đủ dữ kiện
+- Sai: câu hỏi yêu cầu so sánh độ dời và quãng đường nhưng không nêu tọa độ; cột ghi bảng vẫn có đáp số, nên học sinh không thể tự giải.
+- Luật: với mỗi câu kiểm tra, đối chiếu đầu vào ở cột hoạt động với phép tính/đáp án ở cột ghi bảng; thiếu một dữ kiện thì bổ sung đề, không chỉ để đáp số.
