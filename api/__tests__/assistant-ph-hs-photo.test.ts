@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeDb } from './_fake-db.js';
 import {
-  PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply,
+  MAX_PHOTOS, PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply,
   assistTargetReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession,
   hasLiveAssignmentSession, isCongratulation, isPendingListQuestion, openPhotoSession,
   parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply,
@@ -267,7 +267,7 @@ describe('phiên nhận ảnh', () => {
     seedClass();
     await openSessionForA1();
     const reply = await putPhoto();
-    expect(reply).toContain('Đã nhận ảnh 1/3');
+    expect(reply).toContain(`Đã nhận ảnh 1/${MAX_PHOTOS}`);
     const [path, file] = [...h.files.entries()][0];
     expect(path).toMatch(/^accepted-homework\/c1\/s1\/[0-9a-f-]+-0$/);
     expect(file.meta.contentType).toBe('image/jpeg');
@@ -298,14 +298,12 @@ describe('phiên nhận ảnh', () => {
     fetchMock.mockImplementation(async () => { throw new Error('network down'); });
     expect(await putPhoto()).toBe(PHOTO_REPLIES.badImage);
   });
-  it('đủ 3 ảnh → chặn ảnh thứ 4', async () => {
+  it(`đủ ${MAX_PHOTOS} ảnh → chặn ảnh tiếp theo`, async () => {
     seedClass();
     await openSessionForA1();
-    h.db.put(SESSION_PATH, { ...h.db.rows.get(SESSION_PATH), photos: [
-      { url: 'u1', name: 'zalo-01.jpg', mimeType: 'image/jpeg', size: 1 },
-      { url: 'u2', name: 'zalo-02.jpg', mimeType: 'image/jpeg', size: 1 },
-      { url: 'u3', name: 'zalo-03.jpg', mimeType: 'image/jpeg', size: 1 },
-    ] });
+    h.db.put(SESSION_PATH, { ...h.db.rows.get(SESSION_PATH), photos: Array.from({ length: MAX_PHOTOS }, (_, i) => ({
+      url: `u${i + 1}`, name: `zalo-${String(i + 1).padStart(2, '0')}.jpg`, mimeType: 'image/jpeg', size: 1,
+    })) });
     expect(await putPhoto()).toBe(PHOTO_REPLIES.max);
   });
 });
@@ -662,7 +660,7 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     });
     const finishing = finishPhotoSession(BOT, USER);
     await ready;
-    expect(await putPhoto()).toContain('Đã nhận ảnh 2/3');
+    expect(await putPhoto()).toContain(`Đã nhận ảnh 2/${MAX_PHOTOS}`);
     const photos = h.db.rows.get(SESSION_PATH).photos;
     release();
     const reply = await finishing;
@@ -699,7 +697,7 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     await ready;
     await cancelPhotoSession(BOT, USER);
     await openSessionForA1();
-    expect(await putPhoto()).toContain('Đã nhận ảnh 1/3');
+    expect(await putPhoto()).toContain(`Đã nhận ảnh 1/${MAX_PHOTOS}`);
     const reopened = structuredClone(h.db.rows.get(SESSION_PATH));
     release();
     const reply = await finishing;
@@ -827,7 +825,7 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     await ready;
     await cancelPhotoSession(BOT, USER);
     await openSessionForA1();
-    expect(await putPhoto()).toContain('Đã nhận ảnh 1/3');
+    expect(await putPhoto()).toContain(`Đã nhận ảnh 1/${MAX_PHOTOS}`);
     const reopened = structuredClone(h.db.rows.get(SESSION_PATH));
     release();
     await naming;

@@ -29,7 +29,7 @@ const SESSIONS = 'assistantPhotoSessions';// 60 phút (sửa 4/11): trước đ�
 // một buổi làm bài mà vẫn tự dọn phiên cũ.
 const SESSION_MINUTES = 60;
 const SESSION_MS = SESSION_MINUTES * 60 * 1000;
-const MAX_PHOTOS = 3;
+export const MAX_PHOTOS = 10;
 const MAX_BYTES = 10 * 1024 * 1024;
 
 /**
