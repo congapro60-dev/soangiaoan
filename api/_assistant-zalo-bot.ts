@@ -475,9 +475,9 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   const chatType = text(m?.chat?.chat_type);
   const isGroupChat = chatType === 'GROUP';
   // Việc 4 — Zalo gửi ảnh (message.image.received): URL TẠM THỜI nằm ở m.photo (chuỗi) hoặc
-  // m.photo.url / m.photo.attach_url (đối tượng, tùy phiên bản payload); caption bỏ qua.
+  // m.photo.url / m.photo.attach_url (đối tượng), HOẶC m.photo_url (chuỗi, phiên bản payload mới).
   // URL này dùng 1 lần để tải về Storage ngay, không lưu lại.
-  const rawPhoto: unknown = m?.photo;
+  const rawPhoto: unknown = m?.photo ?? m?.photo_url;
   const photoUrl = eventName === 'message.image.received'
     ? (typeof rawPhoto === 'string' ? rawPhoto.trim()
       : rawPhoto && typeof rawPhoto === 'object' ? text((rawPhoto as Record<string, unknown>).url) || text((rawPhoto as Record<string, unknown>).attach_url) : '')
