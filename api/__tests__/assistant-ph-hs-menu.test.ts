@@ -115,6 +115,15 @@ describe('menu PH/HS — Phase 2', () => {
     expect(todo).not.toContain('BTVN tuần 3');
   });
 
+  it.each(['parent', 'student'] as const)('mỗi mục menu chỉ nhắc xem menu một lần (%s)', async role => {
+    const { report } = (await loadParentReport(seed().db, 'c', 's1', role))!;
+    for (const key of ['1', '2', '3', '4', '5', '6', '7', '8'] as const) {
+      const text = menuSectionText(key, report, new Set(), role);
+      expect(text.split('Nhắn 0 để xem lại menu.').length - 1, `mục ${key}`).toBe(1);
+      expect(text.endsWith('Nhắn 0 để xem lại menu.')).toBe(true);
+    }
+  });
+
   it('M6: parseMenuChoice: 1–8 là section, 0/menu là menu, 9 là đổi vai, còn lại invalid', () => {
     for (const key of ['1', '2', '3', '4', '5', '6', '7', '8']) expect(parseMenuChoice(key)).toEqual({ kind: 'section', key });
     expect(parseMenuChoice('0')).toEqual({ kind: 'menu' });

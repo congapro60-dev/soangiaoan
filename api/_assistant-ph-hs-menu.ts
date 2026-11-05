@@ -156,7 +156,7 @@ export const withWebPortalLink = (text: string, role: MenuRole, joinCode: string
 // '8' (việc 4) chỉ tới được từ parseMenuChoice của HS — menuSectionBody tự trả lời theo vai trò.
 export const menuSectionText = (key: MenuKey | '8', report: ParentSafeReport, periodicIds: ReadonlySet<string> = new Set(), role: MenuRole = 'parent'): string => {
   const body = menuSectionBody(key, report, periodicIds, role);
-  return `${body}\n\n${MENU_HINT}`;
+  return body.endsWith(MENU_HINT) ? body : `${body}\n\n${MENU_HINT}`;
 };
 
 const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicIds: ReadonlySet<string>, role: MenuRole): string => {
