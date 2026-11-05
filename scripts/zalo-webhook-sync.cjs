@@ -1,7 +1,20 @@
 // Đặt lại webhook + xác nhận verify ĐẠT (chạy sau mỗi lần deploy đổi alias).
 // Không in token/secret.
 const fs = require('node:fs');
-const envText = fs.readFileSync(process.argv[2], 'utf8');
+const path = require('node:path');
+
+let envText = '';
+const envFile = process.argv[2] || path.join(__dirname, '../.env') || path.join(__dirname, '../.env.local');
+if (process.argv[2] && fs.existsSync(process.argv[2])) {
+  envText = fs.readFileSync(process.argv[2], 'utf8');
+} else if (fs.existsSync(path.join(__dirname, '../.env'))) {
+  envText = fs.readFileSync(path.join(__dirname, '../.env'), 'utf8');
+} else if (fs.existsSync(path.join(__dirname, '../.env.local'))) {
+  envText = fs.readFileSync(path.join(__dirname, '../.env.local'), 'utf8');
+} else {
+  // Thử đọc biến môi trường có sẵn
+  envText = `ZALO_BOT_TOKEN=${process.env.ZALO_BOT_TOKEN || ''}\nZALO_BOT_WEBHOOK_SECRET=${process.env.ZALO_BOT_WEBHOOK_SECRET || ''}`;
+}
 const get = k => { const m = new RegExp(`^${k}=(.+)$`, 'm').exec(envText); return m ? m[1].trim().replace(/^["']|["']$/g, '') : ''; };
 const token = get('ZALO_BOT_TOKEN');
 const secret = get('ZALO_BOT_WEBHOOK_SECRET');

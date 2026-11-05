@@ -20,6 +20,7 @@ import { gradeContextFor, gradeOneSubmission } from './grade-homework.js';
 import { sendStyled, sendSticker } from './_assistant-zalo-send.js';
 import { MENU_HINT, fitZaloList } from './_assistant-ph-hs-menu.js';
 import { notifyTeacherNewSubmission } from './_assistant-ph-hs-teacher.js';
+import { notifyParentSubmission, notifyParentGraded } from './_assistant-ph-hs-parent-notify.js';
 import { downloadImage } from './_assistant-photo-file.js';
 import type { SubmissionDoc } from '../src/lib/classroom/types.js';
 
@@ -734,6 +735,10 @@ export const finishPhotoSession = async (botId: string, userId: string): Promise
     teacherId: s.teacherId, classId: s.classId, studentId: targetId,
     assignmentTitle: s.assignmentTitle, photoCount: outcome.session.photos.length, fromUserId: userId,
   }));
+  chayNgam(notifyParentSubmission(getAdminDb(), token, {
+    classId: s.classId, studentId: targetId,
+    assignmentTitle: s.assignmentTitle, photoCount: outcome.session.photos.length, fromUserId: userId,
+  }));
   // A3 (2026-10-27): người nộp hộ nhắn 2 chỉ xem được bài của CHÍNH EM — kết quả của bạn nằm
   // trên tài khoản của bạn ấy, đừng dẫn nhầm.
   return [`📤 Đã nhận bài "${s.assignmentTitle}"${targetName ? ` của ${targetName}` : ''} (${outcome.session.photos.length} ảnh).`,
@@ -766,6 +771,12 @@ const gradeAndNotify = async (token: string, chatId: string, submissionId: strin
       const msg = isCongratulation(fresh.grade.score, fresh.grade.maxScore, approved) ? CONGRATS_STICKER() : '';
       if (msg) await sendSticker(token, chatId, msg).catch(() => false);
       await sendStyled(token, chatId, gradedReply(s.assignmentTitle, fresh.grade.score, fresh.grade.maxScore, approved, s.assist?.targetName));
+      const targetStudentId = s.assist?.targetStudentId ?? s.studentId;
+      chayNgam(notifyParentGraded(getAdminDb(), token, {
+        classId: s.classId, studentId: targetStudentId,
+        assignmentTitle: s.assignmentTitle, score: fresh.grade.score, maxScore: fresh.grade.maxScore,
+        approved, fromUserId: chatId,
+      }));
       return;
     }
     if (fresh?.status === 'error' && fresh.errorMessage) { await khongChamDuoc(String(fresh.errorMessage).slice(0, 200)); return; }
