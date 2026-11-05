@@ -27,7 +27,9 @@
 - **Sắp cắn người sau**: phòng tạo trước V45 giữ gói cũ theo hash (`lib/lesson/service.js:223`), nên vẫn hiện hình Hải trình cũ. Muốn hình đúng phải mở phòng mới.
 
 ### Còn mở
-- Codex live QA bằng học sinh giả: hình Hải trình ở phòng mới, phòng tự đi, màu bảng trên trình duyệt, màn hình 375 px.
+- **Kết quả QA live lần deploy lại (FAIL, đã rollback về V44 lúc 13:48)**: hình Hải trình trên bài mới r060 vẽ góc 32,16° / 62,07° / 85,78°, không phải 30° / 60° / 90°. Nguyên nhân: `CoordinatePlane` (`components/lesson/DataVisual.tsx:430-434`) co trục X theo 8,44 px/đơn vị và trục Y theo 9,2 px/đơn vị. Dữ liệu tam giác đúng.
+- Đã kiểm đạt: bảng dữ liệu 17,85:1 và không tràn ngang ở 375 px; phòng cũ giữ hình cũ và học sinh giả vào lại được. Chưa kiểm: quest 180 giây đầy đủ, lỗi console mới.
+- Sửa tiếp theo cần duyệt trước khi deploy (xem sổ chờ 05/11 14:05). Bản đã lưu V45 (`appgver_15e1d83985b48191a249998826298a6c`) chưa được sửa.
 - Chấm điểm (đúng/sai, mastery, chấm AI) và lỗi RSC prefetch: ngoài bản này, chưa sửa.
 
 ### Lệnh nghiệm thu
