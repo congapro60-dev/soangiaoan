@@ -496,7 +496,13 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
     || Date.now() - msgDate > 300000 || msgDate - Date.now() > 60000
     || (isTextEvent && (!msgText || msgText.length > 2000))
     || (isImageEvent && (!/^https?:\/\//i.test(photoUrl) || photoUrl.length > 2048))) {
-    // Không log nội dung yêu cầu bị từ chối (chứa định danh người gửi).
+    // Không log nội dung/định danh — chỉ lý do + kiểu dữ liệu để chẩn đoán payload Zalo mới.
+    const why = !m ? 'no-message' : (!isTextEvent && !isImageEvent && !isOtherEvent) ? `event:${eventName.slice(0, 40)}`
+      : m.from?.is_bot !== false ? 'is-bot' : (chatType !== 'PRIVATE' && !isGroupChat) ? `chat:${chatType.slice(0, 20)}`
+      : (chatType === 'PRIVATE' && fromId !== chatId) ? 'from-chat-mismatch' : !msgId ? 'no-id'
+      : (!Number.isInteger(msgDate) || msgDate < 1e12) ? 'bad-date' : (Date.now() - msgDate > 300000 || msgDate - Date.now() > 60000) ? `stale:${Date.now() - msgDate}`
+      : isTextEvent ? `text-len:${msgText.length}` : `photo:type=${Array.isArray(rawPhoto) ? 'array' : typeof rawPhoto},len=${photoUrl.length},keys=${Object.keys(m).join('|').slice(0, 160)}`;
+    console.error(`[zalo-bot] invalid event: ${why}`);
     res.status(400).json({ kind: 'error', code: 'INVALID_REQUEST' }); return true;
   }
   const me = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/getMe`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: '{}' }).catch(() => null);
