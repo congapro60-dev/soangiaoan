@@ -55,6 +55,47 @@ test('Hải trình: 27 hình trong ngân hàng ôn tập tích lũy khớp góc 
   assert.deepEqual(bad, []);
 });
 
+// CoordinatePlane vẽ vùng 304×184 px (360×240, lề 28). Góc đo trên hình đã vẽ phải khớp đề, không chỉ dữ liệu tọa độ.
+const PLOT_W = 304, PLOT_H = 184, PAD = 28, SVG_W = 360, SVG_H = 240;
+const toSvg = (v, [mn, mx], size, inverted) => {
+  const u = (v - mn) / (mx - mn);
+  return inverted ? SVG_H - PAD - u * (size - 2 * PAD) : PAD + u * (size - 2 * PAD);
+};
+const drawnPoint = (visual, p) => [toSvg(p.x, visual.xDomain, SVG_W, false), toSvg(p.y, visual.yDomain, SVG_H, true)];
+const drawnAngles = (visual) => {
+  const P = Object.fromEntries(visual.points.map(p => [p.label, drawnPoint(visual, p)]));
+  return { A: angleAt({ x: P['Trạm A'][0], y: P['Trạm A'][1] }, { x: P['Trạm B'][0], y: P['Trạm B'][1] }, { x: P['Mục tiêu C'][0], y: P['Mục tiêu C'][1] }),
+           B: angleAt({ x: P['Trạm B'][0], y: P['Trạm B'][1] }, { x: P['Trạm A'][0], y: P['Trạm A'][1] }, { x: P['Mục tiêu C'][0], y: P['Mục tiêu C'][1] }) };
+};
+const bankVisuals = [];
+for (const entry of grade.entries) for (const item of entry.cumulativeBank || []) {
+  const q = item.question || {};
+  if (q.visual && Array.isArray(q.visual.points) && q.visual.points.some(p => p.label === 'Trạm A')) bankVisuals.push({ lesson: entry.pkg.id, prompt: q.prompt, visual: q.visual });
+}
+
+test('Hải trình: trục X và Y cùng tỷ lệ (hình không méo) cho cả 70 câu và 27 bản sao', () => {
+  const bad = [];
+  for (const { lesson, task } of [...cases.map(c => ({ lesson: c.lesson, task: { id: c.task.id, visual: c.task.visual } })), ...bankVisuals.map(b => ({ lesson: b.lesson, task: { id: 'bank', visual: b.visual } }))]) {
+    const [x0, x1] = task.visual.xDomain, [y0, y1] = task.visual.yDomain;
+    const ratio = (PLOT_W / (x1 - x0)) / (PLOT_H / (y1 - y0));
+    if (Math.abs(ratio - 1) > 0.002) bad.push(`${lesson}/${task.id}: tỷ lệ ${ratio.toFixed(4)}`);
+  }
+  assert.deepEqual(bad, []);
+});
+
+test('Hải trình: góc đo trên hình đã vẽ khớp đề (sai số ≤ 0,1°), cả 70 câu và 27 bản sao', () => {
+  const bad = [];
+  const check = (lesson, id, visual, prompt) => {
+    const g = drawnAngles(visual);
+    const cab = Number(String(prompt).match(/CAB[}]=(-?[0-9]+)/)[1]);
+    const cba = Number(String(prompt).match(/CBA[}]=(-?[0-9]+)/)[1]);
+    if (Math.abs(g.A - cab) > 0.1 || Math.abs(g.B - cba) > 0.1) bad.push(`${lesson}/${id}: vẽ A=${g.A.toFixed(3)} B=${g.B.toFixed(3)} (đề ${cab}/${cba})`);
+  };
+  for (const { lesson, task } of cases) check(lesson, task.id, task.visual, task.prompt);
+  for (const b of bankVisuals) check(b.lesson, 'bank', b.visual, b.prompt);
+  assert.deepEqual(bad, []);
+});
+
 test('Hải trình: nhãn AB khớp khoảng cách A–B', () => {
   const bad = [];
   for (const { lesson, task } of cases) {

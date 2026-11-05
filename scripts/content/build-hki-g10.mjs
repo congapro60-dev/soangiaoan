@@ -269,7 +269,8 @@ const bank = {
         kind: 'coordinate-plane',
         title: 'Hải trình Vịnh Bắc Bộ — Đo đạc trinh sát hải đảo',
         xDomain: [-maxVal, maxVal],
-        yDomain: [-yPad, maxVal],
+        // Tỷ lệ đơn vị trục Y bằng trục X: CoordinatePlane vẽ vùng 304×184 px (360×240, lề 28), nên ySpan = xSpan·184/304.
+        yDomain: [-yPad, Number((-yPad + (2 * maxVal * 184) / 304).toFixed(2))],
         radarRings: [Math.round(maxVal * 0.35), Math.round(maxVal * 0.7), maxVal],
         points: [
           { x: -k, y: 0, label: 'Trạm A' },
