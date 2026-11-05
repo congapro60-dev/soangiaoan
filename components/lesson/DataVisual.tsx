@@ -122,7 +122,7 @@ function DataTable({ visual }: { visual: TaskVisual }) {
                 key={i}
                 style={{
                   border: "1px solid #94a3b8",
-                  background: "#e2e8f0",
+                  background: "#e2e8f0", color: "#0f172a",
                   padding: "4px 10px",
                   textAlign: "center",
                 }}
@@ -139,7 +139,7 @@ function DataTable({ visual }: { visual: TaskVisual }) {
               style={
                 visual.highlight === r
                   ? { background: "#fef3c7", fontWeight: 600 }
-                  : undefined
+                  : { background: "#ffffff" }
               }
             >
               {row.map((cell, c) => (
@@ -147,7 +147,7 @@ function DataTable({ visual }: { visual: TaskVisual }) {
                   key={c}
                   style={{
                     border: "1px solid #94a3b8",
-                    padding: "3px 10px",
+                    padding: "3px 10px", color: "#0f172a",
                     textAlign: c === 0 ? "left" : "center",
                     fontVariantNumeric: "tabular-nums",
                   }}

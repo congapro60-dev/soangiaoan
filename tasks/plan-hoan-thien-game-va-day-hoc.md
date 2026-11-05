@@ -1682,3 +1682,8 @@ Khuyến nghị triển khai R15.1–R15.2 trước. Lượt lập kế hoạch 
 - [x] Chunk AI + CSS live khop SHA256 archive; HTTP200. Record HANDOFF.md va `C:\Users\ADMIN\.codex\sites-release\v33-live-verification.json`.
 - [ ] No QA chua xoa: 23 FAIL trong log suite ban giao, touch thiet bi that, so du vi Vilao. Xac minh assets khong thay the E2E.
 
+
+### 05/11/2026 — Quyết định sửa 70 câu Hải trình (P1 của QA content 04/11)
+- Chủ máy chọn phương án A: OpenCode tương tác trong nhánh qa/hai-trinh-p1-fix (từ 03f67b74), không --auto, không commit/push/deploy. Site vẫn ở v42; chưa phát hành V45.
+- Nguyên nhân đã tái lập: đỉnh C đặt sai trong scripts/content/build-hki-g10.mjs (concept measure). Sửa thành C = (k/2, k·√3/2), AB = 2k.
+- Điều kiện nghiệm thu: 70/70 góc khớp đề (sai số ≤ 0,5°), test hồi quy mới, chỉ 10 bài đổi trong catalogue, test/build/typecheck xanh, review khác họ, rồi Codex QA.

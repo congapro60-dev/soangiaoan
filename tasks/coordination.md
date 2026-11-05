@@ -278,3 +278,76 @@ Goal: QA on Site per owner. Confirmed: r106 box/tetra render and pointer-drag ch
 - Chạy local 50 test API/revisit: 44 PASS, 6 FAIL. P1 buzzer: khi HS cuối bấm chuông, questJoinedAll đóng sự kiện ngay, server nhận OK nhưng trả closed/pressed=false/task=null trước trả lời. Chưa kiểm live; chưa sửa.
 - Không mặc nhiên coi 5 lỗi luyện lại là test lỗi: cần đối chiếu quyền GV chấm lại với submitted/comment_pending hiện tại. Không khẳng định baseline v32 đã chạy độc lập; nhãn nợ v32 trước đó dựa bàn giao.
 
+
+# 05/11 — QA P1 Hải trình: chọn phương án A (nhánh qa/hai-trinh-p1-fix)
+
+- [x] Chủ máy chọn "Duyệt" = phương án A: chủ tự chạy OpenCode tương tác trong nhánh này, không --auto, không commit/push/deploy. Ghi ở sổ chờ (XONG).
+- [x] Tái lập: 70/70 task Hải trình lệch góc (góc A ≈ 59,97° thay vì 30°; góc B ≈ 59,97° thay vì 60°), 10 bài G10 HKI. Đo từ tọa độ trong content/lessons/hki-2026-g10.json.
+- [x] Sinh lại trên checkout LF tái tạo đúng HEAD: content/lessons/hki-2026-g10.json và tasks/r22/* không đổi. Catalogue chỉ lệch 4 blob đề nháp G11/G12 khi chạy trên checkout CRLF (nguồn tasks/r22/g11-exams/*.txt có CRLF trong bản Windows). Không tái tạo catalogue bằng builder trên checkout CRLF.
+- [ ] OpenCode tương tác sửa generator (concept measure: đỉnh C = (k/2, k·√3/2)) và thêm tests/hai-trinh-geometry.test.mjs. Chưa commit.
+- [ ] Claude: ghép catalogue chọn lọc (chỉ 10 bài đổi), diff toàn bộ, npm test / test:geometry / typecheck / build / verify:assets, review khác họ, Codex QA, rồi mới xét V45.
+- Quyết định: radarRings giữ nguyên (vòng đồng tâm O theo renderer). Đề, đáp án, gợi ý, lời giải không đổi.
+
+# 05/11 — Chia việc QA song song: Claude engine, Codex live; gộp sau
+- [x] Claude: sửa bộ chạy thử (GV đóng sự kiện lớp khi bị chặn; lấy lại trạng thái trước mỗi lần gửi bài). Sweep 807 gói: 0 crash, 0 lệch khóa, 0 lỗi validate; GV 807/807; HS tự đi 807/807 (868 lần GV đóng sự kiện lớp).
+- [x] Claude: test hồi quy Hải trình 4/4 xanh trên bản sửa, 2 đỏ trên HEAD. npm test 1476 (1474 pass, 0 fail, 2 skip có sẵn); typecheck 0.
+- [x] Codex (live V44): lỗi P1 còn thấy trên site (đỉnh C giữa A–B, hình cân). Codex báo 714 visual, nhiều hình tĩnh, chưa đồng nghĩa game tương tác.
+- [ ] Codex: review độc lập bộ chạy thử và test; mẫu ngẫu nhiên 6 bài trên V44 (seed 20261105).
+- [ ] Gộp kết quả. Phát hành V45 chỉ khi cả hai đạt và chủ máy ra lệnh.
+- Chưa làm: mô phỏng HS trả lời nhiệm vụ cả lớp; 9 luật mode-engine; kiểm kéo thả trên live.
+- Bị chặn: đổi chính sách dữ liệu (private) cho nvidia-glm và sol. Bộ phân loại an toàn từ chối; cần quy tắc quyền.
+- [x] Claude: đo HS tự đi khi GV không đóng sự kiện lớp (cờ --no-gv-close): 181/300 gói bị kẹt, lỗi CLASS_EVENT_ACTIVE. Nguyên nhân: nhiệm vụ cả lớp bắt buộc mở sau khi HS nộp bài (openClassQuest) giữ lớp đến khi GV đóng hoặc đủ HS tham gia (questMandatoryHold). Cần quyết định thiết kế.
+
+# 05/11 — Quyết định A: làm theo đợt, thí điểm 10 bài đại diện
+- [x] Chủ chọn A (làm theo đợt). Gửi định hướng và tiêu chí A1–A8 cho Codex (thread 01a126e2), đã nhận (accepted).
+- Thí điểm 10 bài: r22-g10-discover-r087 (ôn tập, Hải trình), r22-g10-discover-r110, r22-g10-discover-r011, r23-g10-discover-r198, r22-g11-discover-r041, r22-g11-discover-r069, r23-g11-discover-r262 (ôn tập), r22-g12-discover-r132, r23-g12-discover-r219, r23-g12-discover-r228 (3D, tự chọn).
+- Tiêu chí: A1 cơ chế riêng; A2 đúng giai đoạn; A3 must/should/could → DOK 1/2/3; A4 năng lực toán học; A5 giữ LO; A6 có thao tác tương tác (2D kéo/thanh trượt, 3D xoay); A7 chạy engine 0 lỗi, không tràn khung ở 375px và 1280px; A8 Hải trình đúng góc.
+- Phiên OpenCode 'Game chatgpt site' (ses_e9baf97b5ffedetDsIjLZTDch0): đang rảnh. Điều khiển qua CLI, chưa có cầu nối MCP trong phiên này.
+
+# 05/11 — Cập nhật: bản nháp thiết kế từ OpenCode và việc đọc báo cáo Codex
+- [x] OpenCode (phiên ses_e57c8bf0affegaXtgRuAo3BJ6W, model 9router/cx/gpt-6-luna): bản nháp 10 bài. Đã sửa theo dữ liệu: LO là mã đoạn (segmentId), dùng đúng mã mục tiêu, có bảng khác biệt (10 cấu trúc khác nhau). Chưa kiểm chứng engine/layout; chưa review độc lập.
+- [ ] Codex: báo cáo QA cuối chưa đọc được. Codex bridge báo chưa xác minh đồng thời tài khoản Claude và Codex; cần đăng nhập Claude Desktop rồi đọc lại thread 01a126e2.
+- Câu hỏi mở: bài chỉ có một mục tiêu thì áp Must/Should/Could (DOK 1/2/3) ở cấp nhiệm vụ có chấp nhận được không, hay cần tách thêm mục tiêu?
+
+# 05/11 — Gộp QA Claude + Codex: V44 live có lỗi đã xác nhận; V45 chưa đủ điều kiện
+- [x] Đọc báo cáo Codex (thread 01a126e2) qua file rollout local, vì cầu nối vẫn lỗi. Nguồn: C:/Users/ADMIN/.codex/sites-release/qa-live-20261105/INDEPENDENT-REVIEW-AND-SAMPLE.md. Codex: REVIEW FAIL như cổng nghiệm thu; 6/6 bài live tới cổng đầu tiên, 3/3 đáp án số đúng; chưa chứng minh hoàn thành toàn bộ.
+- [x] P1 tương phản bảng xác nhận bằng mã: ô không đặt màu chữ nên kế thừa #f8fafc. Số Codex đo trên live (1,18:1 và 1,06:1) khớp đúng phép tính từ mã.
+- [x] Sửa renderer bảng (components/lesson/DataVisual.tsx, chưa commit): th/td có màu chữ #0f172a, tương phản 14,48:1 trên nền ô và 16,03:1 trên hàng nổi bật. Test hồi quy tests/dataTable-contrast.test.mjs: đỏ trước khi sửa, xanh sau khi sửa. Chưa kiểm trên trình duyệt.
+- [x] Sửa sampler (qa-tools/engine-sample.mjs): (1) GV không đóng sự kiện lớp mặc định, chỉ --force-gv-close mới cưỡng đóng; (2) hoàn thành chỉ khi NEXT trả SESSION_CONCLUDED, CONCLUDE tay không được tính; (3) thoát mã 1 khi có vấn đề. Kiểm 25 gói: mặc định 14/25 không hoàn thành, thoát 1; cưỡng đóng 25/25 nhưng thoát 1 vì 14 lần ROLL bị từ chối trước khi cưỡng đóng (cố ý).
+- [x] Bản sampler cũ, 807 gói: 807 hoàn thành, 868 cưỡng đóng, ROLL:CLASS_EVENT_ACTIVE 868, CLASS_EVENT_ACTIVE 45. Codex ghi 41 cho SUBMIT; lệch 4, chưa rõ nguyên nhân. Kết quả "807/807" cũ KHÔNG phải bằng chứng nghiệm thu.
+- [~] Chạy bản sampler đã sửa trên 807 gói, mặc định: đang chạy nền.
+- [ ] Chưa làm: kiểm chấm đúng/sai (P2 của Codex); lỗi RSC prefetch trên live (5/6 bài, chưa điều tra); kiểm tương tác trên live; 714 hình tĩnh (Codex: 462 không tương tác, 252 chỉ hover, 0 thao tác tham số).
+- Cầu nối Codex: codex_bridge_status và read_codex_thread (limit 1) vẫn lỗi "Claude account is unavailable". Nguyên nhân đã xác nhận: Claude Desktop lưu trạng thái đăng nhập ở Local\Claude-Data\claude_pzs8sxrjxfjjc\config.json (có khóa tài khoản và windowSizeWasSignedIn hợp lệ); bridge chỉ đọc %APPDATA%\Claude (không có config.json) và Packages\...\LocalCache (không có). Chưa đổi cấu hình nào. Chờ chủ chọn A/B/D (xem sổ chờ).
+- V45: chưa phát hành. Điều kiện: Codex live QA lại bản đã sửa; chủ ra lệnh. Đề xuất: V45 hotfix nhỏ (Hải trình + tương phản), không kèm thiết kế lớp tự đi.
+- Cập nhật cầu nối (xác minh chỉ đọc, thay cho chẩn đoán trên): ~/.claude.json (codex-bridge) và cả 2 dòng ~/.codex/config.toml đều đặt CLAUDE_DESKTOP_USER_DATA trỏ tới Claude-Data. Hàm đọc tài khoản ưu tiên biến này nếu có (desktop-account-context.mjs, candidateRoots). Tiến trình codex-bridge đang chạy (PID 832560) khởi động 03:17:44; theo phiên Claude khác thì cấu hình được sửa sau thời điểm đó, nên tiến trình vẫn dùng đường dẫn cũ. Cách xử lý: kết nối lại MCP hoặc mở phiên mới, không vá gói. Chưa kiểm chứng bằng codex_bridge_status sau khi kết nối lại. Nhận định trước đó về việc gói bridge tự quét APPDATA là đúng cho tiến trình cũ, nhưng đề xuất vá gói là không cần.
+- Tin từ phiên Claude khác (Codex MCP Bridge setup) yêu cầu: không sửa cấu hình, không gọi lại công cụ cầu nối, đọc rollout chỉ đọc. Đã làm phần chỉ đọc; không gửi gì tới Codex; không có quyền nào được cấp qua tin đó.
+
+# 05/11 — Duyệt: lớp tự đi phương án A và hotfix V45 (nhánh QA, chưa commit)
+- [x] Chủ máy duyệt các khuyến nghị (chat, 05/11): kết nối lại cầu nối; hotfix V45 gồm Hải trình và tương phản bảng, phát hành sau QA; lớp tự đi phương án A.
+- [x] Lớp tự đi A: lib/lesson/self-pace.js, initClassQuest và nhánh classQuest cũ dùng mandatory = slot === 0 && !isSelfPaced(state). Trong chế độ tự đi, nhiệm vụ cả lớp là tuỳ chọn, không giữ lớp; sự kiện tự đóng sau 180 giây. Chế độ GV điều nhịp giữ nguyên.
+- [x] Test mới tests/lesson-self-class-quest.test.mjs (2 test); cùng các test liên quan: 31/31 đạt.
+- [x] Sampler: lệnh bị chặn CLASS_EVENT_ACTIVE tách sang waitRefused (không tính lỗi); TICK khi mọi em đã đi hết mà sự kiện còn mở; sự kiện còn mở cuối là lỗi; cưỡng đóng tính vào problems.
+- [x] Sampler 25 gói, mặc định, sau A: 25/25 hoàn thành, 0 sự kiện còn mở, 0 cưỡng đóng, thoát 0. Cùng 25 gói trước A: 14 không hoàn thành.
+- [x] npm test đầy đủ: 1480 test, 1478 đạt, 0 lỗi, 2 bỏ qua (có sẵn).
+- [x] npm run typecheck exit 0; npm run build exit 0; npm run verify:assets exit 0 (54 file, 0 thiếu). Build làm public/feedback.js đổi kết thúc dòng; đã khôi phục.
+- [x] Sampler 807 gói sau A: 807/807 hoàn thành; 0 không hoàn thành; 0 sự kiện còn mở cuối; 0 cưỡng đóng; 0 lỗi; 0 lỗi xác thực; problems 0, thoát 0. Có 94.870 lần bị chặn vì chờ sự kiện lớp (đúng luật, tối đa 180 giây mỗi sự kiện). Trước A (cùng sampler, nhiệm vụ cả lớp bắt buộc): 277/807 hoàn thành, 530 kẹt, 2.102.976 lần bị chặn CLASS_EVENT_ACTIVE.
+- [ ] Codex QA độc lập: yêu cầu soạn sẵn bằng tiếng Anh ở scratchpad codex-qa-request-v45-hotfix.md; chưa gửi vì cầu nối lỗi.
+- [ ] Chưa kiểm trên trình duyệt (lớp tự đi, bảng tương phản): cần phiên học có GV và HS; QA worktree không có máy chủ xem trước.
+- [ ] Chưa commit, push, deploy. Chờ chủ máy: (1) kết nối lại cầu nối; (2) có deploy V45 để QA live hay không.
+- Đánh đổi cần chủ biết: mỗi sự kiện lớp tự đi giữ HS tối đa 180 giây; lệnh của HS bị chặn trong thời gian đó.
+- [x] Yêu cầu QA đã đến Codex (xác minh trong rollout: 20:59:59Z, từ thread 01a07285, một lần; có đủ số 807/807). Lần thử trước đó báo lỗi cầu nối: "Bridge source changed after this MCP process started. Reconnect this MCP server in the existing Desktop task before sending. No message was sent". Đang chờ verdict của Codex; cầu nối chỉ cần khi gửi thêm tin.
+
+## 05/11 — Codex QA lần 1 của V45: FAIL; đã sửa, chờ QA lần 2
+- Verdict (REPORT.md của Codex): FAIL. (1) P1 phòng tự đi mở từ bản cũ còn cờ bắt buộc; (2) P1 hàng thường của bảng dữ liệu tương phản 1,22:1; (3) P2 sampler gửi TICK bằng actor GV (UNAUTHORIZED).
+- Đã sửa trong nhánh QA, chưa commit: lib/lesson/self-pace.js (questMandatoryHold chỉ tắt ở tự đi; clearSelfPaceHolds), lib/lesson/runtime.js (một dòng ở nhánh tự đi), components/lesson/DataVisual.tsx (nền #ffffff cho hàng thường), qa-tools/engine-sample.mjs (TICK bằng actor hệ thống), tests/dataTable-contrast.test.mjs và tests/lesson-self-class-quest.test.mjs.
+- Kiểm lại: typecheck 0; npm test 0 (1487 test, 1485 đạt, 0 lỗi); build 0; verify:assets 0; sampler 25 và 807 đều 0, problems 0, 807/807 hoàn thành, 0 ép đóng, 0 sự kiện còn mở.
+- Chưa làm được: sự kiện GV đang mở (gói hiện có không mở được sự kiện GV vì ngân sách, và sampler không mở sự kiện GV); kiểm trình duyệt; chất lượng chấm điểm (lỗ hổng cũ, ngoài phạm vi).
+- Cầu nối Codex chưa gửi được (BRIDGE_ACCOUNT_UNVERIFIED). Bản yêu cầu QA lần 2 đã soạn sẵn: scratchpad codex-qa-request-v45-fix2.md.
+
+## 05/11 — Codex QA lần 2 của V45: PASS
+- Báo cáo của Codex: C:\Users\ADMIN\.codex\sites-release\qa-v45-hotfix-fix2-20261105\REPORT.md
+- Cả 3 hạng mục PASS (phòng tự đi, tương phản bảng qua source/SSR, TICK của sampler). Không có P1/P2/P3 mới.
+- Lệnh (commands.json): typecheck, test, build, verify:assets, sampler 25 và 807 đều exit 0.
+- Chế độ GV có sự kiện thật (tạm dừng, TICK lúc tạm dừng, tiếp tục, TICK đúng giờ hết): trace khớp V44 hoàn toàn.
+- Chưa làm: trình duyệt (tương phản, ảnh, co giãn điện thoại), phòng học thật, chấm điểm đúng/sai, RSC prefetch, hình Hải trình khi hiển thị thật.
+- Chưa commit, push hay deploy. Chờ quyết định phát hành của chủ máy.

@@ -263,6 +263,7 @@ const bank = {
     'Nhầm quãng đường qua trạm với khoảng cách thẳng; dùng góc ngoài không đổi về góc trong.', (s, d) => {
       const k = n(s);
       const maxVal = Math.ceil(k * 1.73 + 2);
+      const cx = k / 2, cy = Number((k * Math.sqrt(3) / 2).toFixed(2));
       const yPad = Math.max(2, Math.round(k * 0.25));
       const visual = {
         kind: 'coordinate-plane',
@@ -273,12 +274,12 @@ const bank = {
         points: [
           { x: -k, y: 0, label: 'Trạm A' },
           { x: k, y: 0, label: 'Trạm B' },
-          { x: 0, y: Number((k * 1.73).toFixed(2)), label: 'Mục tiêu C', color: '#10b981' }
+          { x: cx, y: cy, label: 'Mục tiêu C', color: '#10b981' }
         ],
         segments: [
           { from: [-k, 0], to: [k, 0], label: `AB = ${2 * k}m` },
-          { from: [-k, 0], to: [0, Number((k * 1.73).toFixed(2))], label: 'AC' },
-          { from: [k, 0], to: [0, Number((k * 1.73).toFixed(2))], label: 'BC' }
+          { from: [-k, 0], to: [cx, cy], label: 'AC' },
+          { from: [k, 0], to: [cx, cy], label: 'BC' }
         ]
       };
       return open(R`Hai trạm A,B cách nhau $${2 * k}$ m. Điểm C cùng phía với AB; đo được $\widehat{CAB}=30^\circ$, $\widehat{CBA}=60^\circ$. Em vẽ mô hình, tính góc C và khoảng cách ${d % 2 ? 'BC' : 'AC'}. Kết quả có thể viết dưới dạng căn.`,
