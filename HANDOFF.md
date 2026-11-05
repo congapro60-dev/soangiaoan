@@ -23,9 +23,11 @@
 - Chủ máy duyệt phát hành 05/11/2026. Công cụ Sites chỉ có ở Codex, nên Codex thực hiện deploy.
 - Rollback về V44 đang live: version `appgprj_6ac8d74b14f8819193caded9533bb337~appgver_360e9f00101481919bc9174dafed81ab`, deployment V44 `appgdep_6aeb8908470881918a4c3fae6ea16b61`. Audience public.
 - Không có migration DB, không đổi env.
+- Deploy lần 1 (11:25, `appgdep_6aec051c61a88191bc8acb45ce4a77ae`, version `appgprj_6ac8d74b14f8819193caded9533bb337~appgver_15e1d83985b48191a249998826298a6c`) bị rollback lúc 11:29, vì lệnh của Claude không tách tiêu chí phòng cũ và phòng mới. Chủ máy duyệt deploy lại bản đã lưu ngày 05/11.
+- **Sắp cắn người sau**: phòng tạo trước V45 giữ gói cũ theo hash (`lib/lesson/service.js:223`), nên vẫn hiện hình Hải trình cũ. Muốn hình đúng phải mở phòng mới.
 
 ### Còn mở
-- Codex live QA bằng học sinh giả trên phòng test. Phòng test tạo trên V44 trước deploy phải chạy tiếp được sau deploy.
+- Codex live QA bằng học sinh giả: hình Hải trình ở phòng mới, phòng tự đi, màu bảng trên trình duyệt, màn hình 375 px.
 - Chấm điểm (đúng/sai, mastery, chấm AI) và lỗi RSC prefetch: ngoài bản này, chưa sửa.
 
 ### Lệnh nghiệm thu
