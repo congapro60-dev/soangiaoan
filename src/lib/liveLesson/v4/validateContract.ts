@@ -247,9 +247,9 @@ function validatePackageIdentity(contract: LiveLessonV4Contract, errors: V4Valid
     });
   }
 
-  // Tuần 5–6 là lô pilot Ban Toán gốc; Tuần 11–17 là lô Bài học tương tác V8.8
+  // Tuần 5–6 là lô pilot Ban Toán gốc; Tuần 11–18 là lô Bài học tương tác V8.8
   // (Gate D duyệt 2026-10-25). Mọi tuần khác vẫn bị chặn để không lọt gói lạ.
-  if (contract.sourceKey !== undefined && !/^\d{2}-(?:[56]|11|12|13|14|15|16|17)-\d+$/.test(contract.sourceKey)) {
+  if (contract.sourceKey !== undefined && !/^\d{2}-(?:[56]|11|12|13|14|15|16|17|18)-\d+$/.test(contract.sourceKey)) {
     errors.push({
       code: 'SOURCE_IDENTITY_INVALID',
       message: `sourceKey không đúng dạng grade-week-period: ${contract.sourceKey}.`,

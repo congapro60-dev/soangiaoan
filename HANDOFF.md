@@ -1,24 +1,24 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 05/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 17 CẢ 3 KHỐI: 194/194 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
+> Cập nhật: 05/11/2026 — **HOÀN TẤT TRỌN VẸN HỌC KỲ 1 CẢ 3 KHỐI (TUẦN 5–18): 218/218 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
 
 ## 1. Trạng thái hiện tại
-- **TOÀN BỘ 194/194 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
-  - Khối 10: **64 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8 bài; Tuần 17: 8/8 bài `10-17-128`..`135`).
-  - Khối 11: **66 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8 bài; Tuần 17: 8/8 bài `11-17-122`..`129`).
-  - Khối 12: **64 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 7 bài; Tuần 17: 7/7 bài `12-17-122`..`128`).
-- **Tuần 17 đã khép kín 100% cả 3 khối (23/23 bài chuẩn PPCT TDS):**
-  - Khối 10: `10-17-128` (Ôn tập HK1: Phương trình quy về phương trình bậc hai), `10-17-129` (Ôn tập HK1: Dấu của tam thức bậc hai và bất phương trình bậc hai), `10-17-130` (Ôn tập HK1: Số gần đúng, sai số và số đặc trưng xu thế trung tâm), `10-17-131` (Ôn tập HK1: Tổng hợp hệ thức lượng và giải tam giác thực tế), `10-17-132` (Ôn tập HK1: Phân tích vectơ và chứng minh ba điểm thẳng hàng), `10-17-133` (Ôn tập HK1: Tích vô hướng và góc giữa hai vectơ), `10-17-134` (Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Đại số), `10-17-135` (Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Hình học).
-  - Khối 11: `11-17-122` (Ôn tập HK1: Biến đổi biểu thức chứa luỹ thừa và lôgarit), `11-17-123` (Ôn tập HK1: Giới hạn của dãy số và giới hạn của hàm số), `11-17-124` (Ôn tập HK1: Hàm số liên tục và định lý nghiệm), `11-17-125` (Ôn tập HK1: Đường thẳng và mặt phẳng, quan hệ song song), `11-17-126` (Ôn tập HK1: Hai đường thẳng song song và đường thẳng song song mặt phẳng), `11-17-127` (Ôn tập HK1: Hai mặt phẳng song song và định lý Thales trong không gian), `11-17-128` (Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Phần trắc nghiệm nhiều lựa chọn), `11-17-129` (Tự chọn: Rèn luyện kỹ năng đề minh họa HK1 Phần đúng sai và trả lời ngắn).
-  - Khối 12: `12-17-122` (Ôn tập HK1: Nhận diện đồ thị và bảng biến thiên), `12-17-123` (Ôn tập HK1: Ứng dụng đạo hàm giải bài toán tối ưu thực tế), `12-17-124` (Ôn tập HK1: Vectơ và tọa độ Oxyz — Tích vô hướng và góc), `12-17-125` (Ôn tập HK1: Thống kê mô tả — Phân tích mẫu ghép nhóm và độ phân tán), `12-17-126` (Ôn tập HK1: Nguyên hàm tích phân đổi biến số và từng phần), `12-17-127` (Ôn tập HK1: Rèn luyện đề ôn thi HK1 Toán 12 Trắc nghiệm nhiều lựa chọn), `12-17-128` (Ôn tập HK1: Rèn luyện đề ôn thi HK1 Toán 12 Đúng sai và trả lời ngắn).
+- **TOÀN BỘ 218/218 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
+  - Khối 10: **72 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8 bài; Tuần 17: 8 bài; Tuần 18: 8/8 bài `10-18-136`..`143`).
+  - Khối 11: **74 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8 bài; Tuần 17: 8 bài; Tuần 18: 8/8 bài `11-18-130`..`137`).
+  - Khối 12: **72 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 7 bài; Tuần 17: 7 bài; Tuần 18: 8/8 bài `12-18-130`..`137`).
+- **Tuần 18 đã khép kín 100% cả 3 khối (24/24 bài chuẩn PPCT TDS kết thúc Học kỳ 1):**
+  - Khối 10: `10-18-136` (Ôn tập HK1: Phương pháp giải hệ phương trình và toán thực tế), `10-18-137` (Ôn tập HK1: Tọa độ vectơ và bài toán hình học phẳng Oxy), `10-18-138` (Ôn tập HK1: Thống kê mô tả và phân tích số liệu thực tế), `10-18-139` (Ôn tập HK1: Tổng hợp kiến thức Hình học và Hệ thức lượng), `10-18-140` (Kiểm tra cuối HK1: Đề minh họa HK1 Phần trắc nghiệm nhiều lựa chọn), `10-18-141` (Kiểm tra cuối HK1: Đề minh họa HK1 Phần đúng sai và tự luận), `10-18-142` (Tự chọn: Chữa đề và khắc phục sai sót thường gặp HK1), `10-18-143` (Tự chọn: Tổng kết phương pháp học tập môn Toán học kỳ 1).
+  - Khối 11: `11-18-130` (Ôn tập HK1: Phương trình lượng giác và bài toán thực tế sóng âm chu kỳ), `11-18-131` (Ôn tập HK1: Dãy số, cấp số cộng, cấp số nhân và bài toán tài chính), `11-18-132` (Ôn tập HK1: Giới hạn vô định và tính liên tục của hàm số), `11-18-133` (Ôn tập HK1: Hình học không gian — Quan hệ song song và thiết diện tổng hợp), `11-18-134` (Kiểm tra cuối HK1: Đề minh họa HK1 Phần trắc nghiệm nhiều lựa chọn), `11-18-135` (Kiểm tra cuối HK1: Đề minh họa HK1 Phần đúng sai và trả lời ngắn), `11-18-136` (Tự chọn: Chữa đề kiểm tra cuối HK1 và phân tích bẫy đề thi), `11-18-137` (Tự chọn: Tổng kết kiến thức trọng tâm Toán 11 học kỳ 1).
+  - Khối 12: `12-18-130` (Ôn tập HK1: Ứng dụng đạo hàm — Cực trị, tiệm cận và đồ thị), `12-18-131` (Ôn tập HK1: Vectơ và hệ tọa độ Oxyz trong không gian), `12-18-132` (Ôn tập HK1: Thống kê ghép nhóm — Phân tích độ phân tán và rủi ro), `12-18-133` (Ôn tập HK1: Nguyên hàm, tích phân và bài toán chuyển động thực tế), `12-18-134` (Ôn tập HK1: Ứng dụng hình học của tích phân — Diện tích và thể tích), `12-18-135` (Kiểm tra cuối HK1: Đề khảo sát chất lượng HK1 Phần trắc nghiệm nhiều lựa chọn), `12-18-136` (Kiểm tra cuối HK1: Đề khảo sát chất lượng HK1 Phần đúng sai và trả lời ngắn), `12-18-137` (Tự chọn: Chữa đề thi HK1, tổng kết học kỳ 1 và định hướng HK2).
 - **Bộ dữ liệu chuẩn hóa:**
   - `src/data/liveLessonPackages/banToan-w5-w6.snapshot.json`: 51 bài.
-  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 143 bài (tổng cộng 194 bài).
-  - Đăng ký đầy đủ 143 bài trong `W11BATCH2` và 146 bài trong `INTERACTIVE_SOURCE_KEYS`.
-  - Mọi `aiError` đều đủ 9 trường, thuộc đúng 4 categories chuẩn và `teacherPrompt` chứa "sửa".
-  - Kiểm chứng `displayTitleUnique.test.ts`: 194/194 bài có display title duy nhất 100% trong từng khối lớp (K10: 64 bài, K11: 66 bài, K12: 64 bài).
+  - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 167 bài (tổng cộng 218 bài).
+  - Đăng ký đầy đủ 167 bài trong `W11BATCH2` và 170 bài trong `INTERACTIVE_SOURCE_KEYS`.
+  - Mọi `aiError` đều đủ 11 trường, thuộc đúng 4 categories chuẩn và `teacherPrompt` chứa "sửa".
+  - Kiểm chứng `displayTitleUnique.test.ts`: 218/218 bài có display title duy nhất 100% trong từng khối lớp (K10: 72 bài, K11: 74 bài, K12: 72 bài).
 - **Kiểm định chất lượng:**
-  - Vitest test suite: `src/lib/liveLesson/v4` đạt **721/721 PASS** (28 test files).
+  - Vitest test suite: `src/lib/liveLesson/v4` đạt **793/793 PASS** (28 test files).
   - Production build: `npm run build` thành công, 0 lỗi TypeScript, 0 lỗi bundle.
 - **Đồng bộ mã nguồn:**
   - Đang đồng bộ commit và push cả `feat/nop-bai-da-cham` và `main`.

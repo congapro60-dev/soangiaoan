@@ -10,7 +10,7 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
   });
 
   it('Cổng chốt catalog batch2 — đủ đúng key mới nghiệm thu đợt (Task 11 Step 1b)', () => {
-    expect(W11BATCH2).toHaveLength(143);
+    expect(W11BATCH2).toHaveLength(167);
     expect(W11BATCH2.map((e) => e.key)).toEqual([
       '10-11-80', '11-11-76', '11-11-78', '11-11-79', '12-11-77', '12-11-78', '12-11-79',
       '10-12-88', '11-12-82', '12-12-82', '12-12-83', '12-12-84', '12-12-85', '12-12-86', '12-12-87',
@@ -31,6 +31,9 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
       '10-17-128', '10-17-129', '10-17-130', '10-17-131', '10-17-132', '10-17-133', '10-17-134', '10-17-135',
       '11-17-122', '11-17-123', '11-17-124', '11-17-125', '11-17-126', '11-17-127', '11-17-128', '11-17-129',
       '12-17-122', '12-17-123', '12-17-124', '12-17-125', '12-17-126', '12-17-127', '12-17-128',
+      '10-18-136', '10-18-137', '10-18-138', '10-18-139', '10-18-140', '10-18-141', '10-18-142', '10-18-143',
+      '11-18-130', '11-18-131', '11-18-132', '11-18-133', '11-18-134', '11-18-135', '11-18-136', '11-18-137',
+      '12-18-130', '12-18-131', '12-18-132', '12-18-133', '12-18-134', '12-18-135', '12-18-136', '12-18-137',
     ]);
   });
 
@@ -52,7 +55,7 @@ describe('Batch 2 Tuần 11 nạp được vào registry', () => {
 
   it.each(W11BATCH2)('$key có metadata packageId khớp quy ước', ({ key, grade, period, title }) => {
     const metadata = getBanToanV4PackageMetadata().find(item => item.sourceKey === key);
-    const week = key.includes('-17-') ? 17 : key.includes('-16-') ? 16 : key.includes('-15-') ? 15 : key.includes('-14-') ? 14 : key.includes('-13-') ? 13 : key.includes('-12-') ? 12 : 11;
+    const week = key.includes('-18-') ? 18 : key.includes('-17-') ? 17 : key.includes('-16-') ? 16 : key.includes('-15-') ? 15 : key.includes('-14-') ? 14 : key.includes('-13-') ? 13 : key.includes('-12-') ? 12 : 11;
     expect(metadata?.packageId).toBe(`g${grade}_w${week}_p${period}_v4`);
     expect(metadata?.title).toBe(title);
     expect(getBanToanV4ContractByPackageId(metadata!.packageId)?.sourceKey).toBe(key);
