@@ -170,7 +170,7 @@ function publicScreenBody(contract: LiveLessonV4Contract, screenId: string): str
     case 'S2':
       return `Mục tiêu chung\n${contract.objectives.math.map((objective) => `• ${objective.text}`).join('\n')}`;
     case 'S3':
-      return `Công cụ Toán học\n${sourceFormulas.length > 0 ? sourceFormulas.join('\n') : contract.curriculumBridges.map((bridge) => bridge.example).join('\n')}`;
+      return `Công cụ Toán học\n${contract.sourceContent?.boardKnowledge || (sourceFormulas.length > 0 ? sourceFormulas.join('\n') : contract.curriculumBridges.map((bridge) => bridge.example).join('\n'))}`;
     case 'S4':
       return `Lời giải cần kiểm:\n${contract.aiError.faultyStatement}\n\nTìm lỗi · phân loại · sửa · chứng minh.`;
     case 'S5':

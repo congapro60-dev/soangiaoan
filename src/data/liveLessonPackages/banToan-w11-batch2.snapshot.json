@@ -11072,8 +11072,8 @@
       "lessonType": "practice",
       "focus": "Hệ phương trình bậc nhất ba ẩn, hệ gồm phương trình bậc nhất và bậc hai, bài toán kinh tế và cân bằng hoá học",
       "formulas": [
-        "\\begin{cases} a_1 x + b_1 y + c_1 z = d_1 \\\\ a_2 x + b_2 y + c_2 z = d_2 \\\\ a_3 x + b_3 y + c_3 z = d_3 \\end{cases}",
-        "\\text{Phương pháp thế, cộng đại số}"
+        "$\\begin{cases} a_1 x + b_1 y + c_1 z = d_1 \\\\ a_2 x + b_2 y + c_2 z = d_2 \\\\ a_3 x + b_3 y + c_3 z = d_3 \\end{cases}$",
+        "Phương pháp giải: Phương pháp thế và phương pháp khử Gauss (cộng đại số)"
       ],
       "boardKnowledge": "Toàn cảnh Hệ phương trình: 1. Hệ bậc nhất ba ẩn: Dùng phương pháp khử Gauss hoặc máy tính Casio Menu 9-1-3; 2. Hệ bậc nhất và bậc hai: Rút ẩn bậc nhất thế vào bậc hai; 3. Ứng dụng: Cân bằng phản ứng, phân bổ nguồn vốn.",
       "examples": [
@@ -11109,19 +11109,19 @@
         },
         {
           "level": "VD",
-          "question": "Một trang trại nuôi bò, dê và ngựa tổng cộng 100 con. Số dê gấp đôi số bò, số ngựa bằng một nửa tổng số bò và dê. Tìm số con mỗi loại.",
-          "answer": "Gọi x, y, z là số bò, dê, ngựa: x + y + z = 100; y = 2x; z = (x+y)/2. Giải ra: 20 bò, 40 dê, 40 ngựa (loại do tổng 100: x=22,22 -> chỉnh tỉ lệ nguyên: 20 bò, 40 dê, 30 ngựa)."
+          "question": "Một trang trại nuôi 90 con gồm ba loại bò, dê, ngựa. Số dê gấp đôi số bò. Số ngựa bằng trung bình cộng số bò và số dê. Tính số con mỗi loại.",
+          "answer": "Gọi x, y, z lần lượt là số bò, dê, ngựa ($x, y, z \\in \\mathbb{N}^*$). Ta có hệ phương trình: $\\begin{cases} x + y + z = 90 \\\\ 2x - y = 0 \\\\ x + y - 2z = 0 \\end{cases}$. Giải hệ tìm được: $x = 20$ (bò), $y = 40$ (dê), $z = 30$ (ngựa). Kiểm tra: $20 + 40 + 30 = 90$, $40 = 2 \\cdot 20$, $30 = (20+40)/2$."
         },
         {
           "level": "VD",
-          "question": "Một cửa hàng bán ba loại sản phẩm A, B, C thu về 30 triệu đồng với các số lượng bán khác nhau. Lập hệ giải số lượng bán tối ưu.",
-          "answer": "Thiết lập hệ phương trình doanh thu và chi phí, khử Gauss tìm nghiệm nguyên dương."
+          "question": "Một cửa hàng bán ba loại sản phẩm A, B, C với giá lần lượt là 100 nghìn, 200 nghìn và 300 nghìn đồng/sản phẩm. Tổng số sản phẩm bán ra là 130 sản phẩm, thu về 25 triệu đồng. Biết số sản phẩm A bán được gấp đôi số sản phẩm B. Tính số lượng sản phẩm mỗi loại đã bán.",
+          "answer": "Gọi x, y, z lần lượt là số sản phẩm A, B, C ($x, y, z \\in \\mathbb{N}^*$). Hệ phương trình: $\\begin{cases} x + y + z = 130 \\\\ 100x + 200y + 300z = 25000 \\\\ x - 2y = 0 \\end{cases}$. Giải hệ tìm được: $x = 80$ (A), $y = 40$ (B), $z = 10$ (C). Kiểm tra: $80 + 40 + 10 = 130$, $80 \\cdot 100 + 40 \\cdot 200 + 10 \\cdot 300 = 25000$ nghìn = 25 triệu đồng."
         }
       ],
       "quick": [
         {
           "question": "Khi nào một hệ phương trình bậc nhất ba ẩn có vô số nghiệm?",
-          "solution": "Khi định thức các hệ số triệt tiêu và các phương trình phụ thuộc tuyến tính lẫn nhau."
+          "solution": "Khi hệ phương trình tương thích (có nghiệm) và hạng của ma trận hệ số nhỏ hơn số ẩn (còn ít nhất một ẩn tự do), các phương trình phụ thuộc tuyến tính lẫn nhau mà không mâu thuẫn."
         },
         {
           "question": "Ưu điểm lớn nhất của phương pháp thế trong hệ phi tuyến là gì?",
@@ -11146,30 +11146,30 @@
       "lessonType": "practice",
       "focus": "Tọa độ điểm, vectơ, trọng tâm, trực tâm, tâm đường tròn ngoại tiếp tam giác và bài toán đối xứng trong Oxy",
       "formulas": [
-        "\\vec{u} = (x_2 - x_1; y_2 - y_1)",
+        "$\\vec{u}$ = (x_2 - x_1; y_2 - y_1)",
         "I = \\left(\\frac{x_A+x_B}{2}; \\frac{y_A+y_B}{2}\\right)",
         "G = \\left(\\frac{x_A+x_B+x_C}{3}; \\frac{y_A+y_B+y_C}{3}\\right)"
       ],
       "boardKnowledge": "Toàn cảnh Tọa độ Oxy: 1. Biểu diễn vectơ; 2. Tọa độ trung điểm, trọng tâm; 3. Hai vectơ cùng phương, vuông góc; 4. Tìm tọa độ điểm thoả mãn tính chất hình bình hành, trực tâm, tâm ngoại tiếp.",
       "examples": [
         {
-          "question": "Cho A(1; 3), B(-2; 5), C(4; 1). Tìm tọa độ đỉnh D sao cho tứ giác ABCD là hình bình hành.",
-          "solution": "ABCD là hình bình hành ⇔ \\vec{AB} = \\vec{DC}. \\vec{AB} = (-3; 2). D(xD; yD) ⇒ (4 - xD; 1 - yD) = (-3; 2) ⇒ D(7; -1)."
+          "question": "Cho ba điểm $A(1; 3)$, $B(-2; 5)$, $C(4; 2)$. Tìm tọa độ đỉnh D sao cho tứ giác ABCD là hình bình hành.",
+          "solution": "Tứ giác ABCD là hình bình hành $\\Leftrightarrow \\vec{DC} = \\vec{AB}$. Ta có $\\vec{AB} = (-2-1; 5-3) = (-3; 2)$. Với $D(x_D; y_D)$, $\\vec{DC} = (4 - x_D; 2 - y_D)$. Khi đó $\\begin{cases} 4 - x_D = -3 \\\\ 2 - y_D = 2 \\end{cases} \\Leftrightarrow \\begin{cases} x_D = 7 \\\\ y_D = 0 \\end{cases}$. Vậy $D(7; 0)$."
         },
         {
           "question": "Cho tam giác ABC có A(2; 1), B(-1; -2), C(5; 6). Tìm tọa độ trọng tâm G của tam giác ABC.",
-          "solution": "xG = (2 - 1 + 5)/3 = 2; yG = (1 - 2 + 6)/3 = 5/3. Vậy G(2; 5/3)."
+          "solution": "Tọa độ trọng tâm G: $x_G = \\frac{2 - 1 + 5}{3} = 2$; $y_G = \\frac{1 - 2 + 6}{3} = \\frac{5}{3}$. Vậy $G(2; 5/3)$."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Công thức tọa độ của vectơ tổng \\vec{u} + \\vec{v} được tính như thế nào?",
+          "question": "Công thức tọa độ của vectơ tổng $\\vec{u}$ + $\\vec{v}$ được tính như thế nào?",
           "answer": "(x1 + x2; y1 + y2)."
         },
         {
           "level": "NB",
-          "question": "Vectơ \\vec{i} và \\vec{j} trong hệ trục Oxy có độ dài bằng bao nhiêu?",
+          "question": "Vectơ $\\vec{i}$ và $\\vec{j}$ trong hệ trục Oxy có độ dài bằng bao nhiêu?",
           "answer": "Cả hai đều có độ dài bằng 1 (vectơ đơn vị)."
         },
         {
@@ -11185,7 +11185,7 @@
         {
           "level": "VD",
           "question": "Cho tam giác ABC có A(1; 1), B(4; 2), C(2; 4). Tìm tọa độ trực tâm H của tam giác ABC.",
-          "answer": "Lập hệ điều kiện AH ⊥ BC và BH ⊥ AC thông qua tích vô hướng bằng 0: giải ra H(3; 3)."
+          "answer": "Lập hệ điều kiện $\\vec{AH} \\cdot \\vec{BC} = 0$ và $\\vec{BH} \\cdot \\vec{AC} = 0$. Với $A(1; 1), B(4; 2), C(2; 4)$, ta có $\\vec{BC} = (-2; 2)$, $\\vec{AC} = (1; 3)$. Gọi $H(x; y)$: $\\begin{cases} -2(x-1) + 2(y-1) = 0 \\\\ 1(x-4) + 3(y-2) = 0 \\end{cases} \\Leftrightarrow \\begin{cases} x - y = 0 \\\\ x + 3y = 10 \\end{cases} \\Leftrightarrow x = y = \\frac{5}{2}$. Vậy trực tâm là $H(5/2; 5/2)$."
         },
         {
           "level": "VD",
@@ -11196,7 +11196,7 @@
       "quick": [
         {
           "question": "Tứ giác ABCD là hình bình hành tương đương đẳng thức vectơ nào?",
-          "solution": "\\vec{AB} = \\vec{DC} (chú ý đúng thứ tự đỉnh C và D)."
+          "solution": "$\\vec{AB} = \\vec{DC}$ (chú ý đúng thứ tự đỉnh C và D trong hình bình hành ABCD)."
         },
         {
           "question": "Điểm M thuộc trục hoành Ox thì tung độ y bằng bao nhiêu?",
@@ -11264,8 +11264,8 @@
         },
         {
           "level": "VD",
-          "question": "Xác định các giá trị bất thường (ngoại lai) của mẫu số liệu lương nhân viên.",
-          "answer": "Tính Q1, Q3, ΔQ rồi kiểm tra các số liệu nằm ngoài khoảng [Q1 - 1,5ΔQ; Q3 + 1,5ΔQ]."
+          "question": "Mẫu số liệu lương (đơn vị: triệu đồng) của 9 nhân viên là: 8, 9, 9, 10, 11, 12, 13, 14, 25. Xác định các giá trị ngoại lai của mẫu số liệu này.",
+          "answer": "Mẫu số liệu sắp xếp ($n = 9$): 8, 9, 9, 10, 11, 12, 13, 14, 25. Trung vị $Q_2 = 11$. Nửa dưới {8, 9, 9, 10} có $Q_1 = (9+9)/2 = 9$. Nửa trên {12, 13, 14, 25} có $Q_3 = (13+14)/2 = 13,5$. Khoảng tứ phân vị $\\Delta_Q = Q_3 - Q_1 = 13,5 - 9 = 4,5$. Ngưỡng dưới: $Q_1 - 1,5\\Delta_Q = 9 - 1,5 \\cdot 4,5 = 2,25$; Ngưỡng trên: $Q_3 + 1,5\\Delta_Q = 13,5 + 1,5 \\cdot 4,5 = 20,25$. Do $25 > 20,25$ nên 25 triệu đồng là giá trị ngoại lai duy nhất."
         }
       ],
       "quick": [
@@ -11329,18 +11329,18 @@
         },
         {
           "level": "TH",
-          "question": "Tính góc giữa hai vectơ \\vec{a} và \\vec{b} biết \\vec{a}\\cdot\\vec{b} = -|\\vec{a}||\\vec{b}|.",
-          "answer": "cos = -1 ⇒ góc bằng 180° (hai vectơ ngược hướng)."
+          "question": "Cho hai vectơ khác vectơ-không $\\vec{a}$ và $\\vec{b}$ thỏa mãn $\\vec{a}\\cdot\\vec{b} = -|\\vec{a}||\\vec{b}|$. Tính góc giữa hai vectơ đó.",
+          "answer": "Do $\\vec{a}, \\vec{b} \\neq \\vec{0}$, $\\cos(\\vec{a}, \\vec{b}) = \\frac{\\vec{a}\\cdot\\vec{b}}{|\\vec{a}||\\vec{b}|} = -1 \\Rightarrow (\\vec{a}, \\vec{b}) = 180^\\circ$ (hai vectơ ngược hướng nhau)."
         },
         {
           "level": "VD",
           "question": "Cho tam giác ABC có trọng tâm G. Chứng minh với mọi điểm M ta có: MA^2 + MB^2 + MC^2 = 3MG^2 + GA^2 + GB^2 + GC^2.",
-          "answer": "Khai triển \\vec{MA} = \\vec{MG} + \\vec{GA} rồi bình phương vô hướng và rút gọn tổng các vectơ bằng \\vec{0}."
+          "answer": "Khai triển $\\vec{MA}$ = $\\vec{MG}$ + $\\vec{GA}$ rồi bình phương vô hướng và rút gọn tổng các vectơ bằng $\\vec{0}$."
         },
         {
           "level": "VD",
-          "question": "Bài toán hoa tiêu: Một con tàu rời cảng đi theo hướng đông bắc một góc 45° với vận tốc 20 hải lý/giờ. Sau 2 giờ tàu chuyển hướng đông 60° đi tiếp 3 giờ. Tính khoảng cách từ tàu đến cảng.",
-          "answer": "Vẽ sơ đồ hai chặng hành trình, áp dụng định lý côsin cho tam giác vị trí để tính khoảng cách."
+          "question": "Một con tàu rời cảng A đi theo hướng Đông Bắc (hướng lệch $45^\\circ$ so với hướng Bắc) với vận tốc 20 hải lý/giờ trong 2 giờ đến B. Tại B, tàu đổi hướng đi thẳng sang hướng Đông với vận tốc 20 hải lý/giờ trong 3 giờ đến C. Tính khoảng cách AC từ tàu đến cảng A (làm tròn đến hàng phần mười).",
+          "answer": "Ta có $AB = 20 \\times 2 = 40$ hải lý, $BC = 20 \\times 3 = 60$ hải lý. Hướng từ B sang Đông lệch với phương đối của $\\vec{AB}$ một góc: $\\widehat{ABC} = 180^\\circ - 45^\\circ = 135^\\circ$. Áp dụng định lý côsin trong tam giác ABC: $AC^2 = AB^2 + BC^2 - 2 AB \\cdot BC \\cos 135^\\circ = 40^2 + 60^2 - 2 \\cdot 40 \\cdot 60 \\cdot (-\\frac{\\sqrt{2}}{2}) = 1600 + 3600 + 2400\\sqrt{2} \\approx 8594,1$. Do đó $AC \\approx 92,7$ hải lý."
         }
       ],
       "quick": [
@@ -11371,7 +11371,7 @@
       "lessonType": "practice",
       "focus": "Khảo sát năng lực qua 12 câu trắc nghiệm 4 phương án: Quản lý thời gian, rà soát đáp án và kỹ năng Casio",
       "formulas": [
-        "\\text{Điểm trắc nghiệm: 12 câu } \\times 0,25đ = 3,0đ"
+        "Cấu trúc trắc nghiệm: 12 câu nhiều lựa chọn $\\times 0,25 = 3,0$ điểm"
       ],
       "boardKnowledge": "Chiến thuật Phần I (3 điểm): 1. Câu nhận biết (1-4): chọn đáp án trong 20 giây; 2. Câu thông hiểu (5-8): vẽ hình phác hoặc Casio CALC; 3. Câu vận dụng (9-12): giải ngắn gọn 2 phút/câu; 4. Tô phiếu cẩn thận.",
       "examples": [
@@ -11380,20 +11380,20 @@
           "solution": "Mệnh đề phủ định là \"Tồn tại số thực x sao cho x^2 < 0\"."
         },
         {
-          "question": "Tìm tập xác định của hàm số y = 1/\\sqrt{x - 2}: Điều kiện x - 2 > 0 ⇔ x > 2.",
-          "solution": "D = (2; +∞)."
+          "question": "Tìm tập xác định của hàm số $y = \\frac{1}{\\sqrt{x - 2}}$.",
+          "solution": "Hàm số xác định khi và chỉ khi biểu thức trong căn dưới mẫu nhận giá trị dương: $x - 2 > 0 \\Leftrightarrow x > 2$. Vậy tập xác định của hàm số là $D = (2; +\\infty)$."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Mỗi câu hỏi trong phần trắc nghiệm nhiều lựa chọn có mấy phương án lựa chọn?",
-          "answer": "Gồm 4 lựa chọn (A, B, C, D) với duy nhất một lựa chọn chính xác."
+          "question": "Câu trắc nghiệm 4 lựa chọn: Tập xác định của hàm số $y = \\sqrt{3 - x}$ là:\nA. $(-\\infty; 3]$\nB. $[3; +\\infty)$\nC. $(-\\infty; 3)$\nD. $(3; +\\infty)",
+          "answer": "Chọn A. Biểu thức xác định khi $3 - x \\ge 0 \\Leftrightarrow x \\le 3$, do đó $D = (-\\infty; 3]$."
         },
         {
           "level": "NB",
-          "question": "Tổng điểm tối đa của 12 câu trắc nghiệm phần I là bao nhiêu điểm?",
-          "answer": "3,0 điểm (0,25 điểm cho mỗi câu)."
+          "question": "Câu trắc nghiệm 4 lựa chọn: Đỉnh của parabol $y = x^2 - 4x + 3$ có tọa độ là:\nA. $(2; -1)$\nB. $(-2; 15)$\nC. $(2; 1)$\nD. $(4; 3)",
+          "answer": "Chọn A. Tọa độ đỉnh $x_I = -\\frac{b}{2a} = -\\frac{-4}{2} = 2$, $y_I = 2^2 - 4(2) + 3 = -1$. Vậy đỉnh là $(2; -1)$."
         },
         {
           "level": "TH",
@@ -11470,13 +11470,13 @@
         },
         {
           "level": "TH",
-          "question": "Xét tính Đúng/Sai: \"Hàm số y = ax^2 + bx + c có trục đối xứng là đường thẳng x = -b/(2a)\".",
-          "answer": "Khẳng định trên là HOÀN TOÀN ĐÚNG."
+          "question": "Xét tính Đúng/Sai: \"Hàm số bậc hai $y = ax^2 + bx + c$ ($a \\neq 0$) có trục đối xứng là đường thẳng $x = -\\frac{b}{2a}$\".",
+          "answer": "Đúng. Với hàm số bậc hai ($a \\neq 0$), parabol luôn nhận đường thẳng đi qua đỉnh $x = -\\frac{b}{2a}$ làm trục đối xứng."
         },
         {
           "level": "TH",
-          "question": "Tự luận ngắn: Tìm tọa độ vectơ \\vec{AB} biết A(-1; 4) và B(3; -2).",
-          "answer": "\\vec{AB} = (3 - (-1); -2 - 4) = (4; -6)."
+          "question": "Tự luận ngắn: Tìm tọa độ vectơ $\\vec{AB}$ biết A(-1; 4) và B(3; -2).",
+          "answer": "$\\vec{AB}$ = (3 - (-1); -2 - 4) = (4; -6)."
         },
         {
           "level": "VD",
@@ -11485,8 +11485,8 @@
         },
         {
           "level": "VD",
-          "question": "Trình bày bài toán thực tế tối ưu hóa chi phí sản xuất bằng phương pháp lập mô hình hàm bậc hai.",
-          "answer": "Chọn ẩn x, lập hàm chi phí C(x), tìm đỉnh parabol để xác định giá trị nhỏ nhất của chi phí."
+          "question": "Vận dụng tối ưu: Chi phí sản xuất x sản phẩm của một xưởng may được mô hình bởi hàm bậc hai $C(x) = 2x^2 - 120x + 5000$ (nghìn đồng) với $0 \\le x \\le 100$. Tìm số sản phẩm x cần sản xuất để chi phí là thấp nhất và tính chi phí thấp nhất đó.",
+          "answer": "Hàm số $C(x) = 2x^2 - 120x + 5000$ có $a = 2 > 0$ nên đạt giá trị nhỏ nhất tại đỉnh $x = -\\frac{b}{2a} = -\\frac{-120}{2 \\cdot 2} = 30$ (thỏa mãn $0 \\le x \\le 100$). Chi phí thấp nhất là $C(30) = 2(30^2) - 120(30) + 5000 = 1800 - 3600 + 5000 = 3200$ nghìn đồng = 3,2 triệu đồng."
         }
       ],
       "quick": [
@@ -11517,7 +11517,7 @@
       "lessonType": "practice",
       "focus": "Phân tích các lỗi sai kinh điển trong đề thi học kỳ 1: Điều kiện ẩn, phép bình phương, chia mẫu và đọc đồ thị",
       "formulas": [
-        "\\text{Sổ tay sai sót: Ghi nhận lỗi sai - Nguyên nhân - Cách khắc phục}"
+        "Sổ tay sai sót: Ghi nhận lỗi sai — Phân tích nguyên nhân — Đề xuất cách khắc phục"
       ],
       "boardKnowledge": "Danh mục sai sót điển hình HK1: 1. Bình phương không đặt điều kiện vế phải; 2. Bỏ qua trường hợp a = 0 khi chứa tham số; 3. Lấy nhầm góc tù thành nhọn khi cos âm; 4. Nhầm công thức trọng tâm và trung điểm.",
       "examples": [
@@ -11590,7 +11590,7 @@
       "lessonType": "practice",
       "focus": "Hệ thống hóa bản đồ tư duy toán 10 học kỳ 1, định hướng phương pháp học tập chủ động và chuẩn bị học kỳ 2",
       "formulas": [
-        "\\text{Mindmap HK1: Mệnh đề - BPT bậc nhất - Hàm bậc hai - Hệ thức lượng - Vectơ - Thống kê}"
+        "Sơ đồ kiến thức HK1: Mệnh đề — Bất phương trình — Hàm bậc hai — Hệ thức lượng — Vectơ — Thống kê"
       ],
       "boardKnowledge": "Bản đồ kiến thức HK1 Toán 10: 1. Đại số: Tập hợp, BPT, Hàm bậc hai, Phương trình căn thức; 2. Hình học: Hệ thức lượng tam giác, Tọa độ vectơ, Tích vô hướng; 3. Thống kê: Các số đặc trưng đo xu thế trung tâm và phân tán.",
       "examples": [
@@ -11600,7 +11600,7 @@
         },
         {
           "question": "Kiến thức học kỳ 1 làm nền tảng cho học kỳ 2 như thế nào?",
-          "solution": "Vectơ làm nền tảng cho phương pháp tọa độ trong mặt phẳng (đường thẳng, đường tròn, ba đường conic); Tam thức bậc hai làm nền tảng cho giải bất phương trình và bài toán quy hoạch tuyến tính."
+          "solution": "Vectơ làm nền tảng cho phương pháp tọa độ trong mặt phẳng (đường thẳng, đường tròn, ba đường conic); Tam thức bậc hai làm nền tảng cho việc giải bất phương trình bậc hai và tối ưu hóa hàm bậc hai; Hệ bất phương trình bậc nhất hai ẩn làm nền tảng cho bài toán quy hoạch tuyến tính."
         }
       ],
       "exercises": [
@@ -11670,54 +11670,54 @@
       "boardKnowledge": "Toàn cảnh Lượng giác HK1: 1. Bốn phương trình cơ bản: sin, cos, tan, cot; 2. Chu kỳ tuần hoàn của sin, cos là 2π, của tan, cot là π; 3. Ứng dụng: Chu kỳ dao động của con lắc, thủy triều, sóng âm thanh.",
       "examples": [
         {
-          "question": "Giải phương trình: 2\\cos^2 x - 3\\cos x + 1 = 0.",
-          "solution": "Đặt t = \\cos x (-1 ≤ t ≤ 1). Phương trình trở thành 2t^2 - 3t + 1 = 0 ⇔ t = 1 hoặc t = 1/2. Với t = 1: x = k2π. Với t = 1/2: x = ±π/3 + k2π (k ∈ Z)."
+          "question": "Giải phương trình: $2\\cos^2 x - 3\\cos x + 1 = 0$.",
+          "solution": "Đặt $t = \\cos x$ ($-1 \\le t \\le 1$). Phương trình trở thành $2t^2 - 3t + 1 = 0 \\Leftrightarrow t = 1$ hoặc $t = 1/2$. Với $t = 1 \\Rightarrow x = k2\\pi$. Với $t = 1/2 \\Rightarrow x = \\pm \\frac{\\pi}{3} + k2\\pi$ ($k \\in \\mathbb{Z}$)."
         },
         {
-          "question": "Mực nước tại một cảng biển được mô hình hoá bởi h(t) = 4\\sin(\\pi t / 6) + 7 (mét) với t là số giờ tính từ nửa đêm. Tìm mực nước cao nhất và thời điểm xuất hiện.",
-          "solution": "Vì -1 ≤ sin ≤ 1 nên hmax = 4(1) + 7 = 11 mét. Đạt được khi sin(\\pi t / 6) = 1 ⇔ \\pi t / 6 = \\pi/2 + k2\\pi ⇔ t = 3 + 12k. Thời điểm đầu tiên trong ngày là lúc 3 giờ sáng."
+          "question": "Mực nước tại một cảng biển được mô hình hoá bởi $h(t) = 4\\sin\\left(\\frac{\\pi t}{6}\\right) + 7$ (mét) với t là số giờ tính từ nửa đêm. Tìm mực nước cao nhất và thời điểm xuất hiện.",
+          "solution": "Vì $-1 \\le \\sin\\left(\\frac{\\pi t}{6}\\right) \\le 1$ nên $h_{\\max} = 4(1) + 7 = 11$ mét. Đạt được khi $\\sin\\left(\\frac{\\pi t}{6}\\right) = 1 \\Leftrightarrow \\frac{\\pi t}{6} = \\frac{\\pi}{2} + k2\\pi \\Leftrightarrow t = 3 + 12k$. Thời điểm đầu tiên trong ngày là lúc 3 giờ sáng ($t = 3$)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Tập giá trị của hàm số y = \\sin x và y = \\cos x là đoạn nào?",
-          "answer": "Đoạn [-1; 1]."
+          "question": "Tập giá trị của hàm số $y = \\sin x$ và $y = \\cos x$ là đoạn nào?",
+          "answer": "Tập giá trị của cả hai hàm số $y = \\sin x$ và $y = \\cos x$ đều là đoạn $[-1; 1]$."
         },
         {
           "level": "NB",
-          "question": "Phương trình \\sin x = m có nghiệm khi tham số m thoả mãn điều kiện gì?",
-          "answer": "Điều kiện là -1 ≤ m ≤ 1."
+          "question": "Phương trình $\\sin x = m$ có nghiệm khi tham số m thoả mãn điều kiện gì?",
+          "answer": "Phương trình có nghiệm khi và chỉ khi $m \\in [-1; 1]$, tức $|m| \\le 1$."
         },
         {
           "level": "TH",
-          "question": "Giải phương trình: \\tan x = \\sqrt{3}.",
-          "answer": "x = \\pi/3 + k\\pi (k ∈ Z)."
+          "question": "Giải phương trình: $\\tan x = \\sqrt{3}$.",
+          "answer": "$\\tan x = \\sqrt{3} \\Leftrightarrow x = \\frac{\\pi}{3} + k\\pi$ ($k \\in \\mathbb{Z}$)."
         },
         {
           "level": "TH",
-          "question": "Tìm chu kỳ tuần hoàn của hàm số y = \\cos(4x).",
-          "answer": "T = 2\\pi / 4 = \\pi/2."
+          "question": "Tìm chu kỳ tuần hoàn của hàm số $y = \\cos(4x)$.",
+          "answer": "Hàm số $y = \\cos(\\omega x)$ có chu kỳ $T = \\frac{2\\pi}{|\\omega|}$. Với $\\omega = 4$, chu kỳ là $T = \\frac{2\\pi}{4} = \\frac{\\pi}{2}$."
         },
         {
           "level": "VD",
-          "question": "Tìm số nghiệm của phương trình 2\\sin x - 1 = 0 trên đoạn [0; 3\\pi].",
-          "answer": "\\sin x = 1/2 ⇔ x = \\pi/6 + k2\\pi hoặc x = 5\\pi/6 + k2\\pi. Trên [0; 3\\pi] có các nghiệm: \\pi/6, 5\\pi/6, 13\\pi/6, 17\\pi/6 (gồm 4 nghiệm)."
+          "question": "Tìm số nghiệm của phương trình $2\\sin x - 1 = 0$ trên đoạn $[0; 3\\pi]$.",
+          "answer": "Ta có $2\\sin x - 1 = 0 \\Leftrightarrow \\sin x = 1/2 \\Leftrightarrow x = \\frac{\\pi}{6} + k2\\pi$ hoặc $x = \\frac{5\\pi}{6} + k2\\pi$. Trên đoạn $[0; 3\\pi]$ có 4 nghiệm là: $\\frac{\\pi}{6}, \\frac{5\\pi}{6}, \\frac{13\\pi}{6}, \\frac{17\\pi}{6}$."
         },
         {
           "level": "VD",
-          "question": "Một bánh xe đu quay có bán kính 20m quay đều 1 vòng hết 60 giây. Thiết lập hàm số độ cao H(t) của một cabin so với mặt đất.",
-          "answer": "H(t) = 20 - 20\\cos(\\pi t / 30) + h0 với h0 là khoảng cách từ điểm thấp nhất của đu quay tới mặt đất."
+          "question": "Một bánh xe đu quay có bán kính 20 m quay đều 1 vòng hết 60 giây theo chiều kim đồng hồ. Điểm thấp nhất của cabin cách mặt đất 2 m. Giả sử tại thời điểm $t = 0$ (giây), cabin ở vị trí thấp nhất. Thiết lập hàm số độ cao $H(t)$ (mét) của cabin so với mặt đất theo thời gian t.",
+          "answer": "Tâm đu quay ở độ cao $2 + 20 = 22$ m. Tốc độ góc $\\omega = \\frac{2\\pi}{60} = \\frac{\\pi}{30}$ (rad/s). Tại $t = 0$, cabin ở đáy nên hàm độ cao có dạng: $H(t) = 22 - 20\\cos\\left(\\frac{\\pi t}{30}\\right)$ (mét). Kiểm tra: tại $t = 0$, $H(0) = 22 - 20 = 2$ m; tại $t = 30$, $H(30) = 22 + 20 = 42$ m (điểm cao nhất)."
         }
       ],
       "quick": [
         {
-          "question": "Nghiệm của phương trình \\cos x = 0 là gì?",
-          "solution": "x = \\pi/2 + k\\pi (k ∈ Z)."
+          "question": "Nghiệm của phương trình $\\cos x = 0$ là gì?",
+          "solution": "$\\cos x = 0 \\Leftrightarrow x = \\frac{\\pi}{2} + k\\pi$ ($k \\in \\mathbb{Z}$)."
         },
         {
           "question": "Hàm số lượng giác nào là hàm số lẻ trên tập xác định của nó?",
-          "solution": "Hàm số y = \\sin x, y = \\tan x, y = \\cot x (riêng y = \\cos x là hàm chẵn)."
+          "solution": "Hàm số lẻ: $y = \\sin x$, $y = \\tan x$, $y = \\cot x$. Riêng $y = \\cos x$ là hàm số chẵn vì $\\cos(-x) = \\cos x$."
         }
       ],
       "mistakes": [
@@ -11741,7 +11741,7 @@
         "u_n = u_1 + (n-1)d",
         "S_n = \\frac{n(u_1+u_n)}{2}",
         "u_n = u_1 q^{n-1}",
-        "S_n = \\frac{u_1(q^n-1)}{q-1}",
+        "Tổng n số hạng đầu của CSN: $S_n = \\frac{u_1(q^n - 1)}{q - 1}$ (với $q \\neq 1$; nếu $q = 1$ thì $S_n = n u_1$)",
         "A = P(1+r)^n"
       ],
       "boardKnowledge": "Toàn cảnh Dãy số HK1: 1. Cấp số cộng: Số hạng sau bằng số trước cộng d; 2. Cấp số nhân: Số hạng sau bằng số trước nhân q; 3. Bài toán lãi kép: Gửi vốn một lần sinh lãi theo chu kỳ; 4. Bài toán trả góp đều đặn.",
@@ -11778,13 +11778,13 @@
         },
         {
           "level": "VD",
-          "question": "Tìm ba số nguyên liên tiếp lập thành một cấp số nhân có tổng bằng 21 và tổng bình phương bằng 189.",
-          "answer": "Ba số đó là 3, 6, 12 hoặc 12, 6, 3."
+          "question": "Tìm ba số nguyên là ba số hạng liên tiếp của một cấp số nhân tăng, biết tổng của chúng bằng 21 và tổng bình phương của chúng bằng 189.",
+          "answer": "Gọi ba số hạng là $u_1, u_2 = u_1 q, u_3 = u_1 q^2$ ($u_i \\in \\mathbb{Z}$). Hệ: $u_1(1+q+q^2) = 21$ và $u_1^2(1+q^2+q^4) = 189$. Do $1+q^2+q^4 = (1+q+q^2)(1-q+q^2)$, bình phương pt thứ nhất chia cho pt thứ hai: $\\frac{1+q+q^2}{1-q+q^2} = \\frac{21^2}{189} = \\frac{7}{3} \\Rightarrow 3(1+q+q^2) = 7(1-q+q^2) \\Rightarrow 4q^2 - 10q + 4 = 0 \\Rightarrow 2q^2 - 5q + 2 = 0 \\Rightarrow q = 2$ hoặc $q = 1/2$. Do cấp số nhân tăng nên $q = 2 \\Rightarrow u_1 = 3$. Ba số cần tìm là: 3, 6, 12."
         },
         {
           "level": "VD",
-          "question": "Một người vay ngân hàng 500 triệu đồng mua nhà với lãi suất 0,8%/tháng trả góp đều đặn trong 5 năm (60 tháng). Tính số tiền người đó phải trả mỗi tháng.",
-          "answer": "Áp dụng công thức trả góp m = A·r·(1+r)^n / ((1+r)^n - 1) ≈ 10,54 triệu đồng/tháng."
+          "question": "Một người vay ngân hàng 500 triệu đồng với lãi suất 0,8%/tháng. Nếu mỗi tháng người đó trả cố định một số tiền m vào cuối tháng thì sau đúng 5 năm (60 tháng) sẽ trả hết nợ. Tính số tiền m phải trả mỗi tháng (làm tròn đến hàng phần trăm triệu đồng).",
+          "answer": "Thời hạn vay $n = 5 \\times 12 = 60$ tháng, lãi suất $r = 0,8\\% = 0,008$/tháng. Áp dụng công thức trả góp đều cuối mỗi tháng: $m = \\frac{A \\cdot r(1+r)^n}{(1+r)^n - 1} = \\frac{500 \\cdot 0,008 \\cdot (1,008)^{60}}{(1,008)^{60} - 1} \\approx 10,53$ triệu đồng/tháng."
         }
       ],
       "quick": [
@@ -11817,9 +11817,9 @@
       "formulas": [
         "\\lim_{x \\to x_0} \\frac{f(x)}{g(x)}",
         "\\lim_{x \\to +\\infty} (\\sqrt{x^2+bx} - x) = \\frac{b}{2}",
-        "f(a)f(b) < 0 \\implies \\exists c: f(c) = 0"
+        "Nếu hàm số $y = f(x)$ liên tục trên $[a; b]$ và $f(a) \\cdot f(b) < 0$ thì tồn tại ít nhất một điểm $c \\in (a; b)$ sao cho $f(c) = 0$."
       ],
-      "boardKnowledge": "Toàn cảnh Giới hạn & Liên tục: 1. Khử 0/0: Phân tích thành nhân tử triệt tiêu (x - x0) hoặc nhân liên hợp; 2. Khử vô cực/vô cực: Chia cho luỹ thừa bậc cao nhất; 3. Hàm liên tục: Giới hạn = Giá trị tại điểm; 4. Định lý nghiệm: f(a)·f(b) < 0 có ít nhất 1 nghiệm trong khoảng.",
+      "boardKnowledge": "Toàn cảnh Giới hạn và Liên tục: 1. Dãy số: Quy tắc chia bậc cao nhất, nhân liên hợp; 2. Hàm số: Khử dạng vô định 0/0; 3. Hàm liên tục trên [a; b]: Nếu $f(a) \\cdot f(b) < 0$ thì phương trình $f(x) = 0$ có nghiệm trong (a; b).",
       "examples": [
         {
           "question": "Tính giới hạn vô định: L = \\lim_{x \\to 1} \\frac{x^3 - 1}{x^2 + 2x - 3}.",
@@ -11827,7 +11827,7 @@
         },
         {
           "question": "Tìm m để hàm số f(x) = (\\sqrt{x + 3} - 2)/(x - 1) khi x ≠ 1 và f(1) = m liên tục tại x = 1.",
-          "solution": "\\lim_{x \\to 1} f(x) = \\lim \\frac{x - 1}{(x-1)(\\sqrt{x+3}+2)} = \\lim \\frac{1}{\\sqrt{x+3}+2} = \\frac{1}{4}. Để liên tục: m = 1/4."
+          "solution": "Ta có $\\lim_{x \\to 1} f(x) = \\lim_{x \\to 1} \\frac{x - 1}{(x-1)(\\sqrt{x+3}+2)} = \\lim_{x \\to 1} \\frac{1}{\\sqrt{x+3}+2} = \\frac{1}{4}$. Để hàm số liên tục tại $x = 1$ thì cần $m = f(1) = \\lim_{x \\to 1} f(x) = \\frac{1}{4}$."
         }
       ],
       "exercises": [
@@ -11848,8 +11848,8 @@
         },
         {
           "level": "TH",
-          "question": "Xét tính liên tục của hàm số y = \\sqrt{x - 3} tại điểm x = 2.",
-          "answer": "Hàm số không xác định tại x = 2 nên gián đoạn tại x = 2."
+          "question": "Xét tính liên tục của hàm số $f(x) = \\begin{cases} \\frac{x^2 - 4}{x - 2} & \\text{khi } x \\neq 2 \\\\ 3 & \\text{khi } x = 2 \\end{cases}$ tại điểm $x = 2$.",
+          "answer": "Tập xác định $D = \\mathbb{R}$. Ta có $\\lim_{x \\to 2} f(x) = \\lim_{x \\to 2} \\frac{(x-2)(x+2)}{x-2} = \\lim_{x \\to 2} (x+2) = 4$. Do $\\lim_{x \\to 2} f(x) = 4 \\neq f(2) = 3$ nên hàm số gián đoạn tại điểm $x = 2$."
         },
         {
           "level": "VD",
@@ -11858,8 +11858,8 @@
         },
         {
           "level": "VD",
-          "question": "Chứng minh phương trình x^4 - 3x^2 + 2x - 1 = 0 có ít nhất hai nghiệm thực phân biệt.",
-          "answer": "f(0) = -1 < 0, f(2) = 7 > 0, f(-2) = 1 > 0. Có nghiệm trong (-2; 0) và (0; 2)."
+          "question": "Chứng minh phương trình $x^4 - 3x^2 + 2x - 1 = 0$ có ít nhất hai nghiệm thực phân biệt.",
+          "answer": "Xét hàm số $f(x) = x^4 - 3x^2 + 2x - 1$ liên tục trên $\\mathbb{R}$. Ta có: $f(-3) = (-3)^4 - 3(-3)^2 + 2(-3) - 1 = 81 - 27 - 6 - 1 = 47 > 0$; $f(0) = -1 < 0$; $f(2) = 2^4 - 3(2^2) + 2(2) - 1 = 16 - 12 + 4 - 1 = 7 > 0$. Vì $f(-3) \\cdot f(0) < 0$ nên phương trình có ít nhất một nghiệm trong khoảng $(-3; 0)$. Vì $f(0) \\cdot f(2) < 0$ nên phương trình có ít nhất một nghiệm trong khoảng $(0; 2)$. Hai khoảng này rời nhau nên phương trình có ít nhất hai nghiệm thực phân biệt."
         }
       ],
       "quick": [
@@ -11891,7 +11891,7 @@
       "focus": "Đường thẳng song song mặt phẳng, hai mặt phẳng song song, xác định thiết diện và định lý Thales không gian",
       "formulas": [
         "d // (P) \\iff d \\not\\subset (P) \\land \\exists a \\subset (P): d // a",
-        "(P) // (Q) \\land (R) \\cap (P) = a \\implies a // b"
+        "$\\begin{cases} (P) \\parallel (Q) \\\\ (R) \\cap (P) = a \\\\ (R) \\cap (Q) = b \\end{cases} \\implies a \\parallel b$ (giao tuyến với hai mặt phẳng song song)"
       ],
       "boardKnowledge": "Tổng kết Hình không gian HK1: 1. Đường song song mặt: Tìm đường song song trong mặt; 2. Mặt song song mặt: Hai đường cắt nhau cùng song song; 3. Thiết diện: Đa giác tạo bởi các đoạn giao tuyến khép kín; 4. Hình lăng trụ và hình hộp.",
       "examples": [
@@ -11964,29 +11964,29 @@
       "lessonType": "practice",
       "focus": "Khảo sát 12 câu trắc nghiệm 4 phương án: Phân bổ thời gian, kỹ năng Casio và chống sai sót",
       "formulas": [
-        "\\text{Điểm trắc nghiệm: 12 câu } \\times 0,25đ = 3,0đ"
+        "Cấu trúc trắc nghiệm: 12 câu nhiều lựa chọn $\\times 0,25 = 3,0$ điểm"
       ],
       "boardKnowledge": "Chiến thuật Phần I (3 điểm - 12 câu): Thời gian làm bài lý tưởng 15 phút. 1. Câu hỏi nhận biết (1-4): 30s/câu; 2. Câu thông hiểu (5-8): Casio kiểm tra nghiệm và giới hạn; 3. Câu vận dụng (9-12): 2 phút/câu; 4. Tô ngay vào phiếu thi.",
       "examples": [
         {
-          "question": "Tập xác định của hàm số y = \\tan x là gì?",
+          "question": "Tập xác định của hàm số $y = \\tan x$ là gì?",
           "solution": "D = R \\ {\\pi/2 + k\\pi, k ∈ Z}."
         },
         {
-          "question": "Tính giới hạn dãy số: \\lim (2n + 1)/(3n - 2) bằng bao nhiêu?",
+          "question": "Tính giới hạn dãy số: $\\lim \\frac{2n + 1}{3n - 2}$ bằng bao nhiêu?",
           "solution": "Kết quả giới hạn bằng 2/3."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Công thức tính số hạng thứ n của cấp số cộng u1 và công sai d là gì?",
-          "answer": "un = u1 + (n - 1)d."
+          "question": "Câu trắc nghiệm 4 lựa chọn: Tập xác định của hàm số $y = \\tan x$ là:\nA. $D = \\mathbb{R} \\setminus \\left\\{\\frac{\\pi}{2} + k\\pi, k \\in \\mathbb{Z}\\right\\}$\nB. $D = \\mathbb{R} \\setminus \\{k\\pi, k \\in \\mathbb{Z}\\}$\nC. $D = \\mathbb{R}$\nD. $D = \\left[-\\frac{\\pi}{2}; \\frac{\\pi}{2}\\right]$",
+          "answer": "Chọn A. Hàm số $y = \\tan x = \\frac{\\sin x}{\\cos x}$ xác định khi $\\cos x \\neq 0 \\Leftrightarrow x \\neq \\frac{\\pi}{2} + k\\pi$ ($k \\in \\mathbb{Z}$)."
         },
         {
           "level": "NB",
-          "question": "Góc giữa hai đường thẳng trong không gian có thể nhận giá trị từ bao nhiêu độ đến bao nhiêu độ?",
-          "answer": "Từ 0° đến 90°."
+          "question": "Câu trắc nghiệm 4 lựa chọn: Giới hạn $\\lim \\frac{2n + 1}{3n - 2}$ bằng:\nA. $\\frac{2}{3}$\nB. $-\\frac{1}{2}$\nC. $0$\nD. $+\\infty$",
+          "answer": "Chọn A. Chia cả tử và mẫu cho n: $\\lim \\frac{2 + 1/n}{3 - 2/n} = \\frac{2 + 0}{3 - 0} = \\frac{2}{3}$."
         },
         {
           "level": "TH",
@@ -12047,7 +12047,7 @@
         },
         {
           "question": "Câu trả lời ngắn: Tính giới hạn L = \\lim_{x \\to 3} (x^2 - 9)/(x - 3). Điền kết quả vào phiếu trả lời.",
-          "solution": "L = \\lim (x + 3) = 6. Điền số 6."
+          "solution": "Giới hạn: $L = \\lim_{x \\to 3} (x + 3) = 3 + 3 = 6$. Điền số 6 vào phiếu trả lời."
         }
       ],
       "exercises": [
@@ -12110,7 +12110,7 @@
       "lessonType": "practice",
       "focus": "Phân tích các bẫy trắc nghiệm phổ biến: Giới hạn âm vô cực, nghiệm ngoại lai lượng giác và thiết diện hình chóp",
       "formulas": [
-        "\\text{Bẫy đề thi: Chú ý dấu âm của căn thức, chu kỳ lượng giác, mặt phẳng cắt}"
+        "Bẫy đề thi trọng tâm: Dấu của căn thức, chu kỳ hàm lượng giác, vị trí tương đối"
       ],
       "boardKnowledge": "Danh mục bẫy kinh điển Toán 11 HK1: 1. Đưa x ra khỏi căn tại âm vô cực quên dấu trừ; 2. Giải phương trình lượng giác quên họ nghiệm bù; 3. Tính tổng cấp số nhân quên mũ n; 4. Tìm giao tuyến hai mặt phẳng nhầm đường không cắt nhau.",
       "examples": [
@@ -12119,8 +12119,8 @@
           "solution": "Sai lầm: Căn bậc hai luôn dương, kết quả đúng phải là +\\infty (vì \\sqrt{x^2} = -x > 0 khi x < 0)."
         },
         {
-          "question": "Bẫy phương trình \\sin x = 0: Học sinh viết nghiệm x = k2\\pi.",
-          "solution": "Sai lầm: Nghiệm đúng là x = k\\pi (k ∈ Z), viết k2\\pi làm mất một nửa số điểm biểu diễn trên đường tròn."
+          "question": "Bẫy giải phương trình lượng giác: Học sinh giải $\\sin x = 0 \\Leftrightarrow x = k2\\pi$. Lập luận này đúng hay sai?",
+          "solution": "Sai lầm: Nghiệm đúng của $\\sin x = 0$ là $x = k\\pi$ ($k \\in \\mathbb{Z}$). Ghi $x = k2\\pi$ làm mất một nửa số điểm biểu diễn trên đường tròn lượng giác."
         }
       ],
       "exercises": [
@@ -12141,8 +12141,8 @@
         },
         {
           "level": "TH",
-          "question": "Chỉ ra lỗi sai trong công thức tổng cấp số nhân: Sn = u1(1 - q^(n-1))/(1 - q).",
-          "answer": "Sai số mũ: công thức đúng là q^n chứ không phải q^(n-1)."
+          "question": "Viết công thức tính tổng n số hạng đầu của một cấp số nhân ($u_n$) với công bội q.",
+          "answer": "Nếu $q \\neq 1$, tổng n số hạng đầu là $S_n = \\frac{u_1(q^n - 1)}{q - 1} = \\frac{u_1(1 - q^n)}{1 - q}$. Nếu $q = 1$, cấp số nhân là dãy hằng và $S_n = n \\cdot u_1$."
         },
         {
           "level": "VD",
@@ -12183,7 +12183,7 @@
       "lessonType": "practice",
       "focus": "Hệ thống hóa toàn bộ kiến thức Toán 11 HK1, sơ đồ liên kết giữa Giải tích và Hình học không gian",
       "formulas": [
-        "\\text{Mindmap 11 HK1: Lượng giác - Dãy số - Giới hạn - Quan hệ song song - Mẫu ghép nhóm}"
+        "Sơ đồ kiến thức 11 HK1: Lượng giác — Cấp số — Giới hạn — Hình không gian — Thống kê ghép nhóm"
       ],
       "boardKnowledge": "Toàn cảnh Toán 11 HK1: 1. Hàm số & PT lượng giác; 2. Dãy số, CSC, CSN; 3. Giới hạn & Hàm liên tục; 4. Hình không gian quan hệ song song; 5. Các số đặc trưng đo xu thế trung tâm mẫu ghép nhóm.",
       "examples": [
@@ -12215,7 +12215,7 @@
         {
           "level": "TH",
           "question": "Nêu định lý giao tuyến của ba mặt phẳng.",
-          "answer": "Ba mặt phẳng cắt nhau từng đôi một thì ba giao tuyến hoặc đôi một song song hoặc đồng quy tại một điểm."
+          "answer": "Nếu ba mặt phẳng đôi một cắt nhau theo ba giao tuyến phân biệt thì ba giao tuyến đó hoặc đôi một song song, hoặc đồng quy tại một điểm (nếu không phân biệt thì ba giao tuyến trùng nhau)."
         },
         {
           "level": "VD",
@@ -12256,12 +12256,12 @@
       "lessonType": "practice",
       "focus": "Khảo sát hàm số, tính đơn điệu, cực trị, GTLN-GTNN, tiệm cận (đứng, ngang, xiên) và bài toán tương giao đồ thị",
       "formulas": [
-        "y' = 0 \\implies x_{ct}",
+        "Điều kiện cực trị: giải $y' = 0$ (hoặc nơi $y'$ không xác định) để tìm các điểm khả nghi; hàm số đạt cực trị tại $x_0$ nếu $y'$ đổi dấu khi x đi qua $x_0$.",
         "\\lim_{x \\to x_0} y = \\pm\\infty \\implies x = x_0 (TCĐ)",
         "\\lim_{x \\to \\pm\\infty} y = y_0 (TCN)",
         "\\lim_{x \\to \\pm\\infty} [y - (ax+b)] = 0 (TCX)"
       ],
-      "boardKnowledge": "Toàn cảnh Ứng dụng Đạo hàm: 1. Đơn điệu: dấu y'; 2. Cực trị: y' đổi dấu; 3. Tiệm cận: đứng (nghiệm mẫu), ngang (bậc tử ≤ bậc mẫu), xiên (bậc tử = bậc mẫu + 1); 4. Tương giao: số nghiệm phương trình hoành độ giao điểm.",
+      "boardKnowledge": "Toàn cảnh Ứng dụng Đạo hàm: 1. Đơn điệu: xét dấu của $y'$; 2. Cực trị: hàm số liên tục và $y'$ đổi dấu qua điểm cực trị; 3. Tiệm cận: đường thẳng $x = x_0$ là tiệm cận đứng nếu ít nhất một giới hạn một bên của y khi $x \\to x_0$ bằng $\\pm\\infty$ (với phân thức tối giản là nghiệm của mẫu số); tiệm cận ngang $y = y_0$ khi $\\lim_{x \\to \\pm\\infty} y = y_0$; 4. Tương giao: số giao điểm bằng số nghiệm phương trình hoành độ giao điểm.",
       "examples": [
         {
           "question": "Tìm các đường tiệm cận của đồ thị hàm số y = (2x^2 + x - 1)/(x - 1).",
@@ -12311,7 +12311,7 @@
         },
         {
           "question": "Tại điểm cực trị thì đạo hàm cấp một luôn luôn bằng 0 có đúng không?",
-          "solution": "Chưa đủ, đạo hàm có thể bằng 0 hoặc không xác định, miễn là y đổi dấu khi qua điểm đó."
+          "solution": "Sai. Đạo hàm tại điểm cực trị có thể bằng 0 hoặc không xác định, điều kiện đủ là hàm số liên tục tại điểm đó và đạo hàm $y'$ đổi dấu khi biến số x đi qua điểm đó (chứ không phải hàm số y đổi dấu)."
         }
       ],
       "mistakes": [
@@ -12332,9 +12332,9 @@
       "lessonType": "practice",
       "focus": "Tọa độ điểm, vectơ, tích có hướng, tích vô hướng, phương trình mặt phẳng, phương trình mặt cầu cơ bản",
       "formulas": [
-        "[\\vec{u}, \\vec{v}] = (y_1 z_2 - z_1 y_2; z_1 x_2 - x_1 z_2; x_1 y_2 - y_1 x_2)",
+        "[$\\vec{u}$, $\\vec{v}$] = (y_1 z_2 - z_1 y_2; z_1 x_2 - x_1 z_2; x_1 y_2 - y_1 x_2)",
         "(x-a)^2 + (y-b)^2 + (z-c)^2 = R^2",
-        "\\vec{n} = [\\vec{AB}, \\vec{AC}]"
+        "$\\vec{n}$ = [$\\vec{AB}$, $\\vec{AC}$]"
       ],
       "boardKnowledge": "Toàn cảnh Hình học Oxyz: 1. Vectơ và các phép toán 3 chiều; 2. Tích có hướng: vectơ vuông góc với cả hai vectơ thành phần, tính diện tích tam giác và thể tích tứ diện; 3. Mặt cầu: tâm I(a; b; c) và bán kính R.",
       "examples": [
@@ -12356,11 +12356,11 @@
         {
           "level": "NB",
           "question": "Tích có hướng của hai vectơ cùng phương trong không gian bằng bao nhiêu?",
-          "answer": "Bằng vectơ-không \\vec{0} = (0; 0; 0)."
+          "answer": "Bằng vectơ-không: $\\vec{0} = (0; 0; 0)$."
         },
         {
           "level": "TH",
-          "question": "Cho \\vec{a} = (1; 2; 3) và \\vec{b} = (2; -1; 1). Tính tích có hướng [\\vec{a}, \\vec{b}].",
+          "question": "Cho $\\vec{a} = (1; 2; 3)$ và $\\vec{b} = (2; -1; 1)$. Tính tích có hướng $[\\vec{a}, \\vec{b}]$.",
           "answer": "(2(1) - 3(-1); 3(2) - 1(1); 1(-1) - 2(2)) = (5; 5; -5)."
         },
         {
@@ -12371,7 +12371,7 @@
         {
           "level": "VD",
           "question": "Cho ba điểm A(1; 1; 0), B(0; 2; 1), C(1; 0; 2). Tính diện tích tam giác ABC.",
-          "answer": "\\vec{AB} = (-1; 1; 1), \\vec{AC} = (0; -1; 2). [\\vec{AB}, \\vec{AC}] = (3; 2; 1). S = 1/2 |[\\vec{AB}, \\vec{AC}]| = \\sqrt{14}/2."
+          "answer": "$\\vec{AB} = (-1; 1; 1)$, $\\vec{AC} = (0; -1; 2)$. Khi đó $[\\vec{AB}, \\vec{AC}] = (3; 2; 1)$. Diện tích tam giác: $S = \\frac{1}{2} |[\\vec{AB}, \\vec{AC}]| = \\frac{\\sqrt{3^2 + 2^2 + 1^2}}{2} = \\frac{\\sqrt{14}}{2}$."
         },
         {
           "level": "VD",
@@ -12381,8 +12381,8 @@
       ],
       "quick": [
         {
-          "question": "Mặt phẳng đi qua ba điểm trên ba trục tọa độ A(a;0;0), B(0;b;0), C(0;0;c) gọi là phương trình gì?",
-          "solution": "Phương trình mặt phẳng theo đoạn chắn: x/a + y/b + z/c = 1."
+          "question": "Phương trình mặt phẳng đi qua ba điểm $A(a; 0; 0), B(0; b; 0), C(0; 0; c)$ với $a, b, c \\neq 0$ có dạng gì?",
+          "solution": "Phương trình mặt phẳng theo đoạn chắn: $\\frac{x}{a} + \\frac{y}{b} + \\frac{z}{c} = 1$ (điều kiện $a \\cdot b \\cdot c \\neq 0$)."
         },
         {
           "question": "Điều kiện để phương trình x^2 + y^2 + z^2 - 2ax - 2by - 2cz + d = 0 là phương trình mặt cầu là gì?",
@@ -12416,7 +12416,7 @@
       "examples": [
         {
           "question": "Cho bảng tần số ghép nhóm thời gian làm bài của 40 học sinh có x̄ = 15 phút và s = 2,5 phút. Giải thích ý nghĩa của độ lệch chuẩn s = 2,5 phút.",
-          "solution": "Độ lệch chuẩn 2,5 phút đo mức độ phân tán của thời gian làm bài xung quanh thời gian trung bình 15 phút. Khoảng 68% học sinh có thời gian làm bài dao động trong khoảng [12,5; 17,5] phút."
+          "solution": "Độ lệch chuẩn 2,5 phút đo mức độ phân tán của thời gian làm bài của học sinh xung quanh thời gian trung bình 15 phút. Độ lệch chuẩn càng nhỏ chứng tỏ thời gian hoàn thành bài của các học sinh trong lớp càng đồng đều."
         },
         {
           "question": "Hai danh mục đầu tư X và Y có cùng mức lợi nhuận kỳ vọng là 12%/năm, nhưng độ lệch chuẩn của X là 3% và của Y là 8%. Nhà đầu tư thận trọng nên chọn danh mục nào?",
@@ -12446,13 +12446,13 @@
         },
         {
           "level": "VD",
-          "question": "Tính phương sai và độ lệch chuẩn của bảng tần số ghép nhóm cân nặng 50 học sinh.",
-          "answer": "Lập bảng tính cột ci, mi ci, mi ci^2, tính trung bình x̄ rồi suy ra s^2 và s."
+          "question": "Bảng tần số ghép nhóm cân nặng của 50 học sinh (đơn vị: kg): [40; 45) có 8 HS; [45; 50) có 16 HS; [50; 55) có 18 HS; [55; 60) có 8 HS. Tính phương sai và độ lệch chuẩn của mẫu số liệu ghép nhóm này (làm tròn đến hàng phần trăm).",
+          "answer": "Giá trị đại diện các nhóm: 42,5; 47,5; 52,5; 57,5. Số trung bình: $\\bar{x} = \\frac{8(42,5) + 16(47,5) + 18(52,5) + 8(57,5)}{50} = \\frac{340 + 760 + 945 + 460}{50} = 50,1$ kg. Phương sai: $s^2 = \\frac{8(42,5-50,1)^2 + 16(47,5-50,1)^2 + 18(52,5-50,1)^2 + 8(57,5-50,1)^2}{50} = \\frac{8(-7,6)^2 + 16(-2,6)^2 + 18(2,4)^2 + 8(7,4)^2}{50} = \\frac{462,08 + 108,16 + 103,68 + 438,08}{50} = 22,24$. Độ lệch chuẩn: $s = \\sqrt{22,24} \\approx 4,72$ kg."
         },
         {
           "level": "VD",
-          "question": "Đánh giá mức độ ổn định của dây chuyền đóng gói sữa tự động thông qua độ lệch chuẩn khối lượng tịnh của 100 hộp sữa mẫu.",
-          "answer": "So sánh s với tiêu chuẩn cho phép của nhà máy (ví dụ s ≤ 0,5 gam đạt chuẩn chất lượng)."
+          "question": "Một dây chuyền đóng gói sữa hộp 180 ml được coi là hoạt động ổn định nếu độ lệch chuẩn khối lượng tịnh không vượt quá 0,8 ml. Đo ngẫu nhiên 100 hộp sữa mẫu thu được phương sai $s^2 = 0,49\\text{ml}^2$. Hãy tính độ lệch chuẩn và đánh giá xem dây chuyền có đạt tiêu chuẩn ổn định hay không.",
+          "answer": "Độ lệch chuẩn của mẫu đo là $s = \\sqrt{s^2} = \\sqrt{0,49} = 0,7$ ml. Vì $s = 0,7 < 0,8$ ml (tiêu chuẩn cho phép) nên kết luận dây chuyền đóng gói sữa đang hoạt động ổn định và đạt tiêu chuẩn chất lượng."
         }
       ],
       "quick": [
@@ -12488,7 +12488,7 @@
         "\\int_a^b v(t)dt = s(b) - s(a)",
         "\\int_a^b u dv = [uv]_a^b - \\int_a^b v du"
       ],
-      "boardKnowledge": "Toàn cảnh Nguyên hàm - Tích phân & Vật lý: 1. Định lý: Đạo hàm của quãng đường ra vận tốc, đạo hàm của vận tốc ra gia tốc; 2. Ngược lại: Tích phân của gia tốc ra vận tốc, tích phân của vận tốc ra quãng đường; 3. Kỹ thuật tính: Đổi biến và Từng phần.",
+      "boardKnowledge": "Toàn cảnh Nguyên hàm - Tích phân & Chuyển động: 1. Vận tốc và gia tốc: $v(t) = s'(t) = x'(t)$ (khi chuyển động theo một chiều không đổi), $a(t) = v'(t)$; 2. Tích phân trong vật lý: $v(t) = \\int a(t)dt + C$; độ dời $\\Delta x = \\int_{t_1}^{t_2} v(t)dt$, quãng đường chuyển động $s = \\int_{t_1}^{t_2} |v(t)|dt$ (trùng $\\int v(t)dt$ khi $v(t) \\ge 0$); 3. Kỹ thuật tính: Đổi biến số và Từng phần.",
       "examples": [
         {
           "question": "Một ô tô đang chạy với vận tốc 15 m/s thì người lái xe đạp phanh. Từ thời điểm đó, ô tô chuyển động chậm dần đều với gia tốc a(t) = -3 (m/s²). Tính quãng đường ô tô đi được từ lúc phanh đến khi dừng hẳn.",
@@ -12517,13 +12517,13 @@
         },
         {
           "level": "TH",
-          "question": "Tính nguyên hàm: \\int \\sin(3x) dx.",
-          "answer": "-1/3 \\cos(3x) + C."
+          "question": "Tính nguyên hàm: $\\int \\sin(3x) dx$.",
+          "answer": "Ta có: $\\int \\sin(3x) dx = -\\frac{1}{3}\\cos(3x) + C$."
         },
         {
           "level": "VD",
-          "question": "Một quả tên lửa được phóng thẳng đứng với gia tốc a(t) = 6t (m/s²). Biết vận tốc ban đầu v(0) = 10 m/s. Tính độ cao của tên lửa sau 4 giây.",
-          "answer": "v(t) = 3t^2 + 10. Độ cao h = \\int_0^4 (3t^2 + 10) dt = [t^3 + 10t]_0^4 = 64 + 40 = 104 mét."
+          "question": "Một quả tên lửa được phóng thẳng đứng từ mặt đất ($h(0) = 0$ m) với gia tốc $a(t) = 6t$ (m/s²). Biết vận tốc ban đầu $v(0) = 10$ m/s. Tính độ cao của tên lửa sau 4 giây.",
+          "answer": "Vận tốc: $v(t) = \\int 6t dt = 3t^2 + C_1$. Do $v(0) = 10 \\Rightarrow C_1 = 10 \\Rightarrow v(t) = 3t^2 + 10$ (m/s) $> 0$ với mọi $t \\ge 0$. Độ cao sau 4 giây: $h(4) = h(0) + \\int_0^4 (3t^2 + 10) dt = 0 + [t^3 + 10t]_0^4 = 4^3 + 10 \\times 4 = 64 + 40 = 104$ mét."
         },
         {
           "level": "VD",
@@ -12537,8 +12537,8 @@
           "solution": "Là quãng đường chất điểm di chuyển từ thời điểm t = a đến thời điểm t = b."
         },
         {
-          "question": "Nguyên hàm của hàm số lẻ f(x) có tính chất gì?",
-          "solution": "F(x) là một hàm số chẵn (với hằng số C thích hợp)."
+          "question": "Cho hàm số $f(x)$ liên tục và là hàm số lẻ trên khoảng đối xứng $(-a; a)$. Hàm số $F(x) = \\int_0^x f(t)dt$ là hàm số chẵn hay hàm số lẻ?",
+          "solution": "Hàm số chẵn. Thật vậy, với $F(x) = \\int_0^x f(t)dt$, ta có $F(-x) = \\int_0^{-x} f(t)dt$. Đặt $u = -t \\Rightarrow du = -dt$. Khi $t = 0 \\Rightarrow u = 0$, $t = -x \\Rightarrow u = x$. Do đó $F(-x) = \\int_0^x f(-u)(-du) = \\int_0^x -f(u)(-du) = \\int_0^x f(u)du = F(x)$."
         }
       ],
       "mistakes": [
@@ -12561,7 +12561,7 @@
       "formulas": [
         "S = \\int_a^b |f(x) - g(x)| dx",
         "V = \\pi \\int_a^b f^2(x) dx",
-        "V = \\pi \\int_a^b |f^2(x) - g^2(x)| dx"
+        "Thể tích khối tròn xoay quanh trục Ox giới hạn bởi $y = f(x), y = g(x)$ (khi $0 \\le g(x) \\le f(x)$ trên $[a; b]$): $V = \\pi \\int_a^b (f^2(x) - g^2(x)) dx$ (nếu hai đồ thị cắt trục Ox cần phân chia miền theo từng phía)."
       ],
       "boardKnowledge": "Toàn cảnh Ứng dụng Hình học Tích phân: 1. Diện tích hình phẳng: Luôn có giá trị tuyệt đối |f(x) - g(x)|, giải phương trình tìm cận giao điểm nếu đề chưa cho; 2. Thể tích khối tròn xoay quanh Ox: Bắt buộc có nhân tử π ở đằng trước và bình phương hàm f^2(x).",
       "examples": [
@@ -12593,7 +12593,7 @@
         {
           "level": "TH",
           "question": "Tính thể tích khối tròn xoay khi quay hình phẳng giới hạn bởi y = 2, y = 0, x = 0, x = 3 quanh Ox.",
-          "answer": "Khối trụ bán kính r = 2, cao h = 3: V = \\pi \\int_0^3 4 dx = 12\\pi."
+          "answer": "Khối trụ bán kính đáy $r = 2$, chiều cao $h = 3$: thể tích $V = \\pi \\int_0^3 2^2 dx = \\pi \\int_0^3 4 dx = 12\\pi$."
         },
         {
           "level": "VD",
@@ -12602,8 +12602,8 @@
         },
         {
           "level": "VD",
-          "question": "Một cái thùng rượu gỗ có mặt cắt là đường elip quay quanh trục Ox. Thiết lập tích phân tính dung tích của thùng rượu.",
-          "answer": "Lập phương trình nửa elip y = b\\sqrt{1 - x^2/a^2}, áp dụng V = \\pi \\int_{-h/2}^{h/2} y^2 dx để tính thể tích."
+          "question": "Một thùng rượu có dạng khối tròn xoay tạo thành khi quay một hình phẳng giới hạn bởi đường elip $\\frac{x^2}{25} + \\frac{y^2}{9} = 1$ và hai đáy vuông góc với trục lớn tại $x = -3$ và $x = 3$ quanh trục hoành Ox (đơn vị: dm). Tính dung tích của thùng rượu (làm tròn đến hàng phần mười lít, biết $1 \\text{ dm}^3 =$ 1 lít).",
+          "answer": "Từ phương trình elip ta có $y^2 = 9\\left(1 - \\frac{x^2}{25}\\right)$. Thể tích khối tròn xoay: $V = \\pi \\int_{-3}^3 y^2 dx = 9\\pi \\int_{-3}^3 \\left(1 - \\frac{x^2}{25}\\right) dx = 18\\pi \\left[x - \\frac{x^3}{75}\\right]_0^3 = 18\\pi \\left(3 - \\frac{27}{75}\\right) = 18\\pi (3 - 0,36) = 18\\pi \\cdot 2,64 = 47,52\\pi \\approx 149,3 \\text{ dm}^3 =$ 149,3 lít."
         }
       ],
       "quick": [
@@ -12634,7 +12634,7 @@
       "lessonType": "practice",
       "focus": "Khảo sát 12 câu trắc nghiệm nhiều lựa chọn chuẩn hóa: Chiến thuật bấm Casio tốc độ cao và rà soát bẫy",
       "formulas": [
-        "\\text{Điểm trắc nghiệm: 12 câu } \\times 0,25đ = 3,0đ"
+        "Cấu trúc trắc nghiệm: 12 câu nhiều lựa chọn $\\times 0,25 = 3,0$ điểm"
       ],
       "boardKnowledge": "Chiến thuật Phần I Toán 12 (12 câu - 3 điểm): 1. Nhận diện hàm số & BBT: 30s/câu; 2. Đạo hàm & tích phân cơ bản: bấm máy tính kiểm tra ngay; 3. Tọa độ Oxyz: dùng công thức tính nhanh; 4. Hoàn thành trong 15-18 phút.",
       "examples": [
@@ -12650,13 +12650,13 @@
       "exercises": [
         {
           "level": "NB",
-          "question": "Trong hệ tọa độ Oxyz, vectơ đơn vị của trục tung Oy là vectơ nào?",
-          "answer": "\\vec{j} = (0; 1; 0)."
+          "question": "Câu trắc nghiệm 4 lựa chọn: Cho hàm số $y = f(x)$ có bảng biến thiên trên $[0; 4]$. Điểm cực đại của hàm số là:\nA. $x = 2$\nB. $x = 0$\nC. $y = 5$\nD. $x = 4$",
+          "answer": "Chọn A. Tại $x = 2$, đạo hàm đổi dấu từ dương sang âm và hàm số liên tục, nên $x = 2$ là điểm cực đại của hàm số."
         },
         {
           "level": "NB",
-          "question": "Tích phân \\int_a^a f(x) dx có giá trị bằng bao nhiêu?",
-          "answer": "Tích phân cận trùng nhau luôn bằng 0."
+          "question": "Câu trắc nghiệm 4 lựa chọn: Họ nguyên hàm của hàm số $f(x) = 3x^2 + 2x$ là:\nA. $x^3 + x^2 + C$\nB. $6x + 2 + C$\nC. $x^3 + 2x^2 + C$\nD. $3x^3 + x^2 + C$",
+          "answer": "Chọn A. Ta có $\\int (3x^2 + 2x) dx = 3 \\cdot \\frac{x^3}{3} + 2 \\cdot \\frac{x^2}{2} + C = x^3 + x^2 + C$."
         },
         {
           "level": "TH",
@@ -12671,7 +12671,7 @@
         {
           "level": "VD",
           "question": "Kỹ thuật dùng phím d/dx kết hợp CALC trên Casio để giải nhanh câu hỏi tìm nguyên hàm chứa tham số.",
-          "answer": "Nhập d/dx(F(x)) - f(x) tại một giá trị x ngẫu nhiên, kết quả bằng 0 là hàm nguyên hàm đúng."
+          "answer": "Nhập $\\frac{d}{dx}[F(x)]_{x=x_0} - f(x_0)$ với $x_0$ thuộc tập xác định. Nếu kết quả khác 0 thì loại phương án đó ngay. Tuy nhiên, nếu kết quả xấp xỉ 0 thì đây chỉ là điều kiện cần tại một điểm, cần thử thêm một điểm $x_1$ khác hoặc kiểm tra tính đúng đắn đại số trên toàn miền xác định để tránh nghiệm trùng ngẫu nhiên."
         },
         {
           "level": "VD",
@@ -12738,8 +12738,8 @@
         },
         {
           "level": "TH",
-          "question": "Điền đáp số câu trả lời ngắn: Cho hai vectơ \\vec{a} = (1; 2; 3) và \\vec{b} = (2; -1; 0). Tính tích vô hướng \\vec{a}\\cdot\\vec{b}.",
-          "answer": "Tích vô hướng hai vectơ bằng 0."
+          "question": "Điền đáp số câu trả lời ngắn: Cho hai vectơ $\\vec{a} = (1; 2; 3)$ và $\\vec{b} = (2; -1; 0)$. Tính tích vô hướng $\\vec{a} \\cdot \\vec{b}$.",
+          "answer": "Ta có $\\vec{a} \\cdot \\vec{b} = 1(2) + 2(-1) + 3(0) = 2 - 2 + 0 = 0$. Điền số 0 vào phiếu trả lời."
         },
         {
           "level": "VD",
@@ -12748,8 +12748,8 @@
         },
         {
           "level": "VD",
-          "question": "Kỹ thuật xử lý câu hỏi tối ưu hóa kinh tế trong phần trả lời ngắn: Doanh thu cực đại.",
-          "answer": "Lập hàm doanh thu R(x) = x · p(x), tìm đỉnh parabol hoặc tính R'(x) = 0 để tìm mức giá tối ưu rồi điền số vào phiếu."
+          "question": "Vận dụng tối ưu doanh thu: Một công ty ước tính nếu bán sản phẩm với giá p (nghìn đồng) thì số lượng bán ra là $x(p) = 1000 - 10p$ ($20 \\le p \\le 80$). Tìm mức giá p để doanh thu $R(p) = p \\cdot x(p)$ đạt giá trị lớn nhất và tính doanh thu tối đa đó.",
+          "answer": "Doanh thu là hàm bậc hai: $R(p) = p(1000 - 10p) = -10p^2 + 1000p$ (nghìn đồng). Hàm số có hệ số $a = -10 < 0$ nên đạt cực đại tại đỉnh $p = -\\frac{b}{2a} = -\\frac{1000}{2(-10)} = 50$ (nghìn đồng, thỏa mãn $20 \\le p \\le 80$). Doanh thu lớn nhất đạt được là $R(50) = 50(1000 - 500) = 25000$ nghìn đồng = 25 triệu đồng."
         }
       ],
       "quick": [
@@ -12780,13 +12780,13 @@
       "lessonType": "practice",
       "focus": "Phân tích ma trận đề thi HK1, tổng kết kiến thức trọng tâm học kỳ 1 và định hướng chiến lược ôn thi tốt nghiệp THPT",
       "formulas": [
-        "\\text{Chiến lược 12: Nắm chắc 7 điểm cơ bản -> Luyện 2 điểm phân hóa -> Bứt phá 1 điểm điểm 10}"
+        "Chiến lược phân bổ điểm: Nắm chắc 7 điểm cơ bản $\\to$ Chinh phục 2 điểm vận dụng $\\to$ Bứt phá 1 điểm phân hóa cao"
       ],
       "boardKnowledge": "Toàn cảnh Toán 12 HK1: 1. Ứng dụng đạo hàm khảo sát hàm số; 2. Vectơ và tọa độ Oxyz; 3. Thống kê ghép nhóm; 4. Nguyên hàm và tích phân; 5. Định hướng HK2: Ứng dụng tích phân nâng cao, Phương trình đường thẳng và mặt phẳng Oxyz, Xác suất có điều kiện.",
       "examples": [
         {
           "question": "Chuyên đề nào chiếm tỉ trọng điểm số lớn nhất trong đề thi tốt nghiệp THPT?",
-          "solution": "Chuyên đề Ứng dụng đạo hàm khảo sát hàm số (thường chiếm khoảng 10-12 câu trên tổng số câu hỏi của đề thi)."
+          "solution": "Chuyên đề Ứng dụng đạo hàm để khảo sát và vẽ đồ thị hàm số là chuyên đề trọng tâm nhất trong chương trình HK1 Toán 12, chiếm tỉ trọng câu hỏi phân hóa cao trong cả ba phần của cấu trúc đề thi tốt nghiệp THPT (trắc nghiệm nhiều lựa chọn, đúng/sai, trả lời ngắn)."
         },
         {
           "question": "Kiến thức Nguyên hàm - Tích phân học kỳ 1 sẽ được phát triển như thế nào trong học kỳ 2?",
@@ -14613,7 +14613,7 @@
       "proof": "Vẽ hình bình hành ABCD theo chiều kim đồng hồ: vectơ AB đi từ trái sang phải thì vectơ tương ứng ở cạnh đáy phải đi từ D sang C.",
       "whyAiError": "Học sinh đồng nhất quan hệ đoạn thẳng bằng nhau AB = CD với đẳng thức vectơ mà quên tính định hướng của vectơ.",
       "teacherPrompt": "Em hãy sửa lại đẳng thức vectơ đúng theo chiều hình bình hành ABCD và tính lại tọa độ D.",
-      "studentProduct": "Học sinh vẽ hình, viết đúng vectơ AB = vectơ DC và tìm ra tọa độ chuẩn xác D(7; -1).",
+      "studentProduct": "Học sinh viết: $\\vec{AB} = (-3; 2)$, $\\vec{DC} = (4 - x_D; 2 - y_D) = (-3; 2) \\Rightarrow D(7; 0)$ nhưng nhầm thứ tự thành $\\vec{CD} = \\vec{AB} \\Rightarrow D(1; 4)$.",
       "boardPrompt": "AI viết AB = CD. Em hãy nhìn hình vẽ xem hai vectơ đó có cùng hướng không?",
       "libraryTitle": "Lỗi nhầm hướng vectơ trong điều kiện hình bình hành ABCD"
     },
@@ -14742,7 +14742,7 @@
       "correction": "Trong không gian, hai đường thẳng cùng song song với một mặt phẳng có thể song song, cắt nhau hoặc chéo nhau.",
       "proof": "Lấy hai cạnh đối diện của trần nhà cùng song song với mặt sàn: chúng song song nhau. Nhưng hai cạnh kề của trần nhà cắt nhau cũng cùng song song với sàn.",
       "whyAiError": "Học sinh áp đặt tính chất bắc cầu của hình học phẳng vào hình học không gian ba chiều.",
-      "teacherPrompt": "Em hãy sửa lại lập luận hình học không gian: cần thêm điều kiện đồng phẳng trước khi kết luận song song.",
+      "teacherPrompt": "Em hãy sửa lại lập luận hình học không gian: trong không gian, hai đường thẳng cùng song song với một mặt phẳng có thể song song, cắt nhau hoặc chéo nhau; để kết luận song song cần chứng minh chúng cùng song song với một đường thẳng thứ ba hoặc cùng nằm trong một mặt phẳng và không có điểm chung.",
       "studentProduct": "Học sinh nêu phản ví dụ và sửa lại điều kiện chứng minh hai đường thẳng song song.",
       "boardPrompt": "AI khẳng định cùng song song một mặt phẳng thì song song nhau. Em hãy lấy ví dụ trong phòng học!",
       "libraryTitle": "Lỗi áp đặt tính chất bắc cầu song song mặt phẳng vào hai đường thẳng"
@@ -14752,7 +14752,7 @@
       "mode": "micro",
       "category": "Lỗi đại số",
       "wrongSolution": "Để máy tính ở chế độ DEG khi bấm nghiệm phương trình lượng giác và tính tích phân chứa pi, ra kết quả sai lệch.",
-      "correction": "Trước khi bấm máy tính cho các bài toán lượng giác THPT, luôn chuyển đơn vị đo góc sang Radian (chữ R trên màn hình).",
+      "correction": "Trước khi bấm máy tính cho các bài toán lượng giác, phải kiểm tra và chọn đúng đơn vị đo góc tương ứng với đề bài: chọn Radian (chữ R) khi góc tính theo rad; chọn Degree (chữ D) khi góc tính theo độ.",
       "proof": "sin(pi/6) ở chế độ Radian bằng 0,5; nhưng ở chế độ DEG máy hiểu là sin(0,5236 độ) ≈ 0,0091, sai lệch hoàn toàn.",
       "whyAiError": "Học sinh không tạo phản xạ kiểm tra đơn vị đo góc của máy tính cầm tay trước khi vào phòng thi.",
       "teacherPrompt": "Em hãy sửa lại đơn vị đo góc trên máy tính sang Radian rồi tính toán lại giá trị lượng giác.",
@@ -14765,7 +14765,7 @@
       "mode": "micro",
       "category": "Lỗi logic",
       "wrongSolution": "Trong phần trả lời ngắn, học sinh ghi đáp số kèm đơn vị tính là 12 mét hoặc x = 12 vào ô trả lời.",
-      "correction": "Quy chế thi chuẩn Bộ yêu cầu phần trả lời ngắn chỉ điền duy nhất số nguyên hoặc số thập phân, không ghi chữ hoặc đơn vị.",
+      "correction": "Theo hướng dẫn làm phiếu trắc nghiệm trả lời ngắn, thí sinh chỉ tô duy nhất kết quả dạng số nguyên hoặc số thập phân, tuyệt đối không ghi kèm chữ, biến số hay đơn vị đo.",
       "proof": "Máy quét quang học chấm tự động chỉ nhận diện các ô chữ số; ghi thêm chữ hoặc đơn vị sẽ bị máy báo lỗi và tính 0 điểm.",
       "whyAiError": "Học sinh quen thói quen trình bày tự luận ở lớp mà không tìm hiểu kỹ quy cách làm bài thi trắc nghiệm mới.",
       "teacherPrompt": "Thầy yêu cầu em sửa lại ô trả lời ngắn, chỉ ghi duy nhất con số kết quả tính toán.",
@@ -14791,8 +14791,8 @@
       "mode": "micro",
       "category": "Lỗi khái niệm",
       "wrongSolution": "Tổng kết các số đặc trưng đo mức độ phân tán nhưng bỏ sót khoảng tứ phân vị Delta Q vì cho rằng chỉ cần phương sai.",
-      "correction": "Khoảng tứ phân vị Delta Q = Q3 - Q1 là số đo mức độ phân tán rất quan trọng, không bị ảnh hưởng bởi giá trị ngoại lai.",
-      "proof": "Trong mẫu số liệu có chứa điểm ngoại lai bất thường, phương sai s² bị thổi phồng rất lớn trong khi Delta Q vẫn ổn định.",
+      "correction": "Khoảng tứ phân vị $\\Delta_Q = Q_3 - Q_1$ là số đo mức độ phân tán có tính bền vững cao, ít bị ảnh hưởng bởi các giá trị ngoại lai hơn nhiều so với phương sai và độ lệch chuẩn.",
+      "proof": "Phép kiểm: Thêm một giá trị cực lớn vào mẫu số liệu, tính lại trung bình, phương sai so với khoảng tứ phân vị để thấy $\\Delta_Q$ ít biến động hơn.",
       "whyAiError": "Học sinh chỉ tập trung vào phương sai và độ lệch chuẩn mà xem nhẹ khoảng tứ phân vị trong chương trình mới.",
       "teacherPrompt": "Em cần sửa lại bảng tóm tắt kiến thức thống kê bằng cách bổ sung khoảng tứ phân vị và ý nghĩa của nó.",
       "studentProduct": "Học sinh bổ sung khoảng tứ phân vị vào sơ đồ các số đo phân tán mẫu ghép nhóm.",

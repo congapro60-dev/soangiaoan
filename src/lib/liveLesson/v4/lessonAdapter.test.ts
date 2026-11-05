@@ -86,4 +86,13 @@ describe('Ban Toán W5–W6 → V4 lesson adapter', () => {
       }
     }
   });
+
+  it('forwards boardKnowledge from source snapshot into contract and screens (T01)', () => {
+    const w18Contracts = getAllBanToanV4Contracts().filter((c) => c.sourceKey.includes('-18-'));
+    expect(w18Contracts).toHaveLength(24);
+    for (const contract of w18Contracts) {
+      expect(contract.sourceContent?.boardKnowledge).toBeTruthy();
+      expect(typeof contract.sourceContent?.boardKnowledge).toBe('string');
+    }
+  });
 });

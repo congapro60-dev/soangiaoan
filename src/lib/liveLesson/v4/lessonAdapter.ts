@@ -44,6 +44,7 @@ interface SourceLessonSpec {
   selfChoice: boolean;
   title: string;
   focus: string;
+  boardKnowledge?: string | string[];
   formulas: string[];
   examples: SourceExample[];
   exercises: SourceExercise[];
@@ -461,12 +462,31 @@ function activityFor(spec: SourceLessonSpec, phase: string): SourceScreenActivit
   return spec.screenPlan?.activities?.find((activity) => activity.phase === phase);
 }
 
+function normalizeBoardKnowledge(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return (trimmed.length > 1800 ? trimmed.slice(0, 1800) : trimmed) || undefined;
+  }
+  if (Array.isArray(value)) {
+    const text = value.filter((line): line is string => typeof line === 'string' && Boolean(line.trim())).join('\n').trim();
+    return (text.length > 1800 ? text.slice(0, 1800) : text) || undefined;
+  }
+  return undefined;
+}
+
 function boardTextFor(spec: SourceLessonSpec, section: string, phase: string | undefined, fallback: string): string {
   const rows = (spec.boardPlan ?? [])
     .filter((item) => item.section === section && (!phase || !item.phase || item.phase === phase))
     .map((item) => item.content.trim())
     .filter(Boolean);
-  return rows.length > 0 ? rows.slice(0, 4).join('\n') : fallback;
+  if (rows.length > 0) return rows.slice(0, 4).join('\n');
+  const boardKnowledgeText = normalizeBoardKnowledge(spec.boardKnowledge);
+  if (section === 'BẢNG LỚN' && boardKnowledgeText) {
+    if (!phase || phase === 'explore' || phase === 'generalize' || phase === 'verify' || phase === 'anchor' || phase === 'knowledgeCycle') {
+      return boardKnowledgeText;
+    }
+  }
+  return fallback;
 }
 
 function sourceExerciseFor(spec: SourceLessonSpec, level: SourceExerciseLevel, index: number): SourceExercise {
@@ -484,6 +504,7 @@ function commonSuccessCriteria(spec: SourceLessonSpec): string[] {
 function buildSourceContent(spec: SourceLessonSpec): V4SourceContent {
   return {
     formulas: spec.formulas.map((formula) => formula.trim()).filter(Boolean),
+    boardKnowledge: normalizeBoardKnowledge(spec.boardKnowledge),
     examples: spec.examples.map((example, index) => ({
       question: example.question,
       solution: example.solution,
@@ -603,7 +624,7 @@ function buildScreens(spec: SourceLessonSpec, error: SourceAiError): { tv: LiveL
     ['S0', 'BẮT ĐẦU KHI SẴN SÀNG', `Hôm nay: ${spec.title}\nQuan sát tình huống và đặt câu hỏi. Chưa cần biết đáp án.`],
     ['S1', 'CÂU HỎI ĐỊNH HƯỚNG', spec.guidingQuestion ?? `Làm thế nào giải thích được ${spec.focus}?`],
     ['S2', 'MỤC TIÊU DO LỚP TỔNG HỢP', 'Mỗi HS chọn mục tiêu và minh chứng phù hợp; GV tổng hợp mục tiêu chung.'],
-    ['S3', 'CÔNG CỤ TOÁN HỌC', spec.formulas.slice(0, 3).join('\n') || spec.focus],
+    ['S3', 'CÔNG CỤ TOÁN HỌC', normalizeBoardKnowledge(spec.boardKnowledge) ?? (spec.formulas.slice(0, 3).join('\n') || spec.focus)],
     ['S4', 'THINK → AI → VERIFY', `${error.wrongSolution}\n\nTìm lỗi · phân loại · sửa · chứng minh.`],
     ['S5', 'CÂU HỎI NHÓM', `Cùng kiểm chứng: ${spec.focus}\nKhông công khai nhãn năng lực.`],
     ['S6', 'NHIỆM VỤ CÓ LỰA CHỌN', 'M — Củng cố · S — Chuẩn · C — Thử thách\nTiêu chí đích đến giống nhau.'],

@@ -250,8 +250,11 @@ export function buildBanToanV4AdaptiveLessonDraft(
       objectiveIds,
       estimatedMinutes: 30,
       hookQuestion: contract.objectives.teacherSynthesisPrompt,
-      knowledgeConclusion: contract.sourceContent?.formulas?.join('\n')
-        || contract.curriculumBridges.map((bridge) => bridge.example).join('\n'),
+      knowledgeConclusion: [
+        contract.sourceContent?.boardKnowledge,
+        contract.sourceContent?.formulas?.join('\n')
+          || contract.curriculumBridges.map((bridge) => bridge.example).join('\n'),
+      ].filter(Boolean).join('\n\n'),
       routes: (['M', 'S', 'C'] as const).map((route) => buildRouteContent(contract, route, objectiveIds)),
       quickCheck,
       maxRemediationAttempts: 2,

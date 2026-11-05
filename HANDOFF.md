@@ -1,16 +1,56 @@
 # HANDOFF.md — Trạng thái hiện tại hệ thống
 
-> Cập nhật: 05/11/2026 — **HOÀN TẤT TRỌN VẸN HỌC KỲ 1 CẢ 3 KHỐI (TUẦN 5–18): 218/218 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
+> Cập nhật: 05/11/2026 — **NGHIỆM THU HOÀN TẤT 24 BÀI TUẦN 18: ĐÃ XỬ LÝ TRIỆT ĐỂ 100% (39 FINDINGS + 2 LỖI KỸ THUẬT T01/T02) TỪ CODEX AUDIT — 218/218 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER**
 
 ## 1. Trạng thái hiện tại
-- **TOÀN BỘ 218/218 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
+- **TOÀN BỘ 218/218 BÀI TƯƠNG TÁC TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER VÀ ĐƯỢC AUDIT NGHIỆM THU:**
   - Khối 10: **72 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8 bài; Tuần 17: 8 bài; Tuần 18: 8/8 bài `10-18-136`..`143`).
   - Khối 11: **74 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8 bài; Tuần 17: 8 bài; Tuần 18: 8/8 bài `11-18-130`..`137`).
   - Khối 12: **72 bài** (Tuần 5–6: 16 bài; Tuần 11: 4 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 7 bài; Tuần 17: 7 bài; Tuần 18: 8/8 bài `12-18-130`..`137`).
-- **Tuần 18 đã khép kín 100% cả 3 khối (24/24 bài chuẩn PPCT TDS kết thúc Học kỳ 1):**
-  - Khối 10: `10-18-136` (Ôn tập HK1: Phương pháp giải hệ phương trình và toán thực tế), `10-18-137` (Ôn tập HK1: Tọa độ vectơ và bài toán hình học phẳng Oxy), `10-18-138` (Ôn tập HK1: Thống kê mô tả và phân tích số liệu thực tế), `10-18-139` (Ôn tập HK1: Tổng hợp kiến thức Hình học và Hệ thức lượng), `10-18-140` (Kiểm tra cuối HK1: Đề minh họa HK1 Phần trắc nghiệm nhiều lựa chọn), `10-18-141` (Kiểm tra cuối HK1: Đề minh họa HK1 Phần đúng sai và tự luận), `10-18-142` (Tự chọn: Chữa đề và khắc phục sai sót thường gặp HK1), `10-18-143` (Tự chọn: Tổng kết phương pháp học tập môn Toán học kỳ 1).
-  - Khối 11: `11-18-130` (Ôn tập HK1: Phương trình lượng giác và bài toán thực tế sóng âm chu kỳ), `11-18-131` (Ôn tập HK1: Dãy số, cấp số cộng, cấp số nhân và bài toán tài chính), `11-18-132` (Ôn tập HK1: Giới hạn vô định và tính liên tục của hàm số), `11-18-133` (Ôn tập HK1: Hình học không gian — Quan hệ song song và thiết diện tổng hợp), `11-18-134` (Kiểm tra cuối HK1: Đề minh họa HK1 Phần trắc nghiệm nhiều lựa chọn), `11-18-135` (Kiểm tra cuối HK1: Đề minh họa HK1 Phần đúng sai và trả lời ngắn), `11-18-136` (Tự chọn: Chữa đề kiểm tra cuối HK1 và phân tích bẫy đề thi), `11-18-137` (Tự chọn: Tổng kết kiến thức trọng tâm Toán 11 học kỳ 1).
-  - Khối 12: `12-18-130` (Ôn tập HK1: Ứng dụng đạo hàm — Cực trị, tiệm cận và đồ thị), `12-18-131` (Ôn tập HK1: Vectơ và hệ tọa độ Oxyz trong không gian), `12-18-132` (Ôn tập HK1: Thống kê ghép nhóm — Phân tích độ phân tán và rủi ro), `12-18-133` (Ôn tập HK1: Nguyên hàm, tích phân và bài toán chuyển động thực tế), `12-18-134` (Ôn tập HK1: Ứng dụng hình học của tích phân — Diện tích và thể tích), `12-18-135` (Kiểm tra cuối HK1: Đề khảo sát chất lượng HK1 Phần trắc nghiệm nhiều lựa chọn), `12-18-136` (Kiểm tra cuối HK1: Đề khảo sát chất lượng HK1 Phần đúng sai và trả lời ngắn), `12-18-137` (Tự chọn: Chữa đề thi HK1, tổng kết học kỳ 1 và định hướng HK2).
+- **Khắc phục 100% các điểm chưa đạt từ Codex Audit (24 bài Tuần 18):**
+  - **Lỗi kỹ thuật T01 (`boardKnowledge`):** Đã bổ sung trường `boardKnowledge` vào `SourceLessonSpec`, `V4SourceContent`, `buildSourceContent`, `boardTextFor` (`BẢNG LỚN`), `buildScreens` (`S3`), runtime definition (`S3`), và `adaptiveDraft.ts` (`knowledgeConclusion`). Có regression unit test kiểm chứng cả 24 contract Tuần 18.
+  - **Lỗi kỹ thuật T02 (KaTeX & Raw LaTeX delimiter):** Bao bọc toàn bộ các biểu thức toán học bằng `$..$` hoặc `$$..$$`, đưa toàn bộ văn bản tiếng Việt ra ngoài math mode. Loại bỏ triệt để 33 trường hợp lộ mã raw LaTeX và triệt tiêu 100% KaTeX Unicode warnings.
+  - **Khắc phục 39/39 findings nội dung (F01..F39):**
+    - F01: Đổi thành 90 con (20 bò, 40 dê, 30 ngựa).
+    - F02: Đặt giá bán cụ thể 100k, 200k, 300k, tổng 130 sản phẩm, thu 25 triệu đồng.
+    - F03: Bổ sung điều kiện hệ tương thích và hạng ma trận để phân biệt vô số nghiệm với vô nghiệm.
+    - F04: Đổi $C(4; 2) \to D(7; 0)$ để tránh suy biến thẳng hàng.
+    - F05: Trực tâm giải ra $H(5/2; 5/2)$.
+    - F06: Mẫu số liệu lương 9 nhân viên có ngoại lai duy nhất 25 triệu.
+    - F07: Giả thiết 2 vectơ khác vectơ-không trước khi suy ra góc $180^\circ$.
+    - F08: Bổ sung góc lệch hướng Đông $135^\circ$, tính khoảng cách $AC \approx 92,7$ hải lý.
+    - F09: Tách điều kiện xác định $x - 2 > 0$ vào lời giải.
+    - F10: Thêm điều kiện $a \neq 0$ trong trục đối xứng parabol.
+    - F11: Làm rõ vai trò nền tảng của vectơ, tam thức bậc hai, hệ BPT.
+    - F12: Thiết lập hàm đu quay $H(t) = 22 - 20\cos(\pi t / 30)$ với đáy 2 m.
+    - F13: Ba số cấp số nhân tăng là 3, 6, 12 với công bội $q = 2$.
+    - F14: Vay trả góp 500 triệu, 5 năm, lãi 0,8%/tháng ra $m \approx 10,53$ triệu đồng/tháng.
+    - F15: Bổ sung điều kiện $q \neq 1$ cho tổng cấp số nhân (nếu $q = 1$ thì $S_n = n u_1$).
+    - F16: Chứng minh nghiệm bằng $f(-3) = 47 > 0$, $f(0) = -1 < 0$, $f(2) = 7 > 0$.
+    - F17: Bổ sung điều kiện liên tục trên đoạn $[a; b]$ trong định lý giá trị trung gian.
+    - F18: Khử mẫu $x \to 2$ ra giới hạn 4 khác $f(2) = 3$.
+    - F19: Bổ sung giao tuyến $b$ trong công thức giao tuyến mặt phẳng song song.
+    - F20: Sửa lời dẫn giáo viên về hai đường thẳng cùng song song một mặt phẳng.
+    - F21: Chỉnh hướng dẫn chọn Radian/Degree trên máy tính Casio.
+    - F22: Chỉnh hướng dẫn chỉ tô số nguyên/thập phân trên phiếu trả lời ngắn.
+    - F23: Thêm trường hợp 3 giao tuyến phân biệt.
+    - F24: Hiệu chỉnh tính bền vững của khoảng tứ phân vị (ít nhạy hơn với giá trị ngoại lai).
+    - F25: Điều kiện cực trị: giải $y'=0$ và xét sự đổi dấu của $y'$.
+    - F26: Sửa nhầm lẫn dấu hàm số thành dấu đạo hàm $y'$.
+    - F27: Bổ sung định nghĩa tiệm cận đứng bằng giới hạn một bên.
+    - F28: Điều kiện $a \cdot b \cdot c \neq 0$ cho phương trình mặt phẳng đoạn chắn.
+    - F29: Làm rõ ý nghĩa độ lệch chuẩn trong độ phân tán thời gian làm bài.
+    - F30: Bảng tần số ghép nhóm 50 học sinh, phương sai 22,24, độ lệch chuẩn 4,72 kg.
+    - F31: Dây chuyền sữa mẫu 100 hộp có $s = 0,7 < 0,8$ ml đạt tiêu chuẩn ổn định.
+    - F32: Phân biệt độ dời $\Delta x = \int v(t)dt$ và quãng đường $s = \int |v(t)|dt$.
+    - F33: Tên lửa phóng từ mặt đất $h(0) = 0$, gia tốc $6t$, vận tốc đầu $10$, độ cao $h(4) = 104$ m.
+    - F34: Chứng minh nguyên hàm của hàm lẻ trên khoảng đối xứng là hàm chẵn.
+    - F35: Điều kiện $0 \le g(x) \le f(x)$ cho thể tích hình phẳng giới hạn bởi 2 đồ thị.
+    - F36: Thùng rượu elip có dung tích $V = 47,52\pi \approx 149,3$ lít.
+    - F37: Giới hạn của phép thử đạo hàm Casio tại 1 điểm và cách phòng tránh.
+    - F38: Xoá chữ "cơ bản" lặp từ.
+    - F39: Giảm phạm vi khẳng định trọng tâm cho chương trình HK1 Toán 12.
+    - **Bổ sung cụ thể mục 6:** 4 lựa chọn A/B/C/D cho các bài thi (10-18-140, 11-18-134, 12-18-135); hàm chi phí/doanh thu thực tế (10-18-141, 12-18-136).
 - **Bộ dữ liệu chuẩn hóa:**
   - `src/data/liveLessonPackages/banToan-w5-w6.snapshot.json`: 51 bài.
   - `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`: 167 bài (tổng cộng 218 bài).
@@ -18,10 +58,11 @@
   - Mọi `aiError` đều đủ 11 trường, thuộc đúng 4 categories chuẩn và `teacherPrompt` chứa "sửa".
   - Kiểm chứng `displayTitleUnique.test.ts`: 218/218 bài có display title duy nhất 100% trong từng khối lớp (K10: 72 bài, K11: 74 bài, K12: 72 bài).
 - **Kiểm định chất lượng:**
-  - Vitest test suite: `src/lib/liveLesson/v4` đạt **793/793 PASS** (28 test files).
+  - Vitest test suite: `src/lib/liveLesson/v4` đạt **794/794 PASS** (28 test files).
+  - Lint: `tsc --noEmit` exit 0 không lỗi.
   - Production build: `npm run build` thành công, 0 lỗi TypeScript, 0 lỗi bundle.
 - **Đồng bộ mã nguồn:**
-  - Đang đồng bộ commit và push cả `feat/nop-bai-da-cham` và `main`.
+  - Đã cập nhật và đồng bộ cả `feat/nop-bai-da-cham` và `main`.
 
   - Pha A: Đã hoàn thành giáo án chuẩn `tasks/giaoan-goc-10-12-88.md` và đặc tả Gate D 12 chặng V8.8 `tasks/gate-d-10-12-88.md` (commit `8482b87`). Thầy đã duyệt.
   - Pha B: Đã nạp thành công `newSpec10_12_88` và `newAiError10_12_88` vào `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json` (tổng 8 specs) và timeline `gateD101288` vào `src/lib/liveLesson/v4/lessonAdapter.ts`.

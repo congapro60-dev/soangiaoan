@@ -246,6 +246,7 @@ export interface V4SourceContent {
   exercises: V4SourceExercise[];
   quickChecks: V4SourceExample[];
   mistakes: string[];
+  boardKnowledge?: string;
 }
 
 // --- AI Error of the Week ---
