@@ -90,6 +90,7 @@ describe('requestRegrade — chặn đúng trường hợp, không đốt tiền
     expect(out.kind).toBe('started');
     expect(h.db.rows.get('submissions/sub1')?.regradeRequestedAt).toBeGreaterThan(0);
     expect(h.db.rows.get('gradingQuota/t1')).toMatchObject({ day: today(), selfCount: 1, byStudent: { s: 1 } });
+    expect(h.grade.mock.calls[0]?.slice(6)).toEqual(['thorough']);
   });
 
   it('bài mới nhất đã duyệt nhưng còn bài cũ CHƯA duyệt → chọn bài còn chấm lại được', async () => {

@@ -124,6 +124,30 @@ describe('getGradingChain — thứ tự lớp dự phòng', () => {
 });
 
 describe('callGradingVision — rơi xuống lớp xKiro khi lớp trước hỏng', () => {
+  it.each([600, 1000])('fallback chỉ dùng phần còn lại của deadline chung (%i ms đã dùng)', async elapsed => {
+    stubEnv({ GRADING_VILAO_API_KEY: 'k-vilao', GRADING_XKIRO_API_KEY: 'k-xkiro', GRADING_GEMINI_API_KEY: '', GEMINI_API_KEY: '' });
+    let now = 0;
+    const clock = vi.spyOn(Date, 'now').mockImplementation(() => now);
+    const timeouts: number[] = [];
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockImplementation(ms => { timeouts.push(ms); return new AbortController().signal; });
+    const fetchMock = vi.fn(async () => {
+      if (now === 0) { now += elapsed; return failResponse(); }
+      return okResponse('fallback');
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      const result = callGradingVision('prompt', [], { timeoutMs: 1000 });
+      if (elapsed === 1000) {
+        await expect(result).rejects.toThrow();
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(timeouts).toEqual([1000]);
+      } else {
+        await expect(result).resolves.toBe('fallback');
+        expect(timeouts).toEqual([1000, 400]);
+      }
+    } finally { clock.mockRestore(); timeout.mockRestore(); }
+  });
+
   it('Vilao lỗi thì xKiro phục vụ, không gọi tới Gemini', async () => {
     stubEnv({
       GRADING_VILAO_API_KEY: 'k-vilao',

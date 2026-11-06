@@ -573,10 +573,8 @@ export const gradeOneSubmission = async (
   isTeacher: boolean,
   mode: HomeworkGradingMode,
   refreshSnapshot?: SubmissionDoc,
-  // Bot Zalo chấm trong waitUntil của function webhook (maxDuration ~90s) nên cần ngân sách NGẮN hơn
-  // `GRADING_BUDGET_MS` (240s) và margin nhỏ hơn 60s — nếu không thì `conLaiMs() - 60_000` luôn âm,
-  // lượt chấm chỉ còn `MIN_GEMINI_BUDGET_MS` (12s) và gần như chắc chắn timeout.
-  // Không truyền → web giữ nguyên ngân sách cũ. Đọc quyết định ở tasks/todo.md (việc 4).
+  // Bot Zalo chấm nền trong waitUntil. `api/assistant.ts` dùng cùng trần 300s với hàm chấm,
+  // nên giữ ngân sách mặc định; ngân sách bot rút ngắn từng gây timeout trước trần runtime.
   budgetMs?: number,
   marginMs?: number,
 ): Promise<{ success: boolean; gradePreserved?: boolean; failureCode?: string; failureMessage?: string; retryAfterMs?: number; syncPending?: boolean; syncError?: string }> => {

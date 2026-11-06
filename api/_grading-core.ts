@@ -829,10 +829,13 @@ export const callGradingVision = async (
   if (chain.length === 0) {
     throw new Error('Máy chủ chưa cấu hình khoá chấm bài (GRADING_VILAO_API_KEY, GRADING_XKIRO_API_KEY hoặc GRADING_GEMINI_API_KEY).');
   }
+  const deadline = options.timeoutMs === undefined ? undefined : Date.now() + options.timeoutMs;
   let lastError: unknown;
   for (const adapter of chain) {
+    const remaining = deadline === undefined ? undefined : deadline - Date.now();
+    if (remaining !== undefined && remaining <= 0) throw lastError ?? new GeminiResponseError('provider', 'Đã hết thời gian chấm. Bài và ảnh vẫn được giữ; thầy cô có thể chấm lại.');
     try {
-      return await adapter.call(prompt, images, options, segment);
+      return await adapter.call(prompt, images, remaining === undefined ? options : { ...options, timeoutMs: remaining }, segment);
     } catch (error) {
       // Bị chặn vì khoá/ví/trần của người chịu phí: lớp kế cùng luật, thử tiếp chỉ tốn thời gian.
       if (error instanceof AiKeyRequiredError) throw error;

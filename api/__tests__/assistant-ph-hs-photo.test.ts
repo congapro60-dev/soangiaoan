@@ -405,8 +405,8 @@ describe('finishPhotoSession — tạo bài nộp + chấm + báo tin', () => {
     expect(call[4]).toBe('gv1');
     expect(call[5]).toBe(false);
     expect(call[6]).toBe('quick');
-    expect(call[8]).toBe(55_000);
-    expect(call[9]).toBe(10_000);
+    expect(call[8]).toBeUndefined();
+    expect(call[9]).toBeUndefined();
     expect(lastSentText()).toContain('Đã xử lý bài "BTVN tuần 5": 8/10 điểm');
     expect(lastSentText()).toContain('Nhắn 0 để xem lại menu.');
   });

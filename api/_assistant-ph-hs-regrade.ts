@@ -24,9 +24,6 @@ import type { SubmissionDoc } from '../src/lib/classroom/types.js';
 import { awaitsClarification } from '../src/lib/classroom/clarification.js';
 
 const SUBMISSIONS = 'submissions';
-/** Ngân sách chấm lại: dài hơn lượt đầu (chế độ thorough cần chép bài trước). */
-const REGRADE_BUDGET_MS = 70_000;
-const REGRADE_MARGIN_MS = 8_000;
 
 export const REGRADE_REPLIES = {
   notFound: `ℹ️ Em chưa có bài nào đã chấm để chấm lại.\n\nNhắn 8 để nộp bài bằng ảnh rồi chấm lại nhé.\n\n${MENU_HINT}`,
@@ -127,7 +124,7 @@ const regradeAndNotify = async (
     const ctx = await gradeContextFor(aSnap.data() as Record<string, unknown>);
     const result = await gradeOneSubmission(
       db, submissionId, ctx, '', String(sub.teacherId), false,
-      'thorough', undefined, REGRADE_BUDGET_MS, REGRADE_MARGIN_MS,
+      'thorough',
     );
     console.log(`[regrade] cham lai xong | success=${result.success} | failureCode=${result.failureCode ?? '-'}`);
     const fresh = (await db.collection(SUBMISSIONS).doc(submissionId).get()).data() as SubmissionDoc | undefined;

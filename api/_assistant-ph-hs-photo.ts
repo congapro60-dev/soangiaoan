@@ -55,9 +55,6 @@ export const isCongratulation = (score: number, maxScore: number, approved: bool
  * (`ZALO_BOT_CONGRA_STICKER`). Rỗng = không gửi sticker, mọi thứ khác giữ nguyên.
  */
 export const CONGRATS_STICKER = () => String(process.env.ZALO_BOT_CONGRA_STICKER || '').trim();
-/** Ngân sách chấm bot: function webhook ~90s → chấm phải xong trước đó, kèm margin tải ảnh + ghi doc. */
-const GRADE_BUDGET_MS = 55_000;
-const GRADE_MARGIN_MS = 10_000;
 
 export interface PhotoSessionData {
   pendingUploads?: Record<string, number>;
@@ -945,7 +942,7 @@ const gradeAndNotify = async (token: string, chatId: string, submissionId: strin
     const aSnap = await db().collection('assignments').doc(s.assignmentId).get();
     if (!aSnap.exists) { await khongChamDuoc('Bài không còn tồn tại.'); return; }
     const ctx = await gradeContextFor(aSnap.data() as Record<string, unknown>);
-    await gradeOneSubmission(db(), submissionId, ctx, '', s.teacherId, false, 'quick', undefined, GRADE_BUDGET_MS, GRADE_MARGIN_MS);
+    await gradeOneSubmission(db(), submissionId, ctx, '', s.teacherId, false, 'quick');
     const fresh = (await db().collection('submissions').doc(submissionId).get()).data() as (SubmissionDoc & { errorMessage?: string }) | undefined;
     if (fresh?.status === 'graded' && fresh.grade) {
       const approved = fresh.grade.teacherApproved === true;

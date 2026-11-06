@@ -16,6 +16,13 @@ describe('hàm chấm bài · các hằng số thời gian khớp nhau', () => {
     expect(config.functions['api/grade-homework.ts'].maxDuration).toBe(maxDuration);
   });
 
+  it('webhook Zalo giữ nền đủ lâu cho một lượt chấm ảnh đầy đủ', () => {
+    const config = JSON.parse(readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8')) as {
+      functions: Record<string, { maxDuration: number }>;
+    };
+    expect(config.functions['api/assistant.ts'].maxDuration).toBe(maxDuration);
+  });
+
   it('khoá "đang chấm" chỉ bị coi là chết SAU khi hàm chắc chắn đã bị giết', () => {
     expect(STALE_GRADING_MS).toBeGreaterThan(maxDuration * 1000);
   });
