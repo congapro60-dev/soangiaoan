@@ -1,5 +1,6 @@
 "use client";
 import { LessonModePanel } from "../../components/lesson/LessonModePanel";
+import "../../public/mode-classroom.css";
 import { ClassEventPanel } from "../../components/lesson/ClassEventPanel";
 import { ValueReflection, type ValueReflectionData } from "../../components/lesson/ValueReflection";
 import { PracticePanel } from "../../components/lesson/PracticePanel";

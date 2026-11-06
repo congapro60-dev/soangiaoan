@@ -34,9 +34,10 @@ test('bomb board shows the cut wires and flips to the exploded state', () => {
   assert.match(boom, /Bom đã nổ/);
 });
 
-test('farm board shows all five crop stages and the current one', () => {
-  const html = mode.student(board('farm', {stage: 2, water: 1, harvested: 0}, {farm: {stages: 5, labels: ['Hạt', 'Mầm', 'Cây non', 'Ra hoa', 'Kết quả']}}));
-  assert.match(html, /Giai đoạn 2\/5/);
+test('farm board shows all five crop stages, the season day and the current stage', () => {
+  const html = mode.student(board('farm', {stage: 2, water: 1, harvested: 0}, {farm: {stages: 5, labels: ['Hạt', 'Mầm', 'Cây non', 'Ra hoa', 'Kết quả'], day: 2, seasonDays: 6}}));
+  assert.match(html, /Ngày 3\/6/);
+  assert.match(html, /giai đoạn 2\/5/);
   assert.match(html, /plot grown/);
   assert.match(html, /plot current/);
 });
@@ -45,8 +46,19 @@ test('arena board shows the boss health bar and the own hero stats', () => {
   const html = mode.student(board('arena', {class: 'mage', hp: 800, mp: 300, damage: 600, items: ['shield']}, {arena: {boss: {hp: 6000, max: 9000}}}));
   assert.match(html, /Đấu trường RPG/);
   assert.match(html, /Trùm còn 6000\/9000 máu/);
-  assert.match(html, /Lớp nhân vật: mage/);
+  assert.match(html, /Lớp nhân vật: Pháp sư/);
   assert.match(html, /Vật phẩm: shield/);
+});
+
+test('arena offers the four character classes only before the learner has chosen one', () => {
+  const open = mode.student(board('arena', {class: 'warrior', classChosen: false}, {arena: {boss: {hp: 100, max: 9000}, classes: ['warrior', 'mage', 'archer', 'tank']}}));
+  assert.match(open, /Chọn lớp nhân vật/);
+  for (const name of ['Chiến binh', 'Pháp sư', 'Cung thủ', 'Tank']) assert.ok(open.includes(name), name);
+  assert.match(open, /data-mode-class="tank"/);
+
+  const chosen = mode.student(board('arena', {class: 'tank', classChosen: true}, {arena: {boss: {hp: 100, max: 9000}}}));
+  assert.doesNotMatch(chosen, /Chọn lớp nhân vật/);
+  assert.match(chosen, /Lớp nhân vật: Tank/);
 });
 
 test('no new game board leaks an answer, solution or hidden field', () => {

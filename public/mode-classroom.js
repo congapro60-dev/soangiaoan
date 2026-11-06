@@ -45,6 +45,7 @@ const ACTION_LABELS = Object.freeze({
 const METRIC_LABELS = Object.freeze({matchPoints:'Điểm trận', correct:'Câu đúng', elapsed:'Thời gian trả lời', submitted:'Đã chốt vòng', energy:'Năng lượng', rounds:'Vòng vượt qua', objectives:'Mục tiêu', position:'Vị trí', distance:'Quãng hộ tống', fuel:'Nhiên liệu', integrity:'Độ bền', finishedAt:'Thời điểm hoàn thành', clues:'Manh mối', branch:'Nhánh đang chọn', fragments:'Mảnh mã', sets:'Bộ mã', points:'Điểm', legs:'Chặng bàn giao', ready:'Sẵn sàng bàn giao', coverage:'Thành viên đã làm', room:'Phòng đã mở', powered:'Đã cấp điện', coins:'Xu', ore:'Quặng', wood:'Gỗ', contracts:'Hợp đồng', control:'Điểm kiểm soát', resources:'Tài nguyên', objective:'Mục tiêu phe', combo:'Chuỗi đúng', best:'Chuỗi dài nhất', boosts:'Lần bứt phá', wrong:'Câu sai', ring:'Chuỗi chuông', out:'Đã rời sàn', rescued:'Lượt cứu đã dùng', cut:'Dây đã cắt', mistakes:'Lần sai', water:'Nước tưới', stage:'Giai đoạn cây', dry:'Ngày khô', harvested:'Vụ thu hoạch', class:'Lớp nhân vật', hp:'Máu', mp:'Năng lượng', damage:'Sát thương', items:'Vật phẩm', down:'Đã gục', length:'Chiều dài đường đua', lane:'Vị trí trên đường', wires:'Số dây', exploded:'Bom đã nổ', stages:'Số giai đoạn', labels:'Tên giai đoạn', boss:'Trùm', classes:'Lớp nhân vật'});
 const PARTICIPATION_LABELS = Object.freeze({individual:'Cá nhân · Mỗi em một thiết bị',pairs:'Cặp hai người · Chung thiết bị',group:'Nhóm · Chung thiết bị'});
 const VALUE_LABELS = Object.freeze({sun:'Mặt trời',moon:'Mặt trăng',star:'Vì sao',water:'Nước',seed:'Hạt giống',tree:'Cây',ore:'Quặng',wood:'Gỗ'});
+const CLASS_LABELS = Object.freeze({warrior:'Chiến binh',mage:'Pháp sư',archer:'Cung thủ',tank:'Tank'});
 const OUTCOME_LABELS = Object.freeze({active:'Đang tham gia',spectator:'Khán giả','temporary-defeat':'Tạm thời mất năng lượng',completed:'Đã hoàn thành',abandoned:'Đã rời ván'});
 const ROOM_PROMPTS = Object.freeze({code:'Nhập ba chữ số đầu tiên của số pi, không có dấu.',pipes:'Xoay ba ống để hướng lần lượt về đông, nam, đông.',graph:'Chọn một đường đi từ đỉnh đầu đến đỉnh cuối.',logic:'Tưới đất, gieo hạt rồi cây lớn. Sắp xếp đúng thứ tự.'});
 const TIE_BREAK = Object.freeze({duel:'Điểm trận → Câu đúng → Thời gian trả lời ít hơn',zones:'Điểm kiểm soát phe → Câu đúng phe → Tài nguyên phe',survival:'Vòng vượt qua → Mục tiêu → Năng lượng',escort:'Quãng hộ tống → Nhiên liệu và độ bền → Thời gian ít hơn',treasure:'Bộ mã → Câu đúng → Điểm → Thời gian ít hơn',relay:'Chặng bàn giao → Điểm → Thời gian ít hơn',lockdown:'Phòng đã mở → Điểm → Thời gian ít hơn',merchant:'Hợp đồng → Tài sản ròng → Câu đúng',speedway:'Thứ tự về đích → Quãng đường → Chuỗi đúng dài nhất',bellring:'Còn trên sàn → Chuỗi đúng → Câu đúng → Thời điểm',bomb:'Số dây đã cắt → Số lần sai',farm:'Giai đoạn cây → Số vụ thu hoạch → Câu đúng',arena:'Sát thương gây ra → Câu đúng → Máu còn lại'});
@@ -90,12 +91,18 @@ function actionAvailable(m,a) {
   if(m.rule==='bellring')return a==='rescue'?(p.out&&(p.rescued||0)<1&&(p.correct||0)>=5):!p.out;
   if(m.rule==='bomb')return !m.bomb?.exploded;
   if(m.rule==='farm')return a==='harvest'?(p.stage||0)>=5:(p.stage||0)<5;
-  if(m.rule==='arena')return a==='item'?!!(p.items&&p.items.length):!(p.down);
+  if(m.rule==='arena')return a==='chooseClass'?!p.classChosen:a==='item'?!!(p.items&&p.items.length):!(p.down);
   return true;
 }
 function modeActions(m, esc) {
   const actions = ACTIONS[m?.rule] || [];
-  return actions.map(a => `<button type="button" data-mode-send="${esc(a)}" ${actionAvailable(m,a)?'':'disabled'}>${esc(ACTION_LABELS[a] || a)}</button>`).join('');
+  const items = new Set((m?.players?.[m?.unitId]?.items) || []);
+  return actions.map(a => {
+    if (a === 'item') {
+      return [...items].map(item => `<button type="button" data-mode-send="item" data-mode-item="${esc(item)}" ${actionAvailable(m,a)?'':'disabled'}>${esc(ACTION_LABELS[a] || a)}: ${esc(item)}</button>`).join('');
+    }
+    return `<button type="button" data-mode-send="${esc(a)}" ${actionAvailable(m,a)?'':'disabled'}>${esc(ACTION_LABELS[a] || a)}</button>`;
+  }).join('');
 }
 function renderChallenge(q, h, disabled) {
   if (!q || q.used) return '';
@@ -142,19 +149,21 @@ function gameBoard(m, h, disabled) {
   if (m.rule === 'farm') {
     const labels = m.farm?.labels || ['Hạt', 'Mầm', 'Cây non', 'Ra hoa', 'Kết quả'];
     const stage = Math.max(0, Math.min(labels.length, p.stage || 0));
+    const day = m.farm?.day ?? 0, seasonDays = m.farm?.seasonDays ?? 6;
     return `<section class="game-board farm" aria-label="Nông trại của em">
-      <div class="board-head"><h3>Nông trại tri thức</h3><p>Giai đoạn ${stage}/${labels.length} · nước ${e(p.water ?? 0)} · ${e(p.harvested ?? 0)} vụ đã thu</p></div>
+      <div class="board-head"><h3>Nông trại tri thức</h3><p>Ngày ${day + 1}/${seasonDays} · giai đoạn ${stage}/${labels.length} · nước ${e(p.water ?? 0)} · ${e(p.harvested ?? 0)} vụ đã thu</p></div>
       <div class="plots">${labels.map((name, i) => `<span class="plot${i < stage ? ' grown' : ''}${i === stage ? ' current' : ''}">${e(name)}</span>`).join('')}</div>
-      <p class="small muted">Mỗi câu đúng là một lượt tưới; đủ hai lượt thì cây lên một giai đoạn.</p></section>`;
+      <p class="small muted">Mỗi câu đúng là một lượt tưới; đủ hai lượt thì cây lên một giai đoạn. Bỏ trắng một ngày thì mất một lượt nước; bỏ hai ngày liền thì cây héo một giai đoạn.</p></section>`;
   }
   if (m.rule === 'arena') {
     const boss = m.arena?.boss || { hp: 0, max: 1 };
     const pct = Math.max(0, Math.min(100, Math.round((boss.hp / Math.max(1, boss.max)) * 100)));
+    const picker = p.classChosen ? '' : `<fieldset class="mode-actions"><legend>Chọn lớp nhân vật</legend><div class="flex">${(m.arena?.classes || ['warrior', 'mage', 'archer', 'tank']).map(c => `<button type="button" data-mode-send="chooseClass" data-mode-class="${e(c)}" ${disabled ? 'disabled' : ''}>${e(CLASS_LABELS[c] || c)}</button>`).join('')}</div></fieldset>`;
     return `<section class="game-board arena" aria-label="Đấu trường RPG">
       <div class="board-head"><h3>Đấu trường RPG</h3><p>Trùm còn ${e(boss.hp)}/${e(boss.max)} máu</p></div>
       <div class="boss-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${e(boss.max)}" aria-valuenow="${e(boss.hp)}"><span style="width:${pct}%"></span></div>
-      <p class="small muted">Lớp nhân vật: ${e(p.class || 'warrior')} · máu ${e(p.hp ?? 0)} · năng lượng ${e(p.mp ?? 0)} · sát thương ${e(p.damage ?? 0)}</p>
-      ${(p.items || []).length ? `<p class="small">Vật phẩm: ${p.items.map(x => e(x)).join(' · ')}</p>` : ''}</section>`;
+      <p class="small muted">Lớp nhân vật: ${e(CLASS_LABELS[p.class] || p.class || 'warrior')} · máu ${e(p.hp ?? 0)} · năng lượng ${e(p.mp ?? 0)} · sát thương ${e(p.damage ?? 0)}</p>
+      ${(p.items || []).length ? `<p class="small">Vật phẩm: ${p.items.map(x => e(x)).join(' · ')}</p>` : ''}${picker}</section>`;
   }
   return '';
 }

@@ -657,11 +657,11 @@
     document.addEventListener('click',async e=>{
         const button=e.target.closest('[data-mode-send]');if(!button||busy||!state?.mode)return;
         const m=state.mode,type=button.dataset.modeSend,unit=m.units.find(x=>x.id===m.unitId),number=Number(document.getElementById('mode-number')?.value),choice=document.getElementById('mode-choice')?.value;
-        const math={duel:['answer'],zones:['capture','defend','objective'],survival:['objective','recover'],escort:['repair','fuel'],treasure:['clue','dig'],relay:['solve'],lockdown:['power'],merchant:['earn']};
+        const math={duel:['answer'],zones:['capture','defend','objective'],survival:['objective','recover'],escort:['repair','fuel'],treasure:['clue','dig'],relay:['solve'],lockdown:['power'],merchant:['earn'],speedway:['accelerate'],bellring:['ring'],bomb:['cut'],farm:['water'],arena:['attack']};
         let modeAction={type},action='mode-progress';
         if(type==='tick')action='mode-tick';
         else if(type==='answer'&&m.challenge&&!m.challenge.used)modeAction=m.challenge.action;
-        else {if(math[m.rule].includes(type))action='mode-issue';if(m.rule==='relay')modeAction.learnerId=unit.controller;if(['capture','defend'].includes(type))modeAction.zone=number;if(type==='move')modeAction.position=number;if(type==='choose')modeAction.branch=choice;if(['buy','sell'].includes(type)){modeAction.item=choice;modeAction.quantity=number;}if(type==='unlock'){modeAction.roomType=m.room.type;Object.assign(modeAction,window.ModeClassroom.readUnlock(m,document));}}
+        else {if(math[m.rule].includes(type))action='mode-issue';if(m.rule==='relay')modeAction.learnerId=unit.controller;if(['capture','defend'].includes(type))modeAction.zone=number;if(type==='move')modeAction.position=number;if(type==='choose')modeAction.branch=choice;if(['buy','sell'].includes(type)){modeAction.item=choice;modeAction.quantity=number;}if(type==='chooseClass')modeAction.class=button.dataset.modeClass||'warrior';if(type==='item')modeAction.item=button.dataset.modeItem||'shield';if(type==='unlock'){modeAction.roomType=m.room.type;Object.assign(modeAction,window.ModeClassroom.readUnlock(m,document));}}
         busy=true;try{const d=await api(action,{id:session.id,modeAction,challengeId:m.challenge?.id,answer:window.ModeClassroom.readAnswer(m,document),revision:m.revision,deadline:wallNow()+15000});state.mode=d.mode;render();}catch(err){toast(err.message);await refresh(true);}finally{busy=false;}
     });
     let gameActivityDraft = {key:'',value:''};

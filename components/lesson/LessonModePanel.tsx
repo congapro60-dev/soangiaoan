@@ -4,8 +4,16 @@ import React from "react";
 
 export interface LessonModeView {
   rule: string; round: number; startedAt: number; instanceId: string; paused: boolean; finished: boolean;
-  participation?:string;
+  participation?:string; gameNow?: number; deadline?: number;
   aggregate: { total: number; completed: number; active: number };
+  board?: {
+    track?: { length: number; lane: { slot: number; distance: number; own: boolean }[] };
+    bomb?: { wires: number; cut: number; exploded: boolean };
+    farm?: { stages: number; labels: string[]; day: number; seasonDays: number };
+    arena?: { boss: { hp: number; max: number }; classes: string[] };
+    seats?: { slot: number; standing: boolean; ring: number; own: boolean }[];
+  };
+  units?: { id: string; members: { id: string; name: string }[]; outcome: string }[];
   own?: Record<string, unknown> & {
     actions: { label: string; action: Record<string, unknown>; kind: "assessment" | "mechanical" }[];
     selectedAction: Record<string, unknown> | null;
@@ -33,6 +41,80 @@ export const lessonRuleGuides: Record<string,[string,string,string]> = {
 };
 const metrics: Record<string, string> = { position: "Vị trí", score: "Điểm chơi", completed: "Ấn tín", matchPoints: "Điểm đấu", correct: "Câu đúng", energy: "Năng lượng", rounds: "Vòng đã sống sót", objectives: "Mục tiêu chơi", distance: "Chặng đã đi", fuel: "Nhiên liệu", integrity: "Độ bền đoàn xe", clues: "Manh mối", sets: "Bộ kho báu", points: "Điểm chơi", legs: "Chặng tiếp sức", room: "Phòng đã mở", coins: "Xu", ore: "Quặng", wood: "Gỗ", contracts: "Hợp đồng", combo: "Chuỗi đúng", best: "Chuỗi dài nhất", boosts: "Lần bứt phá", wrong: "Câu sai", ring: "Chuỗi chuông", out: "Đã rời sàn", rescued: "Lượt cứu đã dùng", cut: "Dây đã cắt", mistakes: "Lần sai", water: "Nước tưới", stage: "Giai đoạn cây", dry: "Ngày khô", harvested: "Vụ thu hoạch", hp: "Máu", mp: "Năng lượng", damage: "Sát thương", down: "Đã gục" };
 
+const CLASS_LABELS: Record<string, string> = { warrior: "Chiến binh", mage: "Pháp sư", archer: "Cung thủ", tank: "Tank" };
+
+function GameBoard({ view }: { view: LessonModeView }) {
+  const own = (view.own || {}) as Record<string, unknown>;
+  const board = view.board || {};
+  const num = (value: unknown, fallback = 0) => typeof value === "number" ? value : fallback;
+
+  if (view.rule === "speedway") {
+    const length = board.track?.length ?? 20;
+    const lanes = board.track?.lane || [];
+    return <section className="game-board speedway" aria-label="Đường đua">
+      <div className="board-head"><h3>Đường đua tri thức</h3><p>{length} bước tới đích · chuỗi hiện tại {num(own.combo)}</p></div>
+      {lanes.map(({ slot, distance, own: ownLane }) => {
+        const pct = Math.max(0, Math.min(100, Math.round((distance / length) * 100)));
+        return <div key={slot} className={`lane${ownLane ? " own" : ""}`} role="img" aria-label={`${ownLane ? "Em" : `Đội ${slot}`} đang ở bước ${distance} trên ${length}`}>
+          <span className="lane-name">{ownLane ? "Em" : `Đội ${slot}`}</span>
+          <span className="lane-track"><span className="lane-car" style={{ left: `${pct}%` }} /></span>
+          <span className="lane-step">{distance}/{length}</span>
+        </div>;
+      })}
+    </section>;
+  }
+
+  if (view.rule === "bellring") {
+    const seats = board.seats || [];
+    const standing = seats.filter(seat => seat.standing);
+    const out = seats.filter(seat => !seat.standing);
+    return <section className="game-board bellring" aria-label="Sàn thi đấu">
+      <div className="board-head"><h3>Rung chuông vàng</h3><p>Còn {standing.length} người trên sàn</p></div>
+      <div className="stage">{standing.length ? standing.map(seat => <span key={seat.slot} className={`standing${seat.own ? " own" : ""}`}>{seat.own ? "Em" : `Đội ${seat.slot}`}{seat.ring ? ` · chuỗi ${seat.ring}` : ""}</span>) : <span className="standing">Trống</span>}</div>
+      {out.length > 0 && <p className="small muted">Đã rời sàn: {out.map(seat => seat.own ? "Em" : `Đội ${seat.slot}`).join(" · ")}</p>}
+    </section>;
+  }
+
+  if (view.rule === "bomb") {
+    const wires = board.bomb?.wires ?? 4;
+    const cut = board.bomb?.cut ?? 0;
+    const exploded = Boolean(board.bomb?.exploded);
+    const left = Math.max(0, (view.deadline || 0) - (view.gameNow || 0));
+    const minutes = Math.floor(left / 60000);
+    const seconds = Math.floor((left % 60000) / 1000);
+    return <section className={`game-board bomb${exploded ? " exploded" : ""}`} aria-label="Bảng gỡ bom">
+      <div className="board-head"><h3>{exploded ? "Bom đã nổ" : "Gỡ bom"}</h3><p>Đã cắt {cut}/{wires} dây · còn {minutes}:{String(seconds).padStart(2, "0")}</p></div>
+      <div className="wires">{Array.from({ length: wires }, (_, i) => <span key={i} className={`wire${i < cut ? " cut" : ""}`}>{i < cut ? "✂" : "│"}</span>)}</div>
+      <p className="small muted">{exploded ? "Hết giờ trước khi cắt đủ dây. Giáo viên có thể mở ván mới." : "Trả lời đúng để cắt một dây; trả lời sai không cắt được dây."}</p>
+    </section>;
+  }
+
+  if (view.rule === "farm") {
+    const labels = board.farm?.labels || ["Hạt", "Mầm", "Cây non", "Ra hoa", "Kết quả"];
+    const stage = Math.max(0, Math.min(labels.length, num(own.stage)));
+    const day = board.farm?.day ?? 0, seasonDays = board.farm?.seasonDays ?? 6;
+    return <section className="game-board farm" aria-label="Nông trại của em">
+      <div className="board-head"><h3>Nông trại tri thức</h3><p>Ngày {day + 1}/{seasonDays} · giai đoạn {stage}/{labels.length} · nước {num(own.water)} · {num(own.harvested)} vụ đã thu</p></div>
+      <div className="plots">{labels.map((name, i) => <span key={name} className={`plot${i < stage ? " grown" : ""}${i === stage ? " current" : ""}`}>{name}</span>)}</div>
+      <p className="small muted">Mỗi câu đúng là một lượt tưới; đủ hai lượt thì cây lên một giai đoạn. Bỏ trắng một ngày thì mất một lượt nước; bỏ hai ngày liền thì cây héo một giai đoạn.</p>
+    </section>;
+  }
+
+  if (view.rule === "arena") {
+    const boss = board.arena?.boss || { hp: 0, max: 1 };
+    const pct = Math.max(0, Math.min(100, Math.round((boss.hp / Math.max(1, boss.max)) * 100)));
+    const items = Array.isArray(own.items) ? own.items as string[] : [];
+    return <section className="game-board arena" aria-label="Đấu trường RPG">
+      <div className="board-head"><h3>Đấu trường RPG</h3><p>Trùm còn {boss.hp}/{boss.max} máu</p></div>
+      <div className="boss-bar" role="progressbar" aria-valuemin={0} aria-valuemax={boss.max} aria-valuenow={boss.hp}><span style={{ width: `${pct}%` }} /></div>
+      <p className="small muted">Lớp nhân vật: {CLASS_LABELS[String(own.class)] || "Chiến binh"} · máu {num(own.hp)} · năng lượng {num(own.mp)} · sát thương {num(own.damage)}</p>
+      {items.length > 0 && <p className="small">Vật phẩm: {items.join(" · ")}</p>}
+    </section>;
+  }
+
+  return null;
+}
+
 export function LessonModePanel({ view, onAction, disabled = false }: {
   view: LessonModeView | null;
   onAction?: (input: { rule: string; round: number; startedAt: number; instanceId: string; sequence: number; action: Record<string, unknown> }) => Promise<void> | void;
@@ -48,6 +130,7 @@ export function LessonModePanel({ view, onAction, disabled = false }: {
     {own && <dl style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
       {Object.entries(metrics).filter(([key]) => typeof own[key] === "number").map(([key, label]) => <div key={key}><dt>{label}</dt><dd style={{ margin: 0 }}>{String(own[key])}</dd></div>)}
     </dl>}
+    <GameBoard view={view} />
     {selected && <p role="status">Bài tiếp theo dùng để: {selected.label.toLocaleLowerCase("vi-VN")}. Nộp bài học để nhận kết quả.</p>}
     {own && !view.finished && !view.paused && onAction && <div role="group" aria-label="Lựa chọn hành động chơi" style={{ display: "flex", flexWrap: "wrap", gap: ".5rem" }}>
       {own.actions.map(choice => <button type="button" key={JSON.stringify(choice.action)} className="lesson-button lesson-button-outline"

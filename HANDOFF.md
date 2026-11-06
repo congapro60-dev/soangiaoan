@@ -40,9 +40,32 @@ Mỗi game là một rule trong `lib/mode-engine/rules/`, dùng chung hạ tần
 Game của họ tách rời đề; ở đây cắm thẳng vào Concept của bài đang dạy, dùng hint 4 tầng và nhánh support/core/extension. Điểm chơi vẫn tách khỏi bằng chứng hộ chiếu.
 
 ### Còn mở
-- Chưa kiểm trên trình duyệt thật / điện thoại thật.
-- Chưa có nút chọn lớp nhân vật (warrior/mage/archer/tank) cho học sinh — hiện mặc định `warrior`.
-- Nông trại chưa có cron theo ngày; hiện chạy trong một phiên.
+- Chưa kiểm trên điện thoại thật (chỉ đo layout 375 px trong Chromium).
+
+### Vòng 2 (06/11/2026, commit `c55e0445`) — 3 lỗ hổng thật đã sửa
+1. **Bảng game không hiện trong phòng học thật.** `public/mode-classroom.css` và board chỉ được nạp ở trang `/` (game cũ). Trang `/play` — nơi học sinh học thật — dùng `components/lesson/LessonModePanel.tsx` và **không nạp CSS này**, nên 5 bảng mới vô hình với học sinh. Đã thêm `import "../../public/mode-classroom.css"` vào `app/play/page.tsx` và dựng `GameBoard` bằng React trong `LessonModePanel` để cả hai đường đều có bảng.
+2. **Rò tên học sinh qua payload.** Bản board đầu tiên trả `lane` và `seats` theo unit ID nội bộ kèm tên thật, nên một em đọc được tên các bạn khác. Test `lesson-mode-bridge` bắt được ngay. Đã đổi sang **slot công khai 1..n** + cờ `own`; không còn `PRIVATE_`, `learnerId`, `unitId` trong payload gửi học sinh.
+3. **Bảng mất màu trên `/play`.** CSS cũ dùng `var(--gold)`, `var(--panel)`, `var(--line)` — chỉ có ở trang game cũ. Trên `/play` các biến này rỗng nên nền và chữ trong suốt. Đã khai báo cầu nối `--mc-*` với fallback `--panel` → `--lesson-surface`, và thêm test chặn dùng lại token cũ trần.
+4. **Tương phản chữ dưới chuẩn.** Tiêu đề board dùng `#a855f7` trên `#1e293b` chỉ **3,70:1** (WCAG AA cần 4,5:1). Đổi sang token riêng `--mc-accent-text: #e9d5ff` → **10,75:1** trên panel, **7,61:1** trên panel2.
+5. **Chọn lớp nhân vật (arena).** Thêm hành động `chooseClass` (warrior/mage/archer/tank) có cổng `classChosen` chống đổi giữa trận; mỗi lớp đổi HP/MP/sát thương thật. UI hiện 4 nút chọn trước khi vào trận, ẩn sau khi chọn.
+6. **Nông trại theo ngày.** `tick` suy ngày từ đồng hồ tin cậy của ván (`dayMs`, mặc định 5 phút/ngày, mùa 6 ngày). Bỏ trắng 1 ngày mất 1 lượt nước; 2 ngày liền héo 1 giai đoạn. Client không nhảy ngày hay tua lùi được.
+7. Bỏ `box-shadow` thay `outline` cho ô ruộng hiện tại (global CSS reset `outline`).
+
+### Kiểm chứng vòng 2
+- `npm test`: **1.532 PASS / 0 FAIL / 2 SKIP** (thêm 25 test: `mode-arena-farm`, `mode-board-privacy`, `mode-classroom-contrast`, và mở rộng `mode-classroom-boards`).
+- `npm run build`: pass.
+- Đo thật trong Chromium trên `/play` bản production build: CSS `mode-classroom.*.css` có nạp; chữ tiêu đề `rgb(233,213,255)`; wire cao 64 px; 5 ô ruộng; thanh máu trùm đúng %; **không tràn ngang ở 375 px**.
+
+### Sắp cắn người sau
+- Board trong `LessonModePanel` nhận dữ liệu qua `view.board`; nếu ai đổi `serializeLessonMode` mà quên `board()` thì bảng im lặng biến mất, test `mode-board-privacy` sẽ bắt.
+- `farm` tính ngày bằng `now / dayMs`. Nếu phòng chạy quá 30 phút với `dayMs` 5 phút thì mùa kết thúc giữa tiết — phải đặt `dayMs` khi mở ván dài.
+- Arena chia sát thương theo `constants.classes[class].damage`; đổi số ở đó là đổi cân bằng mọi trận.
+
+### Lệnh nghiệm thu vòng 2
+```powershell
+node --test tests/mode-new-games.test.mjs tests/mode-arena-farm.test.mjs tests/mode-board-privacy.test.mjs tests/mode-classroom-boards.test.mjs tests/mode-classroom-contrast.test.mjs
+npm --prefix "C:\Users\ADMIN\.codex\worktrees\universal-content-release" run build
+```
 
 ## Checkpoint trước: HOTFIX V45: HẢI TRÌNH + TƯƠNG PHẢN BẢNG + PHÒNG TỰ ĐI (05/11/2026)
 
