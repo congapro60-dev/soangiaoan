@@ -34,4 +34,47 @@
   .mode-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .mode-actions .flex button { flex-basis: 100%; }
 }
+/* Năm bảng game mới: đường đua · rung chuông · gỡ bom · nông trại · đấu trường. */
+.game-board { margin: 24px 0; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.game-board .board-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+.game-board h3 { margin: 0; font-size: 1.05rem; color: var(--gold); }
+.game-board .board-head p { margin: 0; font-size: .9rem; color: var(--muted, #94a3b8); }
+
+/* Đường đua */
+.game-board .lane { display: grid; grid-template-columns: minmax(70px, 22%) 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.game-board .lane:last-child { border-bottom: 0; }
+.game-board .lane.own .lane-name { color: var(--gold); font-weight: 700; }
+.game-board .lane-name { font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-board .lane-track { position: relative; height: 18px; border-radius: 9px; background: repeating-linear-gradient(90deg, var(--panel2) 0 14px, transparent 14px 28px); border: 1px solid var(--line); }
+.game-board .lane-car { position: absolute; top: 50%; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--gold); transform: translateY(-50%); transition: left .35s ease; }
+.game-board .lane-step { font-size: .8rem; font-variant-numeric: tabular-nums; }
+
+/* Rung chuông */
+.game-board .stage { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.game-board .standing { padding: 10px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel2); font-size: .9rem; }
+.game-board .standing.own { border-color: var(--gold); color: var(--gold); font-weight: 700; }
+
+/* Gỡ bom */
+.game-board .wires { display: flex; gap: 14px; margin: 18px 0 10px; }
+.game-board .wire { flex: 1; display: grid; place-items: center; min-height: 64px; border-radius: 8px; font-size: 1.6rem; background: #7f1d1d; color: #fecaca; }
+.game-board .wire.cut { background: #14532d; color: #bbf7d0; }
+.game-board.bomb.exploded .wire { background: #450a0a; }
+
+/* Nông trại */
+.game-board .plots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 16px 0 8px; }
+.game-board .plot { padding: 14px 6px; text-align: center; font-size: .8rem; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted, #94a3b8); }
+.game-board .plot.grown { background: #14532d; color: #dcfce7; border-color: #16a34a; }
+.game-board .plot.current { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* Đấu trường */
+.game-board .boss-bar { position: relative; height: 18px; margin: 16px 0 10px; overflow: hidden; border-radius: 9px; border: 1px solid var(--line); background: var(--panel2); }
+.game-board .boss-bar span { display: block; height: 100%; background: linear-gradient(90deg, #dc2626, #f97316); transition: width .35s ease; }
+
+@media (max-width: 600px) {
+  .game-board { padding: 16px; }
+  .game-board .lane { grid-template-columns: 1fr auto; }
+  .game-board .lane-track { grid-column: 1 / -1; }
+  .game-board .plots { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .game-board .wires { gap: 8px; }
+}
 .math-error { display: inline-block; padding: 2px 6px; border: 1px dashed #ef4444; border-radius: 4px; color: #ef4444; background: rgba(239, 68, 68, 0.1); font-family: monospace; font-size: 0.9em; }

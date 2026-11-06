@@ -13,14 +13,21 @@ const RULES = Object.freeze({
   treasure: ['Săn kho báu', 'Mở manh mối, chọn tuyến và ghép bộ mã'],
   relay: ['Tiếp sức', 'Giải rồi bàn giao cho đủ thành viên'],
   lockdown: ['Phòng khóa', 'Cấp điện và mở từng phòng tương tác'],
-  merchant: ['Thương hội', 'Kiếm tài nguyên, giao dịch và hoàn thành hợp đồng']
+  merchant: ['Thương hội', 'Kiếm tài nguyên, giao dịch và hoàn thành hợp đồng'],
+  speedway: ['Đường đua tri thức', 'Mỗi câu đúng đẩy xe tiến; ba câu liên tiếp thì bứt phá'],
+  bellring: ['Rung chuông vàng', 'Đúng thì trụ sàn, sai thì rời sàn và chờ cứu'],
+  bomb: ['Gỡ bom', 'Cắt đủ dây trước khi đồng hồ về không'],
+  farm: ['Nông trại tri thức', 'Tưới cây bằng câu đúng, đưa cây qua năm giai đoạn'],
+  arena: ['Đấu trường RPG', 'Hồi máu và đánh trùm bằng câu đúng']
 });
 
 const ACTIONS = Object.freeze({
   duel: ['answer'], zones: ['capture', 'defend', 'objective'],
   survival: ['objective', 'move', 'recover'], escort: ['advance', 'repair', 'fuel'],
   treasure: ['clue', 'choose', 'dig', 'assemble'], relay: ['solve', 'handoff'],
-  lockdown: ['power', 'unlock'], merchant: ['earn', 'buy', 'sell', 'contract']
+  lockdown: ['power', 'unlock'], merchant: ['earn', 'buy', 'sell', 'contract'],
+  speedway: ['accelerate', 'boost'], bellring: ['ring', 'rescue'], bomb: ['cut', 'defuse'],
+  farm: ['water', 'harvest'], arena: ['attack', 'item']
 });
 
 const ACTION_LABELS = Object.freeze({
@@ -29,15 +36,18 @@ const ACTION_LABELS = Object.freeze({
   advance: 'Đưa đoàn xe đi tiếp', repair: 'Sửa tuyến', fuel: 'Nạp nhiên liệu',
   clue: 'Mở manh mối', choose: 'Chọn nhánh', dig: 'Đào mảnh mã', assemble: 'Ghép bộ mã',
   solve: 'Giải phần của mình', handoff: 'Bàn giao lượt', power: 'Cấp điện', unlock: 'Mở phòng',
-  earn: 'Giải để nhận tài nguyên', buy: 'Mua', sell: 'Bán', contract: 'Hoàn thành hợp đồng'
+  earn: 'Giải để nhận tài nguyên', buy: 'Mua', sell: 'Bán', contract: 'Hoàn thành hợp đồng',
+  accelerate: 'Tăng tốc', boost: 'Bứt phá', ring: 'Rung chuông', rescue: 'Dùng lượt cứu',
+  cut: 'Cắt dây', defuse: 'Gỡ ngòi nổ', water: 'Tưới cây', harvest: 'Thu hoạch',
+  attack: 'Tấn công trùm', item: 'Dùng vật phẩm'
 });
 
-const METRIC_LABELS = Object.freeze({matchPoints:'Điểm trận', correct:'Câu đúng', elapsed:'Thời gian trả lời', submitted:'Đã chốt vòng', energy:'Năng lượng', rounds:'Vòng vượt qua', objectives:'Mục tiêu', position:'Vị trí', distance:'Quãng hộ tống', fuel:'Nhiên liệu', integrity:'Độ bền', finishedAt:'Thời điểm hoàn thành', clues:'Manh mối', branch:'Nhánh đang chọn', fragments:'Mảnh mã', sets:'Bộ mã', points:'Điểm', legs:'Chặng bàn giao', ready:'Sẵn sàng bàn giao', coverage:'Thành viên đã làm', room:'Phòng đã mở', powered:'Đã cấp điện', coins:'Xu', ore:'Quặng', wood:'Gỗ', contracts:'Hợp đồng', control:'Điểm kiểm soát', resources:'Tài nguyên', objective:'Mục tiêu phe'});
+const METRIC_LABELS = Object.freeze({matchPoints:'Điểm trận', correct:'Câu đúng', elapsed:'Thời gian trả lời', submitted:'Đã chốt vòng', energy:'Năng lượng', rounds:'Vòng vượt qua', objectives:'Mục tiêu', position:'Vị trí', distance:'Quãng hộ tống', fuel:'Nhiên liệu', integrity:'Độ bền', finishedAt:'Thời điểm hoàn thành', clues:'Manh mối', branch:'Nhánh đang chọn', fragments:'Mảnh mã', sets:'Bộ mã', points:'Điểm', legs:'Chặng bàn giao', ready:'Sẵn sàng bàn giao', coverage:'Thành viên đã làm', room:'Phòng đã mở', powered:'Đã cấp điện', coins:'Xu', ore:'Quặng', wood:'Gỗ', contracts:'Hợp đồng', control:'Điểm kiểm soát', resources:'Tài nguyên', objective:'Mục tiêu phe', combo:'Chuỗi đúng', best:'Chuỗi dài nhất', boosts:'Lần bứt phá', wrong:'Câu sai', ring:'Chuỗi chuông', out:'Đã rời sàn', rescued:'Lượt cứu đã dùng', cut:'Dây đã cắt', mistakes:'Lần sai', water:'Nước tưới', stage:'Giai đoạn cây', dry:'Ngày khô', harvested:'Vụ thu hoạch', class:'Lớp nhân vật', hp:'Máu', mp:'Năng lượng', damage:'Sát thương', items:'Vật phẩm', down:'Đã gục', length:'Chiều dài đường đua', lane:'Vị trí trên đường', wires:'Số dây', exploded:'Bom đã nổ', stages:'Số giai đoạn', labels:'Tên giai đoạn', boss:'Trùm', classes:'Lớp nhân vật'});
 const PARTICIPATION_LABELS = Object.freeze({individual:'Cá nhân · Mỗi em một thiết bị',pairs:'Cặp hai người · Chung thiết bị',group:'Nhóm · Chung thiết bị'});
 const VALUE_LABELS = Object.freeze({sun:'Mặt trời',moon:'Mặt trăng',star:'Vì sao',water:'Nước',seed:'Hạt giống',tree:'Cây',ore:'Quặng',wood:'Gỗ'});
 const OUTCOME_LABELS = Object.freeze({active:'Đang tham gia',spectator:'Khán giả','temporary-defeat':'Tạm thời mất năng lượng',completed:'Đã hoàn thành',abandoned:'Đã rời ván'});
 const ROOM_PROMPTS = Object.freeze({code:'Nhập ba chữ số đầu tiên của số pi, không có dấu.',pipes:'Xoay ba ống để hướng lần lượt về đông, nam, đông.',graph:'Chọn một đường đi từ đỉnh đầu đến đỉnh cuối.',logic:'Tưới đất, gieo hạt rồi cây lớn. Sắp xếp đúng thứ tự.'});
-const TIE_BREAK = Object.freeze({duel:'Điểm trận → Câu đúng → Thời gian trả lời ít hơn',zones:'Điểm kiểm soát phe → Câu đúng phe → Tài nguyên phe',survival:'Vòng vượt qua → Mục tiêu → Năng lượng',escort:'Quãng hộ tống → Nhiên liệu và độ bền → Thời gian ít hơn',treasure:'Bộ mã → Câu đúng → Điểm → Thời gian ít hơn',relay:'Chặng bàn giao → Điểm → Thời gian ít hơn',lockdown:'Phòng đã mở → Điểm → Thời gian ít hơn',merchant:'Hợp đồng → Tài sản ròng → Câu đúng'});
+const TIE_BREAK = Object.freeze({duel:'Điểm trận → Câu đúng → Thời gian trả lời ít hơn',zones:'Điểm kiểm soát phe → Câu đúng phe → Tài nguyên phe',survival:'Vòng vượt qua → Mục tiêu → Năng lượng',escort:'Quãng hộ tống → Nhiên liệu và độ bền → Thời gian ít hơn',treasure:'Bộ mã → Câu đúng → Điểm → Thời gian ít hơn',relay:'Chặng bàn giao → Điểm → Thời gian ít hơn',lockdown:'Phòng đã mở → Điểm → Thời gian ít hơn',merchant:'Hợp đồng → Tài sản ròng → Câu đúng',speedway:'Thứ tự về đích → Quãng đường → Chuỗi đúng dài nhất',bellring:'Còn trên sàn → Chuỗi đúng → Câu đúng → Thời điểm',bomb:'Số dây đã cắt → Số lần sai',farm:'Giai đoạn cây → Số vụ thu hoạch → Câu đúng',arena:'Sát thương gây ra → Câu đúng → Máu còn lại'});
 
 const noop = value => String(value ?? '');
 const defaultEsc = value => noop(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -76,6 +86,11 @@ function actionAvailable(m,a) {
   if(m.rule==='relay')return a==='handoff'?!!p.ready:!p.ready;
   if(m.rule==='lockdown')return a==='unlock'?!!p.powered:!p.powered;
   if(m.rule==='merchant'&&a==='contract')return p.ore>=2&&p.wood>=1;
+  if(m.rule==='speedway')return a==='boost'?(p.combo>=3):p.distance<20;
+  if(m.rule==='bellring')return a==='rescue'?(p.out&&(p.rescued||0)<1&&(p.correct||0)>=5):!p.out;
+  if(m.rule==='bomb')return !m.bomb?.exploded;
+  if(m.rule==='farm')return a==='harvest'?(p.stage||0)>=5:(p.stage||0)<5;
+  if(m.rule==='arena')return a==='item'?!!(p.items&&p.items.length):!(p.down);
   return true;
 }
 function modeActions(m, esc) {
@@ -92,8 +107,59 @@ function renderChallenge(q, h, disabled) {
   else answer = `<label for="mode-answer">Câu trả lời<input id="mode-answer" autocomplete="off" ${disabled ? 'disabled' : ''}></label>`;
   return `<section class="mode-challenge" aria-label="Câu hỏi đang mở"><div class="eyebrow">CÂU TOÁN · ${esc(q.topicName || q.topic || '')} · ${esc(q.points ?? '')} điểm</div><div class="mode-prompt">${textValue(math, q.prompt || q.question || '')}</div>${answer}<button type="button" data-mode-send="answer" ${disabled ? 'disabled' : ''}>Chốt câu trả lời</button></section>`;
 }
-function roomUnlock(room, h, disabled) {
-  if (!room) return '';
+function gameBoard(m, h, disabled) {
+  if (!m) return '';
+  const e = h.esc, p = m.players?.[m.unitId] || {};
+  if (m.rule === 'speedway') {
+    const length = m.track?.length || 20;
+    const lanes = (m.units || []).map(u => {
+      const d = m.players?.[u.id]?.distance ?? 0;
+      const pct = Math.max(0, Math.min(100, Math.round((d / length) * 100)));
+      const own = u.id === m.unitId;
+      return `<div class="lane${own ? ' own' : ''}" role="img" aria-label="${e(unitName(u))} đang ở bước ${d} trên ${length}">
+        <span class="lane-name">${e(unitName(u))}</span>
+        <span class="lane-track"><span class="lane-car" style="left:${pct}%"></span></span>
+        <span class="lane-step">${d}/${length}</span>
+      </div>`;
+    }).join('');
+    return `<section class="game-board speedway" aria-label="Đường đua"><div class="board-head"><h3>Đường đua tri thức</h3><p>${e(length)} bước tới đích · chuỗi hiện tại ${e(p.combo ?? 0)}</p></div>${lanes}</section>`;
+  }
+  if (m.rule === 'bellring') {
+    const alive = (m.units || []).filter(u => !(m.players?.[u.id]?.out));
+    const out = (m.units || []).filter(u => m.players?.[u.id]?.out);
+    return `<section class="game-board bellring" aria-label="Sàn thi đấu"><div class="board-head"><h3>Rung chuông vàng</h3><p>Còn ${alive.length} người trên sàn</p></div>
+      <div class="stage">${alive.map(u => `<span class="standing${u.id === m.unitId ? ' own' : ''}">🔔 ${e(unitName(u))}${m.players?.[u.id]?.ring ? ` · chuỗi ${m.players[u.id].ring}` : ''}</span>`).join('') || '<span class="standing">Trống</span>'}</div>
+      ${out.length ? `<p class="small muted">Đã rời sàn: ${out.map(u => e(unitName(u))).join(' · ')}</p>` : ''}</section>`;
+  }
+  if (m.rule === 'bomb') {
+    const wires = m.bomb?.wires || 4, cut = m.bomb?.cut || 0;
+    const left = Number.isFinite(m.deadline) ? Math.max(0, m.deadline - (Number(m.gameNow) || 0)) : 0;
+    return `<section class="game-board bomb${m.bomb?.exploded ? ' exploded' : ''}" aria-label="Bảng gỡ bom" role="timer" aria-live="polite">
+      <div class="board-head"><h3>${m.bomb?.exploded ? 'Bom đã nổ' : 'Gỡ bom'}</h3><p>Đã cắt ${cut}/${wires} dây · còn ${e(h.time(left))}</p></div>
+      <div class="wires">${Array.from({ length: wires }, (_, i) => `<span class="wire${i < cut ? ' cut' : ''}">${i < cut ? '✂' : '│'}</span>`).join('')}</div>
+      <p class="small muted">${m.bomb?.exploded ? 'Hết giờ trước khi cắt đủ dây. Giáo viên có thể mở ván mới.' : 'Trả lời đúng để cắt một dây; trả lời sai không cắt được dây.'}</p></section>`;
+  }
+  if (m.rule === 'farm') {
+    const labels = m.farm?.labels || ['Hạt', 'Mầm', 'Cây non', 'Ra hoa', 'Kết quả'];
+    const stage = Math.max(0, Math.min(labels.length, p.stage || 0));
+    return `<section class="game-board farm" aria-label="Nông trại của em">
+      <div class="board-head"><h3>Nông trại tri thức</h3><p>Giai đoạn ${stage}/${labels.length} · nước ${e(p.water ?? 0)} · ${e(p.harvested ?? 0)} vụ đã thu</p></div>
+      <div class="plots">${labels.map((name, i) => `<span class="plot${i < stage ? ' grown' : ''}${i === stage ? ' current' : ''}">${e(name)}</span>`).join('')}</div>
+      <p class="small muted">Mỗi câu đúng là một lượt tưới; đủ hai lượt thì cây lên một giai đoạn.</p></section>`;
+  }
+  if (m.rule === 'arena') {
+    const boss = m.arena?.boss || { hp: 0, max: 1 };
+    const pct = Math.max(0, Math.min(100, Math.round((boss.hp / Math.max(1, boss.max)) * 100)));
+    return `<section class="game-board arena" aria-label="Đấu trường RPG">
+      <div class="board-head"><h3>Đấu trường RPG</h3><p>Trùm còn ${e(boss.hp)}/${e(boss.max)} máu</p></div>
+      <div class="boss-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${e(boss.max)}" aria-valuenow="${e(boss.hp)}"><span style="width:${pct}%"></span></div>
+      <p class="small muted">Lớp nhân vật: ${e(p.class || 'warrior')} · máu ${e(p.hp ?? 0)} · năng lượng ${e(p.mp ?? 0)} · sát thương ${e(p.damage ?? 0)}</p>
+      ${(p.items || []).length ? `<p class="small">Vật phẩm: ${p.items.map(x => e(x)).join(' · ')}</p>` : ''}</section>`;
+  }
+  return '';
+}
+
+function roomUnlock(room, h, disabled) {  if (!room) return '';
   const esc = h.esc;
   if (room.type === 'code') return `<p>${esc(ROOM_PROMPTS.code)}</p><label for="mode-unlock-code">Mã ba chữ số<input id="mode-unlock-code" inputmode="numeric" maxlength="3" ${disabled ? 'disabled' : ''}></label><input id="mode-unlock" type="hidden">`;
   if (room.type === 'pipes') return `<p>${esc(ROOM_PROMPTS.pipes)}</p><fieldset class="mode-unlock"><legend>Xoay ba ống</legend>${Array.from({length: room.count || 3}, (_, i) => `<label>Ống ${i + 1}<select id="mode-rotation-${i}" ${disabled ? 'disabled' : ''}>${[0,1,2,3].map(v => `<option value="${v}">${v * 90}°</option>`).join('')}</select></label>`).join('')}</fieldset><input id="mode-unlock" type="hidden">`;
@@ -109,7 +175,7 @@ export function student(m, input = {}) {
   const roster = unit ? `<p class="mode-roster"><strong>Đơn vị:</strong> ${e(unitName(unit))} · <strong>Phe:</strong> ${unit.faction == null ? '—' : unit.faction + 1} · <strong>Điều khiển:</strong> ${e(unit.members?.find(x => x.id === unit.controller)?.name || '—')}</p>` : '';
   const ranking = (m?.ranking || []).map(r => `<li><strong>${r.rank}.</strong> ${e(unitName(m.units?.find(u => u.id === r.unitId)))} <span>${e((r.values || []).map(formatMetric).join(' · '))}</span></li>`).join('');
   const controls = disabled ? '' : `<fieldset class="mode-actions"><legend>Hành động</legend>${m.rule==='zones'?'<label>Khu vực<select id="mode-number">'+[0,1,2,3].map(i=>`<option value="${i}">Khu ${i+1}</option>`).join('')+'</select></label>':''}${m.rule==='survival'?`<label>Vị trí trong vùng 0–${m.survival?.radius??6}<input id="mode-number" type="number" min="0" max="${m.survival?.radius??6}" value="0"></label>`:''}${['treasure','merchant'].includes(m.rule)?`<label>${m.rule==='merchant'?'Tài nguyên':'Nhánh'}<select id="mode-choice">${(m.rule==='merchant'?['ore','wood']:['sun','moon','star']).map(x=>`<option value="${x}">${VALUE_LABELS[x]}</option>`).join('')}</select></label>${m.rule==='merchant'?'<label>Số lượng<input id="mode-number" type="number" value="1" min="1" max="100"></label>':''}`:''}${m.rule==='lockdown'?`<p>${e(m.room?.prompt||'Đã mở đủ phòng.')}</p>${roomUnlock(m.room,h,disabled)}`:''}<div class="flex">${modeActions(m,e)}</div></fieldset>`;
-  return `<section class="mode-classroom mode-student"><div class="eyebrow">${e(label(m?.rule))} · ${e(PARTICIPATION_LABELS[m?.participation]||'')}</div><h1>${e(objective(m?.rule))}</h1><p class="mode-status" role="status">${e(statusText(unit, m))} · Còn ${e(left)}</p>${roster}${p ? `<div class="mode-metrics">${metricRows(m.rule, p, e)}</div>` : '<p class="notice">Bạn đang xem với tư cách khán giả. Chờ giáo viên mở lượt chính.</p>'}${renderChallenge(m?.challenge,h,disabled||m.challenge?.deadline<=m.gameNow)}${controls}<button type="button" data-mode-send="tick">Cập nhật tiến độ</button><section class="mode-ranking"><h2>Xếp hạng hiện tại</h2><p>${e(TIE_BREAK[m.rule]||'')}</p><ol>${ranking || '<li>Chưa có kết quả.</li>'}</ol></section></section>`;
+  return `<section class="mode-classroom mode-student"><div class="eyebrow">${e(label(m?.rule))} · ${e(PARTICIPATION_LABELS[m?.participation]||'')}</div><h1>${e(objective(m?.rule))}</h1><p class="mode-status" role="status">${e(statusText(unit, m))} · Còn ${e(left)}</p>${roster}${p ? `<div class="mode-metrics">${metricRows(m.rule, p, e)}</div>` : '<p class="notice">Bạn đang xem với tư cách khán giả. Chờ giáo viên mở lượt chính.</p>'}${renderChallenge(m?.challenge,h,disabled||m.challenge?.deadline<=m.gameNow)}${gameBoard(m,h,disabled)}${controls}<button type="button" data-mode-send="tick">Cập nhật tiến độ</button><section class="mode-ranking"><h2>Xếp hạng hiện tại</h2><p>${e(TIE_BREAK[m.rule]||'')}</p><ol>${ranking || '<li>Chưa có kết quả.</li>'}</ol></section></section>`;
 }
 
 export function teacher(board, reports = [], input = {}) {

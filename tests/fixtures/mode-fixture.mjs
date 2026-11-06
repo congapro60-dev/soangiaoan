@@ -1,11 +1,15 @@
-import {createGame, reduce} from '../../lib/mode-engine/index.js';
+import {createGame, reduce, RULES} from '../../lib/mode-engine/index.js';
 
 export const learners = Object.freeze(Array.from({length: 26}, (_, i) => Object.freeze({id: `learner-${i + 1}`, name: `Learner ${i + 1}`})));
 export function fixture(rule, options = {}) { return createGame({rule, learners, seed: 173, ...options}); }
+
+// The engine is the single source of truth for which actions carry a maths challenge.
+export function isMath(state, action) { return (RULES[state.rule].mathActions || []).includes(action.type); }
+
 export function act(state, unitId, action, {correct = true, gameNow = state.gameNow, answer} = {}) {
   let next = state;
   let challengeId;
-  const math = {campaign: ['station', 'bonus'], duel: ['answer'], zones: ['capture', 'defend', 'objective'], survival: ['recover', 'objective'], escort: ['repair', 'fuel'], treasure: ['clue', 'dig'], relay: ['solve'], lockdown: ['power'], merchant: ['earn']}[state.rule].includes(action.type);
+  const math = isMath(state, action);
   const serial = Object.keys(state.requests).length;
   if (math) {
     const issued = reduce(next, {type: 'issue', requestId: `issue-${serial}`, unitId, round: 1, action}, {gameNow});

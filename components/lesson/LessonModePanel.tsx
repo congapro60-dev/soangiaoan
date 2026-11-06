@@ -14,7 +14,7 @@ export interface LessonModeView {
   };
 }
 
-export const lessonRuleLabels: Record<string, string> = { campaign: "Hành trình năm ấn tín", duel: "Đấu trí", zones: "Giữ vùng", survival: "Sinh tồn", escort: "Hộ tống", treasure: "Kho báu", relay: "Tiếp sức", lockdown: "Mở phòng", merchant: "Thương nhân" };
+export const lessonRuleLabels: Record<string, string> = { campaign: "Hành trình năm ấn tín", duel: "Đấu trí", zones: "Giữ vùng", survival: "Sinh tồn", escort: "Hộ tống", treasure: "Kho báu", relay: "Tiếp sức", lockdown: "Mở phòng", merchant: "Thương nhân", speedway: "Đường đua tri thức", bellring: "Rung chuông vàng", bomb: "Gỡ bom", farm: "Nông trại tri thức", arena: "Đấu trường RPG" };
 export const lessonRuleGuides: Record<string,[string,string,string]> = {
   campaign:["Thu đủ năm ấn tín, mở cổng hành trình.","Nhận ấn tín từ bài tiếp theo; khi đủ điều kiện, tung xúc xắc rồi mở cổng.","Mở được cổng sau năm ấn tín. Bản đồ vẫn giữ các chặng học bắt buộc."],
   duel:["Đấu trí qua năm vòng.","Chọn trả lời lượt đấu, tự làm bài tiếp theo; mỗi vòng so kết quả đúng rồi thời gian.","Hết năm vòng, so điểm đấu, số câu đúng rồi thời gian."],
@@ -25,8 +25,13 @@ export const lessonRuleGuides: Record<string,[string,string,string]> = {
   relay:["Mỗi thành viên góp một chặng tiếp sức.","Người giữ lượt dùng bài của mình để nhận gậy, rồi bấm chuyển gậy cho bạn.","Đủ chặng và mọi thành viên đều đã góp lượt; so chặng rồi điểm chơi."],
   lockdown:["Mở liên tiếp bốn phòng.","Dùng bài tiếp theo để cấp năng lượng, rồi chọn mở phòng khi đủ điều kiện.","Mở hết bốn phòng; so số phòng rồi điểm chơi."],
   merchant:["Hoàn thành ba hợp đồng.","Dùng bài tiếp theo để kiếm xu, mua quặng và gỗ, đủ nguyên liệu thì giao hợp đồng.","Giao đủ ba hợp đồng; so hợp đồng rồi giá trị tài sản."],
+  speedway:["Về đích trước các đội khác.","Mỗi câu đúng đẩy xe tiến một bước; ba câu liên tiếp mở lượt bứt phá thêm hai bước.","Ai về đích trước thắng; sau đó so quãng đường và chuỗi đúng dài nhất."],
+  bellring:["Trụ lại trên sàn tới cuối.","Mỗi câu đúng giữ em trên sàn; sai thì rời sàn và chờ một lượt cứu khi đã đủ năm câu đúng.","Người cuối cùng còn trên sàn thắng; sau đó so chuỗi đúng và số câu đúng."],
+  bomb:["Cắt đủ bốn dây trước khi đồng hồ về không.","Mỗi câu đúng cắt một dây; câu sai không cắt được dây và làm mất thời gian.","Cắt đủ bốn dây là thắng; hết giờ trước khi đủ dây thì bom nổ."],
+  farm:["Đưa cây qua năm giai đoạn rồi thu hoạch.","Mỗi câu đúng là một lượt tưới; đủ hai lượt thì cây lên một giai đoạn; hai câu sai liên tiếp làm mất một lượt nước.","Cây tới giai đoạn kết quả thì thu hoạch; so giai đoạn, số vụ và số câu đúng."],
+  arena:["Hạ trùm trước khi cả đội gục.","Chọn lớp nhân vật rồi dùng bài tiếp theo để tấn công; câu đúng hồi máu và gây sát thương, câu sai mất máu.","Trùm hết máu thì cả lớp thắng; nếu không, so sát thương và câu đúng."],
 };
-const metrics: Record<string, string> = { position: "Vị trí", score: "Điểm chơi", completed: "Ấn tín", matchPoints: "Điểm đấu", correct: "Câu đúng", energy: "Năng lượng", rounds: "Vòng đã sống sót", objectives: "Mục tiêu chơi", distance: "Chặng đã đi", fuel: "Nhiên liệu", integrity: "Độ bền đoàn xe", clues: "Manh mối", sets: "Bộ kho báu", points: "Điểm chơi", legs: "Chặng tiếp sức", room: "Phòng đã mở", coins: "Xu", ore: "Quặng", wood: "Gỗ", contracts: "Hợp đồng" };
+const metrics: Record<string, string> = { position: "Vị trí", score: "Điểm chơi", completed: "Ấn tín", matchPoints: "Điểm đấu", correct: "Câu đúng", energy: "Năng lượng", rounds: "Vòng đã sống sót", objectives: "Mục tiêu chơi", distance: "Chặng đã đi", fuel: "Nhiên liệu", integrity: "Độ bền đoàn xe", clues: "Manh mối", sets: "Bộ kho báu", points: "Điểm chơi", legs: "Chặng tiếp sức", room: "Phòng đã mở", coins: "Xu", ore: "Quặng", wood: "Gỗ", contracts: "Hợp đồng", combo: "Chuỗi đúng", best: "Chuỗi dài nhất", boosts: "Lần bứt phá", wrong: "Câu sai", ring: "Chuỗi chuông", out: "Đã rời sàn", rescued: "Lượt cứu đã dùng", cut: "Dây đã cắt", mistakes: "Lần sai", water: "Nước tưới", stage: "Giai đoạn cây", dry: "Ngày khô", harvested: "Vụ thu hoạch", hp: "Máu", mp: "Năng lượng", damage: "Sát thương", down: "Đã gục" };
 
 export function LessonModePanel({ view, onAction, disabled = false }: {
   view: LessonModeView | null;

@@ -9,7 +9,12 @@
   treasure:['Săn kho báu','Mở manh mối, chọn nhánh, tìm các mảnh rồi ghép bộ mã.','Hoàn thành số bộ mã mà ván yêu cầu.','Xếp hạng theo bộ mã, câu đúng, điểm và thời điểm hoàn thành.'],
   relay:['Tiếp sức','Người giữ lượt giải phần mình, sau đó bàn giao cho thành viên tiếp theo.','Hoàn thành các chặng và phần việc của thành viên theo luật ván.','Xếp hạng theo chặng, đóng góp thành viên, điểm và thời điểm hoàn thành.'],
   lockdown:['Phòng khóa','Giải bài để cấp điện, rồi thao tác mở từng phòng.','Mở đủ các phòng của nhiệm vụ.','Xếp hạng theo phòng đã mở, điểm và thời điểm hoàn thành.'],
-  merchant:['Thương hội','Giải bài kiếm tài nguyên, mua/bán và hoàn thành hợp đồng đủ điều kiện.','Hoàn thành số hợp đồng mà ván yêu cầu.','Xếp hạng theo hợp đồng, giá trị tài nguyên và câu đúng.']
+  merchant:['Thương hội','Giải bài kiếm tài nguyên, mua/bán và hoàn thành hợp đồng đủ điều kiện.','Hoàn thành số hợp đồng mà ván yêu cầu.','Xếp hạng theo hợp đồng, giá trị tài nguyên và câu đúng.'],
+  speedway:['Đường đua tri thức','Mỗi câu đúng đẩy xe tiến một bước; ba câu liên tiếp thì bứt phá thêm.','Về đích trước các đội khác trên đường đua.','Xếp hạng theo thứ tự về đích, quãng đường và chuỗi đúng dài nhất.'],
+  bellring:['Rung chuông vàng','Trả lời đúng thì trụ lại trên sàn; sai thì rời sàn và chờ một lượt cứu.','Là người trụ lại cuối cùng trên sàn thi đấu.','Xếp hạng theo còn trên sàn, chuỗi đúng, số câu đúng và thời điểm.'],
+  bomb:['Gỡ bom','Cả đội giải bài để cắt từng dây; sai thì đồng hồ bị đẩy nhanh hơn.','Cắt đủ số dây trước khi đồng hồ về không.','Xếp hạng theo số dây đã cắt và số lần sai.'],
+  farm:['Nông trại tri thức','Mỗi câu đúng là một lượt tưới; đủ nước thì cây lớn qua năm giai đoạn.','Đưa cây tới giai đoạn kết quả rồi thu hoạch vụ.','Xếp hạng theo giai đoạn cây, số vụ thu hoạch và số câu đúng.'],
+  arena:['Đấu trường RPG','Chọn lớp nhân vật, trả lời đúng để hồi máu và đánh trùm; sai thì mất máu.','Hạ trùm trước khi cả đội gục hết máu.','Xếp hạng theo sát thương gây ra, số câu đúng và máu còn lại.']
  };
  const participation={individual:'Cá nhân · mỗi em một phiên chơi',pairs:'Cặp hai người · một phần chơi chung',group:'Nhóm · phân vai và đổi người điều khiển'};
  function config(info){return {rule:info?.mode?.rule||info?.campaign?.rule||(info?'campaign':null),participation:info?.mode?.participation||info?.campaign?.participation||(info?.campaign?.playMode==='individual'?'individual':'group')};}

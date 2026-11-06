@@ -9,7 +9,7 @@ import { ClassEventPanel, type ClassEventView } from "./ClassEventPanel";
 
 const values = EDUFIT_VALUES as Array<{id:string;name:string}>;
 const integrationsCatalogue = LESSON_INTEGRATIONS as Array<{id:string;name:string}>;
-const RULES = {campaign:"Chiến dịch",duel:"Đối kháng",zones:"Ngũ khu",survival:"Sinh tồn",escort:"Hộ tống",treasure:"Kho báu",relay:"Tiếp sức",lockdown:"Phòng khóa",merchant:"Thương nhân"};
+const RULES = {campaign:"Chiến dịch",duel:"Đối kháng",zones:"Ngũ khu",survival:"Sinh tồn",escort:"Hộ tống",treasure:"Kho báu",relay:"Tiếp sức",lockdown:"Phòng khóa",merchant:"Thương nhân",speedway:"Đường đua",bellring:"Rung chuông",bomb:"Gỡ bom",farm:"Nông trại",arena:"Đấu trường"};
 const EVENTS = {tug:"Kéo co",boss:"Đánh trùm",buzzer:"Bấm chuông",mountain:"Leo núi",castle:"Lâu đài",archery:"Bắn cung",surf:"Lướt sóng",duel:"Đối kháng",relay:"Tiếp sức",treasure:"Truy tìm kho báu",estimate:"Ước lượng",bingo:"Bingo"};
 type ValueBadge = {valueId:string;evidenceId:string;reason:string;awardedAt:number;awardedBy:string;revokedAt?:number;revocationReason?:string};
 export type ValueBadgeMap = Record<string,ValueBadge[]>;

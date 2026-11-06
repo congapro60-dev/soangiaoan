@@ -319,9 +319,9 @@ test('campaign delegates race mutations/ranking and preserves supplied V7 data',
   assert.deepEqual(rank(s).map(r => r.unitId), Object.values(s.ruleState.players).sort(compareTeams).map(t => t.id));
 });
 
-test('all nine rules have distinct objective progress traces; deterministic and deeply immutable', () => {
+test('all registered rules have distinct objective progress traces; deterministic and deeply immutable', () => {
   const traces = [];
-  const actions = {campaign: {type: 'station'}, duel: {type: 'answer'}, zones: {type: 'capture', zone: 1}, survival: {type: 'objective'}, escort: {type: 'advance'}, treasure: {type: 'clue'}, relay: null, lockdown: {type: 'power'}, merchant: {type: 'earn'}};
+  const actions = {campaign: {type: 'station'}, duel: {type: 'answer'}, zones: {type: 'capture', zone: 1}, survival: {type: 'objective'}, escort: {type: 'advance'}, treasure: {type: 'clue'}, relay: null, lockdown: {type: 'power'}, merchant: {type: 'earn'}, speedway: {type: 'accelerate'}, bellring: {type: 'ring'}, bomb: {type: 'cut'}, farm: {type: 'water'}, arena: {type: 'attack'}};
   for (const name of Object.keys(RULES)) {
     const initial = frozen(fixture(name, {learners: small}));
     const action = actions[name] ?? {type: 'solve', learnerId: initial.units[0].members[0].id};
@@ -334,7 +334,7 @@ test('all nine rules have distinct objective progress traces; deterministic and 
     traces.push(JSON.stringify(a.ruleState));
     assert.deepEqual(reduce(frozen(a), {type: 'rank'}, {gameNow: 0}).result, rank(a));
   }
-  assert.equal(new Set(traces).size, 9);
+  assert.equal(new Set(traces).size, Object.keys(RULES).length);
 });
 
 test('engine late spectators cannot act, return after community, retain leaver results and rotate pair controllers', () => {
