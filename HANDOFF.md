@@ -29,7 +29,10 @@
 ### Còn mở
 - **Kết quả QA live lần deploy lại (FAIL, đã rollback về V44 lúc 13:48)**: hình Hải trình trên bài mới r060 vẽ góc 32,16° / 62,07° / 85,78°, không phải 30° / 60° / 90°. Nguyên nhân: `CoordinatePlane` (`components/lesson/DataVisual.tsx:430-434`) co trục X theo 8,44 px/đơn vị và trục Y theo 9,2 px/đơn vị. Dữ liệu tam giác đúng.
 - Đã kiểm đạt: bảng dữ liệu 17,85:1 và không tràn ngang ở 375 px; phòng cũ giữ hình cũ và học sinh giả vào lại được. Chưa kiểm: quest 180 giây đầy đủ, lỗi console mới.
-- **Đã sửa cục bộ, chưa deploy** (05/11): `scripts/content/build-hki-g10.mjs` đặt `yDomain` theo tỷ lệ 184/304, nên trục X và Y cùng tỷ lệ. Trên 97 hình (70 câu, 27 bản sao): tỷ lệ 0,9996–1,0003; góc vẽ lệch đề tối đa 0,029°. Test mới khóa điều này. Bản đã lưu V45 (`appgver_15e1d83985b48191a249998826298a6c`) không còn là bản cần deploy: phải đóng gói lại từ commit mới, và chưa có QA live cho bản sửa.
+- **Đã deploy** (06/11): commit `f493085b` (tỷ lệ trục hình Hải trình, 97 hình), version 45 `appgver_c7040147fa108191881d629262310e97`, deployment `appgdep_6aed2a0c0cb4819188c6b70d748175c4`, bundle `index-XdWMLzzD.js`, env revision 3.
+- **QA live** (báo cáo trong `sites-release/qa-live-scale-fix-20261106/REPORT.md`): hình r060 mới đúng, sai lệch 0,028°; phòng cũ vào lại và đi tiếp được; bảng 375 px đạt; console không có lỗi trong các luồng đã kiểm. Ba phòng test và các nháp đã vào Thùng rác.
+- **Còn mở (P2)**: nút "Bỏ qua — không ảnh hưởng điểm" của sự kiện tùy chọn vẫn chặn tung xúc xắc bằng `CLASS_EVENT_ACTIVE` tối đa 180 giây. Chưa sửa; cần chủ máy quyết định.
+- **Rollback về V44** nếu cần: `appgver_360e9f00101481919bc9174dafed81ab`.
 - Chấm điểm (đúng/sai, mastery, chấm AI) và lỗi RSC prefetch: ngoài bản này, chưa sửa.
 
 ### Lệnh nghiệm thu
