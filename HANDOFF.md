@@ -4,7 +4,47 @@
 > - `docs/HANDOFF-ARCHIVE.md` (toàn bộ checkpoint trước 05/11/2026)
 > - `tasks/archive/handoff-history-to-2026-10-23.md`, `tasks/archive/handoff-history-v27-v30-2026-10-25.md`
 
-## Latest checkpoint - HOTFIX V45: HẢI TRÌNH + TƯƠNG PHẢN BẢNG + PHÒNG TỰ ĐI (05/11/2026)
+## Latest checkpoint - 5 GAME MỚI: ĐUA XE · RUNG CHUÔNG · GỠ BOM · NÔNG TRẠI · ĐẤU TRƯỜNG (06/11/2026)
+
+**Branch**: `codex/universal-content-release` · Commit `f53a131c`. Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
+
+### Nguồn ý tưởng
+Reel FB `2254623681763429` (Thầy Dũng Công Nghệ) quảng bá "Đường Đua Tri Thức" của dethiso.vn. Đã đọc comment, vào site, bóc danh mục 10 game từ bundle JS (trang game chặn khách). Ghi chú đầy đủ: `tasks/research-dethiso-games.md`.
+
+### Đã thêm 5 luật vào Core Engine
+Mỗi game là một rule trong `lib/mode-engine/rules/`, dùng chung hạ tầng: server-owned clock, request fingerprint, receipt chống replay, roster cố định, phân hoá cá nhân/cặp/nhóm.
+
+| Luật | File | Cơ chế | Hành động Toán |
+|---|---|---|---|
+| `speedway` | `rules/speedway.js` | Đua xe 20 bước. Đúng +1 bước (combo ≥3 thì +2); sai −1 và mất chuỗi. Bứt phá +2 khi đủ chuỗi 3. | `accelerate` |
+| `bellring` | `rules/bellring.js` | Loại trực tiếp: sai thì rời sàn; cứu 1 lần khi đã đúng 5 câu. Người cuối cùng trên sàn thắng. | `ring` |
+| `bomb` | `rules/bomb.js` | Cắt 4 dây trước giờ. Đúng thì cắt 1 dây; sai thì không cắt và đồng hồ bị đẩy. Hết giờ chưa đủ dây thì nổ. | `cut` |
+| `farm` | `rules/farm.js` | 5 giai đoạn cây. Đúng = 1 lượt tưới, 2 lượt lên 1 giai đoạn; 2 câu sai liên tiếp mất 1 nước. Chín thì thu hoạch. | `water` |
+| `arena` | `rules/arena.js` | HP/MP/4 class/vật phẩm, trùm 9000 HP. Đúng hồi máu + gây sát thương; sai mất 100 máu; combo 3 tặng vật phẩm. | `attack` |
+
+### Điểm đã nối
+- `lib/mode-engine/index.js` + `lib/game-modes.js` + `lib/campaign.js`: đăng ký 14 luật.
+- `lib/lesson/mode-bridge.js`: `defaultAction`, `choices`, `publicFields` cho cả 5 luật → dùng được trong tiết học, ăn điểm từ bài đã chấm.
+- `lib/mode-engine/serialize.js`: public view có `track`, `bomb`, `farm`, `arena` (không lộ đáp án).
+- `lib/rule-guide.js`, `lib/lesson/teacher-setup.js`, `components/lesson/LessonModePanel.tsx`, `components/lesson/TeacherLessonTools.tsx`: nhãn + hướng dẫn 3 dòng cho GV.
+- `public/session-rules.js`, `public/game-setup.js`, `public/mode-classroom.js`, `public/app.js`: dropdown luật, nhãn hành động, tóm tắt tiến độ, xếp hạng.
+- `public/mode-classroom.css`: bảng game riêng (làn đua, sàn thi đấu, dây bom, ô ruộng, thanh máu trùm), responsive 375 px, touch target ≥44 px.
+
+### Kiểm chứng
+- `npm test`: **1.507 PASS / 0 FAIL / 2 SKIP** (tăng 20 test mới).
+- Test mới: `tests/mode-new-games.test.mjs` (13 case) + `tests/mode-classroom-boards.test.mjs` (7 case).
+- `npm run build`: pass, 0 lỗi TypeScript.
+- Sửa 2 lỗi thật phát hiện qua test: `bellring` chặn nhầm `rescue` khi đã rời sàn; `arena` cho phép tấn công khi đang gục.
+
+### Khác biệt so với dethiso
+Game của họ tách rời đề; ở đây cắm thẳng vào Concept của bài đang dạy, dùng hint 4 tầng và nhánh support/core/extension. Điểm chơi vẫn tách khỏi bằng chứng hộ chiếu.
+
+### Còn mở
+- Chưa kiểm trên trình duyệt thật / điện thoại thật.
+- Chưa có nút chọn lớp nhân vật (warrior/mage/archer/tank) cho học sinh — hiện mặc định `warrior`.
+- Nông trại chưa có cron theo ngày; hiện chạy trong một phiên.
+
+## Checkpoint trước: HOTFIX V45: HẢI TRÌNH + TƯƠNG PHẢN BẢNG + PHÒNG TỰ ĐI (05/11/2026)
 
 **Branch**: `codex/universal-content-release` · HEAD sau commit này (nối trên `03f67b7`, bản V44). Worktree: `C:\Users\ADMIN\.codex\worktrees\universal-content-release`.
 
