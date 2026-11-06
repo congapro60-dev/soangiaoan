@@ -2,6 +2,12 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { ActorSubmissionUpload } from './ActorSubmissionUpload';
 describe('nộp hộ qua quyền hiện có', () => {
+  it('lượt mới cho chọn bổ sung hoặc thay toàn bộ, giữ lịch sử và điểm duyệt', () => {
+    const html = renderToStaticMarkup(<ActorSubmissionUpload credentials={{ role: 'teacher', classId: 'c', studentId: 's' }} assignmentId="a" supplementOf="old" onSubmitted={() => undefined} />);
+    expect(html).toContain('Bổ sung ảnh — giữ ảnh cũ, thêm ảnh mới');
+    expect(html).toContain('Nộp lại toàn bộ — chỉ dùng ảnh mới');
+    expect(html).toContain('điểm đã duyệt vẫn được giữ');
+  });
   it('PH chọn nhiều ảnh trong đúng phiên, khóa chốt chặn nộp nhưng giữ nút đóng', () => {
     const credentials = { role: 'parent' as const, joinCode: 'private', studentId: 'child', pin: '1234' };
     const html = renderToStaticMarkup(<ActorSubmissionUpload credentials={credentials} assignmentId="assignment" onSubmitted={() => undefined} />);

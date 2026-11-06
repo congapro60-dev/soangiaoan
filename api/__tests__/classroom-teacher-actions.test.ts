@@ -398,6 +398,23 @@ describe('POST /api/classroom · teacher collaboration', () => {
     expect((list.payload?.assignments as DocData[])[0]).toMatchObject({ periodicTest: { sheetLabel: 'Giữa học kì I' }, examVariants: [variants[0]] });
   });
 
+  it('yêu cầu công khai được tạo, sửa, xoá riêng với lệnh chấm; từ chối dữ liệu không hợp lệ', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'lop-10': { teacherId: 'owner-1', name: '10A', grade: '10' } };
+    const create = (description: unknown) => call({ action: 'createAssignment', assignment: { id: 'bt-public', classId: 'lop-10', title: 'BTVN', description, gradingInstructions: 'Nội bộ' } });
+    expect((await create('  Làm bài 1, 2 trang 72 SGK.  ')).statusCode).toBe(200);
+    expect(harness.store.assignments['bt-public'].description).toBe('Làm bài 1, 2 trang 72 SGK.');
+    const update = (description: unknown) => call({ action: 'updateAssignmentContent', assignmentId: 'bt-public', patch: { description } });
+    expect((await update('Làm thêm bài 3.')).statusCode).toBe(200);
+    expect(harness.store.assignments['bt-public']).toMatchObject({ description: 'Làm thêm bài 3.', gradingInstructions: 'Nội bộ' });
+    expect((await update('')).statusCode).toBe(200);
+    expect(harness.store.assignments['bt-public'].description).toBe('');
+    for (const invalid of [42, 'x'.repeat(2001)]) {
+      expect((await update(invalid)).statusCode).toBe(422);
+      expect((await create(invalid)).statusCode).toBe(422);
+    }
+  });
+
   it('bài thường không bị gắn cờ định kì', async () => {
     const harness = buildHarness();
     harness.store.classes = { 'lop-10': { teacherId: 'owner-1', name: '10A', grade: '10' } };

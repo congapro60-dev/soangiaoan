@@ -28,6 +28,7 @@ export interface ClassReportSubmission {
   score?: number | null;
   maxScore?: number | null;
   official: boolean;
+  supplementOf?: string;
   /** Grade-level weak-topic evidence, in addition to question-level weakTopics. */
   weakTopics?: readonly string[] | string | null;
   questionResults?: readonly ClassReportQuestionResult[];
@@ -538,7 +539,10 @@ export const buildClassAssignmentReport = (input: ClassReportInput): ClassAssign
   const assignment = normalizeClassReportAssignments(input)[0];
   const rosterKeys = new Set(input.roster.map(studentKeyOf).map(normalizeKey).filter(Boolean));
   const latestByStudent = new Map<string, ClassReportSubmission>();
+  const officialByStudent = new Map<string, ClassReportSubmission>();
   const attemptsByStudent = new Map<string, number>();
+  const isOfficial = (submission: ClassReportSubmission): boolean =>
+    submission.official === true && normalizeKey(submission.status) === 'graded';
 
   for (const submission of assignment.submissions) {
     const key = normalizeKey(submission.studentKey);
@@ -546,12 +550,15 @@ export const buildClassAssignmentReport = (input: ClassReportInput): ClassAssign
     attemptsByStudent.set(key, (attemptsByStudent.get(key) ?? 0) + 1);
     const current = latestByStudent.get(key);
     if (!current || isNewer(submission, current)) latestByStudent.set(key, submission);
+    const official = officialByStudent.get(key);
+    if (isOfficial(submission) && (!official || isNewer(submission, official))) officialByStudent.set(key, submission);
   }
 
   const latestSubmissions = [...latestByStudent.values()];
-  const isOfficial = (submission: ClassReportSubmission): boolean =>
-    submission.official === true && normalizeKey(submission.status) === 'graded';
-  const officialSubmissions = latestSubmissions.filter(isOfficial);
+  const officialSubmissions = latestSubmissions.map(submission => isOfficial(submission)
+    ? submission
+    : submission.supplementOf ? officialByStudent.get(normalizeKey(submission.studentKey)) : undefined)
+    .filter((submission): submission is ClassReportSubmission => submission !== undefined);
   const graded = latestSubmissions.filter(submission => normalizeKey(submission.status) === 'graded');
   const pending = latestSubmissions.filter(submission => !isOfficial(submission));
   const scorePairs = officialSubmissions

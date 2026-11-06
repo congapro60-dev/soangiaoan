@@ -75,6 +75,30 @@ const gioNgan = (iso?: string): string => {
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', hour12: false });
 };
 
+const AssignmentInstructionsEditor = ({ assignment, onSaved }: { assignment: AssignmentDoc; onSaved: () => Promise<void> }) => {
+  const [description, setDescription] = useState(assignment.description || '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const save = async () => {
+    setSaving(true); setError('');
+    try {
+      await updateAssignmentContent(assignment.id, { description: description.trim() });
+      await onSaved();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Không lưu được yêu cầu. Thử lại nhé.');
+    } finally { setSaving(false); }
+  };
+  return <div className="mb-4 rounded-2xl bg-blue-50 p-4">
+    <label htmlFor={`assignment-instructions-${assignment.id}`} className="text-sm font-black text-slate-700">Yêu cầu hiển thị trên bot</label>
+    <p className="mt-1 text-xs font-semibold text-slate-500">Học sinh và phụ huynh đọc được trên bot và web. Không nhập đáp án hoặc lệnh chấm riêng ở đây.</p>
+    <textarea id={`assignment-instructions-${assignment.id}`} value={description} onChange={e => setDescription(e.target.value)} maxLength={2000} rows={3}
+      placeholder="Ví dụ: Làm bài 1, 2, 3 trang 72 SGK." className="mt-2 w-full rounded-xl border border-blue-200 bg-white p-3 text-sm" />
+    {error && <p role="alert" className="mt-1 text-sm text-red-700">{error}</p>}
+    <button type="button" onClick={() => void save()} disabled={saving || description.trim() === (assignment.description || '')}
+      className="mt-2 min-h-11 rounded-xl bg-blue-600 px-4 text-xs font-black text-white disabled:opacity-40">{saving ? 'Đang lưu...' : 'Lưu yêu cầu'}</button>
+  </div>;
+};
+
 const trangThai: Record<SubmissionDoc['status'], { nhan: string; mau: string }> = {
   submitted: { nhan: 'Chờ chấm', mau: 'bg-amber-50 text-amber-700' },
   grading: { nhan: 'Đang chấm', mau: 'bg-blue-50 text-blue-700' },
@@ -805,6 +829,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         teacherId,
         classId,
         title: value.title,
+        description: value.description,
         answerKey: value.answerKey,
         rubric: value.rubric,
         maxScore: value.maxScore,
@@ -1798,6 +1823,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     <>
                   {/* NỘI DUNG ĐÃ GIAO — phải xem lại và sửa được. Đáp án AI giải ra mà không mở
                       lại được thì lời hứa "thầy cô soát trước khi chấm" chỉ đúng đúng một lần. */}
+                  {!submissionsOnly && <AssignmentInstructionsEditor key={`${a.id}:${a.description || ''}`} assignment={a} onSaved={taiBai} />}
                   {!submissionsOnly && a.periodicTest && (
                     <div className="mb-5 rounded-2xl bg-slate-50 p-4">
                       <p className="text-xs font-black uppercase tracking-wide text-slate-500">Kiểm tra định kì — các mã đề</p>

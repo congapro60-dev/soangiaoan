@@ -1,3 +1,4 @@
+vi.mock('../_assistant-web-handoff', () => ({ issueWebHandoff: vi.fn(async () => 'https://example.com/ph/C#bot_web=opaque'), confirmWebHandoff: vi.fn(async () => null) }));
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../_assistant-auth', async () => ({
@@ -17,6 +18,8 @@ vi.mock('../_bot-pin-guard', () => ({ canReplyToStranger: vi.fn(async () => true
 // Việc 4 — mock TOÀN BỘ photo module để không kéo grade-homework/_grading-core vào test bot.
 vi.mock('../_assistant-ph-hs-photo', () => ({
   PHOTO_REPLIES: { noSession: 'NO_SESSION_REPLY', max: 'MAX_REPLY', badImage: 'BAD_IMAGE_REPLY', assistIncomplete: 'ASSIST_INCOMPLETE_REPLY', expiredSession: 'EXPIRED_SESSION_REPLY' },
+  requestPhotoCancellation: vi.fn(async () => 'CANCEL_CONFIRM'),
+  revisionReply: vi.fn(async () => 'REVISION_OK'),
   cancelPhotoSession: vi.fn(async () => undefined),
   finishPhotoSession: vi.fn(async () => 'FINISH_OK'),
   openPhotoSession: vi.fn(async () => 'OPEN_OK'),
@@ -26,6 +29,9 @@ vi.mock('../_assistant-ph-hs-photo', () => ({
   assistFreeTextReply: vi.fn(async () => null),
   parsePhotoCommand: vi.fn((raw: string) => {
     const plain = raw.normalize('NFC').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').trim().toLowerCase();
+    if (/^(huy|xac nhan huy)$/.test(plain)) return { kind: 'cancel' };
+    const revision = /^(bo sung|nop lai)(?:\s+(\d+))?$/.exec(plain);
+    if (revision) return { kind: 'revision', mode: revision[1] === 'bo sung' ? 'supplement' : 'replace', ...(revision[2] ? { n: Number(revision[2]) } : {}) };
     if (/^cham$/.test(plain)) return { kind: 'list' };
     const pick = /^cham\s*(\d{1,2})$/.exec(plain);
     if (pick) return { kind: 'pick', n: Number(pick[1]) };
@@ -44,6 +50,7 @@ vi.mock('../_assistant-ph-hs-photo', () => ({
   pickAssignmentByNumber: vi.fn(async () => null),
   // Phân biệt ẢNH NỘP BÀI với ẢNH ĐỀ BÀI nhờ giải (29/10). Mặc định KHÔNG có phiên nộp.
   hasLiveAssignmentSession: vi.fn(async () => false),
+  hasPhotoSubmissionIntent: vi.fn(async () => false),
   // Phiên nộp vừa hết hạn (sự cố 3–4/11). Mặc định coi như không có.
   hasExpiredAssignmentSession: vi.fn(async () => false),
   // "Tay chân" cho AI (hướng A): mặc định không khớp câu hỏi bài chưa nộp.
@@ -72,6 +79,7 @@ vi.mock('../_assistant-confirmations', () => ({
 }));
 vi.mock('../_assistant-jobs', () => ({ getAssistantJobStatus: vi.fn(async () => ({ status: 'succeeded', result: { url: 'https://private.test/?token=secret' } })) }));
 
+import { issueWebHandoff } from '../_assistant-web-handoff';
 import handler from '../assistant';
 import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from '../_assistant-auth';
 import { executeAssistantConfirmation, cancelAssistantConfirmation } from '../_assistant-confirmations';
@@ -79,7 +87,7 @@ import { linkByPin, switchBotRole } from '../_assistant-ph-hs-link';
 import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
 import { parentMenuReply, loadParentReport } from '../_assistant-ph-hs-menu';
-import { assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, isPendingListQuestion, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply } from '../_assistant-ph-hs-photo';
+import { pickAssignmentByNumber, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, revisionReply, requestPhotoCancellation } from '../_assistant-ph-hs-photo';
 
 
 
@@ -113,6 +121,7 @@ async function request(body: unknown = event(), secret: string | undefined = 'we
 const sent = () => fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/sendMessage'));
 beforeEach(() => {
   vi.restoreAllMocks(); vi.clearAllMocks();
+  vi.mocked(hasPhotoSubmissionIntent).mockReset().mockResolvedValue(false);
   vi.stubEnv('ZALO_BOT_TOKEN', 'fake-token'); vi.stubEnv('ZALO_BOT_ID', 'bot-1');
   vi.stubEnv('ZALO_BOT_ALLOWED_IDS', 'bot-1'); vi.stubEnv('ZALO_BOT_ALLOWED_USER_IDS', 'user-1');
   vi.stubEnv('ZALO_BOT_WEBHOOK_SECRET', 'webhook-secret');
@@ -374,7 +383,7 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     vi.mocked(parentMenuReply).mockResolvedValueOnce('Link:\nhttps://giaoandewey.vercel.app/ph/AD4GKT');
     await request(event('web', 'm-2'));
     // Link phải nguyên URL, KHÔNG parse_mode, KHÔNG bị output() che thành [đã ẩn liên kết]
-    expect(JSON.parse(sent()[1][1].body)).toEqual({ chat_id: 'user-1', text: 'Link:\nhttps://giaoandewey.vercel.app/ph/AD4GKT' });
+    expect(JSON.parse(sent()[1][1].body)).toEqual({ chat_id: 'user-1', text: 'Mở web đúng hồ sơ của bạn:\nhttps://example.com/ph/C#bot_web=opaque\nTrang web sẽ hướng dẫn xác nhận trong chat.' });
   });
 
   it('menu gửi lỗi → KHÔNG gửi lại (không có nhánh markdown fallback cho menu thuần)', async () => {
@@ -484,19 +493,48 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
 
   it('HS gửi ảnh KHI ĐANG NỘP BÀI → photoReceivedReply (ảnh là bài làm)', async () => {
     mockStudent();
-    vi.mocked(hasLiveAssignmentSession).mockResolvedValueOnce(true);
+    vi.mocked(hasLiveAssignmentSession).mockResolvedValueOnce(true); vi.mocked(hasPhotoSubmissionIntent).mockResolvedValueOnce(true);
     const result = await request(imageEvent('https://photo.zalo/abc.jpg'));
     expect(result.code).toBe(200);
-    expect(photoReceivedReply).toHaveBeenCalledWith('bot-1', 'user-1', 'https://photo.zalo/abc.jpg');
+    expect(photoReceivedReply).toHaveBeenCalledWith('bot-1', 'user-1', 'https://photo.zalo/abc.jpg', expect.objectContaining({ classId: 'c', studentId: 's', role: 'student' }));
     expect(JSON.parse(sent()[0][1].body).text).toBe('PHOTO_OK');
   });
   it('ảnh dạng object {url} và {attach_url} đều đọc được URL', async () => {
     mockStudent();
     vi.mocked(hasLiveAssignmentSession).mockResolvedValue(true);
+    vi.mocked(hasPhotoSubmissionIntent).mockResolvedValue(true);
     await request(imageEvent({ url: 'https://photo.zalo/u1.jpg' }, 'image-2'));
-    expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u1.jpg');
+    expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u1.jpg', expect.objectContaining({ studentId: 's' }));
     await request(imageEvent({ attach_url: 'https://photo.zalo/u2.jpg' }, 'image-3'));
-    expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u2.jpg');
+    expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u2.jpg', expect.objectContaining({ studentId: 's' }));
+  });
+  it('official photo_url payload is treated as submission image', async () => {
+    mockStudent(); vi.mocked(hasLiveAssignmentSession).mockResolvedValueOnce(true); vi.mocked(hasPhotoSubmissionIntent).mockResolvedValueOnce(true);
+    const body = imageEvent(undefined, 'photo-url-field');
+    const msg = body.result.message as any; delete msg.photo; msg.photo_url = 'https://photo.zalo/official.jpg';
+    expect((await request(body)).code).toBe(200);
+    expect(photoReceivedReply).toHaveBeenCalledWith('bot-1','user-1','https://photo.zalo/official.jpg', expect.objectContaining({ studentId: 's' }));
+  });
+  it('photo while choosing an assignment stays in submission flow without solver', async () => {
+    mockStudent(); vi.mocked(hasPhotoSubmissionIntent).mockResolvedValueOnce(true);
+    await request(imageEvent('https://photo.zalo/select.jpg', 'select-image'));
+    expect(photoReceivedReply).toHaveBeenCalled();
+    expect(fetchPhotoMock).not.toHaveBeenCalled();
+  });
+  it.each(['bổ sung', 'bổ sung 12', 'nộp lại', 'nộp lại 10'])('routes revision command %s directly', async command => {
+    mockStudent(); await request(event(command, 'revision-cmd'));
+    expect(revisionReply).toHaveBeenCalledWith('bot-1', 'user-1', 'c', 's', 'student', command.startsWith('bổ') ? 'supplement' : 'replace', /\d+$/.test(command) ? Number(command.match(/\d+$/)![0]) : undefined);
+    expect(answerDetailed).not.toHaveBeenCalled();
+  });
+  it.each([['hủy', false], ['xác nhận hủy', true]] as const)('routes %s with explicit confirmation flag', async (command, confirmed) => {
+    mockStudent(); await request(event(command, 'cancel-cmd'));
+    expect(requestPhotoCancellation).toHaveBeenCalledWith('bot-1', 'user-1', confirmed);
+  });
+  it.each([8, 10, 25])('number %s selects the displayed assignment before menu interpretation', async number => {
+    mockStudent(); vi.mocked(pickAssignmentByNumber).mockResolvedValueOnce('PICK_OK');
+    await request(event(String(number), 'choose-number'));
+    expect(pickAssignmentByNumber).toHaveBeenCalledWith('bot-1', 'user-1', 'c', 's', number, 'student');
+    expect(JSON.parse(sent()[0][1].body).text).toBe('PICK_OK');
   });
   it('ảnh thiếu URL hoặc sai giao thức → 400, không chạm getMe', async () => {
     expect((await request(imageEvent(null))).code).toBe(400);
@@ -559,26 +597,27 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
   });
   it('HS nhắn chấm 1 → mở phiên đúng bài số 1 với teacherId từ lớp', async () => {
     mockStudent();
+    vi.mocked(pickAssignmentByNumber).mockResolvedValueOnce('OPEN_OK');
     await request(event('chấm 1', 'm-9'));
-    expect(openPhotoSession).toHaveBeenCalledWith('bot-1', 'user-1', { studentId: 's', classId: 'c', teacherId: 't-1' }, { id: 'a-1', title: 'Bài 1' });
+    expect(pickAssignmentByNumber).toHaveBeenCalledWith('bot-1','user-1','c','s',1,'student');
     expect(JSON.parse(sent()[0][1].body).text).toBe('OPEN_OK');
   });
   it('HS nhắn số vượt danh sách → trả lại danh sách, không mở phiên', async () => {
     mockStudent();
     await request(event('chấm 5', 'm-10'));
     expect(openPhotoSession).not.toHaveBeenCalled();
-    expect(JSON.parse(sent()[0][1].body).text).toContain('Số không khớp');
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Nhắn chấm để xem danh sách');
   });
   it('HS nhắn xong → finishPhotoSession', async () => {
     mockStudent();
     await request(event('xong', 'm-11'));
-    expect(finishPhotoSession).toHaveBeenCalledWith('bot-1', 'user-1');
+    expect(finishPhotoSession).toHaveBeenCalledWith('bot-1', 'user-1', expect.objectContaining({ classId: 'c', studentId: 's' }));
     expect(JSON.parse(sent()[0][1].body).text).toBe('FINISH_OK');
   });
   it('HS nhắn 0 → hủy phiên ảnh rồi mới hiện menu', async () => {
     mockStudent();
     await request(event('0', 'm-12'));
-    expect(cancelPhotoSession).toHaveBeenCalledWith('bot-1', 'user-1');
+    expect(cancelPhotoSession).not.toHaveBeenCalled();
     expect(parentMenuReply).toHaveBeenCalled();
     expect(JSON.parse(sent()[0][1].body).text).toBe('MENU_DUNG_HO_SO');
   });
@@ -623,9 +662,9 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
   });
   it('PH nhắn lệnh chấm 1 → mở phiên photo nộp hộ con', async () => {
     vi.mocked(resolveChannelActor).mockResolvedValueOnce(parentActor);
+    vi.mocked(pickAssignmentByNumber).mockResolvedValueOnce('OPEN_OK');
     await request(event('chấm 1', 'm-13'));
-    expect(pendingAssignmentsForStudent).toHaveBeenCalledWith('c', 's');
-    expect(openPhotoSession).toHaveBeenCalledWith('bot-1', 'user-1', { studentId: 's', classId: 'c', teacherId: 't-1', role: 'parent' }, { id: 'a-1', title: 'Bài 1' });
+    expect(pickAssignmentByNumber).toHaveBeenCalledWith('bot-1','user-1','c','s',1,'parent');
   });
 });
 
@@ -668,9 +707,10 @@ describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10
     const [token, chatId, spec, caption, classId] = sendGeometryPhotoMock.mock.calls[0] as unknown as string[];
     expect(spec).toEqual({ shape: 'pyramid', base: 'square' });
     expect(caption).toContain('V = ⅓·a²·h');
-    expect(caption).toContain('/lop/R6RCFC');
+    expect(caption).toContain('https://example.com/ph/C#bot_web=opaque');
     expect(caption.endsWith('Nhắn 0 để xem lại menu.')).toBe(true);
     expect(classId).toBe('c-1');
+    expect(issueWebHandoff).toHaveBeenCalledWith({}, 'bot-1', 'user-1', 'student', 'c-1', 's-1');
     expect(token).toBe('fake-token');
     expect(chatId).toBe('user-1');
     expect(sent()).toHaveLength(0);
@@ -684,7 +724,7 @@ describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10
     expect(sent()).toHaveLength(1);
     const body = JSON.parse(sent()[0][1].body);
     expect(body.text).toContain('Lời giải hình nón.');
-    expect(body.text).toContain('/lop/R6RCFC');
+    expect(body.text).toContain('https://example.com/ph/C#bot_web=opaque');
   });
 
   it('câu hỏi không vẽ được (geometry null) → không gọi vẽ ảnh, gửi text như luồng cũ', async () => {
@@ -715,9 +755,10 @@ describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10
     expect(caption).not.toContain('⅓·a²·h');
     expect(caption).toContain('lời giải');
     expect(caption).not.toContain('$$');
-    expect(caption).toContain('/lop/R6RCFC');
+    expect(caption).toContain('https://example.com/ph/C#bot_web=opaque');
     expect(caption.endsWith('Nhắn 0 để xem lại menu.')).toBe(true);
     expect(classId).toBe('c-1');
+    expect(issueWebHandoff).toHaveBeenCalledWith({}, 'bot-1', 'user-1', 'student', 'c-1', 's-1');
     expect(sent()).toHaveLength(0);
   });
 

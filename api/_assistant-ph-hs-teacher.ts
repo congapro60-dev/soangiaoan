@@ -56,13 +56,13 @@ export const parseTeacherCommand = (message: string): TeacherCommand | null => {
   if (p === 'doi vai gv' || p === 've gv' || p === 'dong vai gv' || p === 'tro ve gv') return { kind: 'switchBack' };
 
   // Nhắn rõ "lop 1", "lop 2"
-  const explicitClassMatch = /^lop\s+([1-9]|1[0-9]|20)$/.exec(p);
+  const explicitClassMatch = /^lop\s+([1-9][0-9]*)$/.exec(p);
   if (explicitClassMatch) {
     return { kind: 'classDetail', classIndex: Number(explicitClassMatch[1]), isBareNumber: false };
   }
 
   // Nhắn số trần "1", "2"... 20
-  const bareNumMatch = /^([1-9]|1[0-9]|20)$/.exec(p);
+  const bareNumMatch = /^([1-9][0-9]*)$/.exec(p);
   if (bareNumMatch) {
     return { kind: 'classDetail', classIndex: Number(bareNumMatch[1]), isBareNumber: true };
   }
@@ -89,7 +89,7 @@ export const parseTeacherCommand = (message: string): TeacherCommand | null => {
 
 export const teacherClassesReply = async (db: Firestore, actor: AssistantActor): Promise<string> => {
   const snap = await db.collection('classes').where('teacherId', '==', actor.firebaseUid).get();
-  const classes = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) })).slice(0, 10);
+  const classes = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
   if (!classes.length) return ['Bạn chưa có lớp nào trên hệ thống.', '', TEACHER_HINT].join('\n');
   const lines = await Promise.all(classes.map(async (c, index) => {
     const roster = await db.collection('classes').doc(c.id).collection('students').get();
@@ -107,7 +107,7 @@ export const teacherClassesReply = async (db: Firestore, actor: AssistantActor):
 
 export const teacherClassDetailReply = async (db: Firestore, actor: AssistantActor, index: number): Promise<string> => {
   const snap = await db.collection('classes').where('teacherId', '==', actor.firebaseUid).get();
-  const classes = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) })).slice(0, 10);
+  const classes = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
   if (!classes.length || index < 1 || index > classes.length) {
     return `Lớp số ${index} không tồn tại. Nhắn: lop để xem lại danh sách lớp.`;
   }
@@ -124,12 +124,12 @@ export const teacherClassDetailReply = async (db: Firestore, actor: AssistantAct
     if (data.pinPlain) pinMap.set(doc.id, String(data.pinPlain));
   }
 
-  const lines = students.slice(0, 26).map((s, idx) => {
+  const lines = students.map((s, idx) => {
     const pin = pinMap.get(s.id);
     return `${idx + 1}. ${s.name || 'Không tên'}${pin ? ` — PIN: ${pin}` : ''}`;
   });
 
-  const more = students.length > 26 ? `\n... và ${students.length - 26} học sinh khác.` : '';
+  const more = '';
   const joinCodeText = cls.joinCode ? `🔑 Mã tham gia lớp: ${cls.joinCode}\n` : '';
   const sample = students[0]?.name ? students[0].name.split(' ').slice(-1)[0] : 'Tuệ Minh';
 
@@ -151,11 +151,11 @@ export const teacherClassDetailReply = async (db: Firestore, actor: AssistantAct
 /** Bài đang mở (isOpen !== false) của tối đa 5 lớp, đếm HS đã nộp/chưa nộp theo danh sách lớp. */
 export const teacherPendingReply = async (db: Firestore, actor: AssistantActor): Promise<string> => {
   const classesSnap = await db.collection('classes').where('teacherId', '==', actor.firebaseUid).get();
-  const classes = classesSnap.docs.map(doc => ({ id: doc.id, name: String((doc.data() as any)?.name ?? 'Chưa đặt tên') })).slice(0, 5);
+  const classes = classesSnap.docs.map(doc => ({ id: doc.id, name: String((doc.data() as any)?.name ?? 'Chưa đặt tên') }));
   const blocks: string[] = [];
   for (const cls of classes) {
     const aSnap = await db.collection('assignments').where('teacherId', '==', actor.firebaseUid).where('classId', '==', cls.id).get();
-    const open = aSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) })).filter(a => a.isOpen !== false).slice(0, 5);
+    const open = aSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) })).filter(a => a.isOpen !== false);
     if (!open.length) continue;
     const roster = await db.collection('classes').doc(cls.id).collection('students').get();
     const total = roster.docs.length;
@@ -163,7 +163,7 @@ export const teacherPendingReply = async (db: Firestore, actor: AssistantActor):
       const subSnap = await db.collection('submissions').where('teacherId', '==', actor.firebaseUid).where('assignmentId', '==', a.id).get();
       const submitted = new Set(subSnap.docs.map(doc => String((doc.data() as any)?.studentId ?? '')).filter(Boolean));
       const conLai = Math.max(0, total - submitted.size);
-      return `• ${String(a.title ?? 'Không tên')}${a.dueAt ? ` — hạn ${String(a.dueAt).slice(0, 10)}` : ''}: đã nộp ${submitted.size}/${total}${conLai ? ` — còn ${conLai} chưa nộp` : ' — đủ rồi'}`;
+      return `• ${String(a.title ?? 'Không tên')}${a.dueAt ? ` — hạn ${String(a.dueAt)}` : ''}: đã nộp ${submitted.size}/${total}${conLai ? ` — còn ${conLai} chưa nộp` : ' — đủ rồi'}`;
     }));
     blocks.push([`📌 ${cls.name}`, ...lines].join('\n'));
   }

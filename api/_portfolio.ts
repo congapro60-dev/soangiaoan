@@ -1,3 +1,4 @@
+import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 /**
  * Hồ sơ năng lực HS tự điền cùng GV — `competencyPortfolios/{classId}__{studentId}`, chỉ đi qua đây.
  * Học sinh: chỉ hồ sơ của CHÍNH mình (lớp + mã lấy từ `studentLinks`), chỉ sửa ô của HS.
@@ -48,7 +49,7 @@ const studentSession = async (db: Db, body: Body, res: VercelResponse) => {
   const link = (await db.collection('studentLinks').doc(uid).get()).data() as { classId?: unknown; studentId?: unknown } | undefined;
   const classId = typeof link?.classId === 'string' ? link.classId : '';
   const studentId = typeof link?.studentId === 'string' ? link.studentId : '';
-  if (!classId || !studentId) { res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập lớp mới dùng được hồ sơ năng lực.' }); return null; }
+  if (!classId || !studentId || !await verifyStudentBotLink(db, uid, link)) { res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập lớp mới dùng được hồ sơ năng lực.' }); return null; }
   const grade = asCompetencyGrade((await db.collection('classes').doc(classId).get()).data()?.grade);
   return { uid, classId, studentId, grade };
 };

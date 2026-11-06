@@ -1,3 +1,4 @@
+import { handleWebHandoffAction, bindParentWebCookie, verifyStudentBotLink } from './_assistant-web-handoff.js';
 import { handleCorrectionAttemptAction } from './_correction-attempts.js';
 import { handleHandMarkedWorkAction, handMarkedProjection } from './_hand-marked-work.js';
 import { assignmentSolutionInput, attachAssignmentSolutions } from './_assignment-solutions.js';
@@ -1141,7 +1142,7 @@ const handleStudentAssignments = async (db: FirebaseFirestore.Firestore, body: R
   if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập học sinh không hợp lệ.' });
 
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới xem được bài tập.' });
+  if (!linkSnap.exists || !await verifyStudentBotLink(db, uid, linkSnap.data())) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới xem được bài tập.' });
   const link = linkSnap.data() as { classId?: unknown; studentId?: unknown };
   const classId = typeof link.classId === 'string' ? link.classId : '';
   const studentId = typeof link.studentId === 'string' ? link.studentId : '';
@@ -1170,7 +1171,7 @@ const handleStudentSubmissions = async (db: FirebaseFirestore.Firestore, body: R
   if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập học sinh không hợp lệ.' });
 
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới xem được bài nộp.' });
+  if (!linkSnap.exists || !await verifyStudentBotLink(db, uid, linkSnap.data())) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới xem được bài nộp.' });
   const link = linkSnap.data() as { studentId?: unknown; classId?: unknown; teacherId?: unknown };
   const studentId = typeof link.studentId === 'string' ? link.studentId : '';
   const classId = typeof link.classId === 'string' ? link.classId : '';
@@ -1199,7 +1200,7 @@ const handleStudentNotifications = async (db: FirebaseFirestore.Firestore, body:
   if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập học sinh không hợp lệ.' });
 
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới xem được thông báo.' });
+  if (!linkSnap.exists || !await verifyStudentBotLink(db, uid, linkSnap.data())) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới xem được thông báo.' });
   const link = linkSnap.data() as { studentId?: unknown; classId?: unknown; teacherId?: unknown };
   const studentId = typeof link.studentId === 'string' ? link.studentId : '';
   const classId = typeof link.classId === 'string' ? link.classId : '';
@@ -1533,6 +1534,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const body = readBody(req);
+  bindParentWebCookie(body, req.headers?.cookie);
   body.uploadOrigin = typeof req.headers?.origin === 'string' ? req.headers.origin : '';
   const action = String(body.action || '');
   // Ngữ cảnh đếm token (chấm bài thi online dùng khoá chung). Không tốn gì với action không gọi AI.
@@ -1545,6 +1547,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof readBody>, action: string) {
   try {
     const db = getAdminDb();
+    if (await handleWebHandoffAction(db, body, res)) return;
     if (await handleV871PreparePreview(db, body, res)) return;
     if (await handleV832Action(db, body, res)) return;
     if (await handleV832RepairAction(db, body, res)) return;

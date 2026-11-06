@@ -677,6 +677,9 @@ export const handleCreateAssignment = async (db: Db, body: Body, res: VercelResp
   if (!context) return;
   const title = typeof input.title === 'string' ? input.title.trim() : '';
   if (!title) return void res.status(422).json({ error: 'Tên bài giao không được để trống.' });
+  if (input.description !== undefined && (typeof input.description !== 'string' || input.description.length > 2000)) {
+    return void res.status(422).json({ error: 'Yêu cầu hiển thị trên bot phải là văn bản tối đa 2000 ký tự.' });
+  }
   const id = safeId(input.id, `asg_${Date.now()}_${Math.random().toString(16).slice(2)}`);
   const now = nowIso();
   // Bài kiểm tra định kì: chỉ nhận mã đề hợp lệ, mã nào cũng phải có đáp án (thiếu là cả lớp mã đó bị chấm mò).
@@ -698,7 +701,7 @@ export const handleCreateAssignment = async (db: Db, body: Body, res: VercelResp
     teacherId: String(context.classData.teacherId || context.uid),
     classId: context.classId,
     title,
-    description: typeof input.description === 'string' ? input.description : '',
+    description: typeof input.description === 'string' ? input.description.trim() : '',
     type: 'upload',
     isOpen: input.isOpen !== false,
     createdAt: typeof input.createdAt === 'string' ? input.createdAt : now,
@@ -929,6 +932,11 @@ export const handleUpdateAssignment = async (db: Db, body: Body, res: VercelResp
   } else if (action === 'updateAssignmentContent') {
     const raw = body.patch;
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return void res.status(422).json({ error: 'Nội dung cập nhật không hợp lệ.' });
+    if ('description' in raw) {
+      const description = (raw as Body).description;
+      if (typeof description !== 'string' || description.length > 2000) return void res.status(422).json({ error: 'Yêu cầu hiển thị trên bot phải là văn bản tối đa 2000 ký tự.' });
+      patch.description = description.trim();
+    }
     for (const key of ['answerKey', 'rubric', 'gradingInstructions', 'sourceText', 'teacherNote']) {
       if (typeof (raw as Body)[key] === 'string') patch[key] = (raw as Body)[key];
     }

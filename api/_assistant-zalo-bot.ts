@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { issueWebHandoff, confirmWebHandoff } from './_assistant-web-handoff.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from './_assistant-auth.js';
 import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssistantConfirmation } from './_assistant-confirmations.js';
@@ -13,7 +14,7 @@ import { getAdminDb } from './_exam-core.js';
 import { secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
 import { splitForChat } from './_assistant-natural-reply.js';
 import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
-import { PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, isPendingListQuestion, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
+import { PHOTO_REPLIES, revisionReply, requestPhotoCancellation, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
 import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveGroupImage, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
 import { requestRegrade } from './_assistant-ph-hs-regrade.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
@@ -143,11 +144,9 @@ const chooseAndOpen = async (
   botId: string, userId: string, classId: string, studentId: string,
   cmd: { kind: 'list' } | { kind: 'pick'; n: number }, role?: 'student' | 'parent',
 ): Promise<string> => {
-  const { teacherId, items, total } = await pendingAssignmentsForStudent(classId, studentId);
-  if (cmd.kind === 'list' || !items.length) return photoListReply(items, total);
-  const target = cmd.n >= 1 && cmd.n <= items.length ? items[cmd.n - 1] : null;
-  if (!target) return `Số không khớp danh sách.\n\n${photoListReply(items, total)}`;
-  return openPhotoSession(botId, userId, { studentId, classId, teacherId, ...(role && role !== 'student' ? { role } : {}) }, target);
+  if (cmd.kind === 'list') return listPendingReply(botId, userId, classId, studentId, role);
+  const picked = await pickAssignmentByNumber(botId, userId, classId, studentId, cmd.n, role);
+  return picked ?? `Nhắn chấm để xem danh sách, rồi nhắn số thứ tự bài muốn nộp.`;
 };
 /**
  * Ảnh HS gửi — HAI Ý ĐỊNH KHÁC NHAU, phải phân biệt (lỗi thật 29/10):
@@ -166,7 +165,7 @@ const dispatchPhotoMessage = async (token: string, botId: string, userId: string
   const classId = String((linked as any).classId ?? ''); const studentId = String((linked as any).studentId ?? '');
   if (!classId || !studentId) return MENU_REPLIES.noData;
   // (a) Đang nộp bài → giữ nguyên luồng nhận ảnh bài làm.
-  if (await hasLiveAssignmentSession(botId, userId)) return photoReceivedReply(botId, userId, photoUrl);
+  if (await hasPhotoSubmissionIntent(botId, userId)) return photoReceivedReply(botId, userId, photoUrl, { classId, studentId, role, linkId: linked.linkId });
   // (a2) Phiên nộp vừa hết hạn (HS làm bài lâu) → nhắc chọn lại bài, KHÔNG đem ảnh đi giải đề
   // (sự cố 3–4/11: ảnh bài làm bị coi là đề nhờ giải nên web không có bài nộp nào).
   if (await hasExpiredAssignmentSession(botId, userId)) return PHOTO_REPLIES.expiredSession;
@@ -190,7 +189,9 @@ const solvePhotoAsQuestion = async (
   sendTyping(token, chatId);
   const answer = await solveProblemFromImage(image, bundle.report, bundle.periodicIds, role);
   if (!answer) { await sendStyled(token, chatId, IMAGE_SOLVE_REPLIES.busy); return; }
-  const fullCaption = withWebPortalLink(answer.text, role, bundle.joinCode);
+  let authenticatedUrl: string | undefined;
+  try { authenticatedUrl = await issueWebHandoff(getAdminDb(), botId, chatId, role, classId, studentId); } catch { /* PIN fallback */ }
+  const fullCaption = withWebPortalLink(answer.text, role, bundle.joinCode, authenticatedUrl);
   let photoSent = false;
   if (answer.geometry) photoSent = await sendGeometryPhoto(token, chatId, answer.geometry, fullCaption, classId, sendPhoto);
   else if (answer.hasMath) photoSent = await sendMathFormulaPhoto(token, chatId, answer.mathSource, fullCaption, classId, sendPhoto);
@@ -286,8 +287,19 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
   if (role === 'parent' || role === 'student') {
     const classId = String(linkedActor.classId ?? ''); const studentId = String(linkedActor.studentId ?? '');
     if (!classId || !studentId) return MENU_REPLIES.noData;
+    const handoffConfirmation = await confirmWebHandoff(getAdminDb(), botId, userId, message);
+    if (handoffConfirmation !== null) { await sendStyled(token, chatId, handoffConfirmation, false); return ''; }
+    if (/^(web|link)$/i.test(message.trim())) {
+      try {
+        const url = await issueWebHandoff(getAdminDb(), botId, userId, role, classId, studentId);
+        await sendStyled(token, chatId, `Mở web đúng hồ sơ của bạn:\n${url}\nTrang web sẽ hướng dẫn xác nhận trong chat.`, false);
+      } catch { await sendStyled(token, chatId, 'Chưa tạo được link mở web. Bạn thử lại sau hoặc dùng mã PIN trên web.'); }
+      return '';
+    }
     // Việc 4 — mục 8 của HS & PH (nộp bài bằng ảnh): bắt trước parse menu thường.
     if ((role === 'student' || role === 'parent') && message.trim() === '8') {
+      const picked = await pickAssignmentByNumber(botId, userId, classId, studentId, 8, role);
+      if (picked !== null) { await sendStyled(token, chatId, picked); return ''; }
       const listReply = await listPendingReply(botId, userId, classId, studentId, role);
       await sendStyled(token, chatId, listReply);
       return '';
@@ -300,7 +312,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
         await sendStyled(token, chatId, 'ℹ️ Chấm lại là chức năng dành cho học sinh.\n\nPhụ huynh nhắn 0 để xem lại menu.');
         return '';
       }
-      const outcome = await requestRegrade(botId, userId, chatId, classId, studentId);
+      const outcome = await requestRegrade(botId, userId, chatId, classId, studentId, token);
       console.log(`[regrade] ket qua: ${outcome.kind}`);
       await sendStyled(token, chatId, outcome.kind === 'started'
         ? `⏳ Đang chấm lại bài "${outcome.title}" ở chế độ đọc kỹ, em chờ khoảng 1–2 phút nhé.\n\n⚠️ Đang load vui lòng đợi — không nhắn thêm câu lệnh để tránh bị gián đoạn nhé.`
@@ -309,15 +321,20 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     }
     // Đang CHỜ CHỌN BÀI (vừa nhắn 8): số thuần "1".."9" = chọn bài đó, KHÔNG rơi vào menu
     // mục 1–7 (lỗi thật 29/10: HS chọn bài 1 lại nhận "Tổng quan học tập").
-    if ((role === 'student' || role === 'parent') && /^[1-9]$/.test(message.trim())) {
+    if ((role === 'student' || role === 'parent') && /^[1-9][0-9]*$/.test(message.trim())) {
       const picked = await pickAssignmentByNumber(botId, userId, classId, studentId, Number(message.trim()), role);
       if (picked !== null) { await sendStyled(token, chatId, picked); return ''; }
+    }
+    // Cancellation must precede menu aliases such as "hủy".
+    if ((role === 'student' || role === 'parent') && parsePhotoCommand(message)?.kind === 'cancel') {
+      await sendStyled(token, chatId, await requestPhotoCancellation(botId, userId, /^xác nhận hủy$|^xac nhan huy$/i.test(message.trim())));
+      return '';
     }
     // Menu (0–8) + 'web' đi trước; tin không khớp thì chuyển cho trợ lý AI trả lời tự do.
     const choice = parseMenuChoice(message);
     if (choice.kind !== 'invalid') {
-      // HS/PH nhắn 0 (xem lại menu) hoặc hủy: xóa phiên ảnh đang mở nếu có.
-      if (choice.kind === 'menu') await cancelPhotoSession(botId, userId);
+      // Xem menu không làm mất ảnh đã nhận; hủy cần xác nhận riêng.
+      // Menu preserves accepted photos. Explicit cancellation is confirmed separately.
       if (choice.kind === 'help') {
         const helpText = [
           '💡 HƯỚNG DẪN SỬ DỤNG CÁC TÍNH NĂNG SMARTPLAN AI:',
@@ -331,7 +348,8 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
           '• Nhắn 8 hoặc chấm: Xem danh sách bài cần nộp.',
           '• Nhắn số thứ tự bài (ví dụ: 1): Bắt đầu gửi ảnh bài làm.',
           '• Nhắn xong: Hoàn tất nộp bài và chờ máy chấm.',
-          '• Nhắn đổi bài: Hủy phiên nộp bài dở dang để chọn lại.',
+          '• Nhắn hủy rồi xác nhận hủy: Bỏ phiên hiện tại. Nhắn 0 giữ ảnh.',
+          '• Nhắn bổ sung hoặc nộp lại: Thêm ảnh hoặc thay bộ ảnh cho bài đã nộp.',
           ...(role === 'student'
             ? ['', '3️⃣ Chấm lại bài (Dành cho Học sinh):', '• Nhắn: chấm lại (khi thấy kết quả chưa chính xác để máy đọc kỹ lại).']
             : ['', '3️⃣ Chuyển đổi con (Phụ huynh có nhiều con):', '• Nhắn 9 hoặc đổi con: Chuyển đổi sang hồ sơ con khác.']),
@@ -375,12 +393,9 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     if (role === 'student' || role === 'parent') {
       const photoCmd = parsePhotoCommand(message);
       if (photoCmd) {
-        if (photoCmd.kind === 'cancel') {
-          await cancelPhotoSession(botId, userId);
-          await sendStyled(token, chatId, PHOTO_REPLIES.cancelSuccess);
-          return '';
-        }
-        const photoReply = photoCmd.kind === 'done' ? await finishPhotoSession(botId, userId)
+        if (photoCmd.kind === 'cancel') return '';
+        const photoReply = photoCmd.kind === 'revision' ? await revisionReply(botId, userId, classId, studentId, role, photoCmd.mode, photoCmd.n)
+          : photoCmd.kind === 'done' ? await finishPhotoSession(botId, userId, { classId, studentId, role, linkId: linked.linkId })
           : photoCmd.kind === 'assist' ? (role === 'student' ? await assistStartReply(botId, userId, classId, studentId) : null)
           : photoCmd.kind === 'assistPick' ? (role === 'student' ? await assistOpenReply(botId, userId, classId, studentId, photoCmd.n) : null)
           : photoCmd.kind === 'assistChoose' ? (role === 'student' ? await assistChooseReply(botId, userId, classId, photoCmd.n) : null)
@@ -420,7 +435,9 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       // chèn ngay trước "Nhắn 0 để xem lại menu" để em luôn bấm được vào web.
       // Gửi THUẦN (không qua output() che link) như nhánh menu-link, nếu không URL
       // bị đổi thành "[đã ẩn liên kết]" và HS không bấm được.
-      const fullCaption = withWebPortalLink(detail.text, role, bundle.joinCode);
+      let authenticatedUrl: string | undefined;
+      try { authenticatedUrl = await issueWebHandoff(getAdminDb(), botId, userId, role, classId, studentId); } catch { /* ordinary PIN portal remains usable */ }
+      const fullCaption = withWebPortalLink(detail.text, role, bundle.joinCode, authenticatedUrl);
       // Thứ tự ưu tiên (chốt 28/10, bổ sung 29/10):
       // 1. AI vẽ được hình (khối geometry) → gửi ẢNH HÌNH kèm caption LỜI GIẢI ĐẦY ĐỦ
       //    (ảnh chỉ chứa hình vẽ, lời giải nằm ở caption — không phải lặp).
@@ -434,7 +451,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
         photoSent = await sendGeometryPhoto(token, chatId, detail.geometry, fullCaption, classId, sendPhoto);
       } else if (detail.hasMath) {
         // PHẢI truyền mathSource (còn LaTeX) — không phải text đã convert Unicode.
-        const photoCaption = withWebPortalLink('Em xem lời giải trình bày đẹp trong ảnh nhé 👆', role, bundle.joinCode);
+        const photoCaption = withWebPortalLink('Em xem lời giải trình bày đẹp trong ảnh nhé 👆', role, bundle.joinCode, authenticatedUrl);
         photoSent = await sendMathFormulaPhoto(token, chatId, detail.mathSource, photoCaption, classId, sendPhoto);
       }
       if (!photoSent) await sendChatty(token, chatId, fullCaption);

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeDb } from './_fake-db.js';
 import {
-  MAX_PHOTOS, PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply,
+  listPendingReply, pickAssignmentByNumber, revisionReply, requestPhotoCancellation, MAX_PHOTOS, PHOTO_REPLIES, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply,
   assistTargetReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession,
-  hasLiveAssignmentSession, isCongratulation, isPendingListQuestion, openPhotoSession,
+  hasLiveAssignmentSession, hasPhotoSubmissionIntent, isCongratulation, isPendingListQuestion, openPhotoSession,
   parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply,
 } from '../_assistant-ph-hs-photo.js';
 import { emptyQuota, chayNgam, getGradingChain } from '../_grading-core';
@@ -23,6 +23,7 @@ vi.mock('../_exam-core', () => ({
     name: 'test-bucket',
     file: (path: string) => ({
       save: async (buffer: Buffer, opts: any) => { h.files.set(path, { buffer, meta: opts }); },
+      delete: async () => { h.files.delete(path); },
       setMetadata: async (meta: any) => { const cur = h.files.get(path)!; cur.meta = { ...cur.meta, ...meta }; },
     }),
   }),
@@ -52,12 +53,14 @@ const lastSentText = () => JSON.parse(sent().at(-1)![1].body).text as string;
 
 const seedClass = () => {
   h.db.put('classes/c1', { name: 'Lớp 1', teacherId: 'gv1' });
+  h.db.put('classes/c1/students/s1', { name: 'Học sinh thử' });
   h.db.put('assignments/a1', { classId: 'c1', teacherId: 'gv1', title: 'BTVN tuần 5', maxScore: 10, dueAt: '2026-10-27' });
 };
 const openSessionForA1 = async () => {
   await openPhotoSession(BOT, USER, { studentId: 's1', classId: 'c1', teacherId: 'gv1' }, { id: 'a1', title: 'BTVN tuần 5' });
 };
-const putPhoto = async () => await photoReceivedReply(BOT, USER, 'https://photo.zalo/abc.jpg');
+let photoSequence = 0;
+const putPhoto = async () => await photoReceivedReply(BOT, USER, `https://photo.zalo/${++photoSequence}.jpg`);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -67,7 +70,7 @@ beforeEach(() => {
   photoMime = 'image/jpeg';
   fetchMock = vi.fn(async (url: unknown) => {
     const u = String(url);
-    if (u.includes('bot-api.zaloplatforms.com')) return { ok: true, json: async () => ({}) };
+    if (u.includes('bot-api.zaloplatforms.com')) return { ok: true, json: async () => ({ ok: true }) };
     return { ok: true, headers: { get: (k: string) => k === 'content-type' ? photoMime : null }, arrayBuffer: async () => photoBytes };
   });
   vi.stubGlobal('fetch', fetchMock);
@@ -89,12 +92,33 @@ beforeEach(() => {
   (globalThis as any).__photoBg = () => Promise.all(bgAll);
 });
 
+it('commit ảnh thành công nhưng mất xác nhận không được xóa ảnh đã gắn vào phiên', async () => {
+  seedClass();
+  await openSessionForA1();
+  const transaction = h.db.runTransaction.bind(h.db);
+  let calls = 0;
+  h.db.runTransaction = async (work: any) => {
+    const result = await transaction(work);
+    if (++calls === 2) throw new Error('Commit acknowledgement lost');
+    return result;
+  };
+  const url = 'https://photo.zalo/uncertain-commit.jpg';
+  await photoReceivedReply(BOT, USER, url);
+  expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+  expect(h.files.size).toBe(1);
+  expect(await photoReceivedReply(BOT, USER, url)).toContain('đã được nhận');
+  expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+});
+
 describe('parsePhotoCommand', () => {
   it('nhận chấm / chấm N / xong, bỏ dấu và hoa/thường', () => {
     expect(parsePhotoCommand('chấm')).toEqual({ kind: 'list' });
     expect(parsePhotoCommand('chấm 2')).toEqual({ kind: 'pick', n: 2 });
     expect(parsePhotoCommand('cham 2')).toEqual({ kind: 'pick', n: 2 });
     expect(parsePhotoCommand('CHẤM 12')).toEqual({ kind: 'pick', n: 12 });
+    expect(parsePhotoCommand('chấm 100')).toEqual({ kind: 'pick', n: 100 });
+    expect(parsePhotoCommand('nộp hộ 100')).toEqual({ kind: 'assistPick', n: 100 });
+    expect(parsePhotoCommand('chọn 100')).toEqual({ kind: 'assistChoose', n: 100 });
     expect(parsePhotoCommand('xong')).toEqual({ kind: 'done' });
     expect(parsePhotoCommand('gui')).toEqual({ kind: 'done' });
     expect(parsePhotoCommand('gửi')).toEqual({ kind: 'done' });
@@ -125,16 +149,16 @@ describe('pendingAssignmentsForStudent', () => {
     const out = await pendingAssignmentsForStudent('c1', 's1');
     expect(out.teacherId).toBe('gv1');
     // Cả a1 (hạn 27/10) và a6 (hạn 26/10) đều đã quá hạn → sắp theo hạn tăng dần, kèm nhãn quá hạn.
-    expect(out.items.map(i => i.id)).toEqual(['a6', 'a1']);
+    expect(out.items.map(i => i.id)).toEqual(['a1', 'a6']);
     expect(out.items.every(i => i.overdue)).toBe(true);
     expect(out.total).toBe(2);
   });
   it('bài CÒN HẠN đứng trước bài quá hạn; quá hạn gắn cờ overdue', async () => {
     seed();
     const future = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
-    h.db.put('assignments/soon', { classId: 'c1', teacherId: 'gv1', title: 'Còn hạn', maxScore: 10, dueAt: future, targetStudentIds: ['s1'] });
+    h.db.put('assignments/soon', { classId: 'c1', teacherId: 'gv1', title: 'Còn hạn', createdAt: '2026-11-06', maxScore: 10, dueAt: future, targetStudentIds: ['s1'] });
     const out = await pendingAssignmentsForStudent('c1', 's1');
-    expect(out.items.map(i => i.id)).toEqual(['soon', 'a6', 'a1']);
+    expect(out.items.map(i => i.id)).toEqual(['soon', 'a1', 'a6']);
     expect(out.items[0].overdue).toBe(false);
     expect(out.total).toBe(3);
   });
@@ -143,13 +167,13 @@ describe('pendingAssignmentsForStudent', () => {
     const today = new Date();
     for (let i = 1; i <= 12; i++) {
       const due = new Date(today.getTime() + i * 86_400_000).toISOString().slice(0, 10);
-      h.db.put(`assignments/bulk-${i}`, { classId: 'c1', teacherId: 'gv1', title: `Bài số ${i}`, maxScore: 10, dueAt: due });
+      h.db.put(`assignments/bulk-${i}`, { classId: 'c1', teacherId: 'gv1', title: `Bài số ${i}`, createdAt: String(i).padStart(3, '0'), maxScore: 10, dueAt: due });
     }
     const out = await pendingAssignmentsForStudent('c1', 's1');
     expect(out.total).toBe(14); // 12 bài mới + a1 + a6 (cả hai đã quá hạn nhưng vẫn tính vào tổng)
     expect(out.items).toHaveLength(14);
-    expect(out.items[0].title).toBe('Bài số 1'); // hạn gần nhất lên đầu
-    expect(out.items.filter(i => i.overdue).map(i => i.id)).toEqual(['a6', 'a1']); // quá hạn xếp sau bài còn hạn
+    expect(out.items[0].title).toBe('Bài số 12'); // hạn gần nhất lên đầu
+    expect(out.items.filter(i => i.overdue).map(i => i.id)).toEqual(['a1', 'a6']); // quá hạn xếp sau bài còn hạn
   });
   it('lớp không tồn tại → danh sách rỗng, teacherId rỗng', async () => {
     expect(await pendingAssignmentsForStudent('nope', 's1')).toEqual({ teacherId: '', items: [], total: 0 });
@@ -192,8 +216,9 @@ describe('pendingAssignmentsForStudent', () => {
       ],
     }];
     const reply = photoListReply(items);
-    expect(reply).toContain('📄 de.pdf: https://example.com/de.pdf');
-    expect(reply).toContain('🖼️ anh.jpg: https://example.com/anh.jpg');
+    expect(reply).toContain('Đề bài: 2 tệp');
+    expect(reply).not.toContain('https://example.com');
+    expect(reply).not.toContain('mục nữa');
   });
 });
 
@@ -211,7 +236,7 @@ describe('phiên nhận ảnh', () => {
     expect(session.studentId).toBe('s1');
   });
 
-  it('mở phiên với file đính kèm → hiển thị link file kèm icon', async () => {
+  it('mở phiên với file đính kèm → tên tệp gọn, không lộ URL Storage', async () => {
     seedClass();
     const reply = await openPhotoSession(BOT, USER, { studentId: 's1', classId: 'c1', teacherId: 'gv1' }, {
       id: 'a1',
@@ -222,9 +247,10 @@ describe('phiên nhận ảnh', () => {
       ],
     });
     expect(reply).toContain('Bài có PDF');
-    expect(reply).toContain('📎 File đề bài:');
-    expect(reply).toContain('📄 de-thi.pdf: https://firebasestorage.../de-thi.pdf');
-    expect(reply).toContain('🖼️ anh.jpg: https://firebasestorage.../anh.jpg');
+    expect(reply).toContain('Đề bài: 2 tệp đính kèm.');
+    expect(reply).toContain('📄 de-thi.pdf');
+    expect(reply).not.toContain('https://firebasestorage');
+    expect(reply).toContain('🖼️ anh.jpg');
     expect(reply).toContain('HƯỚNG DẪN NỘP BÀI');
   });
   it('nhắn 0 hủy phiên: có phiên thì xóa, không phiên thì vô hại', async () => {
@@ -330,7 +356,7 @@ describe('finishPhotoSession — hợp lệ hoá trước khi chấm', () => {
     await openSessionForA1();
     await putPhoto();
     expect(await finishPhotoSession(BOT, USER)).toContain('đang chờ chấm');
-    expect(h.db.rows.has(SESSION_PATH)).toBe(false);
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
   });
   it('hết hạn mức theo em → câu từ chối y hệt web, hủy phiên', async () => {
     seedClass();
@@ -338,7 +364,7 @@ describe('finishPhotoSession — hợp lệ hoá trước khi chấm', () => {
     await openSessionForA1();
     await putPhoto();
     expect(await finishPhotoSession(BOT, USER)).toContain('Mỗi ngày em chỉ nhờ chấm được 5 bài');
-    expect(h.db.rows.has(SESSION_PATH)).toBe(false);
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
   });
 });
 
@@ -381,7 +407,7 @@ describe('finishPhotoSession — tạo bài nộp + chấm + báo tin', () => {
     expect(call[6]).toBe('quick');
     expect(call[8]).toBe(55_000);
     expect(call[9]).toBe(10_000);
-    expect(lastSentText()).toContain('Chấm xong bài "BTVN tuần 5": 8/10 điểm');
+    expect(lastSentText()).toContain('Đã xử lý bài "BTVN tuần 5": 8/10 điểm');
     expect(lastSentText()).toContain('Nhắn 0 để xem lại menu.');
   });
   it('chưa cấu hình khoá chấm (chuỗi rỗng) → bài vẫn lưu, tin báo tử tế', async () => {
@@ -433,6 +459,7 @@ describe('finishPhotoSession — tạo bài nộp + chấm + báo tin', () => {
 describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
   const seedAssistClass = () => {
     h.db.put('classes/c1', { name: 'Lớp 1', teacherId: 'gv1' });
+  h.db.put('classes/c1/students/s1', { name: 'Học sinh thử' });
     h.db.put('classes/c1/students/s1', { name: 'An Bình' }); // người nộp hộ
     h.db.put('classes/c1/students/s2', { name: 'An Bình' }); // trùng tên
     h.db.put('classes/c1/students/s3', { name: 'Cường Đẹp' });
@@ -546,7 +573,8 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     expect(quota.byStudent.s3).toBe(1);
     expect(quota.byStudent.s1).toBeUndefined();
     await (globalThis as any).__photoBg();
-    expect(lastSentText()).toContain('Chấm xong bài "BTVN tuần 5" của Cường Đẹp: 7/10 điểm');
+    expect(lastSentText()).toContain('Đã xử lý bài "BTVN tuần 5" của Cường Đẹp');
+    expect(lastSentText()).not.toContain('7/10');
   });
 
   it('bạn được nộp hộ đã nộp bài rồi → chặn ngay bước tra tên, hủy luồng', async () => {
@@ -574,7 +602,7 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     await putPhoto();
     const reply = await assistStartReply(BOT, USER, 'c1', 's1');
     expect(reply).toContain('đang nộp bài "BTVN tuần 5" với 1 ảnh');
-    expect(reply).toContain('0 để hủy');
+    expect(reply).toContain('xác nhận hủy');
     const session = h.db.rows.get(SESSION_PATH);
     expect(session.photos).toHaveLength(1);
     expect(session.assistState).toBeUndefined();
@@ -715,6 +743,7 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     await assistOpenReply(BOT, USER, 'c1', 's1', 1);
     await putPhoto();
     const other = 'user-2';
+    h.db.put('classes/c1/students/s4', { name: 'Người nộp hộ thứ hai' });
     await assistStartReply(BOT, other, 'c1', 's4');
     await assistTargetReply(BOT, other, 'c1', 'cuong dep');
     await assistOpenReply(BOT, other, 'c1', 's4', 1);
@@ -766,9 +795,9 @@ describe('nộp hộ — HS gửi bài hộ bạn cùng lớp', () => {
     await ready;
     await assistStartReply(BOT, USER, 'c1', 's1');
     release();
-    expect(await receiving).not.toContain('Đã nhận ảnh');
-    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(0);
-    expect(h.db.rows.get(SESSION_PATH).assistState).toBe('name');
+    expect(await receiving).toContain('Đã nhận ảnh');
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+    expect(h.db.rows.get(SESSION_PATH).assistState).toBeUndefined();
   });
 
   it('A2 — đổi từ phiên nộp hộ có ảnh sang chấm thường không xóa ảnh', async () => {
@@ -911,4 +940,168 @@ describe('isPendingListQuestion — "tay chân" cho AI (hướng A)', () => {
       'x'.repeat(200),
     ]) expect(isPendingListQuestion(q)).toBe(false);
   });
+});
+
+
+describe('2026-11-06 reliable intake and immutable revisions', () => {
+  it('finish waits for in-flight download and preserves all received photos', async () => {
+    seedClass(); await openSessionForA1(); await putPhoto();
+    let release!: () => void; let started!: () => void;
+    const ready = new Promise<void>(resolve => { started = resolve; });
+    const wait = new Promise<void>(resolve => { release = resolve; });
+    fetchMock.mockImplementationOnce(async () => { started(); await wait; return { ok: true, headers: { get: () => 'image/jpeg' }, arrayBuffer: async () => photoBytes }; });
+    const receiving = putPhoto(); await ready;
+    expect(await finishPhotoSession(BOT, USER)).toContain('Ảnh đang tải');
+    expect([...h.db.rows.keys()].filter(k => k.startsWith('submissions/'))).toHaveLength(0);
+    release(); await receiving;
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(2);
+    expect(await finishPhotoSession(BOT, USER)).toContain('Đã nhận bài');
+    expect([...h.db.rows.entries()].find(([k]) => k.startsWith('submissions/'))![1].fileUrls).toHaveLength(2);
+    await (globalThis as any).__photoBg();
+  });
+  it('duplicate photo URL reserves and stores only once under concurrent delivery', async () => {
+    seedClass(); await openSessionForA1();
+    const replies = await Promise.all([photoReceivedReply(BOT, USER, 'https://photo.zalo/same.jpg'), photoReceivedReply(BOT, USER, 'https://photo.zalo/same.jpg')]);
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+    expect(h.files.size).toBe(1);
+    expect(replies.some(r => r.includes('đang tải') || r.includes('đã được nhận'))).toBe(true);
+  });
+  it('explicit cancellation needs confirmation before discarding photos', async () => {
+    seedClass(); await openSessionForA1(); await putPhoto();
+    expect(await requestPhotoCancellation(BOT, USER, false)).toContain('xác nhận hủy');
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+    await requestPhotoCancellation(BOT, USER, true);
+    expect(h.db.rows.has(SESSION_PATH)).toBe(false);
+  });
+  it('new assignment cannot silently change the displayed selection number', async () => {
+    seedClass();
+    await listPendingReply(BOT, USER, 'c1', 's1');
+    h.db.put('assignments/newer', { classId: 'c1', teacherId: 'gv1', title: 'New', createdAt: '2099-01-01' });
+    await pickAssignmentByNumber(BOT, USER, 'c1', 's1', 1);
+    expect(h.db.rows.get(SESSION_PATH).assignmentId).toBe('a1');
+  });
+  it('list includes all assignments in newest-first order without raw attachment URLs', async () => {
+    seedClass();
+    for (let i = 0; i < 35; i++) h.db.put(`assignments/a${i+10}`, { classId: 'c1', teacherId: 'gv1', title: `Unique ${i}`, createdAt: String(i).padStart(3,'0'), attachments: [{ url: 'https://example.com/long', name: 'PDF', type: 'pdf' }] });
+    const { items } = await pendingAssignmentsForStudent('c1','s1');
+    expect(items[0].title).toBe('Unique 34');
+    const reply = photoListReply(items);
+    for (let i=0;i<35;i++) expect(reply).toContain(`Unique ${i}`);
+    expect(reply).not.toContain('mục nữa'); expect(reply).not.toContain('https://example.com');
+  });
+  const seedOld = () => {
+    seedClass();
+    h.db.put('submissions/old', { id: 'old', classId: 'c1', teacherId: 'gv1', studentId: 's1', assignmentId: 'a1', status: 'graded', createdAt: '2026-01-01', textContent: 'old text', fileUrls: ['https://old/image.jpg'], attachments: [{ url:'https://old/image.jpg', name:'old', kind:'image' }], grade: { score:9,maxScore:10,teacherApproved:true } });
+  };
+  it.each(['supplement','replace'] as const)('%s creates a new attempt; official score remains unchanged', async mode => {
+    seedOld();
+    await revisionReply(BOT,USER,'c1','s1','student',mode);
+    await revisionReply(BOT,USER,'c1','s1','student',mode,1);
+    await putPhoto(); await finishPhotoSession(BOT,USER);
+    const rows = [...h.db.rows.entries()].filter(([k])=>k.startsWith('submissions/'));
+    expect(rows).toHaveLength(2);
+    const fresh = rows.find(([k])=>k!=='submissions/old')![1];
+    expect(fresh.supplementOf).toBe('old');
+    expect(fresh.fileUrls).toHaveLength(mode==='supplement'?2:1);
+    expect(fresh.fileUrls.includes('https://old/image.jpg')).toBe(mode==='supplement');
+    expect(h.db.rows.get('submissions/old').grade.teacherApproved).toBe(true);
+    expect(h.db.rows.get('submissions/old').grade.score).toBe(9);
+    await (globalThis as any).__photoBg();
+  });
+  it('revision is rejected when another attempt appeared during upload; images retained', async () => {
+    seedOld(); await revisionReply(BOT,USER,'c1','s1','student','supplement');
+    await revisionReply(BOT,USER,'c1','s1','student','supplement',1); await putPhoto();
+    h.db.put('submissions/newer', { classId:'c1',teacherId:'gv1',studentId:'s1',assignmentId:'a1',status:'submitted',createdAt:'2099' });
+    expect(await finishPhotoSession(BOT,USER)).toContain('đã có lượt mới');
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+  });
+  it('student cannot select a different student revision', async () => {
+    seedOld();
+    await revisionReply(BOT,USER,'c1','s2','student','replace');
+    expect(await revisionReply(BOT,USER,'c1','s2','student','replace',1)).toContain('Chưa có bài');
+    expect([...h.db.rows.keys()].filter(k=>k.startsWith('submissions/'))).toHaveLength(1);
+  });
+});
+
+
+describe('submission selection and scope races', () => {
+  it.each(['awaitingPick', 'assistState', 'revisionChoices'])('photo during %s stays in submission flow', async kind => {
+    seedClass();
+    h.db.put(SESSION_PATH, { botId: BOT, userId: USER, studentId: 's1', classId: 'c1', assignmentId: '', photos: [], expiresAt: Date.now() + 60000, [kind]: kind === 'assistState' ? 'name' : kind === 'revisionChoices' ? ['old'] : true });
+    expect(await hasPhotoSubmissionIntent(BOT, USER)).toBe(true);
+    const reply = await putPhoto();
+    expect(reply).toBe(kind === 'assistState' ? PHOTO_REPLIES.assistIncomplete : PHOTO_REPLIES.pickFirst);
+    expect(h.files.size).toBe(0);
+  });
+  it('switching linked profile cannot finish or append to previous student session', async () => {
+    seedClass(); await openSessionForA1(); await putPhoto();
+    const actor = { classId: 'c1', studentId: 'other', role: 'student' as const };
+    expect(await photoReceivedReply(BOT, USER, 'https://photo.zalo/wrong.jpg', actor)).toContain('hồ sơ trước');
+    expect(await finishPhotoSession(BOT, USER, actor)).toContain('hồ sơ trước');
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+    expect([...h.db.rows.keys()].filter(k => k.startsWith('submissions/'))).toHaveLength(0);
+  });
+  it('expired upload cleanup cannot clear a fresh reservation with the same key', async () => {
+    seedClass(); await openSessionForA1(); await putPhoto();
+    const old = { ...h.db.rows.get(SESSION_PATH), pendingUploads: { image: Date.now() - 200000 } };
+    h.db.put(SESSION_PATH, old);
+    h.db.beforeTransaction = () => h.db.put(SESSION_PATH, { ...old, pendingUploads: { image: Date.now() } });
+    expect(await finishPhotoSession(BOT, USER)).toContain('Chưa nộp bài');
+    expect(h.db.rows.get(SESSION_PATH).pendingUploads.image).toBeGreaterThan(old.pendingUploads.image);
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+  });
+  it('refreshing an assignment list rotates its selection key', async () => {
+    seedClass(); await listPendingReply(BOT, USER, 'c1', 's1');
+    const first = h.db.rows.get(SESSION_PATH).sessionKey;
+    await listPendingReply(BOT, USER, 'c1', 's1');
+    expect(h.db.rows.get(SESSION_PATH).sessionKey).not.toBe(first);
+  });
+});
+
+
+it('unlink during grading suppresses old profile results in the chat', async () => {
+  seedClass(); await openSessionForA1(); await putPhoto();
+  const actor = { classId: 'c1', studentId: 's1', role: 'student' as const, linkId: 'current' };
+  h.db.put('channelLinks/current', { active: true, ...actor });
+  vi.mocked(gradeOneSubmission).mockImplementationOnce(async (_db, submissionId) => {
+    h.db.put('channelLinks/current', { active: false, ...actor });
+    h.db.put(`submissions/${submissionId}`, { ...h.db.rows.get(`submissions/${submissionId}`), status: 'graded', grade: { score: 9, maxScore: 10, teacherApproved: true } });
+    return { success: true };
+  });
+  await finishPhotoSession(BOT, USER, actor); await (globalThis as any).__photoBg();
+  expect(sent().some(call => String(JSON.parse(call[1].body).text).includes('9/10'))).toBe(false);
+});
+
+
+it('removed student cannot finish a lingering photo session; photos and quota preserved', async () => {
+  seedClass(); await openSessionForA1(); await putPhoto();
+  h.db.rows.delete('classes/c1/students/s1');
+  expect(await finishPhotoSession(BOT, USER)).toContain('không còn trong lớp');
+  expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+  expect(h.db.rows.has('gradingQuota/gv1')).toBe(false);
+  expect([...h.db.rows.keys()].filter(k => k.startsWith('submissions/'))).toHaveLength(0);
+});
+
+
+it('removed proxy target cannot receive a new submission', async () => {
+  seedClass(); h.db.put('classes/c1/students/target', { name: 'Bạn thử' });
+  await openSessionForA1(); await putPhoto();
+  h.db.put(SESSION_PATH, { ...h.db.rows.get(SESSION_PATH), assist: { targetStudentId: 'target', targetName: 'Bạn thử' } });
+  h.db.rows.delete('classes/c1/students/target');
+  expect(await finishPhotoSession(BOT, USER)).toContain('không còn trong lớp');
+  expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+  expect(h.db.rows.has('gradingQuota/gv1')).toBe(false);
+});
+
+
+it('deduplicates identical assignment attachment URLs without hiding distinct files', async () => {
+  seedClass();
+  h.db.put('assignments/a1', { ...h.db.rows.get('assignments/a1'), attachments: [
+    { name: 'Đề.pdf', url: 'https://example.com/de.pdf', type: 'pdf' },
+    { name: 'Đề lặp.pdf', url: 'https://example.com/de.pdf', type: 'pdf' },
+    { name: 'Tài liệu.pdf', url: 'https://example.com/tai-lieu.pdf', type: 'pdf' },
+  ] });
+  const { items } = await pendingAssignmentsForStudent('c1', 's1');
+  expect(items[0].attachments.map(item => item.name)).toEqual(['Đề.pdf', 'Tài liệu.pdf']);
+  expect(photoListReply(items)).toContain('Đề bài: 2 tệp');
 });

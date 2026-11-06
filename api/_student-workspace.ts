@@ -1,3 +1,4 @@
+import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 import { attachAssignmentSolutions } from './_assignment-solutions.js';
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
@@ -40,7 +41,7 @@ const studentContext = async (db: Db, body: Data) => {
     uid = (await getAuth().verifyIdToken(body.idToken)).uid;
   } catch { throw new WorkspaceError(401, 'Phiên đăng nhập học sinh không hợp lệ.'); }
   const link = (await db.collection('studentLinks').doc(uid).get()).data() || {};
-  if (![link.classId, link.studentId, link.teacherId].every(isSafeDocId)) {
+  if (![link.classId, link.studentId, link.teacherId].every(isSafeDocId) || !await verifyStudentBotLink(db, uid, link)) {
     throw new WorkspaceError(403, 'Phiên học sinh chưa được xác nhận.');
   }
   const classRef = db.collection('classes').doc(link.classId);

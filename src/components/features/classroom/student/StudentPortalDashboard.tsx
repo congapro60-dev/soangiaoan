@@ -68,6 +68,8 @@ interface Props {
   uploadRef: RefObject<HTMLInputElement | null>;
   pendingFiles: readonly File[];
   pendingAssignmentTitle: string | null;
+  pendingRevisionMode?: 'supplement' | 'replace';
+  onRevisionModeChange?: (value: 'supplement' | 'replace') => void;
   maxPendingFiles: number;
   onFileChange: ChangeEventHandler<HTMLInputElement>;
   onChooseImage: (assignmentId: string | null, supplementOf?: string) => void;
@@ -196,7 +198,7 @@ const Pagination = ({ page, count, onPage }: { page: number; count: number; onPa
 export const StudentPortalDashboard = (props: Props) => {
   const { session, assignments, submissions, onlineSubmissions, profile, scores, discoverCatalog = [], adaptiveAssignments = [], onOpenAdaptive, loading, uploadingId, uploadStep,
     successMessage, warningMessage, actionError, dataError, practiceSet, practiceAnswers, practiceAttempt,
-    loadingPractice, submittingPractice, practiceError, uploadRef, pendingFiles, pendingAssignmentTitle, maxPendingFiles,
+    loadingPractice, submittingPractice, practiceError, uploadRef, pendingFiles, pendingAssignmentTitle, pendingRevisionMode, onRevisionModeChange, maxPendingFiles,
     onFileChange, onChooseImage, onAddMoreImages, onRemovePendingFile, onSubmitPendingFiles, onOpenAssignment, handMarked = false, onHandMarkedChange,
     onAnswerExamCode, notifications, notificationsLastSeenAt, onNotificationsOpened, onSignOut, onReload,
     onLoadPractice, onPracticeAnswerChange, onSubmitPractice, onDismissSuccess, onLoadDetail } = props;
@@ -243,6 +245,15 @@ export const StudentPortalDashboard = (props: Props) => {
     void loadDetail(row);
     window.scrollTo?.({ top: 0, behavior: 'smooth' });
   };
+  const botTargetOpened = useRef(false);
+  useEffect(() => {
+    const target = new URLSearchParams(window.location.search).get('assignment');
+    if (!target || botTargetOpened.current || loading) return;
+    const row = rows.find(item => item.assignment?.id === target);
+    if (!row) return;
+    botTargetOpened.current = true;
+    openRow(row);
+  }, [rows, loading]);
   const reloadDetail = () => { onReload(); if (openedRef.current) void loadDetail(openedRef.current, true); };
   // Refresh loaded work after the full lightweight index changes; no image/question fetch for unopened work.
   const openedRef = useRef(opened); openedRef.current = opened;
@@ -314,6 +325,12 @@ export const StudentPortalDashboard = (props: Props) => {
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-rose-600">Ảnh chưa gửi cho thầy cô</p>
                 <h2 id="pending-upload-heading" className="mt-1 break-words text-lg font-black text-slate-900">{pendingAssignmentTitle || 'Bài của em'}</h2>
+                {pendingRevisionMode && <fieldset disabled={uploadingId !== ''} className="mt-3 space-y-2 rounded-xl border border-indigo-200 p-3">
+                  <legend className="px-1 text-sm font-bold">Cách nộp lượt mới</legend>
+                  <label className="flex min-h-11 items-center gap-2 text-sm"><input type="radio" name="revision-mode" checked={pendingRevisionMode === 'supplement'} onChange={() => onRevisionModeChange?.('supplement')} />Bổ sung ảnh: giữ bộ ảnh trước, thêm ảnh mới</label>
+                  <label className="flex min-h-11 items-center gap-2 text-sm"><input type="radio" name="revision-mode" checked={pendingRevisionMode === 'replace'} onChange={() => onRevisionModeChange?.('replace')} />Nộp lại toàn bộ: chỉ dùng bộ ảnh mới</label>
+                  <p className="text-xs text-slate-600">Lượt cũ được giữ trong lịch sử. Điểm đã duyệt được giữ tới khi thầy cô duyệt lượt mới.</p>
+                </fieldset>}
                 <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">Đã chụp/chọn {pendingFiles.length}/{maxPendingFiles} tệp. Em có thể chụp tiếp các trang còn lại rồi nộp một lần.</p>
                 <p className="mt-1 text-sm font-black leading-6 text-rose-700">Phải bấm “Nộp {pendingFiles.length} tệp” bên dưới thì thầy cô mới nhận được bài. Thoát bây giờ là mất ảnh.</p>
               </div>
@@ -434,14 +451,9 @@ export const StudentPortalDashboard = (props: Props) => {
                       </button>
                     )}
                     {canDirectPhoto && hasSubmission && (
-                      <>
-                        <button type="button" disabled={uploadingId !== ''} onClick={() => onChooseImage(row.assignment!.id, row.submission!.id)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-xs font-black text-indigo-700 hover:bg-indigo-100 disabled:opacity-50">
-                          Bổ sung ảnh
-                        </button>
-                        <button type="button" disabled={uploadingId !== ''} onClick={() => onChooseImage(row.assignment!.id)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-black text-slate-700 hover:border-indigo-300 disabled:opacity-50">
-                          Nộp lại
-                        </button>
-                      </>
+                      <button type="button" aria-label="Cập nhật bài nộp" disabled={uploadingId !== ''} onClick={() => onChooseImage(row.assignment!.id, row.submission!.id)} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-xs font-black text-indigo-700 hover:bg-indigo-100 disabled:opacity-50">
+                        Cập nhật bài nộp
+                      </button>
                     )}
                     {isExam && (
                       <button type="button" onClick={() => onOpenAssignment(row.assignment, row.submission)} className="inline-flex min-h-11 items-center gap-1 rounded-xl bg-indigo-600 px-3 text-xs font-black text-white hover:bg-indigo-700">

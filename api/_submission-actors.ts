@@ -2,6 +2,7 @@ import { awaitsClarification } from '../src/lib/classroom/clarification.js';
 import { attachAssignmentSolutions } from './_assignment-solutions.js';
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
+import { verifyParentWebSession, verifyStudentBotLink } from './_assistant-web-handoff.js';
 import { randomUUID } from 'node:crypto';
 import { getAdminStorage } from './_exam-core.js';
 import { classMemberId, deriveClassAccess, memberFromData } from './_classroom-access.js';
@@ -10,6 +11,7 @@ import { verifyPin } from './_classroom-core.js';
 import { isSafeDocId, isValidParentPin, normalizeParentPin } from '../src/lib/classroom/parentAccess.js';
 import { uniqueStoragePaths } from './_classroom-storage.js';
 import { mergeSubmissionEvidence } from '../src/lib/classroom/submissionRevision.js';
+import { submissionRevisionLockId } from './_submission-revision-lock.js';
 import type { SubmissionActor, SubmissionDoc, StudentAssignmentView } from '../src/lib/classroom/types.js';
 
 type Db = FirebaseFirestore.Firestore;
@@ -48,7 +50,7 @@ const validateDetectedAnswers = (input: unknown): DetectedAnswer[] | undefined =
 };
 
 export class SubmissionAccessError extends Error { constructor(readonly statusCode: number, message: string) { super(message); } }
-export interface ActorContext { role: SubmissionActor['role']; uid?: string; classId: string; teacherId: string; studentId: string; pin?: string; pinRevision?: string; joinCode?: string }
+export interface ActorContext { role: SubmissionActor['role']; uid?: string; classId: string; teacherId: string; studentId: string; pin?: string; pinRevision?: string; joinCode?: string; webSession?: string }
 const error = (code: number, message: string): never => { throw new SubmissionAccessError(code, message); };
 const id = (value: unknown): string => isSafeDocId(value) ? value : error(422, 'Mã bài hoặc học sinh không hợp lệ.');
 const text = (value: unknown): string => typeof value === 'string' ? value : '';
@@ -57,11 +59,12 @@ const correctionPublished = (value: Data): boolean => value.handMarkedPublished 
 export const actorStamp = (actor: ActorContext, at: string): SubmissionActor => ({ role: actor.role, ...(actor.uid ? { uid: actor.uid } : {}), studentId: actor.studentId, at });
 export const resolveSubmissionActor = async (db: Db, body: Data, res: VercelResponse, scope?: Data): Promise<ActorContext | null> => {
   if (body.role === 'parent') {
-    if (!isValidParentPin(body.pin)) error(401, 'Mã PIN phụ huynh không hợp lệ.');
+    if (!isValidParentPin(body.pin) && !body.webParentSession) error(401, 'Mã PIN phụ huynh không hợp lệ.');
     const target = await resolveParentStudent(db, body, res);
-    if (!target || !await verifyParentPin(db, target, body.pin, res, { requireParentSet: true })) return null;
+    if (!target || !await verifyParentPin(db, target, text(body.pin), res, { requireParentSet: true })) return null;
     const secret = (await target.secretRef.get()).data() || {};
-    const actor: ActorContext = { pinRevision: `${secret.pinHash}|${secret.updatedAt}`, joinCode: text(target.classDoc.data().joinCode), role: 'parent', classId: target.classDoc.id, teacherId: text(target.classDoc.data().teacherId), studentId: target.studentId, pin: normalizeParentPin(body.pin) };
+    const webSession = body.webParentSession && await verifyParentWebSession(db, body.webParentSession, target.classDoc.id, target.studentId) ? text(body.webParentSession) : undefined;
+    const actor: ActorContext = { pinRevision: `${secret.pinHash}|${secret.updatedAt}`, joinCode: text(target.classDoc.data().joinCode), role: 'parent', classId: target.classDoc.id, teacherId: text(target.classDoc.data().teacherId), studentId: target.studentId, pin: normalizeParentPin(text(body.pin)), ...(webSession ? { webSession } : {}) };
     if (scope && (scope.classId !== actor.classId || scope.teacherId !== actor.teacherId || scope.studentId && scope.studentId !== actor.studentId)) error(403, 'Không có quyền với bài này.');
     return actor;
   }
@@ -93,10 +96,10 @@ export const assertActorCurrent = async (db: Db, tx: FirebaseFirestore.Transacti
     if (!deriveClassAccess(classSnap.data()!, memberFromData(member.data()), actor.uid!)) error(403, 'Quyền giáo viên đã bị thu hồi.');
   } else if (actor.role === 'student') {
     const link = (await tx.get(db.collection('studentLinks').doc(actor.uid!))).data();
-    if (!link || link.classId !== actor.classId || link.studentId !== actor.studentId || link.teacherId !== actor.teacherId) error(403, 'Phiên học sinh đã bị thu hồi.');
+    if (!link || link.classId !== actor.classId || link.studentId !== actor.studentId || link.teacherId !== actor.teacherId || !await verifyStudentBotLink(db, actor.uid!, link, tx)) error(403, 'Phiên học sinh đã bị thu hồi.');
   } else {
     const secret = (await tx.get(classRef.collection('parentSecrets').doc(actor.studentId))).data();
-    if (!secret || secret.pinSetBy !== 'parent' || !verifyPin(actor.pin!, text(secret.pinHash)) || actor.pinRevision !== `${secret.pinHash}|${secret.updatedAt}` || actor.joinCode !== classSnap.data()?.joinCode) error(401, 'PIN phụ huynh đã thay đổi. Đăng nhập lại.');
+    if (!secret || secret.pinSetBy !== 'parent' || !(actor.webSession ? await verifyParentWebSession(db, actor.webSession, actor.classId, actor.studentId, tx) : verifyPin(actor.pin!, text(secret.pinHash))) || actor.pinRevision !== `${secret.pinHash}|${secret.updatedAt}` || actor.joinCode !== classSnap.data()?.joinCode) error(401, 'PIN phụ huynh đã thay đổi. Đăng nhập lại.');
   }
   if (!assignmentId) return undefined;
   const assignment = (await tx.get(db.collection('assignments').doc(id(assignmentId)))).data();
@@ -279,24 +282,35 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
       const signed = await Promise.all(objects.map(async file => ({ ...file, uploadUrl: (await getAdminStorage().file(file.path).createResumableUpload({ origin: uploadOrigin(body.uploadOrigin), metadata: { contentType: file.mimeType, contentLength: file.size }, preconditionOpts: { ifGenerationMatch: 0 } }))[0] })));
       res.status(200).json({ uploadGrantId: grantId, expiresAt, files: signed }); return true;
     }
+    const supplementOf = body.supplementOf ? id(body.supplementOf) : undefined;
+    const revisionMode = body.revisionMode === undefined ? 'supplement' : body.revisionMode;
+    if (revisionMode !== 'supplement' && revisionMode !== 'replace') error(422, 'Chọn bổ sung ảnh hoặc nộp lại toàn bộ.');
     const prepared = await prepareActorFiles(db, body, actor, assignmentId);
     const submissionId = randomUUID(), ref = db.collection('submissions').doc(submissionId), now = new Date().toISOString();
-    const supplementOf = body.supplementOf ? id(body.supplementOf) : undefined;
+    const revisionLock = assignmentId ? db.collection('submissionRevisionLocks').doc(submissionRevisionLockId(actor.classId, actor.studentId, assignmentId)) : undefined;
     let created: SubmissionDoc | undefined;
     try { await db.runTransaction(async tx => {
       await assertActorCurrent(db, tx, actor, assignmentId, true);
       const grantRef = await consumeActorGrant(db, tx, prepared, actor, assignmentId);
+      if (revisionLock) await tx.get(revisionLock);
+      const attempts = assignmentId ? await tx.get(db.collection('submissions').where('studentId', '==', actor.studentId).where('assignmentId', '==', assignmentId)) : undefined;
+      const latest = attempts?.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Data & { id: string }).filter(item => item.classId === actor.classId && item.teacherId === actor.teacherId)
+        .sort((a, b) => text(b.createdAt).localeCompare(text(a.createdAt)) || b.id.localeCompare(a.id))[0];
       const previous = supplementOf ? (await tx.get(db.collection('submissions').doc(supplementOf))).data() : undefined;
       if (supplementOf && (!previous || previous.studentId !== actor.studentId || previous.classId !== actor.classId || previous.teacherId !== actor.teacherId || previous.assignmentId !== assignmentId)) error(403, 'Lượt nộp trước không thuộc đúng bài và học sinh.');
-      const evidence = previous ? mergeSubmissionEvidence({ fileUrls: previous.fileUrls || [], attachments: previous.attachments || [], textContent: text(previous.textContent) }, { fileUrls: prepared.fileUrls, attachments: prepared.attachments, textContent: text(body.textContent) }) : { fileUrls: prepared.fileUrls, attachments: prepared.attachments, textContent: text(body.textContent) };
+      if (latest && (latest.status === 'submitted' || latest.status === 'grading' || latest.grade?.awaitingClarification || awaitsClarification(latest.grade?.questionResults))) error(409, 'Bài đang xử lý hoặc cần xác nhận. Chờ lượt hiện tại hoàn tất rồi nộp tiếp.');
+      if (assignmentId && (latest && latest.id !== supplementOf || supplementOf && latest?.id !== supplementOf)) error(409, 'Bài đã có lượt nộp mới. Tải lại rồi chọn bổ sung hoặc nộp lại trên lượt mới nhất.');
+      const evidence = previous && revisionMode === 'supplement' ? mergeSubmissionEvidence({ fileUrls: previous.fileUrls || [], attachments: previous.attachments || [], textContent: text(previous.textContent) }, { fileUrls: prepared.fileUrls, attachments: prepared.attachments, textContent: text(body.textContent) }) : { fileUrls: prepared.fileUrls, attachments: prepared.attachments, textContent: text(body.textContent) };
       if (evidence.fileUrls.length > 12 || evidence.textContent.length > 60000) error(422, 'Lượt bổ sung vượt giới hạn 12 tệp hoặc 60000 ký tự.');
       // Bài ĐÃ CHẤM TAY: GV nộp hộ → điểm GV ghi tay là điểm chính thức. HS/PH tự nộp →
       // máy chỉ ĐỌC điểm GV ghi (lưu vào paperScore), thầy cô phải xác nhận mới chốt —
       // không để học sinh tự viết điểm rồi tự chấm.
       const handMarked = body.handMarked === true;
       const detectedAnswers = validateDetectedAnswers(body.detectedAnswers);
-      created = { id: submissionId, teacherId: actor.teacherId, classId: actor.classId, studentId: actor.studentId, assignmentId, ...(supplementOf ? { supplementOf } : {}), ...evidence, note: text(body.note).slice(0, 2000), status: 'submitted', submittedBy: actorStamp(actor, now), ...(handMarked ? { handMarkedPaper: true, handMarkedDeclaredBy: actor.role } : {}), ...(detectedAnswers !== undefined ? { detectedAnswers } : {}), createdAt: now, updatedAt: now };
-      tx.create(ref, created); if (grantRef) tx.update(grantRef, { consumed: true, consumedAt: now, submissionId });
+      created = { id: submissionId, teacherId: actor.teacherId, classId: actor.classId, studentId: actor.studentId, assignmentId, ...(supplementOf ? { supplementOf, revisionMode } : {}), ...evidence, note: text(body.note).slice(0, 2000), status: 'submitted', submittedBy: actorStamp(actor, now), ...(handMarked ? { handMarkedPaper: true, handMarkedDeclaredBy: actor.role } : {}), ...(detectedAnswers !== undefined ? { detectedAnswers } : {}), createdAt: now, updatedAt: now };
+      tx.create(ref, created);
+      if (revisionLock) tx.set(revisionLock, { submissionId, updatedAt: now });
+      if (grantRef) tx.update(grantRef, { consumed: true, consumedAt: now, submissionId });
     });
     } catch (reason) { await discardActorFiles(prepared); throw reason; }
     await releasePendingSources(prepared);

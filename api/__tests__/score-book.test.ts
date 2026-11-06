@@ -222,6 +222,21 @@ describe('sổ điểm', () => {
     expect(points('a')).toEqual([{ label: 'Giữa học kì I', score: 6.5 }]);
   });
 
+  it('unapproved replacement never changes the official scorebook; teacher approval promotes it', async () => {
+    h.store.assignments = { bt1: { classId:'lop-1',title:'Test',createdAt:'2026-10-01' } };
+    h.store.submissions = {
+      old: {classId:'lop-1',studentId:'a',assignmentId:'bt1',createdAt:'2026-10-02',grade:{score:9,maxScore:10,teacherApproved:true}},
+      revision: {classId:'lop-1',studentId:'a',assignmentId:'bt1',supplementOf:'old',createdAt:'2026-10-03',grade:{score:2,maxScore:10,teacherApproved:false}},
+    };
+    h.store.scoreBooks = {'lop-1':{classId:'lop-1',hs1Columns:[],hs1:{},exams:{},periodicAssignmentLinks:{ghki:'bt1'}}};
+    const first=await call({action:'teacherScoreBook',classId:'lop-1'});
+    expect(first.statusCode).toBe(200);
+    expect((first.payload?.scoreBook as any).auto.periodic.ghki.a).toBe(9);
+    (h.store.submissions.revision.grade as DocData).teacherApproved=true;
+    const approved=await call({action:'teacherScoreBook',classId:'lop-1'});
+    expect((approved.payload?.scoreBook as any).auto.periodic.ghki.a).toBe(2);
+  });
+
   it('học sinh chỉ nhận dòng của CHÍNH mình, bỏ qua studentId gửi lên', async () => {
     const col = await call({ action: 'saveHs1Column', classId: 'lop-1', column: { label: 'Miệng', date: '2026-09-20' }, scores: { a: 9, b: 3 } });
     expect(col.statusCode).toBe(200);

@@ -76,7 +76,7 @@ export const StudentAssignmentCard = ({ assignment, submission, submissions, sta
   const canSupplement = (assignment.type === 'exam' ? assignment.isOpen !== false : !assignment.submissionLocked) && !isOnlineExam && assignment.deliveryMode !== 'online' && Boolean(submission?.id);
   const handleAction = () => {
     if (isOnlineExam || !isUploadAction) onOpen(assignment, submission);
-    else onUpload(assignment.id);
+    else onUpload(assignment.id, submission?.id);
   };
 
   return (
@@ -183,6 +183,7 @@ export const StudentAssignmentCard = ({ assignment, submission, submissions, sta
         <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
           {(!detailView || isOnlineExam || isUploadAction) && <button
             type="button"
+            aria-label={isUploadAction && submission ? 'Cập nhật bài nộp' : undefined}
             onClick={handleAction}
             disabled={uploading || (assignment.submissionLocked === true && !submission && state.status !== 'graded')}
             className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto ${
@@ -192,18 +193,17 @@ export const StudentAssignmentCard = ({ assignment, submission, submissions, sta
             }`}
           >
             {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : isOnlineExam ? <BookOpen className="h-4 w-4" /> : isUploadAction ? <Camera className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
-            {uploading ? 'Đang nộp...' : assignment.submissionLocked === true && !submission && state.status !== 'graded' ? 'Bài đã khóa chốt' : isOnlineExam ? (state.status === 'graded' ? 'Xem kết quả' : state.status === 'todo' ? 'Làm bài online' : state.label) : state.label}
+            {uploading ? 'Đang nộp...' : assignment.submissionLocked === true && !submission && state.status !== 'graded' ? 'Bài đã khóa chốt' : isOnlineExam ? (state.status === 'graded' ? 'Xem kết quả' : state.status === 'todo' ? 'Làm bài online' : state.label) : isUploadAction && submission ? 'Cập nhật bài nộp' : state.label}
           </button>}
-          {/* Nút phụ nộp lại: bài đã chấm/đang chờ vẫn phải tạo được lần nộp mới khi phản
-              hồi yêu cầu chụp lại — đây chính là P1 của báo cáo QA cổng học sinh 22/08. */}
-          {(assignment.type === 'exam' ? assignment.isOpen !== false : !assignment.submissionLocked) && !assignment.submissionLocked && !isOnlineExam && assignment.deliveryMode !== 'online' && (
+          {canSupplement && !isUploadAction && (
             <button
               type="button"
-              onClick={() => onUpload(assignment.id, canSupplement ? submission?.id : undefined)}
+              aria-label="Cập nhật bài nộp"
+              onClick={() => onUpload(assignment.id, submission?.id)}
               disabled={uploading}
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-50 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
             >
-              <Camera className="h-4 w-4" /> Bổ sung ảnh
+              <Camera className="h-4 w-4" /> Cập nhật bài nộp
             </button>
           )}
         </div>

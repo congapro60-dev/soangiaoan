@@ -13,7 +13,10 @@ const call = async <T,>(action: string, payload: Record<string, unknown> = {}): 
     body: JSON.stringify({ ...payload, action, idToken }),
   });
   const data = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(data?.error || moTaLoiHttp(response.status));
+  if (!response.ok) {
+    const error = new Error(data?.error || moTaLoiHttp(response.status));
+    throw Object.assign(error, { status: response.status });
+  }
   return data as T;
 };
 

@@ -152,3 +152,12 @@ describe('notifyParentGraded — thông báo kết quả chấm bài của con',
     expect(sendSticker.mock.calls[0]?.[2]).toBe('sticker-congrats-123');
   });
 });
+
+
+it('does not publish unapproved numeric score to parents', async () => {
+  parentLink(PH_USER); seedStudent();
+  await notifyParentGraded(h.db.db as never, 'token', {classId:'c1',studentId:'s1',assignmentTitle:'Test',score:3.75,maxScore:10,approved:false});
+  const text=String(sendStyled.mock.calls[0]?.[2]);
+  expect(text).toContain('Điểm chưa công bố'); expect(text).not.toContain('3.75');
+  expect(sendSticker).not.toHaveBeenCalled();
+});

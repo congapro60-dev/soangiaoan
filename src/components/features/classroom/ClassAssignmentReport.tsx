@@ -177,6 +177,7 @@ export const adaptUploadSubmission = (
     score: asFiniteNumber(grade?.score),
     maxScore: asFiniteNumber(grade?.maxScore) ?? asFiniteNumber(assignment.maxScore),
     official: submission.status === 'graded' && grade?.teacherApproved === true,
+    ...(submission.supplementOf ? { supplementOf: submission.supplementOf } : {}),
     weakTopics: grade?.weakTopics ?? [],
     questionResults: (grade?.questionResults ?? []).map(mapQuestionResult),
     ...(multiVariant && submission.examCode ? { examCode: submission.examCode } : {}),

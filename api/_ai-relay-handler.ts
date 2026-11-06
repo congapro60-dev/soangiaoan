@@ -1,3 +1,4 @@
+import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 /// <reference types="node" />
 /**
  * Relay AI cho ví web: trình duyệt của giáo viên gửi lời nhắc, máy chủ gọi AI bằng khoá chung và trừ ví.
@@ -102,7 +103,7 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
   if (isStudent) {
     const data = (await db.collection('studentLinks').doc(user.uid).get()).data() ?? {};
     const link = { classId: String(data.classId || ''), studentId: String(data.studentId || ''), teacherId: String(data.teacherId || '') };
-    if (!link.classId || !link.studentId || !link.teacherId) {
+    if (!link.classId || !link.studentId || !link.teacherId || !await verifyStudentBotLink(db, user.uid, data)) {
       void sendError(res, 403, 'Em cần vào lớp bằng mã lớp trước khi dùng AI.');
       return;
     }

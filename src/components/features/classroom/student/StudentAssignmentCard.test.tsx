@@ -1,5 +1,16 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+const updateActions = vi.hoisted(() => ({ clicks: [] as Array<() => void> }));
+vi.mock('react/jsx-dev-runtime', async importOriginal => {
+  const actual = await importOriginal<typeof import('react/jsx-dev-runtime')>();
+  return { ...actual, jsxDEV: (...args: Parameters<typeof actual.jsxDEV>) => {
+    const [type, props] = args;
+    const button = props as { 'aria-label'?: string; onClick?: () => void };
+    if (type === 'button' && button['aria-label'] === 'Cập nhật bài nộp' && button.onClick) updateActions.clicks.push(button.onClick);
+    return actual.jsxDEV(...args);
+  } };
+});
+beforeEach(() => { updateActions.clicks = []; });
 import { StudentAssignmentCard } from './StudentAssignmentCard';
 import { getStudentAssignmentState } from '../../../../lib/classroom/portalViewModel';
 import type { AssignmentDoc, SubmissionDoc } from '../../../../lib/classroom/types';
@@ -16,6 +27,18 @@ const render = (sub: SubmissionDoc) => renderToStaticMarkup(
 );
 
 describe('StudentAssignmentCard · điểm chỉ hiện sau khi duyệt', () => {
+  it('ảnh lỗi mở cập nhật đúng lượt cũ; bài chưa nộp không có nút bổ sung', () => {
+    const onUpload = vi.fn();
+    const photo = { ...submission({}), status: 'error' as const, grade: undefined, errorReason: 'photo' as const };
+    renderToStaticMarkup(<StudentAssignmentCard assignment={assignment} submission={photo} state={getStudentAssignmentState(assignment, photo)} detailView uploading={false} onUpload={onUpload} onOpen={() => undefined} onAnswerExamCode={async () => undefined} />);
+    expect(updateActions.clicks).toHaveLength(1);
+    updateActions.clicks[0]();
+    expect(onUpload).toHaveBeenCalledWith('a1', 's1');
+    updateActions.clicks = [];
+    const empty = renderToStaticMarkup(<StudentAssignmentCard assignment={assignment} state={getStudentAssignmentState(assignment)} uploading={false} onUpload={onUpload} onOpen={() => undefined} onAnswerExamCode={async () => undefined} />);
+    expect(updateActions.clicks).toHaveLength(0);
+    expect(empty).not.toContain('Bổ sung ảnh');
+  });
   it('deliveryMode online không cho nộp/bổ sung ảnh dù legacy state yêu cầu submit', () => {
     const html = renderToStaticMarkup(<StudentAssignmentCard assignment={{ ...assignment, deliveryMode: 'online' }}
       state={{ status: 'todo', action: 'submit', label: 'Xem bài', canResubmit: true }} detailView uploading={false}
@@ -51,13 +74,13 @@ describe('StudentAssignmentCard · điểm chỉ hiện sau khi duyệt', () => 
     expect(system).toContain('Em không cần nộp lại');
     expect(system).not.toMatch(/>\s*Nộp lại/);
     const photo = render({ ...submission({}), status: 'error', grade: undefined, errorReason: 'photo', errorMessage: 'Em chụp lại rõ hơn rồi nộp lại nhé.' });
-    expect(photo).toContain('Nộp lại ảnh');
+    expect(photo).toContain('Cập nhật bài nộp');
     expect(photo).toContain('Em chụp lại rõ hơn');
   });
 
-  it('nút phụ chỉ ghi "Bổ sung ảnh" (không hứa "chấm lại" khi điểm còn chờ duyệt)', () => {
+  it('nút cập nhật không hứa chấm lại khi điểm còn chờ duyệt', () => {
     const html = render(submission({ scoreHidden: true }));
-    expect(html).toContain('Bổ sung ảnh');
+    expect(html).toContain('Cập nhật bài nộp');
     expect(html).not.toContain('chấm lại');
   });
 

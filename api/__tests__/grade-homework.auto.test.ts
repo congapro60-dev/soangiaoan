@@ -152,4 +152,27 @@ describe('quét tự chấm + tự duyệt sau 60 phút', () => {
     expect(state.submissions['cho-cham'].status).toBe('submitted');
     expect(state.submissions['cho-duyet'].grade).toMatchObject({ teacherApproved: false });
   });
+  it('lượt bổ sung hoặc nộp lại không được tự duyệt thay điểm cũ sau 60 phút', async () => {
+    const state = seed();
+    state.submissions['cho-duyet'].supplementOf = 'official-old';
+    state.submissions['cho-cham'].supplementOf = 'official-other';
+    state.submissions['official-old'] = sub('official-old', 'A', { status: 'graded', grade: { ...grade(ago(200)), score: 9, teacherApproved: true }, createdAt: ago(300) });
+    state.submissions['official-other'] = sub('official-other', 'D', { status: 'graded', grade: { ...grade(ago(200)), score: 9, teacherApproved: true }, createdAt: ago(300) });
+    h.db = makeDb(state);
+    expect((await call('Bearer bi-mat')).statusCode).toBe(200);
+    expect(state.submissions['cho-duyet'].grade.teacherApproved).toBe(false);
+    expect(state.submissions['cho-cham']).toMatchObject({ status: 'graded', grade: { teacherApproved: false } });
+    expect(state.submissions['official-old'].grade).toMatchObject({ score: 9, teacherApproved: true });
+    expect(state.submissions['official-other'].grade).toMatchObject({ score: 9, teacherApproved: true });
+  });
+  it('nghi sai bài, thiếu câu hoặc ảnh chưa đọc được phải chờ GV, không tự duyệt sau 60 phút', async () => {
+    const state = seed();
+    state.submissions['cho-duyet'].grade.photoReview = { assignmentMatch: 'matches', missingQuestionNumbers: ['3'], unreadablePhotoNumbers: [] };
+    state.submissions['chua-chac'].grade.photoReview = { assignmentMatch: 'matches', missingQuestionNumbers: [], unreadablePhotoNumbers: [1] };
+    state.submissions['moi-cham'].grade.gradedAt = ago(70);
+    state.submissions['moi-cham'].grade.photoReview = { assignmentMatch: 'possibly_wrong', missingQuestionNumbers: [], unreadablePhotoNumbers: [] };
+    h.db = makeDb(state);
+    expect((await call('Bearer bi-mat')).statusCode).toBe(200);
+    for (const id of ['cho-duyet', 'chua-chac', 'moi-cham']) expect(state.submissions[id].grade.teacherApproved).toBe(false);
+  });
 });

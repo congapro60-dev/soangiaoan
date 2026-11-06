@@ -467,6 +467,13 @@ export interface GradingRecovery {
 export const RECITATION_RETRY_KIND = 'recitation_retry';
 
 /** Kết quả AI chấm, tách riêng để phân biệt rõ phần học sinh ghi và phần máy ghi. */
+/** Nhận định về ảnh, không chứa điểm/đáp án hoặc lời nhận xét tự do của AI. */
+export interface PhotoSubmissionReview {
+  assignmentMatch: 'matches' | 'possibly_wrong' | 'uncertain';
+  missingQuestionNumbers: string[];
+  unreadablePhotoNumbers: number[];
+}
+
 export interface SubmissionGrade {
   score: number;
   maxScore: number;
@@ -478,6 +485,7 @@ export interface SubmissionGrade {
   weaknesses: string[];
   /** Chi tiết từng câu; optional để đọc được các bài chấm trước khi có schema này. */
   questionResults?: QuestionResult[];
+  photoReview?: PhotoSubmissionReview;
   /** Chủ đề còn yếu, chỉ vào hồ sơ sau khi giáo viên duyệt. */
   weakTopics?: string[];
   /** true khi chấm mà không có đáp án chuẩn — kết quả kém tin cậy hơn. */
@@ -533,6 +541,8 @@ export interface SubmissionGradeHistoryDoc {
  */
 export interface SubmissionDoc {
   id: string;
+  /** Do máy chủ ghi khi nhận bộ ảnh từ bot; không tin client tự khai. */
+  source?: 'zalo_bot';
   teacherId: string;
   classId: string;
   studentId: string;

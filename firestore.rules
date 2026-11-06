@@ -402,7 +402,10 @@ service cloud.firestore {
         return data.keys().hasOnly([
                  'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
                  'expiresAt', 'status', 'currentCueId', 'currentTvScreenId',
-                 'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'
+                 'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds',
+                 // P-timer neo vào đầu tiết (V8.8) — không có 2 trường này thì đồng hồ
+                 // không tính được tổng thời gian tiết khi đổi cue.
+                 'lessonStartedAt', 'lessonElapsedSeconds'
                ])
                && data.keys().hasAll([
                     'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
@@ -474,7 +477,7 @@ service cloud.firestore {
 
       function llv3StudentLinkedToSession() {
         return request.auth != null
-               && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid))
+               && coLienKetHocSinh()
                && llv3SessionExists()
                && get(/databases/$(database)/documents/studentLinks/$(request.auth.uid)).data.get('classId', '')
                     == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '');
@@ -541,7 +544,7 @@ service cloud.firestore {
           && data.get('cueElapsedSeconds', 0) is number && data.get('cueElapsedSeconds', 0) >= 0 && data.get('cueElapsedSeconds', 0) <= 86400;
       }
       function llv3ValidPublicState(data) {
-        return data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'])
+        return data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds', 'lessonStartedAt', 'lessonElapsedSeconds'])
                && data.keys().hasAll(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt'])
                && data.get('cueId', '') is string
                && data.get('cueId', '').size() > 0
@@ -669,7 +672,7 @@ service cloud.firestore {
       function llv3LinkedStudentCanWriteResponse(data) {
         return request.auth != null
                && request.auth.uid == data.get('participantUid', '')
-               && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid))
+               && coLienKetHocSinh()
                && get(/databases/$(database)/documents/studentLinks/$(request.auth.uid)).data.get('classId', '')
                     == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
                && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
@@ -715,7 +718,8 @@ service cloud.firestore {
                          .hasOnly([
                            'status', 'currentCueId', 'currentTvScreenId',
                            'publicStateEnabled', 'publicStatsEnabled',
-                           'cueStartedAt', 'cueElapsedSeconds', 'updatedAt'
+                           'cueStartedAt', 'cueElapsedSeconds', 'updatedAt',
+                           'lessonStartedAt', 'lessonElapsedSeconds'
                          ])
                     && request.resource.data.get('updatedAt', null) == request.time;
       allow delete: if llv3SessionOwner();
@@ -844,6 +848,7 @@ service cloud.firestore {
                      && llv3ActiveSession();
           allow list, create, update, delete: if false;
         }
+
       }
 
         match /public/state {
@@ -852,7 +857,7 @@ service cloud.firestore {
                    && llv3ActiveSession()
                    && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStateEnabled', false) == true;
         allow create, update: if llv3SessionOwner()
-                              && request.resource.data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'])
+                              && request.resource.data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds', 'lessonStartedAt', 'lessonElapsedSeconds'])
                               && llv3ValidPublicState(request.resource.data)
                               && request.resource.data.get('updatedAt', null) == request.time;
         allow delete: if false;
@@ -868,6 +873,74 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly(['groupNumber', 'updatedAt'])
           && request.resource.data.get('groupNumber', '') in ['1','2','3','4','5','6','7','8','9','10','11','12']
           && request.resource.data.get('updatedAt', null) == request.time;
+        allow delete: if false;
+      }
+
+
+      // COMM-AQ-01 — Giơ tay: hành động CÓ tên để giáo viên gọi. Doc theo participantUid
+      // nên bấm nhiều lần không tạo bản ghi trùng; lower/rase ghi đè cùng doc.
+      match /handRaises/{participantUid} {
+        function llv3ValidHandRaise(data) {
+          return data.keys().hasOnly(['participantUid', 'classId', 'studentName', 'action', 'updatedAt'])
+            && data.keys().hasAll(['participantUid', 'classId', 'studentName', 'action', 'updatedAt'])
+            && data.get('participantUid', '') == participantUid
+            && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
+            && data.get('studentName', '') is string
+            && data.get('studentName', '').size() > 0
+            && data.get('studentName', '').size() <= 128
+            && data.get('action', '') in ['raise', 'lower']
+            && data.get('updatedAt', null) == request.time;
+        }
+        allow get: if llv3SessionOwner() || (request.auth != null
+          && request.auth.uid == participantUid && llv3StudentLinkedToSession() && llv3ActiveSession());
+        allow list: if llv3SessionOwner();
+        allow create, update: if request.auth != null
+          && request.auth.uid == participantUid
+          && llv3ValidHandRaise(request.resource.data)
+          && llv3StudentLinkedToSession()
+          && llv3ActiveSession();
+        allow delete: if false;
+      }
+
+      // COMM-AQ-01 — Câu hỏi ẩn danh: review queue CHỈ giáo viên đọc. Client không được
+      // write trực tiếp — câu hỏi vào qua server (Admin SDK ghi, không có field định danh).
+      match /questions/{questionId} {
+        allow get, list: if llv3SessionOwner();
+        allow create, update, delete: if false;
+      }
+
+      // COMM-AQ-01 — Câu hỏi ĐÃ CÔNG BỘ: cả lớp đọc khi phiên active; nội dung chỉ có
+      // body + mã ẩn danh, không tên. Write chỉ qua Admin SDK. (Subcollection ngang cấp public)
+      match /publishedQuestions/{questionId} {
+        allow get, list: if llv3ActiveSession() && llv3PublicAudience();
+        allow create, update, delete: if false;
+      }
+
+      // COMM-AQ-01 — Understanding Pulse: dữ liệu cá nhân theo lesson contract, có tên
+      // cho GV xem tổng hợp. Riêng biệt tuyệt đối với câu hỏi ẩn danh (không tham chiếu chéo).
+      match /pulses/{pulseId} {
+        function llv3ValidPulse(data, pulseId) {
+          return data.keys().hasOnly(['participantUid', 'classId', 'cueId', 'selfReport', 'updatedAt'])
+            && data.keys().hasAll(['participantUid', 'classId', 'cueId', 'selfReport', 'updatedAt'])
+            && pulseId.matches('.{1,128}__[^/]{1,128}')
+            && data.get('participantUid', '') + '__' + data.get('cueId', '') == pulseId
+            && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
+            && data.get('cueId', '') is string
+            && data.get('cueId', '').size() > 0
+            && data.get('cueId', '').size() <= 128
+            && data.get('selfReport', '') in ['understood', 'need_example', 'unclear']
+            && data.get('updatedAt', null) == request.time;
+        }
+        allow get: if llv3SessionOwner() || (request.auth != null
+          && llv3StudentLinkedToSession() && llv3ActiveSession()
+          && resource.data.get('participantUid', '') == request.auth.uid);
+        allow list: if llv3SessionOwner();
+        allow create, update: if request.auth != null
+          && request.auth.uid == request.resource.data.get('participantUid', '')
+          && request.resource.data.get('participantUid', '') + '__' + request.resource.data.get('cueId', '') == pulseId
+          && llv3ValidPulse(request.resource.data, pulseId)
+          && llv3StudentLinkedToSession()
+          && llv3ActiveSession();
         allow delete: if false;
       }
 
@@ -1059,9 +1132,34 @@ service cloud.firestore {
              && get(/databases/$(database)/documents/classes/$(classId)).data.teacherId == request.auth.uid;
     }
 
+    // Bot-issued sessions add revocation checks; ordinary PIN logins keep their existing policy.
+    function phienBotHocSinhConHieuLuc(session, link) {
+      let cls = get(/databases/$(database)/documents/classes/$(link.classId)).data;
+      let secret = get(/databases/$(database)/documents/classes/$(link.classId)/studentSecrets/$(link.studentId)).data;
+      let channel = get(/databases/$(database)/documents/channelLinks/$(session.linkId)).data;
+      return session.uid == request.auth.uid && session.role == 'student'
+             && session.expiresAt > request.time.toMillis()
+             && session.classId == link.classId && session.studentId == link.studentId && session.teacherId == link.teacherId
+             && exists(/databases/$(database)/documents/classes/$(link.classId)/students/$(link.studentId))
+             && cls.teacherId == link.teacherId && cls.joinCode == session.joinCode
+             && session.pinUpdatedAt is string && session.pinUpdatedAt.size() > 0
+             && secret.updatedAt == session.pinUpdatedAt
+             && channel.active == true && channel.channel == 'zalo_bot' && channel.role == 'student'
+             && channel.classId == link.classId && channel.studentId == link.studentId
+             && channel.channelAccountId == session.botId && channel.channelUserId == session.userId;
+    }
+
+    function lienKetBotHocSinhConHieuLuc(link) {
+      return !('botWebSession' in link)
+             || (link.botWebSession is string
+                 && exists(/databases/$(database)/documents/assistantStudentWebSessions/$(link.botWebSession))
+                 && phienBotHocSinhConHieuLuc(get(/databases/$(database)/documents/assistantStudentWebSessions/$(link.botWebSession)).data, link));
+    }
+
     function coLienKetHocSinh() {
       return request.auth != null
-             && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid));
+             && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid))
+             && lienKetBotHocSinhConHieuLuc(lienKetHocSinh());
     }
 
     function lienKetHocSinh() {
@@ -1101,7 +1199,7 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
 
       match /students/{studentId} {
-        allow get: if laChuLop(classId) || laHocSinh(studentId);
+        allow get: if laChuLop(classId) || (thuocLop(classId) && laHocSinh(studentId));
         allow list: if laChuLop(classId);
         allow create, update, delete: if laChuLop(classId);
       }

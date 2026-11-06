@@ -17,10 +17,11 @@
 import { getAdminDb } from './_exam-core.js';
 import { gradeContextFor, gradeOneSubmission } from './grade-homework.js';
 import { AiKeyRequiredError } from './_ai-keys.js';
-import { chayNgam, getGradingChain } from './_grading-core.js';
+import { bumpQuota, chayNgam, getGradingChain, remainingQuota, rollQuota, today, type QuotaDoc } from './_grading-core.js';
 import { sendStyled } from './_assistant-zalo-send.js';
 import { MENU_HINT } from './_assistant-ph-hs-menu.js';
 import type { SubmissionDoc } from '../src/lib/classroom/types.js';
+import { awaitsClarification } from '../src/lib/classroom/clarification.js';
 
 const SUBMISSIONS = 'submissions';
 /** Ngân sách chấm lại: dài hơn lượt đầu (chế độ thorough cần chép bài trước). */
@@ -49,8 +50,10 @@ export const requestRegrade = async (
   chatId: string,
   classId: string,
   studentId: string,
+  token: string,
 ): Promise<RegradeOutcome> => {
   const db = getAdminDb();
+  if (!token || getGradingChain().length === 0) return { kind: 'rejected', reply: REGRADE_REPLIES.noKey };
   // Bài đã chấm gần nhất của chính em trong lớp này.
   const snaps = await db.collection(SUBMISSIONS)
     .where('studentId', '==', studentId)
@@ -83,35 +86,44 @@ export const requestRegrade = async (
   const claimed = await db.runTransaction(async tx => {
     const ref = db.collection(SUBMISSIONS).doc(target.id);
     const fresh = (await tx.get(ref)).data() as (SubmissionDoc & { regradeRequestedAt?: number }) | undefined;
-    if (!fresh || fresh.grade?.teacherApproved === true || fresh.regradeRequestedAt) return false;
-    tx.update(ref, { regradeRequestedAt: Date.now(), updatedAt: Date.now() });
-    return true;
+    if (!fresh || fresh.classId !== classId || fresh.studentId !== studentId || fresh.grade?.teacherApproved === true || fresh.regradeRequestedAt) return 'used';
+    if (fresh.status === 'grading' || fresh.status === 'submitted' || awaitsClarification(fresh.grade?.questionResults)) return 'busy';
+    if (!fresh.teacherId) return 'used';
+    const quotaRef = db.collection('gradingQuota').doc(fresh.teacherId);
+    const quotaSnap = await tx.get(quotaRef);
+    const quota = rollQuota(quotaSnap.exists ? quotaSnap.data() as Partial<QuotaDoc> : null, today());
+    const verdict = remainingQuota(quota, 'self', fresh.studentId);
+    if (verdict.allowed <= 0) return { reason: verdict.reason };
+    tx.set(quotaRef, bumpQuota(quota, 'self', fresh.studentId, 1));
+    tx.update(ref, { regradeRequestedAt: Date.now(), updatedAt: new Date().toISOString() });
+    return 'claimed';
   });
-  if (!claimed) return { kind: 'rejected', reply: REGRADE_REPLIES.alreadyUsed };
+  if (typeof claimed === 'object') return { kind: 'rejected', reply: claimed.reason };
+  if (claimed !== 'claimed') return { kind: 'rejected', reply: claimed === 'busy' ? REGRADE_REPLIES.busy : REGRADE_REPLIES.alreadyUsed };
 
   const title = String((target.data as any).assignmentTitle ?? 'bài đã nộp');
   // `chayNgam` trả FALSE khi môi trường không có `waitUntil` (local/test) — khi đó PHẢI chờ
   // chấm xong mới trả lời, nếu bỏ qua giá trị trả về thì việc chấm KHÔNG BAO GIỜ CHẠY
   // (lỗi thật 29/10: bấm chấm lại thấy "đang chấm" nhưng gradedAt không đổi).
-  const background = regradeAndNotify(botId, userId, chatId, target.id, title, classId);
+  const background = regradeAndNotify(token, userId, chatId, target.id, title, classId);
   if (!chayNgam(background)) await background;
   return { kind: 'started', submissionId: target.id, title };
 };
 
 /** Chấm lại nền rồi báo HS — dùng CHUNG đường chấm của web, chế độ `thorough`. */
 const regradeAndNotify = async (
-  botId: string, userId: string, chatId: string, submissionId: string, title: string, classId: string,
+  token: string, userId: string, chatId: string, submissionId: string, title: string, classId: string,
 ): Promise<void> => {
   try {
     const db = getAdminDb();
     // Khoá chấm bài nay do MÁY CHỦ giữ (chuỗi `getGradingChain`). Không có lớp nào thì báo
     // ngay, đừng để HS chờ tới lúc chấm xong mới biết.
-    if (getGradingChain().length === 0) { await sendStyled(botId, chatId, REGRADE_REPLIES.noKey); return; }
+    if (getGradingChain().length === 0) { await sendStyled(token, chatId, REGRADE_REPLIES.noKey); return; }
     const subSnap = await db.collection(SUBMISSIONS).doc(submissionId).get();
-    if (!subSnap.exists) { await sendStyled(botId, chatId, `Không tìm thấy bài "${title}".`); return; }
+    if (!subSnap.exists) { await sendStyled(token, chatId, `Không tìm thấy bài "${title}".`); return; }
     const sub = subSnap.data() as SubmissionDoc;
     const aSnap = await db.collection('assignments').doc(String(sub.assignmentId)).get();
-    if (!aSnap.exists) { await sendStyled(botId, chatId, `Bài "${title}" không còn tồn tại.`); return; }
+    if (!aSnap.exists) { await sendStyled(token, chatId, `Bài "${title}" không còn tồn tại.`); return; }
     const ctx = await gradeContextFor(aSnap.data() as Record<string, unknown>);
     const result = await gradeOneSubmission(
       db, submissionId, ctx, '', String(sub.teacherId), false,
@@ -120,20 +132,21 @@ const regradeAndNotify = async (
     console.log(`[regrade] cham lai xong | success=${result.success} | failureCode=${result.failureCode ?? '-'}`);
     const fresh = (await db.collection(SUBMISSIONS).doc(submissionId).get()).data() as SubmissionDoc | undefined;
     if (result.success && fresh?.grade) {
-      await sendStyled(botId, chatId, [
-        `📝 Đã chấm lại bài "${title}" (chế độ đọc kỹ): ${fresh.grade.score}/${fresh.grade.maxScore} điểm`,
-        'Lượt này máy đọc lại toàn bộ bài trước khi chấm nên chính xác hơn lượt đầu.',
-        'Điểm vẫn chờ thầy cô duyệt mới chính thức.',
+      await sendStyled(token, chatId, [
+        `Đã đọc lại bài "${title}" ở chế độ đọc kỹ.`,
+        fresh.grade.teacherApproved === true
+          ? 'Thầy cô đã duyệt. Em nhắn 2 để xem kết quả trên hồ sơ đang liên kết.'
+          : 'Kết quả chờ thầy cô duyệt. Sau khi được duyệt, em nhắn 2 để xem điểm và nhận xét.',
         '', MENU_HINT,
       ].join('\n'));
       return;
     }
-    await sendStyled(botId, chatId, [`⚠️ Chưa chấm lại được bài "${title}".`, 'Thầy cô sẽ kiểm tra giúp em nhé.', '', MENU_HINT].join('\n'));
+    await sendStyled(token, chatId, [`⚠️ Chưa chấm lại được bài "${title}".`, 'Bài và ảnh vẫn được giữ. Em nhờ thầy cô kiểm tra; nếu cần thêm hoặc thay ảnh, nhắn bổ sung hoặc nộp lại.', '', MENU_HINT].join('\n'));
   } catch (error) {
-    console.error('[regrade] THAT BAI:', error instanceof Error ? `${error.name}: ${error.message.slice(0, 300)}` : error);
+    console.error('[regrade] không hoàn tất:', error instanceof AiKeyRequiredError ? 'ai_key_required' : 'grading_failed');
     const msg = error instanceof AiKeyRequiredError
       ? REGRADE_REPLIES.noKey
       : `⚠️ Chưa chấm lại được bài "${title}".\n\nEm thử lại sau hoặc nhờ thầy cô nhé.\n\n${MENU_HINT}`;
-    await sendStyled(botId, chatId, msg).catch(() => undefined);
+    await sendStyled(token, chatId, msg).catch(() => undefined);
   }
 };

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import handler from '../classroom';
 import { hashPin } from '../_classroom-core';
+import { createHash } from 'node:crypto';
 type Data = Record<string, any>;
 const h = vi.hoisted(() => ({ uid: 'student-uid', db: null as any, metadata: {} as Record<string, any>, signed: vi.fn(async () => ['SIGNED']), copy: vi.fn(async () => []), beforeCommit: undefined as undefined | (() => void), ai: vi.fn(), deleted: [] as string[] }));
 vi.mock('firebase-admin/auth', () => ({ getAuth: () => ({ verifyIdToken: async () => ({ uid: h.uid }), getUser: async () => ({ email: 'teacher@test.dev' }) }) }));
@@ -11,10 +12,27 @@ const makeDb = (store: Record<string, Data>) => {
   return { collection, runTransaction: async (work: any) => { const writes: Array<() => Promise<void>> = []; h.beforeCommit?.(); h.beforeCommit = undefined; const result = await work({ get: (ref: any) => ref.get(), set: (ref: any, data: Data) => { writes.push(() => ref.set(data)); }, update: (ref: any, data: Data) => { writes.push(() => ref.update(data)); }, create: (ref: any, data: Data) => { if (store[ref.path]) throw new Error('exists'); writes.push(() => ref.set(data)); } }); for (const write of writes) await write(); return result; } };
 };
 let store: Record<string, Data>;
-const call = async (body: Data) => { const result = { status: 0, payload: {} as Data }; const res = { status(code: number) { result.status = code; return res; }, json(data: Data) { result.payload = data; return res; } }; await handler({ method: 'POST', body: { idToken: 't', ...body } } as never, res as never); return result; };
+const call = async (body: Data, cookie?: string) => { const result = { status: 0, payload: {} as Data }; const res = { status(code: number) { result.status = code; return res; }, json(data: Data) { result.payload = data; return res; } }; await handler({ method: 'POST', body: { idToken: 't', ...body }, headers: { cookie } } as never, res as never); return result; };
 beforeEach(() => { h.uid = 'student-uid'; h.beforeCommit = undefined; h.deleted = []; h.copy.mockReset(); h.copy.mockResolvedValue([]); h.signed.mockClear(); h.metadata = { 'homework/student-uid/a.jpg': { name: 'homework/student-uid/a.jpg', size: '100', contentType: 'image/jpeg', metadata: { firebaseStorageDownloadTokens: 'token' } } }; store = { 'studentLinks/student-uid': { classId: 'class', studentId: 'student', teacherId: 'teacher' }, 'classes/class': { teacherId: 'teacher', joinCode: 'CODE' }, 'classes/class/students/student': { name: 'HS' }, 'classes/class/parentSecrets/student': { pinHash: hashPin('2468'), pinSetBy: 'parent', updatedAt: 'now' }, 'assignments/a': { classId: 'class', teacherId: 'teacher', type: 'upload', title: 'Bài', isOpen: false }, 'submissions/s': { classId: 'class', teacherId: 'teacher', studentId: 'student', assignmentId: 'a', fileUrls: [], status: 'graded', grade: { teacherApproved: true, score: 8, maxScore: 10, questionResults: [{ questionNumber: 'Câu 1' }] } } }; h.db = makeDb(store); });
 const parent = { role: 'parent', joinCode: 'CODE', studentId: 'student', pin: '2468' };
 describe('actor submission and feedback', () => {
+  it.each(['expired', 'wrong-student', 'missing'])('valid parent PIN permits submission write despite %s bot cookie', async state => {
+    const token = 'a'.repeat(64), cookie = `spai_parent_web=${token}`;
+    if (state !== 'missing') store[`assistantParentWebSessions/${createHash('sha256').update(token).digest('hex')}`] = {
+      classId: 'class', studentId: state === 'wrong-student' ? 'other' : 'student', role: 'parent',
+      expiresAt: state === 'expired' ? 0 : Date.now() + 60_000,
+    };
+    const payload = { action: 'issueSubmissionUpload', ...parent, assignmentId: 'a', files: [{ name: 'a.jpg', mimeType: 'image/jpeg', size: 100 }] };
+    expect((await call({ ...payload, pin: '' }, cookie)).status).toBe(401);
+    const issued = await call(payload, cookie);
+    expect(issued.status).toBe(200);
+    const uploadGrantId = issued.payload.uploadGrantId;
+    for (const file of store[`submissionUploadGrants/${uploadGrantId}`].files) h.metadata[file.path] = { name: file.path, contentType: file.mimeType, size: String(file.size), generation: '1' };
+    const sent = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId }, cookie);
+    expect(sent.status).toBe(200);
+    expect(store[`submissions/${sent.payload.submission.id}`].submittedBy.role).toBe('parent');
+    expect(store[`submissionUploadGrants/${uploadGrantId}`].consumed).toBe(true);
+  });
   it.each(['student', 'teacher', 'parent'])('picture evidence rejects online exam scope for %s while reads remain accessible', async role => {
     const credentials = role === 'parent' ? parent : role === 'teacher' ? { role, classId: 'class', studentId: 'student' } : { role };
     h.uid = role === 'teacher' ? 'teacher' : 'student-uid';
@@ -41,27 +59,69 @@ describe('actor submission and feedback', () => {
     for (const file of store[`submissionUploadGrants/${uploadGrantId}`].files) h.metadata[file.path] = { name: file.path, contentType: file.mimeType, size: String(file.size), generation: '1' };
     return uploadGrantId;
   };
+  it.each(['submitted', 'grading', 'clarification'])('không tạo lượt mới khi lượt hiện tại đang %s', async status => {
+    store['submissions/s'].status = status === 'clarification' ? 'graded' : status;
+    if (status === 'clarification') store['submissions/s'].grade.awaitingClarification = true;
+    const uploadGrantId = await grant();
+    const result = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId });
+    expect(result.status).toBe(409);
+    expect(store[`submissionUploadGrants/${uploadGrantId}`].consumed).toBe(false);
+    expect(Object.keys(store).filter(key => key.startsWith('submissions/'))).toHaveLength(1);
+  });
+  it('nộp lại toàn bộ chỉ lấy ảnh mới, không đổi điểm duyệt cũ; lượt thứ hai bị chặn', async () => {
+    store['submissions/s'].fileUrls = ['OLD PHOTO'];
+    store['submissions/s'].textContent = 'OLD TEXT';
+    const before = structuredClone(store['submissions/s']);
+    const uploadGrantId = await grant();
+    const result = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', revisionMode: 'replace', textContent: 'NEW TEXT', uploadGrantId });
+    expect(result.status).toBe(200);
+    expect(result.payload.submission.fileUrls).not.toContain('OLD PHOTO');
+    expect(result.payload.submission.textContent).toBe('NEW TEXT');
+    expect(result.payload.submission.supplementOf).toBe('s');
+    expect(result.payload.submission.grade).toBeUndefined();
+    expect(store['submissions/s']).toEqual(before);
+    const nextGrant = await grant();
+    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId: nextGrant })).status).toBe(409);
+  });
+  it('bổ sung giữ ảnh cũ; race có lượt mới trong lúc upload bị từ chối', async () => {
+    store['submissions/s'].fileUrls = ['OLD PHOTO'];
+    const uploadGrantId = await grant();
+    const result = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId });
+    expect(result.status).toBe(200);
+    expect(result.payload.submission.fileUrls).toContain('OLD PHOTO');
+    expect(result.payload.submission.fileUrls).toHaveLength(2);
+    store[`submissions/${result.payload.submission.id}`].status = 'graded';
+    const nextGrant = await grant();
+    h.copy.mockImplementation(async () => { store['submissions/newer'] = { ...store['submissions/s'], createdAt: '2999-01-01' }; return []; });
+    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: result.payload.submission.id, uploadGrantId: nextGrant })).status).toBe(409);
+    expect(store[`submissionUploadGrants/${nextGrant}`].consumed).toBe(false);
+  });
+  it('bài có lượt trước yêu cầu chọn rõ bổ sung/nộp lại; mode lạ bị chặn', async () => {
+    const uploadGrantId = await grant();
+    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId })).status).toBe(409);
+    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', revisionMode: 'invalid', uploadGrantId })).status).toBe(422);
+  });
   it.each(['student', 'teacher', 'parent'])('role %s: open/closed accepted; hard lock denies every evidence mutation', async role => {
     const credentials = role === 'parent' ? parent : role === 'teacher' ? { role, classId: 'class', studentId: 'student' } : { role };
     h.uid = role === 'teacher' ? 'teacher' : 'student-uid';
-    for (const isOpen of [true, false]) { store['assignments/a'].isOpen = isOpen; const uploadGrantId = await grant(credentials); expect((await call({ action: 'submitActorSubmission', ...credentials, assignmentId: 'a', uploadGrantId })).status).toBe(200); }
+    for (const isOpen of [true, false]) { store['assignments/a'].isOpen = isOpen; const uploadGrantId = await grant(credentials); const prior = Object.entries(store).filter(([key]) => key.startsWith('submissions/')).sort(([,a],[,b]) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))[0]; if (prior) prior[1].status = 'graded'; expect((await call({ action: 'submitActorSubmission', ...credentials, assignmentId: 'a', supplementOf: prior?.[0].split('/')[1], uploadGrantId })).status).toBe(200); }
     const uploadGrantId = await grant(credentials); store['assignments/a'].submissionLocked = true;
     expect((await call({ action: 'submitActorSubmission', ...credentials, assignmentId: 'a', uploadGrantId })).status).toBe(409);
   });
   it('one-time grant rejects replay, wrong purpose and metadata mismatch', async () => {
     const uploadGrantId = await grant();
     store[`submissionUploadGrants/${uploadGrantId}`].purpose = 'clarification';
-    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId })).status).toBe(422);
+    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId })).status).toBe(422);
     store[`submissionUploadGrants/${uploadGrantId}`].purpose = 'submission';
     const path = store[`submissionUploadGrants/${uploadGrantId}`].files[0].path;
-    h.metadata[path].size = '101'; expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId })).status).toBe(422);
-    h.metadata[path].size = '100'; expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId })).status).toBe(200);
-    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId })).status).toBe(422);
+    h.metadata[path].size = '101'; expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId })).status).toBe(422);
+    h.metadata[path].size = '100'; expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId })).status).toBe(200);
+    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId })).status).toBe(422);
   });
   it.each(['lock', 'pin', 'student', 'teacher'])('finalize rechecks %s after copying upload, never creates a partial submission', async change => {
     const uploadGrantId = await grant(); const before = Object.keys(store).filter(key => key.startsWith('submissions/')).length;
     h.copy.mockImplementation(async () => { if (change === 'lock') store['assignments/a'].submissionLocked = true; if (change === 'pin') store['classes/class/parentSecrets/student'].pinHash = hashPin('9999'); if (change === 'student') delete store['classes/class/students/student']; if (change === 'teacher') store['classes/class'].teacherId = 'other'; return []; });
-    const sent = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId }); expect([401, 403, 409]).toContain(sent.status);
+    const sent = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId }); expect([401, 403, 409]).toContain(sent.status);
     expect(Object.keys(store).filter(key => key.startsWith('submissions/'))).toHaveLength(before); expect(store[`submissionUploadGrants/${uploadGrantId}`].consumed).toBe(false);
   });
   it('target student and removed co-teacher cannot upload or read another assignment', async () => {
@@ -82,26 +142,27 @@ describe('actor submission and feedback', () => {
 
   it('nộp xong thì xoá ảnh tạm pending-homework; ảnh chưa tải lên xong báo 422 chứ không phải lỗi máy chủ', async () => {
     const issued = await call({ action: 'issueSubmissionUpload', ...parent, assignmentId: 'a', files: [{ name: 'a.jpg', mimeType: 'image/jpeg', size: 100 }] });
-    const early = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId: issued.payload.uploadGrantId });
+    const early = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId: issued.payload.uploadGrantId });
     expect(early.status).toBe(422);
     expect(early.payload.error).toContain('chưa tải lên xong');
     const uploadGrantId = await grant();
     const path = store[`submissionUploadGrants/${uploadGrantId}`].files[0].path;
-    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId })).status).toBe(200);
+    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId })).status).toBe(200);
     expect(h.deleted).toContain(path);
   });
 
   it('nhận detectedAnswers hợp lệ và [] qua upload grant', async () => {
     for (const detectedAnswers of [[], [{ questionNo: 1, answer: 'B', confidence: .95 }]]) {
+      for (const key of Object.keys(store)) if (key.startsWith('submissions/') && key !== 'submissions/s') delete store[key];
       const uploadGrantId = await grant(parent);
-      const sent = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId, detectedAnswers });
+      const sent = await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId, detectedAnswers });
       expect(sent.status).toBe(200);
       expect(store[`submissions/${sent.payload.submission.id}`].detectedAnswers).toEqual(detectedAnswers);
     }
   });
   it.each([{}, [{ questionNo: '1', answer: 'A', confidence: .9 }], [{ questionNo: 1, answer: 'X', confidence: .9 }], [{ questionNo: 1, answer: 'A', confidence: 2 }], [{ questionNo: 1, answer: 'A', confidence: .9 }, { questionNo: 1, answer: null, confidence: 0 }]])('từ chối detectedAnswers sai khuôn: %j', async detectedAnswers => {
     const uploadGrantId = await grant(parent);
-    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', uploadGrantId, detectedAnswers })).status).toBe(400);
+    expect((await call({ action: 'submitActorSubmission', ...parent, assignmentId: 'a', supplementOf: 's', uploadGrantId, detectedAnswers })).status).toBe(400);
   });
 
   it('GV nộp bài đã chấm lưu cờ handMarkedPaper; HS/PH tự khai cũng được nhưng KHÔNG được coi là điểm chính thức', async () => {
@@ -113,6 +174,7 @@ describe('actor submission and feedback', () => {
       action: 'submitActorSubmission',
       ...teacherCredentials,
       assignmentId: 'a',
+      supplementOf: 's',
       uploadGrantId: uploadGrantTeacher,
       handMarked: true,
     });
@@ -120,6 +182,7 @@ describe('actor submission and feedback', () => {
     expect(teacherRes.payload.submission.handMarkedPaper).toBe(true);
     expect(teacherRes.payload.submission.handMarkedDeclaredBy).toBe('teacher');
 
+    store[`submissions/${teacherRes.payload.submission.id}`].status = 'graded';
     // Học sinh tự khai bài thầy đã chấm tay → máy đọc điểm, nhưng thầy phải xác nhận
     h.uid = 'student-uid';
     const studentCredentials = { role: 'student' };
@@ -128,6 +191,7 @@ describe('actor submission and feedback', () => {
       action: 'submitActorSubmission',
       ...studentCredentials,
       assignmentId: 'a',
+      supplementOf: teacherRes.payload.submission.id,
       uploadGrantId: uploadGrantStudent,
       handMarked: true,
     });

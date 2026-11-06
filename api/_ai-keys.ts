@@ -1,3 +1,4 @@
+import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 /**
  * KHOÁ AI của giáo viên + quyền dùng khoá chung của chủ dự án.
  *
@@ -105,6 +106,7 @@ interface StudentLinkInfo { classId: string; studentId: string; teacherId: strin
 const studentLinkOf = async (db: Db, uid: string): Promise<StudentLinkInfo | null> => {
   const snap = await db.collection('studentLinks').doc(uid).get();
   const data = snap.exists ? snap.data() ?? {} : {};
+  if (!await verifyStudentBotLink(db, uid, data)) return null;
   const link = { classId: String(data.classId || ''), studentId: String(data.studentId || ''), teacherId: String(data.teacherId || '') };
   return link.classId && link.studentId && link.teacherId ? link : null;
 };
@@ -255,7 +257,7 @@ const resolveKeyOwner = async (db: Db): Promise<string | null> => {
   if (!who.uid) return null;
   if (!who.anonymous) return who.uid;
   const link = await db.collection('studentLinks').doc(who.uid).get();
-  const teacherId = link.exists ? String(link.data()?.teacherId || '') : '';
+  const teacherId = link.exists && await verifyStudentBotLink(db, who.uid, link.data()) ? String(link.data()?.teacherId || '') : '';
   return teacherId || null;
 };
 

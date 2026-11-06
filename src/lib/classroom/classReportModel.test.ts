@@ -97,6 +97,54 @@ describe('buildQuestionStats — bài kiểm tra nhiều mã đề', () => {
 });
 
 describe('buildClassAssignmentReport', () => {
+  it.each(['submitted', 'grading', 'graded', 'error'])('giữ điểm đã duyệt khi bản bổ sung đang %s chưa được duyệt', status => {
+    const approved = baseSubmission({ id: 'approved', score: 9 });
+    const revision = baseSubmission({
+      id: 'revision', createdAt: '2026-08-26T08:00:00.000Z',
+      supplementOf: approved.id, status, official: false, score: 2,
+    });
+    const report = buildClassAssignmentReport(baseInput([revision, approved]));
+
+    expect(report.latest).toEqual([expect.objectContaining({ id: 'revision', status, official: false, attemptCount: 2 })]);
+    expect(report.official).toEqual([expect.objectContaining({ id: 'approved', score: 9 })]);
+    expect(report.metrics).toEqual({ averagePercent: 90, medianPercent: 90, officialEvidenceCount: 1 });
+    expect(report.counters).toMatchObject({ submitted: 1, official: 1, pending: 1 });
+    expect(report.scoreDistribution['8-10']).toBe(1);
+  });
+
+  it('bản bổ sung được giáo viên duyệt thay điểm chính thức cũ', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({ id: 'approved', score: 9 }),
+      baseSubmission({ id: 'revision', createdAt: '2026-08-26T08:00:00.000Z', supplementOf: 'approved', score: 2 }),
+    ]));
+
+    expect(report.official).toEqual([expect.objectContaining({ id: 'revision', score: 2 })]);
+    expect(report.metrics.averagePercent).toBe(20);
+    expect(report.counters).toMatchObject({ official: 1, pending: 0 });
+  });
+
+  it('chọn bản đã duyệt gần nhất khi có nhiều bản bổ sung', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({ id: 'revision', createdAt: '2026-08-27T08:00:00.000Z', supplementOf: 'approved', official: false, score: 2 }),
+      baseSubmission({ id: 'approved', createdAt: '2026-08-26T08:00:00.000Z', supplementOf: 'original', score: 9 }),
+      baseSubmission({ id: 'original', score: 7 }),
+    ]));
+
+    expect(report.official).toEqual([expect.objectContaining({ id: 'approved', score: 9 })]);
+    expect(report.metrics.averagePercent).toBe(90);
+  });
+
+  it('không giữ điểm cũ khi lượt mới không phải bản bổ sung', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({ id: 'approved', score: 9 }),
+      baseSubmission({ id: 'new', createdAt: '2026-08-26T08:00:00.000Z', official: false, score: 2 }),
+    ]));
+
+    expect(report.official).toEqual([]);
+    expect(report.metrics.averagePercent).toBeNull();
+    expect(report.counters).toMatchObject({ official: 0, pending: 1 });
+  });
+
   it('chỉ giữ lượt mới nhất và tách các counter theo trạng thái', () => {
     const report = buildClassAssignmentReport(baseInput([
       baseSubmission({ id: 'old', createdAt: '2026-08-24T08:00:00.000Z', score: 2 }),

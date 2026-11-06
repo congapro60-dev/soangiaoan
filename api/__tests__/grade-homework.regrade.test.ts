@@ -191,6 +191,59 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     process.env.GRADING_GEMINI_API_KEY = 'test-key';
     h.uid = 'gv-1';
   });
+  it('suspected wrong assignment never replaces an existing grade and explains the evidence issue', async () => {
+    const harness = seed();
+    harness.state.submissions['sub-1'].assignmentId = 'asg-1';
+    harness.state.submissions['sub-1'].fileUrls = ['https://storage.test/actual.jpg'];
+    harness.state.assignments = { 'asg-1': { classId: 'lop-1', teacherId: 'gv-1', sourceText: 'Câu 1. Giải x+1=3', description: 'Làm câu 1' } };
+    h.db = makeDb(harness);
+    stubImageThenGeminiResponses(makeGeminiResponse(JSON.stringify({ ...JSON.parse(validGradeJson(0)), photoReview: { assignmentMatch: 'possibly_wrong', missingQuestionNumbers: [], unreadablePhotoNumbers: [] } })));
+    await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
+    expect(harness.state.submissions['sub-1'].grade).toEqual(oldGrade);
+    expect(harness.state.submissions['sub-1'].status).toBe('graded');
+    expect(harness.state.submissions['sub-1'].lastGradingError).toContain('chưa khớp bài');
+  });
+  it('does not trust model mismatch without teacher source; no extra model call for review', async () => {
+    const harness = seed();
+    harness.state.submissions['sub-1'].fileUrls = ['https://storage.test/actual.jpg'];
+    h.db = makeDb(harness);
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse(JSON.stringify({ ...JSON.parse(validGradeJson(6)), photoReview: { assignmentMatch: 'possibly_wrong', missingQuestionNumbers: ['3'], unreadablePhotoNumbers: [1, 8] } })));
+    expect((await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' })).statusCode).toBe(200);
+    expect(harness.state.submissions['sub-1'].grade).toMatchObject({ photoReview: { assignmentMatch: 'uncertain', missingQuestionNumbers: [], unreadablePhotoNumbers: [1] } });
+    expect(prompts).toHaveLength(1);
+  });
+  it('bot refuses partial-image grading before calling AI; approved old grade stays unchanged', async () => {
+    const harness = seed();
+    harness.state.submissions['sub-1'].source = 'zalo_bot';
+    harness.state.submissions['sub-1'].grade = { ...oldGrade, teacherApproved: true };
+    harness.state.submissions['sub-1'].fileUrls = ['https://storage.test/missing.jpg', 'https://storage.test/actual.jpg'];
+    h.db = makeDb(harness);
+    const fetch = vi.fn(async (url: unknown) => String(url).endsWith('missing.jpg') ? { ok: false } : makeImageResponse());
+    vi.stubGlobal('fetch', fetch);
+    await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
+    expect(harness.state.submissions['sub-1'].grade).toEqual({ ...oldGrade, teacherApproved: true });
+    expect(harness.state.submissions['sub-1'].lastGradingError).toContain('Chưa tải đủ ảnh');
+    expect(fetch.mock.calls.every(([url]) => String(url).startsWith('https://storage.test/'))).toBe(true);
+  });
+  it('bot supplement can retain a web document alongside new photos without treating it as a missing image', async () => {
+    const harness = seed();
+    Object.assign(harness.state.submissions['sub-1'], {
+      source: 'zalo_bot', supplementOf: 'older-web-submission', textContent: 'Nội dung bài làm từ Word',
+      fileUrls: ['https://storage.test/old.docx', 'https://storage.test/actual.jpg'],
+      attachments: [{ url: 'https://storage.test/old.docx', name: 'old.docx', kind: 'document' },
+        { url: 'https://storage.test/actual.jpg', name: 'actual.jpg', kind: 'image' }],
+    });
+    h.db = makeDb(harness);
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse(validGradeJson(6)));
+    const imageFetch = h.fetch as (...args: unknown[]) => Promise<unknown>;
+    vi.stubGlobal('fetch', (url: unknown, ...args: unknown[]) => String(url).endsWith('.docx')
+      ? Promise.resolve({ ok: true, headers: { get: () => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' } })
+      : imageFetch(url, ...args));
+    await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
+    expect(prompts).toHaveLength(1);
+    expect(harness.state.submissions['sub-1'].grade.score).toBe(6);
+    expect(harness.state.submissions['sub-1'].lastGradingError).toBeFalsy();
+  });
   it('assignment edits during AI cannot bless an old solution with the new version', async () => {
     const harness = seed(); harness.state.submissions['sub-1'].assignmentId = 'asg-1'; harness.state.assignments = { 'asg-1': { classId: 'lop-1', teacherId: 'gv-1', answerKey: 'Câu 1: B', sourceText: 'Tính 1+1', questionCatalog: [{ questionNumber: 'Câu 1', content: 'Tính 1+1', expectedAnswer: 'B' }] } }; h.db = makeDb(harness);
     const raw = { ...JSON.parse(validGradeJson(1)), questionResults: [{ questionNumber: 'Câu 1', status: 'correct', score: 1, maxScore: 1, studentAnswer: 'B', expectedAnswer: 'B', explanation: 'Đúng', correction: '', nextPractice: '', errorType: '', confidence: .95, needsTeacherReview: false, workedSolution: 'Lời giải từ bản đề cũ: $1+1=2$.' }] };

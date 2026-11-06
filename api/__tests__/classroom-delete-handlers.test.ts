@@ -54,7 +54,7 @@ const makeBucket = (harness: Harness) => ({
 });
 
 const makeDb = (harness: Harness) => ({
-  runTransaction: async (work: any) => { const operations: any[] = []; const result = await work({ get: (ref: any) => ref.get(), update: (ref: any, data: DocData) => operations.push(() => ref.update(data)), create: (ref: any, data: DocData) => operations.push(() => ref.set(data)) }); for (const operation of operations) await operation(); return result; },
+  runTransaction: async (work: any) => { const operations: any[] = []; const result = await work({ get: (ref: any) => ref.get(), update: (ref: any, data: DocData) => operations.push(() => ref.update(data)), set: (ref: any, data: DocData) => operations.push(() => ref.set(data)), create: (ref: any, data: DocData) => operations.push(() => ref.set(data)) }); for (const operation of operations) await operation(); return result; },
   collection: (colName: string) => ({
     doc: (docId: string) => {
       const touch = (col: string, id: string) => {

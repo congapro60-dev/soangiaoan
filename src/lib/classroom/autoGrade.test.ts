@@ -65,3 +65,16 @@ describe('tự chấm + tự duyệt sau 60 phút', () => {
   });
 });
 
+
+
+it('photo uncertainty never becomes an official grade just by waiting', () => {
+  for (const review of [
+    {assignmentMatch:'possibly_wrong',missingQuestionNumbers:[],unreadablePhotoNumbers:[]},
+    {assignmentMatch:'matches',missingQuestionNumbers:['3'],unreadablePhotoNumbers:[]},
+    {assignmentMatch:'matches',missingQuestionNumbers:[],unreadablePhotoNumbers:[2]},
+  ] as const) {
+    const row = sub('review', 'A', ago(300), {status:'graded',grade:{...grade(false,ago(70)),photoReview:review as any}});
+    expect(canAutoApproveFreshGrade(row)).toBe(false);
+    expect(planAutoSweep([row],NOW).toApprove).toEqual([]);
+  }
+});

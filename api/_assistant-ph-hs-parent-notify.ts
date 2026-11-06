@@ -63,7 +63,7 @@ export const notifyParentSubmission = async (
       `👤 Học sinh: ${studentName}${className ? ` (Lớp ${className})` : ''}`,
       `📝 Bài tập: ${info.assignmentTitle}`,
       `📷 Số lượng ảnh: ${info.photoCount} ảnh`,
-      '⏳ Hệ thống đang chấm tự động. Kết quả sẽ được gửi ngay cho phụ huynh sau ít phút.',
+      '⏳ Bài đã lưu và đang xử lý. Điểm được công bố sau khi thầy cô duyệt.',
       '',
       '💡 Phụ huynh có thể nhắn số 0 để xem menu chức năng.',
     ].join('\n');
@@ -112,7 +112,7 @@ export const notifyParentGraded = async (
       '📊 KẾT QUẢ BÀI TẬP CỦA CON',
       `👤 Học sinh: ${studentName}${className ? ` (Lớp ${className})` : ''}`,
       `📝 Bài: ${info.assignmentTitle}`,
-      `🎯 Điểm số: ${info.score}/${info.maxScore} (${statusBadge})`,
+      info.approved ? `🎯 Điểm số: ${info.score}/${info.maxScore} (${statusBadge})` : '⏳ Bài đã được xử lý, đang chờ thầy cô duyệt. Điểm chưa công bố.',
       congrats ? '🌟 Chúc mừng em đã hoàn thành bài tập xuất sắc!' : '',
       '',
       '👉 Phụ huynh nhắn số 2 để xem chi tiết nhận xét & bài làm của con.',

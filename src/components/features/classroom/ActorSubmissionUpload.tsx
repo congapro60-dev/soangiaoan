@@ -41,6 +41,7 @@ export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, suppl
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [note, setNote] = useState('');
+  const [revisionMode, setRevisionMode] = useState<'supplement' | 'replace'>('supplement');
   const [busy, setBusy] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState('');
@@ -66,7 +67,7 @@ export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, suppl
       setProgress(`Đang tải ${prepared.length} tệp lên máy chủ…`);
       const grant = await uploadActorEvidence(credentials, assignmentId, prepared);
       setProgress('Đã tải xong — đang lưu bài nộp…');
-      const payload = { assignmentId, uploadGrantId: grant, supplementOf, note, handMarked, detectedAnswers };
+      const payload = { assignmentId, uploadGrantId: grant, supplementOf, revisionMode, note, handMarked, detectedAnswers };
       const { submission } = await submitActorSubmission(credentials, payload);
       if (alive.current) { setAccepted(true); setFiles([]); setNote(''); }
       // Chấm NỀN: máy chấm sau, thầy không phải đứng chờ (điện thoại hay lag vì chờ AI).
@@ -78,9 +79,15 @@ export const ActorSubmissionUpload = ({ credentials, assignmentId, locked, suppl
     finally { if (alive.current) setBusy(false); onBusyChange?.(false); }
   };
   return <section className={`my-3 space-y-3 rounded-xl border p-3 ${handMarked ? 'border-emerald-200 bg-emerald-50/40' : 'border-indigo-200 bg-white'}`} aria-label={handMarked ? 'Nộp bài đã chấm tay' : 'Nộp bài hộ'}>
-    <p className="text-sm font-black">{supplementOf ? 'Bổ sung vào bài đã nộp' : handMarked ? 'Nộp bài đã chấm tay của học sinh' : 'Nộp bài hộ học sinh'}</p>
+    <p className="text-sm font-black">{supplementOf ? 'Cập nhật bài đã nộp' : handMarked ? 'Nộp bài đã chấm tay của học sinh' : 'Nộp bài hộ học sinh'}</p>
     {handMarked && <p className="text-xs font-semibold text-emerald-800">Tải ảnh hoặc PDF bài làm đã có điểm/chữ đỏ của thầy cô. AI sẽ tự đọc điểm ghi tay làm điểm chính thức và tự duyệt bài.</p>}
     {locked ? <p role="status" className="text-sm font-bold text-amber-800">GV đã khóa chốt. Cần mở khóa trước khi nộp hoặc bổ sung.</p> : <>
+      {supplementOf && <fieldset disabled={busy} className="space-y-2 rounded-lg border bg-white p-3 text-sm">
+        <legend className="px-1 font-bold">Cách nộp lượt mới</legend>
+        <label className="flex min-h-11 items-center gap-2"><input type="radio" name={`revision-${assignmentId}`} checked={revisionMode === 'supplement'} onChange={() => setRevisionMode('supplement')} /> Bổ sung ảnh — giữ ảnh cũ, thêm ảnh mới</label>
+        <label className="flex min-h-11 items-center gap-2"><input type="radio" name={`revision-${assignmentId}`} checked={revisionMode === 'replace'} onChange={() => setRevisionMode('replace')} /> Nộp lại toàn bộ — chỉ dùng ảnh mới</label>
+        <p className="text-xs text-slate-600">Lượt cũ và điểm đã duyệt vẫn được giữ trong lịch sử. Lượt mới chờ thầy cô duyệt.</p>
+      </fieldset>}
       <div className="flex flex-wrap gap-2">
         {/* Nút CHỤP ẢNH riêng: mở thẳng camera sau trên iPhone (nút file chung chỉ mở thư viện ảnh). */}
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" aria-label="Chụp ảnh bài làm" onChange={event => { themTep(Array.from(event.target.files ?? [])); event.target.value = ''; }} />

@@ -8,6 +8,7 @@ import { PeriodicTestSection, type PeriodicTestState } from './PeriodicTestSecti
 
 export interface AssignmentFormValue {
   title: string;
+  description: string;
   dueAt: string;
   maxScore: number;
   answerKey: string;
@@ -41,6 +42,7 @@ const O = 'w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text
 
 export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSubmit }: Props) => {
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [dueAt, setDueAt] = useState('');
   const [maxScore, setMaxScore] = useState(10);
   const [answerKey, setAnswerKey] = useState('');
@@ -193,6 +195,13 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
             <input value={title} onChange={e => setTitle(e.target.value)} placeholder={laDinhKi ? 'VD: Kiểm tra giữa học kì I' : 'VD: Phiếu bài tập §2 — Phương trình đường thẳng'} className={O} />
           </div>
 
+          <label className="block">
+            <span className="mb-1 block text-sm font-black text-slate-700">Yêu cầu hiển thị trên bot</span>
+            <textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={2000} rows={3}
+              placeholder="Ví dụ: Làm bài 1, 2, 3 trang 72 SGK." className={O} />
+            <span className="mt-1 block text-xs font-semibold text-slate-500">Học sinh và phụ huynh đọc được trên bot và web. Không nhập đáp án hoặc lệnh chấm riêng ở đây.</span>
+          </label>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-black text-slate-700">Hạn nộp</label>
@@ -341,11 +350,11 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
           <button
             onClick={() => onSubmit(laDinhKi
               ? {
-                title: title.trim(), dueAt, maxScore, answerKey: '', rubric: dinhKi.rubric, deFiles: [], sourceText: '', sourceImages: [],
+                title: title.trim(), description: description.trim(), dueAt, maxScore, answerKey: '', rubric: dinhKi.rubric, deFiles: [], sourceText: '', sourceImages: [],
                 gradingInstructions: gradingInstructions.trim(), answerKeyImages: [], answerKeyByAi: dinhKi.answerByAi,
                 periodicTest: dinhKi.sheetLabel ? { sheetLabel: dinhKi.sheetLabel } : {}, examVariants: dinhKi.variants,
               }
-              : { title: title.trim(), dueAt, maxScore, answerKey: answerKey.trim(), rubric: rubric.trim(), deFiles, sourceText, sourceImages, gradingInstructions: gradingInstructions.trim(), answerKeyImages, answerKeyByAi: dapAnDoAi })}
+              : { title: title.trim(), description: description.trim(), dueAt, maxScore, answerKey: answerKey.trim(), rubric: rubric.trim(), deFiles, sourceText, sourceImages, gradingInstructions: gradingInstructions.trim(), answerKeyImages, answerKeyByAi: dapAnDoAi })}
             disabled={!title.trim() || dangGui || dangDoc !== '' || (laDinhKi && (dinhKi.busy || dinhKi.problems.length > 0))}
             title={laDinhKi && dinhKi.problems.length > 0 ? dinhKi.problems.join(' ') : undefined}
             className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-50"

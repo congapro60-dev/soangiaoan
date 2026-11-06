@@ -1,3 +1,4 @@
+import { BotWebHandoff, hasBotWebTicket } from '../components/features/classroom/BotWebHandoff';
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
@@ -144,7 +145,9 @@ const KhungDangNhap = ({ children }: { children: ReactNode }) => (
   </div>
 );
 
-export const StudentPortalPage = () => {
+export const StudentPortalPage = () => hasBotWebTicket() ? <BotWebHandoff role="student" /> : <StudentPortalContent />;
+
+const StudentPortalContent = () => {
   // Vào /lop bằng điều hướng trong app (Firebase đã khởi tạo ở app mặc định của GV) → tải lại một lần
   // để chạy trên app riêng của HS; không thì đăng nhập HS sẽ đè phiên Google của GV.
   useEffect(() => { if (auth.app.name !== STUDENT_PORTAL_APP) window.location.reload(); }, []);
@@ -172,6 +175,7 @@ export const StudentPortalPage = () => {
   const [notificationsSeenAt, setNotificationsSeenAt] = useState<string | null>(null);
   const [dangTaiDu, setDangTaiDu] = useState(true);
   const [dangNop, setDangNop] = useState('');
+  const [revisionMode, setRevisionMode] = useState<'supplement' | 'replace'>('supplement');
   const [buocNop, setBuocNop] = useState('');
   const [thanhCong, setThanhCong] = useState('');
   /** Bài vừa nộp đang được máy chấm ngầm: trang tự tải lại cho tới khi có kết quả hoặc câu hỏi lại. */
@@ -248,6 +252,12 @@ export const StudentPortalPage = () => {
           getDoc(doc(db, CLASSES_COL, link.classId, 'students', link.studentId)),
         ]);
         if (!active || auth.currentUser?.uid !== user.uid) return;
+        if (!classSnap.exists() || !studentSnap.exists() || joinCodeParam && normalizeJoinCode(classSnap.data()?.joinCode || '') !== normalizeJoinCode(joinCodeParam)) {
+          setPhien(null);
+          if (joinCodeParam) void moLop(normalizeJoinCode(joinCodeParam));
+          else setStage('nhap-ma-lop');
+          return;
+        }
         setPhien({
           studentId: link.studentId,
           classId: link.classId,
@@ -362,6 +372,7 @@ export const StudentPortalPage = () => {
       return;
     }
     setLoi('');
+    if (targetRef.current !== assignmentId || targetSupplementRef.current !== normalizedSupplementOf) setRevisionMode('supplement');
     targetRef.current = assignmentId;
     targetSupplementRef.current = normalizedSupplementOf;
     uploadRef.current?.click();
@@ -432,7 +443,9 @@ export const StudentPortalPage = () => {
     } catch (error) {
       if (auth.currentUser?.uid !== uid || sessionRef.current !== phien) return;
       console.error('Không tải được dữ liệu cổng học sinh', error);
-      setLoiDuLieu('Không tải được dữ liệu từ máy chủ. Kiểm tra kết nối mạng rồi bấm thử lại nhé.');
+      setLoiDuLieu([401, 403].includes((error as { status?: number })?.status || 0)
+        ? 'Phiên học sinh đã hết hạn hoặc quyền truy cập đã đổi. Nhắn web trong bot để mở lại, hoặc đăng nhập bằng PIN.'
+        : 'Không tải được dữ liệu từ máy chủ. Kiểm tra kết nối mạng rồi bấm thử lại nhé.');
     } finally {
       if (auth.currentUser?.uid === uid && sessionRef.current === phien) setDangTaiDu(false);
     }
@@ -539,7 +552,7 @@ export const StudentPortalPage = () => {
         }
       }
       if (images.length === 0 && rawFiles.length === 0) throw new Error('Không có bài nào để nộp.');
-      if (images.length > MAX_ANH) images.length = MAX_ANH;
+      if (images.length > MAX_ANH) throw new Error(`Bài có ${images.length} trang ảnh, vượt giới hạn ${MAX_ANH} ảnh mỗi lượt. Em chia nhỏ tệp rồi nộp bổ sung; chưa có ảnh nào được nộp trong lượt này.`);
       setBuocNop('Đang tải bài lên máy chủ...');
       const submission = await submitHomework({
         classId: phien.classId,
@@ -547,6 +560,7 @@ export const StudentPortalPage = () => {
         teacherId: phien.teacherId,
         assignmentId: mucTieu,
         supplementOf: supplementOf || undefined,
+        ...(supplementOf ? { revisionMode } : {}),
         images,
         rawFiles,
         textContent: textParts.join('\n\n').slice(0, MAX_STUDENT_TEXT_CHARS),
@@ -560,7 +574,7 @@ export const StudentPortalPage = () => {
       const tenBai = mucTieu
         ? assignments.find(a => a.id === mucTieu)?.title || 'bài được giao'
         : 'bài tự nộp';
-      setThanhCong(`${supplementOf ? 'Đã bổ sung ảnh cho' : 'Đã nộp'} "${tenBai}" thành công lúc ${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}.`);
+      setThanhCong(`${supplementOf ? revisionMode === 'replace' ? 'Đã nộp lại' : 'Đã bổ sung ảnh cho' : 'Đã nộp'} "${tenBai}" thành công lúc ${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}.`);
 
       if (!mucTieu) {
         setBuocNop('Đã nộp! Máy đang chấm bài...');
@@ -576,7 +590,7 @@ export const StudentPortalPage = () => {
         if (bai) {
           // Quét bài NGAY lúc nộp (không hỏi em): máy chỉ đọc để tìm chỗ chưa rõ và hỏi lại em. Em KHÔNG thấy điểm —
           // điểm và nhận xét chỉ hiện sau khi thầy cô duyệt.
-          setBuocNop(supplementOf ? 'Đã bổ sung ảnh! Máy đang đọc lại bài...' : 'Đã nộp! Máy đang đọc bài để xem chỗ nào chưa rõ...');
+          setBuocNop(supplementOf ? revisionMode === 'replace' ? 'Đã nộp lại! Máy đang đọc lại bài...' : 'Đã bổ sung ảnh! Máy đang đọc lại bài...' : 'Đã nộp! Máy đang đọc bài để xem chỗ nào chưa rõ...');
           try {
             const ketQua = await gradeOneSubmission(submission.id, 'quick');
             if (ketQua.pending) setChoBaiId(submission.id);
@@ -589,7 +603,7 @@ export const StudentPortalPage = () => {
           }
         }
         else if (supplementOf) {
-          setThanhCong(`Đã bổ sung ảnh cho "${tenBai}" — lượt mới đang chờ thầy cô chấm lại toàn bộ.`);
+          setThanhCong(`${revisionMode === 'replace' ? 'Đã nộp lại' : 'Đã bổ sung ảnh cho'} "${tenBai}" — lượt mới đang chờ thầy cô chấm lại toàn bộ.`);
         }
       }
       await taiDuLieu();
@@ -735,7 +749,7 @@ export const StudentPortalPage = () => {
 
   if (!phien) return null;
   const pendingAssignmentTitle = targetRef.current
-    ? `${assignments.find(assignment => assignment.id === targetRef.current)?.title || 'Bài được giao'}${targetSupplementRef.current ? ' — bổ sung ảnh, chấm lại toàn bộ' : ''}`
+    ? `${assignments.find(assignment => assignment.id === targetRef.current)?.title || 'Bài được giao'}${targetSupplementRef.current ? revisionMode === 'replace' ? ' — nộp lại toàn bộ' : ' — bổ sung ảnh' : ''}`
     : 'Bài tự nộp';
   return (
     <StudentPortalDashboard
@@ -764,6 +778,8 @@ export const StudentPortalPage = () => {
       uploadRef={uploadRef}
       pendingFiles={pendingFiles}
       pendingAssignmentTitle={pendingFiles.length > 0 ? pendingAssignmentTitle : null}
+      pendingRevisionMode={targetSupplementRef.current ? revisionMode : undefined}
+      onRevisionModeChange={setRevisionMode}
       maxPendingFiles={MAX_ANH}
       onFileChange={xuLyChonFile}
       onChooseImage={chonAnh}

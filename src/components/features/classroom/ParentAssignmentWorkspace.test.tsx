@@ -9,6 +9,14 @@ vi.mock('react', async original => ({ ...await original<typeof import('react')>(
 import { ParentAssignmentWorkspace, shouldPollParentDetail } from './ParentAssignmentWorkspace';
 const assignment = { id: 'a', title: 'Bài của con', type: 'upload', createdAt: '', isOpen: true } as StudentAssignmentView;
 beforeEach(() => { state.index = 0; });
+it('hiện yêu cầu công khai, không hiện lệnh chấm riêng', () => {
+  const publicAssignment = { ...assignment, description: 'Làm bài 1, 2, 3 trang 72 SGK.', gradingInstructions: 'Lệnh chấm bí mật', answerKey: 'Đáp án bí mật' };
+  state.values = [[publicAssignment], [], '', 1, { assignment: publicAssignment, submissions: [] }, 'a', null, '', false, 0];
+  const html = renderToStaticMarkup(<ParentAssignmentWorkspace credentials={{ role: 'parent', joinCode: 'private', studentId: 'child', pin: 'secret' }} />);
+  expect(html).toContain('Làm bài 1, 2, 3 trang 72 SGK.');
+  expect(html).not.toContain('Lệnh chấm bí mật');
+  expect(html).not.toContain('Đáp án bí mật');
+});
 it('PH giữ trang ảnh xác nhận sau công bố để đọc được dấu trên ảnh mới', () => {
   const image = 'https://example.test/clarified.jpg';
   const submission = { id: 's', studentId: 'child', fileUrls: ['https://example.test/original.jpg'], createdAt: '',

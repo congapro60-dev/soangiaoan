@@ -197,7 +197,7 @@ export const listAssignmentsForClass = async (classId: string, teacherId: string
  */
 export const updateAssignmentContent = async (
   assignmentId: string,
-  patch: { answerKey?: string; rubric?: string; gradingInstructions?: string; examVariants?: { code: string; sourceText?: string; answerKey: string }[] },
+  patch: { description?: string; answerKey?: string; rubric?: string; gradingInstructions?: string; examVariants?: { code: string; sourceText?: string; answerKey: string }[] },
 ): Promise<void> => {
   await callClassroomTeacherApi({ action: 'updateAssignmentContent', assignmentId, patch });
 };
@@ -345,6 +345,7 @@ export interface SubmitInput {
   note?: string;
   /** Nếu có, tạo revision mới ghép với lượt này thay vì ghi một bài độc lập. */
   supplementOf?: string;
+  revisionMode?: 'supplement' | 'replace';
   /** Bài này thầy cô đã chấm tay rồi (máy đọc điểm GV ghi để thầy xác nhận). */
   handMarked?: boolean;
 }
@@ -356,6 +357,7 @@ export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc>
   const detectedAnswers = await detectAnswersFromFiles(input.images);
   const uploadGrantId = await uploadActorEvidence({ role: 'student' }, input.assignmentId, files);
   const payload = { assignmentId: input.assignmentId, uploadGrantId, detectedAnswers,
+    ...(input.revisionMode ? { revisionMode: input.revisionMode } : {}),
     ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}), note: input.note, textContent: input.textContent,
     ...(input.handMarked ? { handMarked: true } : {}) };
   return (await submitActorSubmission({ role: 'student' }, payload)).submission;

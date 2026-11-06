@@ -5,6 +5,17 @@ import type { AssignmentDoc, SubmissionDoc } from '../../../../lib/classroom/typ
 import type { StudentDiscoverCatalogItem } from '../../../../lib/discover/types';
 import { buildWorkspaceRows, filterWorkspaceRows, studentClarificationQuestions, StudentPortalDashboard } from './StudentPortalDashboard';
 
+const uploadActions = vi.hoisted(() => ({ clicks: [] as Array<() => void> }));
+vi.mock('react/jsx-dev-runtime', async importOriginal => {
+  const actual = await importOriginal<typeof import('react/jsx-dev-runtime')>();
+  return { ...actual, jsxDEV: (...args: Parameters<typeof actual.jsxDEV>) => {
+    const [type, props] = args;
+    const button = props as { 'aria-label'?: string; onClick?: () => void };
+    if (type === 'button' && button['aria-label'] === 'Cập nhật bài nộp' && button.onClick) uploadActions.clicks.push(button.onClick);
+    return actual.jsxDEV(...args);
+  } };
+});
+
 vi.mock('./StudentAiCostChip', () => ({ StudentAiCostChip: () => null }));
 vi.mock('./StudentCompetencyPortfolio', () => ({ StudentCompetencyPortfolio: () => null }));
 const notificationActions = vi.hoisted(() => ({ onSelectSubmission: undefined as ((id: string) => void) | undefined }));
@@ -23,6 +34,21 @@ const pendingGrade = { score: 0, maxScore: 10, feedback: 'SECRET', strengths: []
     score: 0, maxScore: 1, clarify: { kind: 'mcq', state: 'open', reading: 'B' } }], gradedAt: '' } as NonNullable<SubmissionDoc['grade']>;
 
 describe('Không gian HS · danh sách đầy đủ, chi tiết theo yêu cầu', () => {
+  it('mỗi bài đã nộp có một nút cập nhật mang đúng lượt mới nhất', () => {
+    uploadActions.clicks = [];
+    const onChooseImage = vi.fn();
+    const props = { session: { studentId: 'own', studentName: 'Em', className: 'QA' },
+      assignments: [assignment('a'), assignment('empty')],
+      submissions: [work('old', 'a', { createdAt: '2026-09-01' }), work('new', 'a', { status: 'error', errorReason: 'photo', createdAt: '2026-10-01' })],
+      onlineSubmissions: [], profile: null, scores: null, notifications: [], pendingFiles: [], practiceAnswers: {},
+      uploadRef: { current: null }, onChooseImage,
+    } as unknown as ComponentProps<typeof StudentPortalDashboard>;
+    const html = renderToStaticMarkup(<StudentPortalDashboard {...props} />);
+    expect(uploadActions.clicks).toHaveLength(1);
+    uploadActions.clicks[0]();
+    expect(onChooseImage).toHaveBeenCalledWith('a', 'new');
+    expect(html).not.toMatch(/>\s*(Bổ sung ảnh|Nộp lại)\s*<\/button>/);
+  });
   it('shows safe Discover catalog metadata; bài CHƯA được giao thì nút vẫn khoá', () => {
     const discoverCatalog: StudentDiscoverCatalogItem[] = [{
       id: 'tds-discover-g10-p2', title: 'Mệnh đề', grade: '10', week: 1, period: 2, status: 'available',
@@ -191,4 +217,16 @@ it('bài đóng chưa khóa vẫn nộp và xác nhận; khóa chốt mới ch�
   expect(rows[0].clarificationCount).toBe(1); expect(studentClarificationQuestions(pending, closed)).toHaveLength(1);
   const locked = buildWorkspaceRows('own', [{ ...closed, submissionLocked: true }], [pending], []);
   expect(locked[0].clarificationCount).toBe(0); expect(studentClarificationQuestions(pending, { ...closed, submissionLocked: true })).toEqual([]);
+});
+
+
+it('lượt mới hiển thị lựa chọn bổ sung và thay toàn bộ, giữ điểm duyệt', () => {
+  const props = { session: { studentId: 'own', studentName: 'Em', className: 'QA' }, assignments: [], submissions: [],
+    onlineSubmissions: [], profile: null, scores: null, notifications: [], pendingFiles: [new File(['a'], 'page.jpg', { type: 'image/jpeg' })], practiceAnswers: {},
+    uploadRef: { current: null }, onReload: vi.fn(), onLoadDetail: vi.fn(), pendingRevisionMode: 'replace', onRevisionModeChange: vi.fn(),
+  } as unknown as ComponentProps<typeof StudentPortalDashboard>;
+  const html = renderToStaticMarkup(<StudentPortalDashboard {...props} />);
+  expect(html).toContain('Bổ sung ảnh: giữ bộ ảnh trước, thêm ảnh mới');
+  expect(html).toContain('Nộp lại toàn bộ: chỉ dùng bộ ảnh mới');
+  expect(html).toContain('Điểm đã duyệt được giữ');
 });

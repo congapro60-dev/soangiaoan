@@ -29,6 +29,12 @@ const olderThanWindow = (value: string | undefined, nowMs: number): boolean => {
   return Number.isFinite(at) && nowMs - at >= AUTO_GRADE_AFTER_MS;
 };
 
+const photoNeedsReview = (submission: SubmissionDoc): boolean => {
+  const review = submission.grade?.photoReview;
+  return Boolean(review && (review.assignmentMatch === 'possibly_wrong'
+    || review.missingQuestionNumbers.length || review.unreadablePhotoNumbers.length));
+};
+
 export interface AutoSweepPlan {
   /** Chờ chấm quá 60 phút tính từ lúc nộp (kể cả khoá chấm đã chết). Bài lỗi để giáo viên xử lý. */
   toGrade: SubmissionDoc[];
@@ -48,6 +54,8 @@ export const planAutoSweep = (submissions: readonly SubmissionDoc[], nowMs = Dat
       && olderThanWindow(submission.createdAt, nowMs)),
     toApprove: current.filter(submission =>
       submission.status === 'graded'
+      && !submission.supplementOf
+      && !photoNeedsReview(submission)
       && Boolean(submission.grade)
       && submission.grade?.teacherApproved !== true
       && olderThanWindow(submission.grade?.gradedAt || submission.updatedAt, nowMs)),
@@ -57,5 +65,8 @@ export const planAutoSweep = (submissions: readonly SubmissionDoc[], nowMs = Dat
 /** Bài vừa được máy tự chấm xong: duyệt luôn (bài đọc chưa chắc thì cờ nhắc thầy ở dòng bài). */
 export const canAutoApproveFreshGrade = (submission: SubmissionDoc): boolean =>
   submission.status === 'graded'
+  // Bản bổ sung/nộp lại cần GV duyệt; hết giờ không tự thay điểm chính thức của lượt trước.
+  && !submission.supplementOf
+  && !photoNeedsReview(submission)
   && Boolean(submission.grade)
   && submission.grade?.teacherApproved !== true;

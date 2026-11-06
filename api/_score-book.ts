@@ -1,3 +1,4 @@
+import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 /**
  * Sổ điểm của lớp — `scoreBooks/{classId}`, chỉ đi qua đây (rules mặc định chặn client).
  *
@@ -93,7 +94,7 @@ const loadHomeworkInputs = async (
     const grade = isRecord(data.grade) ? data.grade : null;
     // Cổng học sinh / phụ huynh (`studentId` có) chỉ nhận điểm ĐÃ DUYỆT: điểm máy chấm chưa được thầy cô duyệt (kể cả bài còn
     // câu chờ em xác nhận) không được lọt ra qua điểm trung bình hay bảng điểm. Giáo viên vẫn thấy mọi điểm đã chấm.
-    const visible = grade && (studentId ? grade.teacherApproved === true : grade.awaitingClarification !== true);
+    const visible = grade && (!data.supplementOf || grade.teacherApproved === true) && (studentId ? grade.teacherApproved === true : grade.awaitingClarification !== true);
     const score = visible ? numOf(grade.score) : null;
     entries.push({ assignmentId: data.assignmentId, studentId: data.studentId, submittedAt: isoOf(data.createdAt), score, maxScore: grade ? numOf(grade.maxScore) ?? 0 : 0 });
   }
@@ -437,7 +438,7 @@ const handleStudentScoreBook = async (db: Db, body: Body, res: VercelResponse): 
   const link = linkSnap.data() as { classId?: unknown; studentId?: unknown };
   const classId = typeof link.classId === 'string' ? link.classId : '';
   const studentId = typeof link.studentId === 'string' ? link.studentId : '';
-  if (!classId || !studentId) return void res.status(403).json({ error: 'Phiên học sinh thiếu thông tin lớp.' });
+  if (!classId || !studentId || !await verifyStudentBotLink(db, uid, linkSnap.data())) return void res.status(403).json({ error: 'Phiên học sinh thiếu thông tin lớp.' });
   const book = await readBookWithAuto(db, classId, { studentIds: [studentId], onlyStudent: studentId });
   res.status(200).json({ scores: studentScoreView(book, studentId) });
 };

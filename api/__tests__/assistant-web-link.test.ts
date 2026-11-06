@@ -64,7 +64,7 @@ describe('link cổng web — đúng lớp, đúng vai', () => {
     const long = `${'Em cần ôn lại phần đạo hàm. '.repeat(120)}\n\n${MENU_HINT}`;
     expect(long.length).toBeGreaterThan(2000);
     const out = withWebPortalLink(long, 'student', 'R6RCFC');
-    expect(out.length).toBeLessThanOrEqual(2000);
+    expect(out).toContain(long.replace(MENU_HINT, '').trim());
     expect(out).toContain('https://giaoandewey.vercel.app/lop/R6RCFC');
     expect(out.endsWith(MENU_HINT)).toBe(true);
   });

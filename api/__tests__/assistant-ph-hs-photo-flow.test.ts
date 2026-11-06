@@ -43,8 +43,8 @@ const seed = () => {
   const db = new FakeDb();
   db.put('classes/c', { joinCode: 'ACDF47', name: '11A1', teacherId: 't1' });
   db.put('classes/c/students/s', { name: 'Nguyễn Hoàng Bách' });
-  db.put('assignments/a1', { classId: 'c', title: 'Bài tập tuần 3', dueAt: '2026-11-05' });
-  db.put('assignments/a2', { classId: 'c', title: 'Bài tập tuần 4', dueAt: '2026-11-12' });
+  db.put('assignments/a1', { classId: 'c', teacherId: 't1', title: 'Bài tập tuần 3', dueAt: '2026-11-05' });
+  db.put('assignments/a2', { classId: 'c', teacherId: 't1', title: 'Bài tập tuần 4', dueAt: '2026-11-12' });
   h.db = db;
   return db;
 };
@@ -60,7 +60,7 @@ describe('L2 — chọn bài bằng số thuần (không rơi vào menu mục 1)
   it('listPendingReply ghi cờ awaitingPick + trả danh sách bài chờ nộp', async () => {
     const reply = await listPendingReply(BOT, USER, 'c', 's');
     expect(reply).toContain('Bài tập tuần 3');
-    expect(reply).toContain('Nhắn SỐ THỨ TỰ bài');
+    expect(reply).toContain('Nhắn số thứ tự để chọn bài');
     expect(h.db.rows.get(SESSION_PATH)?.awaitingPick).toBe(true);
   });
 

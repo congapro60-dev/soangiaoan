@@ -72,28 +72,9 @@ const shortFeedback = (feedback: string): string => {
   return flat.length > 200 ? `${flat.slice(0, 199).trimEnd()}…` : flat;
 };
 
-/** Trần ký tự an toàn của 1 tin Zalo (sendStyled cắt cứng 2000) — chừa biên cho MENU_HINT và dòng cuối. */
-const ZALO_BODY_ROOM = 1850;
-
-/**
- * Ghép danh sách HIỂN THỊ ĐỦ (chốt 3/11: không tóm tắt mất dữ liệu — mọi mục cần hiện thì hiện).
- * Nếu tổng vượt trần 2000 ký tự của Zalo thì giữ tối đa các dòng vừa khít trần và ghi rõ
- * "…và N mục nữa — xem đầy đủ: nhắn web." — không bao giờ cắt im lặng làm mất dữ liệu.
- */
+/** Preserve complete lists; the send layer splits them into platform-sized messages. */
 export const fitZaloList = (header: string[], lines: string[], footer: string[] = []): string => {
-  const tail = ['', ...footer].join('\n');
-  const budget = ZALO_BODY_ROOM - header.join('\n').length - tail.length - MENU_HINT.length - 4;
-  let kept = 0;
-  let used = 0;
-  for (const line of lines) {
-    const cost = line.length + 1;
-    if (kept > 0 && used + cost > budget) break;
-    used += cost;
-    kept += 1;
-  }
-  const hidden = lines.length - kept;
-  const shown = hidden > 0 ? [...lines.slice(0, kept), `…và ${hidden} mục nữa — xem đầy đủ: nhắn web.`] : lines;
-  return `${[...header, ...shown].join('\n')}${tail ? `\n${tail}` : ''}\n\n${MENU_HINT}`;
+  return [...header, ...lines, '', ...footer, '', MENU_HINT].join('\n');
 };
 
 /** Nhắc xem lại menu — LUÔN ở cuối mỗi tin để PH không phải nhớ cú pháp. */
@@ -133,20 +114,16 @@ export const webPortalUrl = (role: MenuRole, joinCode: string): string => {
 /**
  * Chèn link lớp vào NGAY TRƯỚC câu "Nhắn 0 để xem lại menu" của câu trả lời AI,
  * để HS luôn bấm được vào web. Không có mã lớp thì trả nguyên văn (không link sai).
- *
- * `sendStyled` cắt tin ở 2000 ký tự, mà link nằm gần cuối → phải chừa chỗ cho link,
- * nếu không câu trả lời dài sẽ bị cắt mất đúng phần HS cần bấm.
+
  */
-export const withWebPortalLink = (text: string, role: MenuRole, joinCode: string): string => {
-  const url = webPortalUrl(role, joinCode);
+export const withWebPortalLink = (text: string, role: MenuRole, joinCode: string, authenticatedUrl?: string): string => {
+  const url = authenticatedUrl || webPortalUrl(role, joinCode);
   if (!url) return text;
   const block = role === 'student'
     ? `Xem bài và nộp bài trên web:\n${url}`
     : `Xem báo cáo học tập trên web:\n${url}`;
   const tail = `\n\n${block}\n\n${MENU_HINT}`;
-  // 2000 là trần cứng của Zalo sendMessage; chừa thêm biên an toàn cho dấu xuống dòng.
-  const room = 2000 - tail.length;
-  const body = text.length > room ? `${text.slice(0, Math.max(0, room - 1)).trimEnd()}…` : text;
+  const body = text;
   const idx = body.lastIndexOf(MENU_HINT);
   if (idx === -1) return `${body}${tail}`;
   return `${body.slice(0, idx).trimEnd()}${tail}`;

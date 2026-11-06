@@ -1,4 +1,6 @@
+import { bindParentWebCookie, verifyStudentBotLink } from './_assistant-web-handoff.js';
 import { annotateSubmission, handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows } from './_submission-annotations.js';
+import { normalizePhotoReview } from './_assistant-photo-review.js';
 import { runGradingRefreshItem } from './_grading-refresh.js';
 import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
 import { isPublishedSubmission } from './_submission-feedback.js';
@@ -220,6 +222,8 @@ const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 const UNREADABLE_HOMEWORK_MESSAGE = 'Không đọc được bài làm. Em thử chụp lại hoặc nộp lại file.';
 const UNREADABLE_EXAM_CODE_MESSAGE = 'Máy chưa đọc được mã đề trên ảnh bài làm. Thầy cô chọn mã đề cho bài này rồi chấm lại.';
 const UNCERTAIN_READ_MESSAGE = 'AI đọc chưa rõ bài này nên chưa chấm để tránh chấm sai. Em chụp lại rõ hơn (đủ sáng, chụp thẳng, mỗi trang một ảnh) rồi nộp lại, hoặc chờ thầy cô chấm tay.';
+const WRONG_ASSIGNMENT_MESSAGE = 'Ảnh có vẻ chưa khớp bài đang chọn. Em kiểm tra lại đề, chọn đúng bài hoặc nộp lại bộ ảnh; nếu chưa chắc, nhờ thầy cô kiểm tra.';
+const INCOMPLETE_PHOTO_DOWNLOAD_MESSAGE = 'Chưa tải đủ ảnh bài nộp nên máy chưa chấm, tránh bỏ sót trang. Bộ ảnh vẫn được giữ. Em thử chấm lại sau hoặc nhờ thầy cô kiểm tra; chưa cần chụp lại.';
 const SAFE_GRADING_ERROR_MESSAGE = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
 const SYSTEM_GRADING_ERROR_MESSAGE = 'Chấm bài chưa thành công vì lỗi hệ thống. Bài và ảnh vẫn được giữ nguyên. Thầy/cô chấm lại sau ít phút hoặc sửa điểm bằng tay.';
 /**
@@ -314,6 +318,7 @@ interface GradeContext {
   maxScore: number;
   assignmentTitle: string;
   assignmentText: string;
+  assignmentInstructions?: string;
   gradingInstructions: string;
   /** Ảnh đề của giáo viên, gửi trước ảnh đáp án và bài làm. */
   assignmentImages: InlineImage[];
@@ -388,6 +393,7 @@ const attemptHomeworkGrade = async (
     maxScore: ctx.maxScore,
     assignmentTitle: ctx.assignmentTitle,
     assignmentText: ctx.assignmentText,
+    assignmentInstructions: ctx.assignmentInstructions,
     assignmentImageCount: ctx.assignmentImages.length,
     answerKeyImageCount: ctx.answerKeyImages.length,
     studentImageCount: images.length,
@@ -440,6 +446,7 @@ const attemptHomeworkGrade = async (
   const isHandMarkedSubmission = Boolean(ctx.handMarkedOfficial && hasTeacherMarkedScore);
   const score = isHandMarkedSubmission ? parsed.grade.teacherMarkedScore!.score : parsed.grade.score;
   const maxScore = isHandMarkedSubmission ? parsed.grade.teacherMarkedScore!.maxScore : parsed.grade.maxScore;
+  const photoReview = normalizePhotoReview(parsed.grade.photoReview, Boolean(ctx.assignmentText.trim() || ctx.assignmentImages.length), studentImageUrls.length);
 
   const now = new Date().toISOString();
   const grade = {
@@ -451,6 +458,7 @@ const attemptHomeworkGrade = async (
     weaknesses: parsed.grade.weaknesses,
     questionResults: parsed.grade.questionResults.map(q => bindQuestionPhotoMarks(q, studentImageUrls)),
     weakTopics: parsed.grade.weakTopics,
+    ...(photoReview ? { photoReview } : {}),
     gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
     // Bài chấm tay: tổng điểm giáo viên viết trên bài (máy đọc)
     ...(hasTeacherMarkedScore ? { paperScore: parsed.grade.teacherMarkedScore } : {}),
@@ -482,6 +490,8 @@ const gradeFailureCode = (error: unknown): string => {
   }
   if (error instanceof Error && error.message === UNREADABLE_HOMEWORK_MESSAGE) return 'unreadable_photo';
   if (error instanceof Error && error.message === UNCERTAIN_READ_MESSAGE) return 'uncertain_read';
+  if (error instanceof Error && error.message === WRONG_ASSIGNMENT_MESSAGE) return 'assignment_mismatch';
+  if (error instanceof Error && error.message === INCOMPLETE_PHOTO_DOWNLOAD_MESSAGE) return 'photo_download';
   if (error instanceof Error && error.message === UNREADABLE_EXAM_CODE_MESSAGE) return 'exam_code';
   if (error instanceof HomeworkGradeContractError || error instanceof JsonRecoveryError) return 'contract';
   if (error instanceof SubmissionAccessError) return `access_${error.statusCode}`;
@@ -492,7 +502,7 @@ const safeGradeErrorMessage = (error: unknown): string => {
   if (error instanceof GeminiResponseError) return error.message;
   // Lí do máy chủ tự đặt (vd "Không có ảnh bài làm đọc được") đã là câu cho người đọc, không có chi tiết hệ thống.
   if (error instanceof SubmissionAccessError) return error.message;
-  if (error instanceof Error && [UNREADABLE_HOMEWORK_MESSAGE, UNCERTAIN_READ_MESSAGE, UNREADABLE_EXAM_CODE_MESSAGE].includes(error.message)) return error.message;
+  if (error instanceof Error && [UNREADABLE_HOMEWORK_MESSAGE, UNCERTAIN_READ_MESSAGE, UNREADABLE_EXAM_CODE_MESSAGE, WRONG_ASSIGNMENT_MESSAGE, INCOMPLETE_PHOTO_DOWNLOAD_MESSAGE].includes(error.message)) return error.message;
   // Nhãn "lỗi định dạng" chỉ đúng khi bộ đọc kết quả AI từ chối; mọi lỗi lạ khác (ghi Firestore,
   // mạng...) mà mang nhãn này là đẩy giáo viên đi tìm sai hướng.
   if (error instanceof HomeworkGradeContractError || error instanceof JsonRecoveryError) return SAFE_GRADING_ERROR_MESSAGE;
@@ -592,6 +602,11 @@ export const gradeOneSubmission = async (
       .filter((entry): entry is { url: string; image: InlineImage } => entry.image !== null);
     const images = studentImages.map(entry => entry.image);
     const studentImageUrls = studentImages.map(entry => entry.url);
+    const nonImageUrls = new Set((previous.attachments ?? [])
+      .filter(file => file.kind === 'pdf' || file.kind === 'document').map(file => file.url));
+    if (previous.source === 'zalo_bot' && urls.some(url => !nonImageUrls.has(url) && !studentImageUrls.includes(url))) {
+      throw new Error(INCOMPLETE_PHOTO_DOWNLOAD_MESSAGE);
+    }
     const studentText = String(previous.textContent || '').trim();
 
     if (images.length === 0 && !studentText) {
@@ -644,6 +659,9 @@ export const gradeOneSubmission = async (
     // Hậu kiểm tất định: trắc nghiệm/Đúng-Sai tính lại theo đáp án, áp đáp án thầy cô đã sửa,
     // giữ nguyên câu thầy cô đã soát tay ở lần trước.
     const omrDetected = (previous as SubmissionDoc & { detectedAnswers?: DetectedAnswer[] }).detectedAnswers;
+    if (attempt.grade.photoReview?.assignmentMatch === 'possibly_wrong') {
+      throw new Error(WRONG_ASSIGNMENT_MESSAGE);
+    }
     const omrGrade = { ...attempt.grade, questionResults: attempt.grade.questionResults?.map(q => {
       const expected = parseExpectedAnswer(q.expectedAnswer);
       const match = /^(?:Phần\s+I\s*[–—:-]\s*)?(?:Câu\s*)?(\d+)$/i.exec(q.questionNumber.trim());
@@ -820,7 +838,7 @@ export const gradeOneSubmission = async (
     const newLastGradingErrorRaw = rawMessage;
     // Lí do lỗi cho cổng học sinh (không lộ lỗi thô): ảnh chưa rõ → em chụp lại; chưa đọc được mã đề → em chọn mã ghi trên đề.
     const errorReason = safeMessage === UNREADABLE_EXAM_CODE_MESSAGE ? 'exam_code'
-      : safeMessage === UNREADABLE_HOMEWORK_MESSAGE || safeMessage === UNCERTAIN_READ_MESSAGE || anhKhongDocDuoc ? 'photo' : 'system';
+      : safeMessage === UNREADABLE_HOMEWORK_MESSAGE || safeMessage === UNCERTAIN_READ_MESSAGE || safeMessage === WRONG_ASSIGNMENT_MESSAGE || anhKhongDocDuoc ? 'photo' : 'system';
     await restoreClaimIfOwned(db, claim, {
       status: newStatus,
       errorMessage: newErrorMessage,
@@ -899,6 +917,7 @@ export const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData
   maxScore: Number(assignment.maxScore) || 10,
   assignmentTitle: String(assignment.title || ''),
   assignmentText: String(assignment.sourceText || ''),
+  assignmentInstructions: String(assignment.description || ''),
   solutionAssignment: assignment,
   // Ảnh generated xử lý PDF scan đã nằm trong sourceImageUrls; ảnh đính kèm cũ dùng fallback.
   gradingInstructions: String(assignment.gradingInstructions || ''),
@@ -1350,7 +1369,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
   if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
 
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới lấy được bài luyện.' });
+  if (!linkSnap.exists || !await verifyStudentBotLink(db, uid, linkSnap.data())) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới lấy được bài luyện.' });
   const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
   tagAiUsageRefs({ studentId: link.studentId, classId: link.classId });
 
@@ -1575,7 +1594,7 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
   if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
 
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới nộp bài luyện.' });
+  if (!linkSnap.exists || !await verifyStudentBotLink(db, uid, linkSnap.data())) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới nộp bài luyện.' });
   const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
   setAiKeyOwner(link.teacherId);
   tagAiUsageRefs({ studentId: link.studentId, classId: link.classId });
@@ -2323,6 +2342,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const body = readBody(req);
+  bindParentWebCookie(body, req.headers?.cookie);
   const action = String(body.action || '');
   // Ngữ cảnh đếm token: mọi lượt gọi AI bằng khoá chung bên trong (kể cả chấm chạy nền) được ghi
   // kèm người gọi + mã lớp/bài. Gateway gửi token qua header Bearer thay vì body.
