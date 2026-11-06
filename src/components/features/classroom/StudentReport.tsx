@@ -8,6 +8,7 @@ import { draftParentReportComment, loadParentReportNote, loadScoreBook, savePare
 import { hs1Average, studentScoreView, type StudentScoreView } from '../../../lib/classroom/scoreBook';
 import { listAssignmentsForClass, listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
+import { formatScore } from '../../../lib/classroom/scoreFormat';
 import { QuestionResultsList } from './QuestionResultsList';
 import { CompetencyPortfolio } from './CompetencyPortfolio';
 import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
@@ -231,7 +232,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
       const grade = submission.grade;
       const details = grade?.questionResults || [];
       const base: string[] = [studentName, studentCode, submission.id, submission.assignmentId || 'Bài tự nộp', ngay(submission.createdAt),
-        grade?.score ?? '', grade?.maxScore ?? '', grade?.teacherApproved ? 'Có' : 'Chưa', submission.status].map(value => String(value));
+        formatScore(grade?.score), formatScore(grade?.maxScore), grade?.teacherApproved ? 'Có' : 'Chưa', submission.status].map(value => String(value));
       if (details.length === 0) {
         rows.push([...base, '', '', '', '', '', '', '', '', '']);
       } else {
@@ -508,7 +509,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
                 return (
             <div key={s.id} className="rounded-2xl border border-slate-100 px-4 py-3">
               <div className="flex items-baseline gap-2">
-                <span className="text-sm font-black text-slate-900">{s.grade?.score} / {s.grade?.maxScore}</span>
+                <span className="text-sm font-black text-slate-900">{formatScore(s.grade?.score)} / {formatScore(s.grade?.maxScore)}</span>
                 <span className="text-xs font-semibold text-slate-400">{ngay(s.createdAt)}</span>
                 {!s.grade?.teacherApproved && (
                   <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-800">chưa duyệt</span>

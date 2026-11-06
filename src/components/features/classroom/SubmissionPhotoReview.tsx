@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { formatScore } from '../../../lib/classroom/scoreFormat';
 import type { PhotoMark, PhotoStep, QuestionResult, SubmissionGrade } from '../../../lib/classroom/types';
 import { validPhotoSteps } from '../../../lib/classroom/photoMarks';
 import { isClarifyPending, isUncertainQuestion } from '../../../lib/classroom/clarification';
@@ -69,7 +70,7 @@ export const SubmissionPhotoReview = ({ imageUrl, imageUrls, alt, questionResult
   const visibleRows = rows.map((result, resultIndex) => ({ result, resultIndex })).filter(item => filter === 'all' || appearanceOf(item.result).kind === filter);
   return <section className="min-w-0 rounded-xl bg-white p-2 text-slate-700" aria-label={alt}>
     <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-3">
-      {canRead && grade && !pending && <p className="text-lg font-black text-slate-900">{hideScores ? 'Phân tích AI · điểm chính thức trong sổ điểm' : `Tổng điểm: ${grade.score}/${grade.maxScore}`}</p>}
+      {canRead && grade && !pending && <p className="text-lg font-black text-slate-900">{hideScores ? 'Phân tích AI · điểm chính thức trong sổ điểm' : `Tổng điểm: ${formatScore(grade.score)}/${formatScore(grade.maxScore)}`}</p>}
       {teacherView && !approved && <p className="text-xs font-bold text-amber-700">Gợi ý AI · chờ GV duyệt</p>}
       {!teacherView && !approved && !pending && <p className="text-sm font-bold text-slate-600">Chờ GV duyệt · vẫn xem được ảnh đã nộp</p>}
       {approved && <p className="text-xs font-bold text-emerald-700">Đã duyệt</p>}

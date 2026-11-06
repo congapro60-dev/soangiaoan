@@ -17,6 +17,7 @@ import {
 } from '../lib/classroom/types';
 import type { ExamSubmission } from '../types';
 import { dataUrlToFile, dichLoiNopBai, nenAnhBaiLamToFile } from '../utils/imageCompress';
+import { formatScore } from '../lib/classroom/scoreFormat';
 import { fetchRoster, fetchStudentAdaptiveAssignments, fetchStudentDiscoverCatalog, fetchStudentScoreBook, loginStudent, type RosterEntry, type StudentAdaptiveAssignment } from '../services/studentPortalApi';
 import { fetchStudentWorkspace, fetchStudentAssignmentDetail } from '../services/studentWorkspaceApi';
 import type { StudentWorkspaceSubmission } from '../lib/classroom/studentWorkspace';
@@ -697,7 +698,7 @@ export const StudentPortalPage = () => {
     // Bài kiểm tra định kì: không nêu điểm AI chấm lại — điểm chính thức là điểm thầy cô chấm trên bài giấy.
     const scoreText = grade && assignment?.periodicTest
       ? 'Đã phân tích từng câu (điểm chính thức là điểm thầy cô chấm trên bài giấy)'
-      : `${grade?.score ?? 0}/${grade?.maxScore ?? 10} điểm`;
+      : `${formatScore(grade?.score ?? 0)}/${formatScore(grade?.maxScore ?? 10)} điểm`;
     const text = isGraded
       ? `${scoreText}${approvalLabel}${grade.feedback ? `\n\n${grade.feedback}` : ''}`
       : isErrorWithGrade

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
+import { formatScore } from '../../../lib/classroom/scoreFormat';
 import { AlertTriangle, CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, FileText, Hourglass, Loader2, PenLine, Play, Plus, RefreshCw, Save, ShieldCheck, Sparkles, Trash2, UserRound, X } from 'lucide-react';
 import {
   approveGrade,
@@ -399,7 +400,7 @@ const BaiNopTheoLop = ({ baiNop, assignment, onRefresh, hanNop, lopHocSinh, moRo
                 </span>
               )}
               </span></span>
-              <span data-column="score" className="teacher-submission-cell"><span className="teacher-submission-label">Điểm</span><span className="whitespace-nowrap text-sm font-black tabular-nums text-slate-900">{s.grade ? `${s.grade.score}/${s.grade.maxScore}` : '—'}</span></span>
+              <span data-column="score" className="teacher-submission-cell"><span className="teacher-submission-label">Điểm</span><span className="whitespace-nowrap text-sm font-black tabular-nums text-slate-900">{s.grade ? `${formatScore(s.grade.score)}/${formatScore(s.grade.maxScore)}` : '—'}</span></span>
               <span data-column="approval" className="teacher-submission-cell"><span className="teacher-submission-label">Duyệt</span>
                 {(() => {
                   const approval = getApprovalLabel(s.grade);
@@ -1677,7 +1678,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                       <span className="font-black text-slate-900">{ten}</span>
                       <span className="font-semibold text-slate-500">· {bai}</span>
                       <span className="font-semibold text-slate-400">· {moc}</span>
-                      {submission.grade && <span className="font-black text-slate-700">· {submission.grade.score}/{submission.grade.maxScore}</span>}
+                      {submission.grade && <span className="font-black text-slate-700">· {formatScore(submission.grade.score)}/{formatScore(submission.grade.maxScore)}</span>}
                       {nhomMo === 'errored' && submission.errorMessage && <span className="w-full font-semibold text-rose-700">{submission.errorMessage}</span>}
                       <span className="ml-auto font-black text-indigo-600">Mở →</span>
                     </button>

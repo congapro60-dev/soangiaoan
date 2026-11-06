@@ -2,6 +2,9 @@
 
 > Cập nhật: 05/11/2026 — **NGHIỆM THU HOÀN TẤT 24 BÀI TUẦN 18: ĐÃ XỬ LÝ TRIỆT ĐỂ 100% (39 FINDINGS + 2 LỖI KỸ THUẬT T01/T02) TỪ CODEX AUDIT — 218/218 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER**
 
+## Điểm hiển thị 9,1299999999 → làm tròn 2 chữ số — 06/11 (Claude)
+Danh sách bài nộp hiện `9.129999999999999/10`: `coerceHomeworkGrade` (và `parsePracticeAssessment`) cộng điểm từng câu mà không làm tròn → sai số số thực. Sửa nguồn: `roundScore` (`src/lib/classroom/scoreFormat.ts`, 2 chữ số — giữ điểm lẻ 4,85 / 3,25 thầy cô cho) áp ở hai chỗ cộng điểm; hiển thị: `formatScore` ở danh sách bài nộp, báo cáo HS, cổng HS, xem ảnh bài, bài online. Bài ĐÃ chấm có số xấu trong Firestore chỉ được sửa ở màn hình (chưa ghi lại dữ liệu); chấm lại hoặc GV sửa tay thì lưu số sạch. Chủ dự án hỏi làm tròn 1 chữ số thập phân: chưa đổi vì sẽ làm 4,85 → 4,9, 3,25 → 3,3 (điểm thầy cô đã duyệt) — chờ quyết định.
+
 ## 1. Trạng thái hiện tại
 - **TOÀN BỘ 218/218 BÀI TƯƠNG TÁC TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER VÀ ĐƯỢC AUDIT NGHIỆM THU:**
   - Khối 10: **72 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6 bài; Tuần 13: 8 bài; Tuần 14: 8 bài; Tuần 15: 8 bài; Tuần 16: 8 bài; Tuần 17: 8 bài; Tuần 18: 8/8 bài `10-18-136`..`143`).

@@ -14,6 +14,7 @@ import {
 } from '../../../lib/classroom/teacherService';
 import type { TeacherOnlineGradeEdit } from '../../../lib/classroom/onlineGradeLifecycle';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
+import { formatScore } from '../../../lib/classroom/scoreFormat';
 import { onlineAttemptStatus } from '../../../lib/classroom/onlineGradeView';
 
 interface Props {
@@ -61,7 +62,7 @@ const questionAnswer = (attempt: ExamSubmission, question: ExamQuestion): string
 
 const scoreText = (attempt: ExamSubmission): string => {
   if (!attempt.grade) return 'Chưa có điểm';
-  return `${attempt.grade.score}/${attempt.grade.maxScore}`;
+  return `${formatScore(attempt.grade.score)}/${formatScore(attempt.grade.maxScore)}`;
 };
 
 export const OnlineAssignmentReview = ({ classId, assignment, showToast }: Props) => {

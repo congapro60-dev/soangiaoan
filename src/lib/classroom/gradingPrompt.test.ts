@@ -239,6 +239,13 @@ describe('parseHomeworkGrade', () => {
     expect(g.score).toBe(8);
   });
 
+  it('tổng các dòng không để lại đuôi số thực (9,13 chứ không phải 9,1299999999999)', () => {
+    const dong = [0.1, 0.2, 0.3, 0.25, 0.25, 8.03].map((score, i) => ({ ...mau.questionResults[0], questionNumber: `Câu ${i + 1}`, score, maxScore: i === 5 ? 8.9 : 0.2 }));
+    const g = parseHomeworkGrade(JSON.stringify({ ...mau, maxScore: 10, questionResults: dong }), 10, false);
+    expect(g.score).toBe(Math.round(g.score * 100) / 100);
+    expect(String(g.score).length).toBeLessThanOrEqual(5);
+  });
+
   it('không có dòng câu nào thì lấy score của model', () => {
     const g = parseHomeworkGrade(JSON.stringify({ ...mau, questionResults: [] }), 10, false);
     expect(g.score).toBe(8);

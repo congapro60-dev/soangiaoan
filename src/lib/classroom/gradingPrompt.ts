@@ -9,6 +9,7 @@ import type {
   QuestionResult,
   QuestionResultStatus,
 } from './types.js';
+import { roundScore } from './scoreFormat.js';
 
 /**
  * Prompt và bộ đọc kết quả cho việc chấm bài tập về nhà.
@@ -483,7 +484,7 @@ const coerceHomeworkGrade = (
       : (questionResults.length > 0 ? summedScore : 0));
 
   return {
-    score: clamp(baseScore, 0, effectiveMax),
+    score: roundScore(clamp(baseScore, 0, effectiveMax)),
     maxScore: effectiveMax,
     feedbackForStudent: String(parsed.feedbackForStudent || '').trim(),
     noteForTeacher: String(parsed.noteForTeacher || '').trim(),
@@ -985,7 +986,7 @@ export const parsePracticeAssessment = (
       } satisfies PracticeQuestionResult;
     });
     return {
-      score: questionResults.reduce((sum, result) => sum + result.score, 0),
+      score: roundScore(questionResults.reduce((sum, result) => sum + result.score, 0)),
       maxScore: effectiveMax,
       feedback: String(parsed.feedback || '').trim(),
       questionResults,

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AlertTriangle, CalendarClock, Camera, CheckCircle2, Clock3, FileText, Loader2, MessageCircle, RotateCcw, BookOpen } from 'lucide-react';
 import { isActionableClarifyQuestion } from '../../../../lib/classroom/clarification';
 import { NhanXetMarkdown } from '../NhanXetMarkdown';
+import { formatScore } from '../../../../lib/classroom/scoreFormat';
 import { QuestionResultsList } from '../QuestionResultsList';
 import { StudentSubmittedWork } from './StudentSubmittedWork';
 import type { AssignmentDoc, SubmissionDoc } from '../../../../lib/classroom/types';
@@ -170,7 +171,7 @@ export const StudentAssignmentCard = ({ assignment, submission, submissions, sta
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
                 {assignment.periodicTest
                   ? 'Đã phân tích từng câu — điểm chính thức là điểm thầy cô chấm trên bài giấy'
-                  : `${submission.grade.score}/${submission.grade.maxScore} điểm`}
+                  : `${formatScore(submission.grade.score)}/${formatScore(submission.grade.maxScore)} điểm`}
               </p>
               {submission.grade.feedback && (
                 <div className="mt-1"><NhanXetMarkdown tone="sang">{submission.grade.feedback}</NhanXetMarkdown></div>
