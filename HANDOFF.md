@@ -39,8 +39,32 @@ Mỗi game là một rule trong `lib/mode-engine/rules/`, dùng chung hạ tần
 ### Khác biệt so với dethiso
 Game của họ tách rời đề; ở đây cắm thẳng vào Concept của bài đang dạy, dùng hint 4 tầng và nhánh support/core/extension. Điểm chơi vẫn tách khỏi bằng chứng hộ chiếu.
 
+### Vòng 3 (07/11/2026) — QA độc lập + 2 lỗi thật
+1. **Route E2E chỉ phủ 8 luật cũ.** `tests/mode-route-integration.test.mjs` chạy API thật qua SQLite thật nhưng danh sách chỉ có 8 luật — 5 game mới chưa từng đi qua route. Đã mở rộng lên **13 luật**; pass ngay, chứng minh engine mới chạy được qua API, chặn replay, chặn lộ đáp án, CAS revision.
+2. **Chunk JS 404 trên `/play`.** Log wrangler lộ `GET /_next/static/chunks/mode-classroom-CVvAQZ-O.js 404`. Nguyên nhân: `import "../../public/mode-classroom.css"` khiến vite bundle luôn `public/mode-classroom.js` (cùng basename) thành chunk, nhưng file đó là script thường nên không emit. Đã bỏ `import`, chuyển sang `<link rel="stylesheet" href="/mode-classroom.css"/>` trong JSX (cùng cách `app/page.tsx` đang làm với `style.css`). Sau khi sửa: 0 chunk rác, CSS phục vụ như file tĩnh.
+3. **Board rỗng vẫn render tiêu đề.** `GameBoard` vẽ `<section>` + `<h3>` kể cả khi không có dữ liệu làn/ghế/dây (view của GV không có `own`). Đã thêm guard `if (!board.x) return null`.
+4. Thêm `tests/lesson-mode-panel-board.test.mjs` (7 case) render `LessonModePanel` thật qua React SSR cho cả 5 board, khoá luôn việc rò `PRIVATE_`/`learnerId`.
+
+### Kiểm chứng vòng 3
+- `npm test`: **1.544 PASS / 0 FAIL / 2 SKIP**.
+- `npm run build`: pass; `dist/client/_next/static/chunks` **không còn** file `*mode-classroom*`; `dist/client/mode-classroom.css` tồn tại (7.087 B).
+- Chạy `npm start` (wrangler + D1 local) và đo trong Chromium trên `/play`: CSS board nạp, tiêu đề `rgb(233,213,255)`, nền `rgb(30,41,59)`, viền `rgb(51,65,85)`, wire 64 px, 5 ô ruộng, thanh máu 66 %, **không tràn 375 px**, **0 lỗi console**, **không còn request 404**.
+- QA chéo bằng Claude CLI: 8/8 mục ĐẠT với số liệu thật. Codex CLI hỏng tầng tool (`unsupported call: functions`) nên tự báo `PROGRESS: 0/9` — không bịa.
+
+### Sắp cắn người sau (bổ sung)
+- **Không được `import` file `.css` nằm cạnh một `.js` cùng tên trong `public/`.** Vite sẽ cố bundle file `.js` đó thành chunk và sinh 404. Dùng `<link>` thay thế.
+- Test route E2E phải giữ danh sách luật đồng bộ với `RULES`; thêm luật mới mà quên là mất phủ.
+
+### Lệnh nghiệm thu vòng 3
+```powershell
+node --experimental-vm-modules --test tests/mode-route-integration.test.mjs tests/lesson-mode-panel-board.test.mjs
+npm --prefix "C:\Users\ADMIN\.codex\worktrees\universal-content-release" run build
+```
+
 ### Còn mở
-- Chưa kiểm trên điện thoại thật (chỉ đo layout 375 px trong Chromium).
+- Chưa chạy một ván thật bằng tay trong giao diện (bấm nút trên trình duyệt). Route E2E và SSR đã phủ nhưng chưa phải thao tác người dùng.
+- Chưa thử trên điện thoại thật.
+- Chưa deploy lên site (archive mới nhất vẫn là `release-20261106-scale-fix.tar.gz` đóng lúc 08:13, trước commit game).
 
 ### Vòng 2 (06/11/2026, commit `c55e0445`) — 3 lỗ hổng thật đã sửa
 1. **Bảng game không hiện trong phòng học thật.** `public/mode-classroom.css` và board chỉ được nạp ở trang `/` (game cũ). Trang `/play` — nơi học sinh học thật — dùng `components/lesson/LessonModePanel.tsx` và **không nạp CSS này**, nên 5 bảng mới vô hình với học sinh. Đã thêm `import "../../public/mode-classroom.css"` vào `app/play/page.tsx` và dựng `GameBoard` bằng React trong `LessonModePanel` để cả hai đường đều có bảng.
@@ -58,7 +82,7 @@ Game của họ tách rời đề; ở đây cắm thẳng vào Concept của b�
 
 ### Sắp cắn người sau
 - Board trong `LessonModePanel` nhận dữ liệu qua `view.board`; nếu ai đổi `serializeLessonMode` mà quên `board()` thì bảng im lặng biến mất, test `mode-board-privacy` sẽ bắt.
-- `farm` tính ngày bằng `now / dayMs`. Nếu phòng chạy quá 30 phút với `dayMs` 5 phút thì mùa kết thúc giữa tiết — phải đặt `dayMs` khi mở ván dài.
+- `farm` tính ngày từ lúc mở ván, không phải lúc bắt đầu tiết. Mùa mặc định vẫn dài 30 phút.
 - Arena chia sát thương theo `constants.classes[class].damage`; đổi số ở đó là đổi cân bằng mọi trận.
 
 ### Lệnh nghiệm thu vòng 2
@@ -66,6 +90,15 @@ Game của họ tách rời đề; ở đây cắm thẳng vào Concept của b�
 node --test tests/mode-new-games.test.mjs tests/mode-arena-farm.test.mjs tests/mode-board-privacy.test.mjs tests/mode-classroom-boards.test.mjs tests/mode-classroom-contrast.test.mjs
 npm --prefix "C:\Users\ADMIN\.codex\worktrees\universal-content-release" run build
 ```
+
+### Sửa lỗi QA độc lập sau `7fe6ac62` (07/11/2026)
+- Arena: vật phẩm hồi sinh nay bỏ trạng thái gục, hồi 50% HP tối đa của lớp, trả outcome về `active` và tiêu hao vật phẩm. Chỉ dùng khi đang gục và có vật phẩm; bỏ đường `type: 'revive'` miễn phí.
+- Arena: chỉ chọn lớp trước câu trả lời đầu tiên (`correct + wrong === 0`), không được chọn khi gục. `choices()` dùng chung `validate`, nên nút tự ẩn khi hết quyền chọn; không còn hồi đầy HP giữa trận.
+- Farm: lưu `startedAt` trong ruleState; ngày và `dayStartedAt` tính tương đối theo lúc mở ván. Người vào muộn nhận `lastDay` bằng ngày hiện tại, không chịu phạt cho thời gian trước khi vào.
+- Giữ có chủ đích một ngày ân hạn: ngày 0 bỏ trắng không bị phạt ở đầu ngày 1; ngày gia nhập cũng được đối xử như vậy. Không đổi cổng chống tua lùi.
+- Test hồi quy: `node --test tests/mode-arena-farm-qa.test.mjs tests/mode-arena-farm.test.mjs` — 14/14 đạt; kiểm qua lesson bridge, cả bốn lớp nhân vật, vật phẩm kiếm từ câu trả lời đã chấm.
+- Probe trước/sau: hồi sinh `down:true` thành `false`, HP 0 thành 600; chọn Tank sau 9 câu sai bị từ chối, giữ HP 300; mở farm ở phút 20 nay ngày 0, sau 10 phút là ngày 2 và chưa kết thúc.
+- Chỉ commit cục bộ; không push, deploy hoặc chạm dự án Sites.
 
 ## Checkpoint trước: HOTFIX V45: HẢI TRÌNH + TƯƠNG PHẢN BẢNG + PHÒNG TỰ ĐI (05/11/2026)
 

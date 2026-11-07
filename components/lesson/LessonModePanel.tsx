@@ -51,6 +51,7 @@ function GameBoard({ view }: { view: LessonModeView }) {
   if (view.rule === "speedway") {
     const length = board.track?.length ?? 20;
     const lanes = board.track?.lane || [];
+    if (!lanes.length) return null;
     return <section className="game-board speedway" aria-label="Đường đua">
       <div className="board-head"><h3>Đường đua tri thức</h3><p>{length} bước tới đích · chuỗi hiện tại {num(own.combo)}</p></div>
       {lanes.map(({ slot, distance, own: ownLane }) => {
@@ -66,6 +67,7 @@ function GameBoard({ view }: { view: LessonModeView }) {
 
   if (view.rule === "bellring") {
     const seats = board.seats || [];
+    if (!seats.length) return null;
     const standing = seats.filter(seat => seat.standing);
     const out = seats.filter(seat => !seat.standing);
     return <section className="game-board bellring" aria-label="Sàn thi đấu">
@@ -76,6 +78,7 @@ function GameBoard({ view }: { view: LessonModeView }) {
   }
 
   if (view.rule === "bomb") {
+    if (!board.bomb) return null;
     const wires = board.bomb?.wires ?? 4;
     const cut = board.bomb?.cut ?? 0;
     const exploded = Boolean(board.bomb?.exploded);
@@ -90,6 +93,7 @@ function GameBoard({ view }: { view: LessonModeView }) {
   }
 
   if (view.rule === "farm") {
+    if (!board.farm) return null;
     const labels = board.farm?.labels || ["Hạt", "Mầm", "Cây non", "Ra hoa", "Kết quả"];
     const stage = Math.max(0, Math.min(labels.length, num(own.stage)));
     const day = board.farm?.day ?? 0, seasonDays = board.farm?.seasonDays ?? 6;
@@ -101,6 +105,7 @@ function GameBoard({ view }: { view: LessonModeView }) {
   }
 
   if (view.rule === "arena") {
+    if (!board.arena) return null;
     const boss = board.arena?.boss || { hp: 0, max: 1 };
     const pct = Math.max(0, Math.min(100, Math.round((boss.hp / Math.max(1, boss.max)) * 100)));
     const items = Array.isArray(own.items) ? own.items as string[] : [];

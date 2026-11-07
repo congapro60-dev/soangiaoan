@@ -1,6 +1,5 @@
 "use client";
 import { LessonModePanel } from "../../components/lesson/LessonModePanel";
-import "../../public/mode-classroom.css";
 import { ClassEventPanel } from "../../components/lesson/ClassEventPanel";
 import { ValueReflection, type ValueReflectionData } from "../../components/lesson/ValueReflection";
 import { PracticePanel } from "../../components/lesson/PracticePanel";
@@ -952,6 +951,7 @@ export default function PlayPage() {
 
   return (
     <main className={`lesson-shell play-game ${media.settings.reducedMotion ? "lesson-media-reduced-motion" : ""}`}>
+      <link rel="stylesheet" href="/mode-classroom.css"/>
       <LessonAttention status={view?.status}/>
       <ExplorationPanel hideTrigger view={view?.exploration} status={view?.status} activityId={view?.timeline?.currentActivityId} onCommand={dispatchCommand} openCardId={explorationCardId} onDismiss={dismissExploration}/>
       {/* The campaign map is the game: it fills the screen and everything else floats over it */}
