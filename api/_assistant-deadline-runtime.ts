@@ -1,4 +1,5 @@
 import type { Firestore, Query } from 'firebase-admin/firestore';
+import { createHash } from 'node:crypto';
 import { deadlineTasksForStudent, digestText, digestWindow, sheetTaskRows, vietnamDate, type DeadlineConfig, type SheetTaskRow } from './_assistant-deadline.js';
 import { deadlineOwner, publicationVersion, requireDeadlineSource, validateDeadlineConfig } from './_assistant-deadline-config.js';
 import { readDeadlineSheet } from './_assistant-deadline-sheet.js';
@@ -22,7 +23,7 @@ async function records(query: Query, max = 2000): Promise<Data[]> {
   return snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 }
 /** No cache: source errors stop reminders, never manufacture an all-clear. */
-export async function loadDeadlineClass(db: Firestore, classId: string, read = readDeadlineSheet): Promise<Bundle> {
+export async function loadDeadlineClass(db: Firestore, classId: string, read = readDeadlineSheet, includeSubmissions = true): Promise<Bundle> {
   const [cls, config, students, regular, adaptive] = await Promise.all([
     db.collection('classes').doc(classId).get(), db.collection('assistantDeadlineConfig').doc(classId).get(),
     records(db.collection('classes').doc(classId).collection('students'), 100),
@@ -40,11 +41,11 @@ export async function loadDeadlineClass(db: Firestore, classId: string, read = r
     const col = (source.grid[1] || []).findIndex((cell, i) => i >= 2 && String(cell?.formattedValue || '').normalize('NFC').trim().replace(/\s+/gu, ' ') === task.header);
     if (stored.columnBindings?.[task.id] !== col) throw new Error('Cột deadline đã đổi; thầy cô cần đọc lại nguồn và lưu ánh xạ trước khi dùng.');
   }
-  const [uploads, online, progress] = await Promise.all([
+  const [uploads, online, progress] = includeSubmissions ? await Promise.all([
     records(db.collection('submissions').where('classId', '==', classId)),
     records(db.collection('examSubmissions').where('classId', '==', classId)),
     records(db.collection('adaptiveAssignmentProgress').where('classId', '==', classId)),
-  ]);
+  ]) : [[], [], []];
   const submissions: Data[] = [...uploads, ...online, ...progress.filter(p => p.attempts?.exitTicket).map((p): Data => ({ ...p, assignmentId: `adaptive:${p.assignmentId}`, status: 'submitted' }))]
     .filter((s: Data) => s.classId === classId && (!s.teacherId || s.teacherId === owner));
   return { classId, teacherId: owner, revision: stored.revision, publicationRevisions: stored.publicationRevisions || {}, settings, students, assignments, submissions, rows };
@@ -82,8 +83,16 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
     if (!reads.has(key)) reads.set(key, readDeadlineSheet(config));
     return reads.get(key)!;
   };
-  const bundle = await loadDeadlineClass(db, classId, read);
+  const initial = await loadDeadlineClass(db, classId, read, false);
   const links = await records(db.collection('channelLinks').where('classId', '==', classId), 500);
+  const pending = await db.collection('assistantDeadlineOutbox').where('classId', '==', classId).where('botId', '==', policy.botId)
+    .where('state', 'in', ['pending', 'rejected']).where('nextAt', '<=', now).orderBy('nextAt').limit(100).get();
+  const pollRef = db.collection('assistantDeadlinePollState').doc(classId), previous = (await pollRef.get()).data();
+  const fingerprint = createHash('sha256').update(JSON.stringify([policy, initial, links])).digest('hex');
+  const digestDue = initial.settings.digest && digestWindow(now) && previous?.digestDate !== vietnamDate(now);
+  // ponytail: poll the bounded class snapshot; read submission history after source/link changes or queued delivery.
+  if (previous?.fingerprint === fingerprint && !digestDue && pending.empty) return;
+  const bundle = await loadDeadlineClass(db, classId, read);
   const targets: DeadlineTarget[] = links.filter(l => l.active && l.channel === 'zalo_bot' && l.channelAccountId === policy.botId
     && l.role === 'student' && (!l.channelChatId || l.channelChatId === l.channelUserId) && (!l.expiresAt || l.expiresAt > now)
     && bundle.students.some(s => s.id === l.studentId && Object.hasOwn(bundle.settings.studentNames, s.code)))
@@ -93,9 +102,9 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
   // Off still advances the baseline; enabling later does not broadcast old work.
   await syncDeadlineNotices(db, classId, notices, targets, { ...policy, enabled: policy.enabled && bundle.settings.notifications }, now);
   if (bundle.settings.digest) for (const target of targets) await enqueueDeadlineDigest(db, target, studentDeadlineView(bundle, target.studentId), policy, now);
-  const pending = await db.collection('assistantDeadlineOutbox').where('classId', '==', classId).where('botId', '==', policy.botId)
+  const ready = await db.collection('assistantDeadlineOutbox').where('classId', '==', classId).where('botId', '==', policy.botId)
     .where('state', 'in', ['pending', 'rejected']).where('nextAt', '<=', now).orderBy('nextAt').limit(100).get();
-  const jobs: Data[] = pending.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+  const jobs: Data[] = ready.docs.map(doc => ({ ...doc.data(), id: doc.id }));
   // Ineligible recipients never occupy the send budget. Rotate unapproved jobs so a backlog cannot starve test recipients.
   for (const job of jobs.filter(j => !deadlineDispatchEligible(j, targets, policy, now))) {
     await db.runTransaction(async tx => {
@@ -115,6 +124,8 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
       && digestText(studentDeadlineView(fresh, job.studentId), now, true) === job.text;
     return fresh.settings.notifications && noticesFor(fresh, job.studentId).some(n => n.taskId === job.taskId && n.version === job.version);
   }, now);
+  await pollRef.set({ fingerprint, ...(previous?.digestDate ? { digestDate: previous.digestDate } : {}),
+    ...(digestDue ? { digestDate: vietnamDate(now) } : {}), updatedAt: now });
 }
 
 /** At most three classes per authenticated invocation; scheduler follows nextAfter for the rest. */

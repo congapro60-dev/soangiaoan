@@ -56,6 +56,16 @@ function sourceDb(change: Record<string, any> = {}) {
 }
 const read = () => vi.fn(async () => ({ grid: [[], [{ formattedValue: 'Tên việc' }], [{ formattedValue: 'Hạn chót (tự tính)' }], [], [], [{ formattedValue: 'Link' }], [], [], [{}, { formattedValue: 'Học sinh' }], [{}, { formattedValue: 'Em Một' }]], studentNames: ['Em Một'], headers: [], sheetId: 1 }));
 describe('deadline source loader', () => {
+  it('source-only polling never reads submission history', async () => {
+    const db = sourceDb(), collection = db.collection;
+    const collections: string[] = [];
+    db.collection = (path: string) => { collections.push(path); return collection(path); };
+    const result = await loadDeadlineClass(db, 'c1', read(), false);
+    expect(result.submissions).toEqual([]);
+    expect(collections).not.toContain('submissions');
+    expect(collections).not.toContain('examSubmissions');
+    expect(collections).not.toContain('adaptiveAssignmentProgress');
+  });
   it('reads only the configured class and filters foreign-owner tasks', async () => {
     const reader = read(); const result = await loadDeadlineClass(sourceDb(), 'c1', reader);
     expect(result.assignments.map(a => a.id)).toEqual(['a1']);

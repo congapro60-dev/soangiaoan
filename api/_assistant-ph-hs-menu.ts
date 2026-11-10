@@ -37,7 +37,10 @@ export type MenuRole = 'parent' | 'student';
 /** Nhãn mục 5 theo vai trò: PH nhận việc cần làm ở nhà, HS nhận gợi ý tự học. */
 export const menuItem5Label = (role: MenuRole): string => (role === 'student' ? 'Gợi ý tự học ở nhà' : MENU_ITEMS[4].label);
 
-export const menuText = (studentName: string, className: string, role: MenuRole = 'parent'): string =>
+// ponytail: this Sheet is approved for one class; replace with an admin allowlist for additional classes.
+export const deadlineAvailable = (role: MenuRole, classId: string): boolean => role === 'student' && classId === 'class-1787188523562';
+
+export const menuText = (studentName: string, className: string, role: MenuRole = 'parent', classId = ''): string =>
   [`Xin chào! Đây là trợ lý lớp ${className} — hồ sơ của ${studentName}.`,
     MENU_REPLIES.header,
     ...MENU_ITEMS.map(item => `${item.key}. ${item.key === '5' ? menuItem5Label(role) : item.label}`),
@@ -48,7 +51,7 @@ export const menuText = (studentName: string, className: string, role: MenuRole 
     // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10): hướng dẫn chuyển HS/PH/GV, mỗi lần đổi bắt nhập mã.
     '9. Đổi vai trò (HS/PH/GV)',
     '10. Hướng dẫn sử dụng các tính năng',
-    ...(role === 'student' ? ['11. Deadline & việc cần làm (hoặc nhắn deadline)'] : []),
+    ...(deadlineAvailable(role, classId) ? ['11. Deadline & việc cần làm (hoặc nhắn deadline)'] : []),
     '0. Xem lại menu'].join('\n');
 
 const percent = (value: number | null): string => (value == null ? 'chưa đủ dữ liệu' : `${Math.round(value)}%`);
@@ -288,7 +291,7 @@ export const parentMenuReply = async (
   const bundle = await loadParentReport(db, classId, studentId, role);
   if (!bundle) return MENU_REPLIES.noData;
   const { report, periodicIds, joinCode } = bundle;
-  if (choice.kind === 'menu') return menuText(report.studentName, report.className, role);
+  if (choice.kind === 'menu') return menuText(report.studentName, report.className, role, classId);
   // Tin link web: URL phải nằm trong text THUẦN để Zalo render thành link bấm được.
   if (choice.kind === 'link') return joinCode ? webLinkText(role, joinCode) : MENU_REPLIES.noData;
   // Mục 9 "Đổi vai trò": hướng dẫn mẫu xác nhận — KHÔNG cần dữ liệu báo cáo, trả trước cho gọn.

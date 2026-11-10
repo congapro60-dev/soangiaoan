@@ -8,7 +8,7 @@ import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssis
 import { deactivateStudentParentLinks, dualRoleAllowed, linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES, switchBotRole } from './_assistant-ph-hs-link.js';
 
 import { recoveryReply } from './_assistant-ph-hs-recovery.js';
-import { parentMenuReply, parseMenuChoice, loadParentReport, menuText, MENU_REPLIES, MENU_HINT, withWebPortalLink } from './_assistant-ph-hs-menu.js';
+import { parentMenuReply, parseMenuChoice, loadParentReport, menuText, deadlineAvailable, MENU_REPLIES, MENU_HINT, withWebPortalLink } from './_assistant-ph-hs-menu.js';
 import { AI_CHAT_REPLIES, answerGroupQuestion, answerParentQuestionDetailed, vilaoCaller } from './_assistant-ph-hs-chat.js';
 import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
@@ -133,7 +133,7 @@ const menuForLinkedUser = async (botId: string, userId: string): Promise<string 
     if (!classId || !studentId) return null;
     const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
     if (!bundle) return null;
-    return menuText(bundle.report.studentName, bundle.report.className, role);
+    return menuText(bundle.report.studentName, bundle.report.className, role, classId);
   } catch {
     return null;
   }
@@ -328,7 +328,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     }
     // Upload numbers win over menu 11; deadline never mutates a photo session.
     if (role === 'student' && (message.trim() === '11' || deadlineCommand(message))) {
-      await sendStyled(token, chatId, await deadlineMenuReply(getAdminDb(), classId, studentId), false);
+      await sendStyled(token, chatId, deadlineAvailable(role, classId) ? await deadlineMenuReply(getAdminDb(), classId, studentId) : MENU_REPLIES.invalid, false);
       return '';
     }
     // Cancellation must precede menu aliases such as "hủy".
@@ -350,7 +350,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
           '• Nhắn 0 hoặc menu: Mở lại danh mục tra cứu.',
           '• Nhắn số 1–7: Xem bảng điểm, bài chưa nộp, nhận xét của GV.',
           '• Nhắn web: Nhận link mở cổng thông tin chi tiết trên web.',
-          ...(role === 'student' ? ['• Nhắn 11 hoặc deadline: Xem deadline khi lớp đã được cấu hình.'] : []),
+          ...(deadlineAvailable(role, classId) ? ['• Nhắn 11 hoặc deadline: Xem deadline khi lớp đã được cấu hình.'] : []),
           '',
           '2️⃣ Nộp bài bằng ảnh (Học sinh & Phụ huynh nộp hộ):',
           '• Nhắn 8 hoặc chấm: Xem danh sách bài cần nộp.',

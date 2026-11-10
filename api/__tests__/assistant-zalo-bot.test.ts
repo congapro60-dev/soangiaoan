@@ -488,8 +488,8 @@ describe('nhóm Zalo — chỉ trả lời khi @mention bot (phương án B)', (
 describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
   const parentActor = { firebaseUid: 'pinlink:parent:c:s', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'plink', active: true, role: 'parent', classId: 'c', studentId: 's' } as any;
   const studentActor = { firebaseUid: 'pinlink:student:c:s', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'slink', active: true, role: 'student', classId: 'c', studentId: 's' } as any;
-  const mockStudent = () => vi.mocked(resolveChannelActor).mockImplementation(async (...args) => {
-    if ((args[5] as any)?.preferredRole === 'student') return studentActor;
+  const mockStudent = (classId = 'c') => vi.mocked(resolveChannelActor).mockImplementation(async (...args) => {
+    if ((args[5] as any)?.preferredRole === 'student') return { ...studentActor, classId };
     throw new Error('Channel is not linked');
   });
   it.each(['0', 'menu'])('menu %s leaves only the empty selection state before displaying the menu', async message => {
@@ -497,15 +497,21 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     expect(exitPhotoSelection).toHaveBeenCalledWith('bot-1', 'user-1', 'c', 's');
   });
   it('student help includes deadline command', async () => {
-    mockStudent(); await request(event('10'));
+    mockStudent('class-1787188523562'); await request(event('10'));
     expect(JSON.parse(sent()[0][1].body).text).toContain('deadline');
   });
   it.each(['deadline', '11'])('deadline %s uses linked identity, preserves photos and public task URLs', async message => {
-    mockStudent();
+    mockStudent('class-1787188523562');
     await request(event(message));
-    expect(deadlineMenuReply).toHaveBeenCalledWith(expect.anything(), 'c', 's');
+    expect(deadlineMenuReply).toHaveBeenCalledWith(expect.anything(), 'class-1787188523562', 's');
     expect(JSON.parse(sent()[0][1].body).text).toContain('https://example.com/task');
     expect(cancelPhotoSession).not.toHaveBeenCalled();
+  });
+  it.each(['deadline', '11'])('HS lớp khác không truy cập deadline qua %s', async message => {
+    mockStudent();
+    await request(event(message));
+    expect(deadlineMenuReply).not.toHaveBeenCalled();
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Chưa có mục này');
   });
   it('upload selection 11 wins over deadline menu 11', async () => {
     mockStudent(); vi.mocked(pickAssignmentByNumber).mockResolvedValueOnce('PICK_11');
