@@ -48,7 +48,8 @@ import {
   submissionWithoutGrade,
 } from './_grade-lifecycle.js';
 import { stripUndefinedDeep } from './_firestore-sanitize.js';
-import { handleTeacherAction } from './_classroom-teacher.js';
+import { handleTeacherAction, teacherContext } from './_classroom-teacher.js';
+import { handleDeadlineConfig } from './_assistant-deadline-config.js';
 import { handleV832Action } from './_v832-runtime.js';
 import { handleV832RepairAction } from './_v832-review-repair.js';
 import { handleV84Action } from './_v84-runtime.js';
@@ -1547,6 +1548,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof readBody>, action: string) {
   try {
     const db = getAdminDb();
+    if (await handleDeadlineConfig(db, body, res, teacherContext)) return;
     if (await handleWebHandoffAction(db, body, res)) return;
     if (await handleV871PreparePreview(db, body, res)) return;
     if (await handleV832Action(db, body, res)) return;

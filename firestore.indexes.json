@@ -1,6 +1,16 @@
 {
   "indexes": [
     {
+      "collectionGroup": "assistantDeadlineOutbox",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "classId", "order": "ASCENDING" },
+        { "fieldPath": "botId", "order": "ASCENDING" },
+        { "fieldPath": "state", "order": "ASCENDING" },
+        { "fieldPath": "nextAt", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "adaptiveLessons",
       "queryScope": "COLLECTION",
       "fields": [

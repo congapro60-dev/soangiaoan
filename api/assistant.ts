@@ -20,6 +20,9 @@ import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
 import type { AssistantToolName, Channel } from './_assistant-types.js';
 import { handleZaloBotWebhook } from './_assistant-zalo-bot.js';
+import { runDeadlineBatch } from './_assistant-deadline-runtime.js';
+import { getAdminDb } from './_exam-core.js';
+import { secretEqual } from './_assistant-zalo-send.js';
 
 export const config = { api: { bodyParser: false } };
 const bearer = (value: string | undefined) => value?.startsWith('Bearer ') ? value.slice(7).trim() : '';
@@ -100,6 +103,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // KHÔNG được dùng để chọn transport, vì như vậy là mở đường bỏ qua HMAC của gateway thường
   // (test "standard HTTP route cannot bypass HMAC with webhook headers" khoá điều này).
   const transport = String((req.query as Record<string, unknown> | undefined)?.transport || '');
+  if (transport === 'deadline') {
+    res.setHeader('Cache-Control', 'no-store');
+    if (req.method !== 'GET') return res.status(405).json({ code: 'METHOD_NOT_ALLOWED' });
+    const secret = process.env.ZALO_DEADLINE_CRON_SECRET || '';
+    if (secret.length < 32 || !secretEqual(bearer(header(req.headers.authorization)), secret)) return res.status(401).json({ code: 'UNAUTHORIZED' });
+    const after = text(req.query?.after);
+    if (after && !/^[A-Za-z0-9_-]{1,200}$/.test(after)) return res.status(400).json({ code: 'INVALID_REQUEST' });
+    try { return res.status(200).json(await runDeadlineBatch(getAdminDb(), after)); }
+    catch { return res.status(503).json({ error: 'Chưa đọc được danh sách lớp; bộ lập lịch cần thử lại sau.' }); }
+  }
   if (transport === 'zalo_bot' && req.method !== 'POST') { res.status(200).json({ ok: true }); return; }
   if (req.method !== 'POST') return res.status(405).json({ kind: 'error', code: 'METHOD_NOT_ALLOWED' });
   if (transport === 'zalo_bot') {

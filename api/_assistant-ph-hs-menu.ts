@@ -48,6 +48,7 @@ export const menuText = (studentName: string, className: string, role: MenuRole 
     // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10): hướng dẫn chuyển HS/PH/GV, mỗi lần đổi bắt nhập mã.
     '9. Đổi vai trò (HS/PH/GV)',
     '10. Hướng dẫn sử dụng các tính năng',
+    ...(role === 'student' ? ['11. Deadline & việc cần làm (hoặc nhắn deadline)'] : []),
     '0. Xem lại menu'].join('\n');
 
 const percent = (value: number | null): string => (value == null ? 'chưa đủ dữ liệu' : `${Math.round(value)}%`);
@@ -116,12 +117,16 @@ export const webPortalUrl = (role: MenuRole, joinCode: string): string => {
  * để HS luôn bấm được vào web. Không có mã lớp thì trả nguyên văn (không link sai).
 
  */
-export const withWebPortalLink = (text: string, role: MenuRole, joinCode: string, authenticatedUrl?: string): string => {
-  const url = authenticatedUrl || webPortalUrl(role, joinCode);
+export const withWebPortalLink = (text: string, role: MenuRole, joinCode: string): string => {
+  const url = webPortalUrl(role, joinCode);
   if (!url) return text;
+  // Link chuẩn cần mã PIN do thầy cô cấp: nói rõ để HS/PH không kẹt ở ô PIN.
+  const pinHint = role === 'student'
+    ? 'Chọn tên của em và nhập mã PIN do thầy cô cấp.'
+    : 'Chọn tên con và nhập mã PIN phụ huynh do thầy cô cấp.';
   const block = role === 'student'
-    ? `Xem bài và nộp bài trên web:\n${url}`
-    : `Xem báo cáo học tập trên web:\n${url}`;
+    ? `Xem bài và nộp bài trên web:\n${url}\n${pinHint}`
+    : `Xem báo cáo học tập trên web:\n${url}\n${pinHint}`;
   const tail = `\n\n${block}\n\n${MENU_HINT}`;
   const body = text;
   const idx = body.lastIndexOf(MENU_HINT);

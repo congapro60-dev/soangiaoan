@@ -68,4 +68,19 @@ describe('link cổng web — đúng lớp, đúng vai', () => {
     expect(out).toContain('https://giaoandewey.vercel.app/lop/R6RCFC');
     expect(out.endsWith(MENU_HINT)).toBe(true);
   });
+
+  it('B1: câu trả lời AI dùng link chuẩn giaoandewey + hướng dẫn PIN, không có link đăng nhập một lần', () => {
+    const out = withWebPortalLink(`Em làm bài tốt.\n\n${MENU_HINT}`, 'student', 'R6RCFC');
+    expect(out).toContain('https://giaoandewey.vercel.app/lop/R6RCFC');
+    expect(out).toContain('nhập mã PIN do thầy cô cấp');
+    expect(out).not.toContain('#bot=');
+    expect(out).not.toContain('zalo-test');
+  });
+
+  it('B2: PH nhận link /ph/<mã lớp> kèm hướng dẫn PIN phụ huynh', () => {
+    const out = withWebPortalLink(`Con học tốt.\n\n${MENU_HINT}`, 'parent', 'R6RCFC');
+    expect(out).toContain('https://giaoandewey.vercel.app/ph/R6RCFC');
+    expect(out).toContain('PIN phụ huynh');
+    expect(out).not.toContain('#bot=');
+  });
 });

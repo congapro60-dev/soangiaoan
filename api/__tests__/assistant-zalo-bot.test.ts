@@ -1,5 +1,7 @@
 vi.mock('../_assistant-web-handoff', () => ({ issueWebHandoff: vi.fn(async () => 'https://example.com/ph/C#bot_web=opaque'), confirmWebHandoff: vi.fn(async () => null) }));
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('../_assistant-deadline-runtime', () => ({ deadlineMenuReply: vi.fn(async () => 'DEADLINE_OK https://example.com/task'), runDeadlineBatch: vi.fn(async () => ({ disabled: true })) }));
+import { deadlineMenuReply } from '../_assistant-deadline-runtime';
 
 vi.mock('../_assistant-auth', async () => ({
   ...await vi.importActual<typeof import('../_assistant-auth')>('../_assistant-auth'),
@@ -489,6 +491,19 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     if ((args[5] as any)?.preferredRole === 'student') return studentActor;
     throw new Error('Channel is not linked');
   });
+  it.each(['deadline', '11'])('deadline %s uses linked identity, preserves photos and public task URLs', async message => {
+    mockStudent();
+    await request(event(message));
+    expect(deadlineMenuReply).toHaveBeenCalledWith(expect.anything(), 'c', 's');
+    expect(JSON.parse(sent()[0][1].body).text).toContain('https://example.com/task');
+    expect(cancelPhotoSession).not.toHaveBeenCalled();
+  });
+  it('upload selection 11 wins over deadline menu 11', async () => {
+    mockStudent(); vi.mocked(pickAssignmentByNumber).mockResolvedValueOnce('PICK_11');
+    await request(event('11'));
+    expect(deadlineMenuReply).not.toHaveBeenCalled();
+    expect(JSON.parse(sent()[0][1].body).text).toBe('PICK_11');
+  });
   const imageEvent = (photo: unknown, messageId = 'image-1') => ({ ok: true, result: { event_name: 'message.image.received', message: { from: { id: 'user-1', is_bot: false }, chat: { id: 'user-1', chat_type: 'PRIVATE' }, photo, message_id: messageId, date: Date.now() } } });
 
   it('HS gửi ảnh KHI ĐANG NỘP BÀI → photoReceivedReply (ảnh là bài làm)', async () => {
@@ -707,10 +722,11 @@ describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10
     const [token, chatId, spec, caption, classId] = sendGeometryPhotoMock.mock.calls[0] as unknown as string[];
     expect(spec).toEqual({ shape: 'pyramid', base: 'square' });
     expect(caption).toContain('V = ⅓·a²·h');
-    expect(caption).toContain('https://example.com/ph/C#bot_web=opaque');
+    expect(caption).toContain('https://giaoandewey.vercel.app/lop/R6RCFC');
+    expect(caption).toContain('nhập mã PIN do thầy cô cấp');
+    expect(caption).not.toContain('#bot_web=');
     expect(caption.endsWith('Nhắn 0 để xem lại menu.')).toBe(true);
     expect(classId).toBe('c-1');
-    expect(issueWebHandoff).toHaveBeenCalledWith({}, 'bot-1', 'user-1', 'student', 'c-1', 's-1');
     expect(token).toBe('fake-token');
     expect(chatId).toBe('user-1');
     expect(sent()).toHaveLength(0);
@@ -724,7 +740,8 @@ describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10
     expect(sent()).toHaveLength(1);
     const body = JSON.parse(sent()[0][1].body);
     expect(body.text).toContain('Lời giải hình nón.');
-    expect(body.text).toContain('https://example.com/ph/C#bot_web=opaque');
+    expect(body.text).toContain('https://giaoandewey.vercel.app/lop/R6RCFC');
+    expect(body.text).not.toContain('#bot_web=');
   });
 
   it('câu hỏi không vẽ được (geometry null) → không gọi vẽ ảnh, gửi text như luồng cũ', async () => {
@@ -755,10 +772,10 @@ describe('nhánh chat AI — gửi ảnh hình học qua sendPhoto (chốt 28/10
     expect(caption).not.toContain('⅓·a²·h');
     expect(caption).toContain('lời giải');
     expect(caption).not.toContain('$$');
-    expect(caption).toContain('https://example.com/ph/C#bot_web=opaque');
+    expect(caption).toContain('https://giaoandewey.vercel.app/lop/R6RCFC');
+    expect(caption).not.toContain('#bot_web=');
     expect(caption.endsWith('Nhắn 0 để xem lại menu.')).toBe(true);
     expect(classId).toBe('c-1');
-    expect(issueWebHandoff).toHaveBeenCalledWith({}, 'bot-1', 'user-1', 'student', 'c-1', 's-1');
     expect(sent()).toHaveLength(0);
   });
 

@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import { deadlineCommand } from './_assistant-deadline.js';
+import { deadlineMenuReply } from './_assistant-deadline-runtime.js';
 import { issueWebHandoff, confirmWebHandoff } from './_assistant-web-handoff.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from './_assistant-auth.js';
@@ -189,9 +191,8 @@ const solvePhotoAsQuestion = async (
   sendTyping(token, chatId);
   const answer = await solveProblemFromImage(image, bundle.report, bundle.periodicIds, role);
   if (!answer) { await sendStyled(token, chatId, IMAGE_SOLVE_REPLIES.busy); return; }
-  let authenticatedUrl: string | undefined;
-  try { authenticatedUrl = await issueWebHandoff(getAdminDb(), botId, chatId, role, classId, studentId); } catch { /* PIN fallback */ }
-  const fullCaption = withWebPortalLink(answer.text, role, bundle.joinCode, authenticatedUrl);
+  // Link chuẩn giaoandewey + PIN; câu trả lời AI không mang link đăng nhập một lần.
+  const fullCaption = withWebPortalLink(answer.text, role, bundle.joinCode);
   let photoSent = false;
   if (answer.geometry) photoSent = await sendGeometryPhoto(token, chatId, answer.geometry, fullCaption, classId, sendPhoto);
   else if (answer.hasMath) photoSent = await sendMathFormulaPhoto(token, chatId, answer.mathSource, fullCaption, classId, sendPhoto);
@@ -325,6 +326,11 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       const picked = await pickAssignmentByNumber(botId, userId, classId, studentId, Number(message.trim()), role);
       if (picked !== null) { await sendStyled(token, chatId, picked); return ''; }
     }
+    // Upload numbers win over menu 11; deadline never mutates a photo session.
+    if (role === 'student' && (message.trim() === '11' || deadlineCommand(message))) {
+      await sendStyled(token, chatId, await deadlineMenuReply(getAdminDb(), classId, studentId), false);
+      return '';
+    }
     // Cancellation must precede menu aliases such as "hủy".
     if ((role === 'student' || role === 'parent') && parsePhotoCommand(message)?.kind === 'cancel') {
       await sendStyled(token, chatId, await requestPhotoCancellation(botId, userId, /^xác nhận hủy$|^xac nhan huy$/i.test(message.trim())));
@@ -435,9 +441,8 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       // chèn ngay trước "Nhắn 0 để xem lại menu" để em luôn bấm được vào web.
       // Gửi THUẦN (không qua output() che link) như nhánh menu-link, nếu không URL
       // bị đổi thành "[đã ẩn liên kết]" và HS không bấm được.
-      let authenticatedUrl: string | undefined;
-      try { authenticatedUrl = await issueWebHandoff(getAdminDb(), botId, userId, role, classId, studentId); } catch { /* ordinary PIN portal remains usable */ }
-      const fullCaption = withWebPortalLink(detail.text, role, bundle.joinCode, authenticatedUrl);
+      // Link chuẩn giaoandewey + PIN; câu trả lời AI không mang link đăng nhập một lần.
+      const fullCaption = withWebPortalLink(detail.text, role, bundle.joinCode);
       // Thứ tự ưu tiên (chốt 28/10, bổ sung 29/10):
       // 1. AI vẽ được hình (khối geometry) → gửi ẢNH HÌNH kèm caption LỜI GIẢI ĐẦY ĐỦ
       //    (ảnh chỉ chứa hình vẽ, lời giải nằm ở caption — không phải lặp).
@@ -451,7 +456,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
         photoSent = await sendGeometryPhoto(token, chatId, detail.geometry, fullCaption, classId, sendPhoto);
       } else if (detail.hasMath) {
         // PHẢI truyền mathSource (còn LaTeX) — không phải text đã convert Unicode.
-        const photoCaption = withWebPortalLink('Em xem lời giải trình bày đẹp trong ảnh nhé 👆', role, bundle.joinCode, authenticatedUrl);
+        const photoCaption = withWebPortalLink('Em xem lời giải trình bày đẹp trong ảnh nhé 👆', role, bundle.joinCode);
         photoSent = await sendMathFormulaPhoto(token, chatId, detail.mathSource, photoCaption, classId, sendPhoto);
       }
       if (!photoSent) await sendChatty(token, chatId, fullCaption);
