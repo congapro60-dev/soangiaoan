@@ -141,6 +141,7 @@ describe('công bố + phụ huynh xem', () => {
     // Lần đầu vào phụ huynh phải tự đặt PIN riêng mới xem được báo cáo → các em còn lại dùng PIN do phụ huynh đặt.
     const own: Record<string, string> = { a: '2580', b: '7413' };
     for (const row of pins) {
+      if (row.pin === own[row.studentId]) own[row.studentId] = '9630';
       expect((await call({ action: 'changeParentPin', idToken: undefined, joinCode: 'ABCD23', studentId: row.studentId, pin: row.pin, newPin: own[row.studentId] })).statusCode).toBe(200);
     }
     return own;
