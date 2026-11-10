@@ -1,3 +1,4 @@
+import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { teacherContext } from './_classroom-teacher.js';
@@ -18,7 +19,7 @@ export const handleScoreBookStream = async (
     if (!identity) return void res.status(401).json({ error: 'Phiên đăng nhập học sinh không hợp lệ.' });
     uid = identity.uid;
     const link = (await db.collection('studentLinks').doc(uid).get()).data();
-    if (!isSafeDocId(link?.classId) || !isSafeDocId(link?.studentId)) return void res.status(403).json({ error: 'Phiên học sinh không hợp lệ.' });
+    if (!isSafeDocId(link?.classId) || !isSafeDocId(link?.studentId) || !await verifyStudentBotLink(db, uid, link)) return void res.status(403).json({ error: 'Phiên học sinh không hợp lệ.' });
     classId = link.classId; studentId = link.studentId;
   } else {
     const context = await teacherContext(db, body, res);
@@ -33,7 +34,7 @@ export const handleScoreBookStream = async (
     const [link, classroom, roster] = await Promise.all([
       db.collection('studentLinks').doc(uid).get(), classRef.get(), classRef.collection('students').doc(studentId).get(),
     ]);
-    return link.exists && link.data()?.classId === classId && link.data()?.studentId === studentId && classroom.exists && roster.exists;
+    return link.exists && await verifyStudentBotLink(db, uid, link.data()!) && link.data()?.classId === classId && link.data()?.studentId === studentId && classroom.exists && roster.exists;
   };
   if (!(await authorized())) return void res.status(403).json({ error: 'Không còn quyền xem bảng điểm.' });
   if (res.destroyed) return;

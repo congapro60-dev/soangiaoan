@@ -1,3 +1,4 @@
+import { bindParentWebCookie, verifyStudentBotLink } from './_assistant-web-handoff.js';
 import { annotateSubmission, handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows } from './_submission-annotations.js';
 import { runGradingRefreshItem } from './_grading-refresh.js';
 import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
@@ -1352,7 +1353,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
   if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
 
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới lấy được bài luyện.' });
+  if (!linkSnap.exists || !await verifyStudentBotLink(db, uid, linkSnap.data())) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới lấy được bài luyện.' });
   const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
   tagAiUsageRefs({ studentId: link.studentId, classId: link.classId });
 
@@ -1577,7 +1578,7 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
   if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
 
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới nộp bài luyện.' });
+  if (!linkSnap.exists || !await verifyStudentBotLink(db, uid, linkSnap.data())) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới nộp bài luyện.' });
   const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
   setAiKeyOwner(link.teacherId);
   tagAiUsageRefs({ studentId: link.studentId, classId: link.classId });
@@ -2446,6 +2447,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const body = readBody(req);
+  bindParentWebCookie(body, req.headers?.cookie);
   const action = String(body.action || '');
   // Ngữ cảnh đếm token: mọi lượt gọi AI bằng khoá chung bên trong (kể cả chấm chạy nền) được ghi
   // kèm người gọi + mã lớp/bài. Gateway gửi token qua header Bearer thay vì body.

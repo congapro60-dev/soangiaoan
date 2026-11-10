@@ -4,9 +4,10 @@
  * (`recordParentActivity('wrong')`, có giới hạn tần suất ghi để một đợt dò mã không làm nghẽn tài liệu thống kê).
  */
 import type { VercelResponse } from '@vercel/node';
+import { verifyParentWebSession } from './_assistant-web-handoff.js';
 import { JOIN_CODE_DUPLICATE_MESSAGE, lookupClassByJoinCode, normalizeJoinCode, verifyPin } from './_classroom-core.js';
 import { recordParentActivity } from './_parent-activity.js';
-import { PARENT_SECRETS_SUB, isSafeDocId, normalizeParentPin, type ParentPinSetBy } from '../src/lib/classroom/parentAccess.js';
+import { PARENT_SECRETS_SUB, isSafeDocId, isValidParentPin, normalizeParentPin, type ParentPinSetBy } from '../src/lib/classroom/parentAccess.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -16,6 +17,7 @@ export interface ParentTarget {
   studentId: string;
   studentSnap: FirebaseFirestore.DocumentSnapshot;
   secretRef: FirebaseFirestore.DocumentReference;
+  webSession?: string;
 }
 
 /** Mã lớp + em từ thân yêu cầu của phụ huynh; không có thì đã trả 404/400 và trả `null`. */
@@ -29,7 +31,7 @@ export const resolveParentStudent = async (db: Db, body: Body, res: VercelRespon
   if (!classDoc) { res.status(404).json({ error: 'Không tìm thấy lớp hoặc học sinh.' }); return null; }
   const studentSnap = await classDoc.ref.collection('students').doc(studentId).get();
   if (!studentSnap.exists) { res.status(404).json({ error: 'Không tìm thấy học sinh trong lớp này.' }); return null; }
-  return { classDoc, studentId, studentSnap, secretRef: classDoc.ref.collection(PARENT_SECRETS_SUB).doc(studentId) };
+  return { classDoc, studentId, studentSnap, secretRef: classDoc.ref.collection(PARENT_SECRETS_SUB).doc(studentId), ...(typeof body.webParentSession === 'string' ? { webSession: body.webParentSession } : {}) };
 };
 
 /**
@@ -49,7 +51,12 @@ export const verifyParentPin = async (
     res.status(409).json({ error: 'Thầy cô chưa cấp mã PIN phụ huynh cho em này. Nhờ thầy cô cấp mã.' });
     return false;
   }
-  if (!verifyPin(normalizeParentPin(pin), String(snap.data()?.pinHash || ''))) {
+  const sessionValid = target.webSession && await verifyParentWebSession(db, target.webSession, target.classDoc.id, target.studentId);
+  if (target.webSession && !sessionValid && !isValidParentPin(pin)) {
+    res.status(401).json({ error: 'Phiên mở web đã hết hạn hoặc bị thu hồi. Nhắn web trong bot để mở lại.' });
+    return false;
+  }
+  if (!sessionValid && !verifyPin(normalizeParentPin(pin), String(snap.data()?.pinHash || ''))) {
     await recordParentActivity(db, target.classDoc.ref, target.studentId, 'wrong', { device: options.device });
     res.status(401).json({ error: 'Mã PIN không đúng. Thử lại, hoặc nhờ thầy cô cấp lại mã.' });
     return false;

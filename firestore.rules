@@ -477,7 +477,7 @@ service cloud.firestore {
 
       function llv3StudentLinkedToSession() {
         return request.auth != null
-               && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid))
+               && coLienKetHocSinh()
                && llv3SessionExists()
                && get(/databases/$(database)/documents/studentLinks/$(request.auth.uid)).data.get('classId', '')
                     == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '');
@@ -672,7 +672,7 @@ service cloud.firestore {
       function llv3LinkedStudentCanWriteResponse(data) {
         return request.auth != null
                && request.auth.uid == data.get('participantUid', '')
-               && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid))
+               && coLienKetHocSinh()
                && get(/databases/$(database)/documents/studentLinks/$(request.auth.uid)).data.get('classId', '')
                     == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
                && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
@@ -1132,9 +1132,34 @@ service cloud.firestore {
              && get(/databases/$(database)/documents/classes/$(classId)).data.teacherId == request.auth.uid;
     }
 
+    // Bot-issued sessions add revocation checks; ordinary PIN logins keep their existing policy.
+    function phienBotHocSinhConHieuLuc(session, link) {
+      let cls = get(/databases/$(database)/documents/classes/$(link.classId)).data;
+      let secret = get(/databases/$(database)/documents/classes/$(link.classId)/studentSecrets/$(link.studentId)).data;
+      let channel = get(/databases/$(database)/documents/channelLinks/$(session.linkId)).data;
+      return session.uid == request.auth.uid && session.role == 'student'
+             && session.expiresAt > request.time.toMillis()
+             && session.classId == link.classId && session.studentId == link.studentId && session.teacherId == link.teacherId
+             && exists(/databases/$(database)/documents/classes/$(link.classId)/students/$(link.studentId))
+             && cls.teacherId == link.teacherId && cls.joinCode == session.joinCode
+             && session.pinUpdatedAt is string && session.pinUpdatedAt.size() > 0
+             && secret.updatedAt == session.pinUpdatedAt
+             && channel.active == true && channel.channel == 'zalo_bot' && channel.role == 'student'
+             && channel.classId == link.classId && channel.studentId == link.studentId
+             && channel.channelAccountId == session.botId && channel.channelUserId == session.userId;
+    }
+
+    function lienKetBotHocSinhConHieuLuc(link) {
+      return !('botWebSession' in link)
+             || (link.botWebSession is string
+                 && exists(/databases/$(database)/documents/assistantStudentWebSessions/$(link.botWebSession))
+                 && phienBotHocSinhConHieuLuc(get(/databases/$(database)/documents/assistantStudentWebSessions/$(link.botWebSession)).data, link));
+    }
+
     function coLienKetHocSinh() {
       return request.auth != null
-             && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid));
+             && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid))
+             && lienKetBotHocSinhConHieuLuc(lienKetHocSinh());
     }
 
     function lienKetHocSinh() {
@@ -1174,7 +1199,7 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
 
       match /students/{studentId} {
-        allow get: if laChuLop(classId) || laHocSinh(studentId);
+        allow get: if laChuLop(classId) || (thuocLop(classId) && laHocSinh(studentId));
         allow list: if laChuLop(classId);
         allow create, update, delete: if laChuLop(classId);
       }

@@ -1,0 +1,48 @@
+name: Nhac viec Zalo
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: zalo-deadline
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Goi bot xu ly thong bao va ban tin 07h Viet Nam
+        env:
+          ZALO_DEADLINE_CRON_SECRET: ${{ secrets.ZALO_DEADLINE_CRON_SECRET }}
+        shell: python
+        run: |
+          import json, os, urllib.parse, urllib.request
+          secret = os.environ.get('ZALO_DEADLINE_CRON_SECRET', '')
+          if len(secret) < 32:
+              raise SystemExit('Chua cau hinh secret nhac viec Zalo')
+          endpoint = 'https://zalo-test.congapro60-devs-projects.vercel.app/api/assistant'
+          cursor, seen = '', set()
+          for _ in range(20):
+              query = urllib.parse.urlencode({'transport': 'deadline', 'after': cursor})
+              request = urllib.request.Request(endpoint + '?' + query, headers={'Authorization': 'Bearer ' + secret})
+              try:
+                  with urllib.request.urlopen(request, timeout=240) as response:
+                      result = json.load(response)
+              except Exception as error:
+                  raise SystemExit('Khong hoan tat luot nhac viec: ' + type(error).__name__)
+              print(json.dumps({key: result.get(key) for key in ('processed', 'failed', 'disabled')}))
+              if result.get('disabled') or result.get('failed'):
+                  raise SystemExit('Bot dang khoa hoac co lop chua xu ly duoc')
+              cursor = result.get('nextAfter')
+              if not cursor:
+                  break
+              if not isinstance(cursor, str) or cursor in seen:
+                  raise SystemExit('Con tro nhac viec khong hop le')
+              seen.add(cursor)
+          else:
+              raise SystemExit('Danh sach lop vuot gioi han mot luot')

@@ -7,6 +7,7 @@
  * KHÔNG lưu bảng ánh xạ questionId → studentId, KHÔNG log uid kèm nội dung câu hỏi.
  * Hand raise (CÓ tên) đi qua Firestore trực tiếp ở client — tách biệt hoàn toàn.
  */
+import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { randomUUID } from 'node:crypto';
@@ -63,7 +64,7 @@ export const handleLiveAnonymousQuestion = async (db: Db, body: Data, res: Verce
   // Quyền gửi: HS phải gắn với đúng lớp của phiên. Đọc studentLinks TẠI REQUEST BOUNDARY
   // rồi vứt bỏ — không ghi vào câu hỏi, không lưu mapping.
   const link = (await db.collection('studentLinks').doc(uid).get()).data();
-  if (!link || link.classId !== session.classId) return bad(res, 403, 'Em không thuộc lớp của phiên này.');
+  if (!link || link.classId !== session.classId || !await verifyStudentBotLink(db, uid, link)) return bad(res, 403, 'Em không thuộc lớp của phiên này.');
 
   const now = Date.now();
   if (!allowSend(uid, now)) return bad(res, 429, 'Em vừa gửi nhiều câu rồi, nghỉ một chút nhé.');

@@ -42,8 +42,8 @@ const brandingFor = async (classRef: FirebaseFirestore.DocumentReference, studen
 };
 
 export const handleParentCustomReport = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
-  const pin = body.pin;
-  if (!isValidParentPin(pin)) return void res.status(400).json({ error: PARENT_PIN_RULE });
+  const pin = typeof body.pin === 'string' ? body.pin : '';
+  if (!isValidParentPin(pin) && !body.webParentSession) return void res.status(400).json({ error: PARENT_PIN_RULE });
   const period: ReportPeriod = { kind: 'custom', from: String(body.from || ''), to: String(body.to || '') };
   const invalid = periodError(period);
   if (invalid) return void res.status(400).json({ error: invalid });
