@@ -59,3 +59,10 @@
 - Không vẽ hình phức tạp (mặt phẳng trong Oxyz, góc nhị diện, đường tròn phương vị...).
 - Không cache ảnh theo câu hỏi.
 - Không vẽ cho luồng menu/notify — chỉ nhánh chat AI.
+
+## 2026-11-10 — Bổ sung nhắc BTVN ngoài Columbus
+- [x] Tái lập thiếu chế độ không dùng Sheet bằng regression test.
+- [x] Giữ allowlist Sheet; chỉ thêm cấu hình server-only đọc BTVN.
+- [x] Gate API 1455 đạt/8 bỏ qua; hai TypeScript và build đạt.
+- [x] Baseline 2 lớp/4 HS, chạy lặp lại đạt; không gửi, không cấp Sheet.
+- Phát hành sau commit; biên bản: %TEMP%/zalo-release-qa-20261110.md.

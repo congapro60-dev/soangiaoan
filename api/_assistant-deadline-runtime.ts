@@ -32,14 +32,23 @@ export async function loadDeadlineClass(db: Firestore, classId: string, read = r
   ]);
   const owner = deadlineOwner(cls.data() || {}), stored = config.data() || {};
   if (!owner || stored?.teacherId !== owner || !stored.settings) throw new Error('Thầy cô chưa cấu hình deadline cho lớp.');
-  if (![cls.data()?.sheetSync?.spreadsheetId, cls.data()?.examSheet?.spreadsheetId].includes(stored.settings.spreadsheetId)) throw new Error('Nguồn deadline đã thay đổi; thầy cô cần nối lại.');
-  await requireDeadlineSource(db, classId, owner, stored.settings.spreadsheetId);
   const assignments: Data[] = [...regular, ...adaptive.map((a): Data => ({ ...a, id: `adaptive:${a.id}` }))].filter((a: Data) => a.teacherId === owner);
-  const settings = validateDeadlineConfig(stored.settings, students, assignments);
-  const source = await read(settings), rows = sheetTaskRows(settings, source.grid);
-  for (const task of settings.tasks) {
-    const col = (source.grid[1] || []).findIndex((cell, i) => i >= 2 && String(cell?.formattedValue || '').normalize('NFC').trim().replace(/\s+/gu, ' ') === task.header);
-    if (stored.columnBindings?.[task.id] !== col) throw new Error('Cột deadline đã đổi; thầy cô cần đọc lại nguồn và lưu ánh xạ trước khi dùng.');
+  let settings: DeadlineConfig, rows: SheetTaskRow[];
+  if (stored.settings.spreadsheetId === '' && Array.isArray(stored.settings.tasks) && stored.settings.tasks.length === 0) {
+    // Server-only homework configuration grants no Sheet access; identity remains the linked studentId.
+    settings = { spreadsheetId: '', sheetTitle: '', sheetId: 0, studentNames: {}, tasks: [],
+      notifications: stored.settings.notifications === true, digest: stored.settings.digest === true };
+    rows = [];
+  } else {
+    if (![cls.data()?.sheetSync?.spreadsheetId, cls.data()?.examSheet?.spreadsheetId].includes(stored.settings.spreadsheetId)) throw new Error('Nguồn deadline đã thay đổi; thầy cô cần nối lại.');
+    await requireDeadlineSource(db, classId, owner, stored.settings.spreadsheetId);
+    settings = validateDeadlineConfig(stored.settings, students, assignments);
+    const source = await read(settings);
+    rows = sheetTaskRows(settings, source.grid);
+    for (const task of settings.tasks) {
+      const col = (source.grid[1] || []).findIndex((cell, i) => i >= 2 && String(cell?.formattedValue || '').normalize('NFC').trim().replace(/\s+/gu, ' ') === task.header);
+      if (stored.columnBindings?.[task.id] !== col) throw new Error('Cột deadline đã đổi; thầy cô cần đọc lại nguồn và lưu ánh xạ trước khi dùng.');
+    }
   }
   const [uploads, online, progress] = includeSubmissions ? await Promise.all([
     records(db.collection('submissions').where('classId', '==', classId)),
@@ -52,7 +61,7 @@ export async function loadDeadlineClass(db: Firestore, classId: string, read = r
 }
 export function studentDeadlineView(bundle: Bundle, studentId: string) {
   const student = bundle.students.find(s => s.id === studentId);
-  if (!student || !Object.hasOwn(bundle.settings.studentNames, student.code)) throw new Error('Chưa ghép mã HS với bảng deadline; em nhờ thầy cô kiểm tra.');
+  if (!student || bundle.settings.spreadsheetId && !Object.hasOwn(bundle.settings.studentNames, student.code)) throw new Error('Chưa ghép mã HS với bảng deadline; em nhờ thầy cô kiểm tra.');
   return deadlineTasksForStudent(bundle.settings, student.code, studentId, bundle.rows, bundle.assignments,
     bundle.submissions.filter(s => s.studentId === studentId && s.classId === bundle.classId));
 }
@@ -63,7 +72,7 @@ export async function deadlineMenuReply(db: Firestore, classId: string, studentI
 export function noticesFor(bundle: Bundle, studentId: string): DeadlineNotice[] {
   return studentDeadlineView(bundle, studentId).map(item => {
     const assignment = bundle.assignments.find(a => a.id === item.assignmentId);
-    const description = String(assignment?.description || '').replace(/https?:\/\/\S+/gi, '[mở qua mục deadline]').slice(0, 2000);
+    const description = String(assignment?.description || '').replace(/https?:\/\/\S+/gi, bundle.settings.spreadsheetId ? '[mở qua mục deadline]' : '[mở qua web]').slice(0, 2000);
     return { classId: bundle.classId, teacherId: bundle.teacherId, studentId, taskId: item.id, title: item.title, dueAt: item.dueAt,
       description, url: item.url, version: publicationVersion({ dueAt: item.dueAt, description, targetStudentIds: assignment?.targetStudentIds,
         noticeRevision: [item.url, assignment?.noticeRevision || 0,
@@ -95,7 +104,7 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
   const bundle = await loadDeadlineClass(db, classId, read);
   const targets: DeadlineTarget[] = links.filter(l => l.active && l.channel === 'zalo_bot' && l.channelAccountId === policy.botId
     && l.role === 'student' && (!l.channelChatId || l.channelChatId === l.channelUserId) && (!l.expiresAt || l.expiresAt > now)
-    && bundle.students.some(s => s.id === l.studentId && Object.hasOwn(bundle.settings.studentNames, s.code)))
+    && bundle.students.some(s => s.id === l.studentId && (!bundle.settings.spreadsheetId || Object.hasOwn(bundle.settings.studentNames, s.code))))
     .sort((a, b) => a.id.localeCompare(b.id)).filter((l, i, all) => all.findIndex(x => x.studentId === l.studentId) === i)
     .map(l => ({ linkId: l.id, userId: l.channelUserId, studentId: l.studentId, classId, teacherId: bundle.teacherId }));
   const notices = targets.flatMap(t => noticesFor(bundle, t.studentId));
@@ -119,7 +128,7 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
   await drainDeadlineOutbox(db, ids, policy, zaloDeadlineSender(token), async job => {
     const fresh = await loadDeadlineClass(db, classId, read);
     if (fresh.teacherId !== job.teacherId) return false;
-    if (!fresh.students.some(s => s.id === job.studentId && Object.hasOwn(fresh.settings.studentNames, s.code))) return false;
+    if (!fresh.students.some(s => s.id === job.studentId && (!fresh.settings.spreadsheetId || Object.hasOwn(fresh.settings.studentNames, s.code)))) return false;
     if (job.kind === 'digest') return fresh.settings.digest && digestWindow(now) && job.version === vietnamDate(now)
       && digestText(studentDeadlineView(fresh, job.studentId), now, true) === job.text;
     return fresh.settings.notifications && noticesFor(fresh, job.studentId).some(n => n.taskId === job.taskId && n.version === job.version);

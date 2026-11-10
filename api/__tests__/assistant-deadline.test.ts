@@ -83,7 +83,7 @@ describe('Vietnam date and safe messages', () => {
   it('bounds the morning message without truncating a URL or losing the full-menu instruction', () => {
     const tasks = Array.from({ length: 60 }, (_, i) => ({ id: `t${i}`, title: 'Việc '.repeat(80), dueAt: '2026-11-09T01:00:00Z', url: 'https://example.com/' + 'a'.repeat(150), status: 'missing' as const }));
     const text = digestText(tasks, Date.parse('2026-11-09T00:00:00Z'), true);
-    expect(text.length).toBeLessThanOrEqual(1800); expect(text).toContain('Nhắn deadline'); expect(text).toContain('việc khác');
+    expect(text.length).toBeLessThanOrEqual(1800); expect(text).toContain('Nhắn web'); expect(text).not.toContain('Nhắn deadline'); expect(text).toContain('việc khác');
   });
   it('parses local date, datetime and rejects impossible dates', () => {
     expect(dueTime('10/11/2026 08:00')).toBe('2026-11-10T01:00:00.000Z');

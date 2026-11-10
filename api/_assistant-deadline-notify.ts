@@ -24,7 +24,7 @@ const snapshotRef = (db: Firestore, botId: string, classId: string, studentId: s
 const noticeText = (notice: DeadlineNotice) => [
   'VIỆC MỚI / CẬP NHẬT NHIỆM VỤ', String(notice.title).replace(/[\r\n]+/g, ' ').slice(0, 250),
   ...(notice.dueAt ? [`Hạn: ${new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(notice.dueAt))}`] : []),
-  notice.description.slice(0, 700), 'Nhắn deadline để xem yêu cầu và đường dẫn thực hiện.',
+  notice.description.slice(0, 700), 'Nhắn web để xem yêu cầu và mở đúng hồ sơ của em.',
 ].filter(Boolean).join('\n');
 
 /** Each student's snapshot + baseline are atomic; source failures must never call this with []. */

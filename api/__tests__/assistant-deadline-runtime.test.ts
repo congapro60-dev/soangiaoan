@@ -56,6 +56,30 @@ function sourceDb(change: Record<string, any> = {}) {
 }
 const read = () => vi.fn(async () => ({ grid: [[], [{ formattedValue: 'Tên việc' }], [{ formattedValue: 'Hạn chót (tự tính)' }], [], [], [{ formattedValue: 'Link' }], [], [], [{}, { formattedValue: 'Học sinh' }], [{}, { formattedValue: 'Em Một' }]], studentNames: ['Em Một'], headers: [], sheetId: 1 }));
 describe('deadline source loader', () => {
+  it('supports homework reminders without granting any Sheet access to other classes', async () => {
+    const reader = read();
+    const result = await loadDeadlineClass(sourceDb({
+      'classes/c1': { teacherId: 'gv' },
+      'assistantDeadlineConfig/c1': { teacherId: 'gv', settings: { ...settings, spreadsheetId: '' } },
+      'assistantDeadlineSources/c1': undefined,
+    }), 'c1', reader);
+    expect(reader).not.toHaveBeenCalled();
+    expect(result.rows).toEqual([]);
+    expect(studentDeadlineView(result, 's1')[0].status).toBe('missing');
+    expect(result.assignments.map(a => a.id)).toEqual(['a1']);
+    expect(() => studentDeadlineView(result, 's2')).toThrow();
+  });
+  it('never downgrades a broken Sheet config into homework-only mode', async () => {
+    for (const change of [
+      { spreadsheetId: undefined },
+      { spreadsheetId: '', tasks: undefined },
+      { spreadsheetId: '', tasks: [{ id: 'private-sheet-task' }] },
+    ]) {
+      const reader = read();
+      await expect(loadDeadlineClass(sourceDb({ 'assistantDeadlineConfig/c1': { teacherId: 'gv', settings: { ...settings, ...change } } }), 'c1', reader)).rejects.toThrow();
+      expect(reader).not.toHaveBeenCalled();
+    }
+  });
   it('source-only polling never reads submission history', async () => {
     const db = sourceDb(), collection = db.collection;
     const collections: string[] = [];

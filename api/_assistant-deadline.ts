@@ -170,7 +170,7 @@ export function digestText(tasks: DeadlineItem[], now: number, morning: boolean)
     lines.push(...block); shown++;
   });
   if (shown < selected.length) lines.push('', `Còn ${selected.length - shown} việc khác trong danh sách.`);
-  lines.push('', 'Nhắn deadline để xem toàn bộ. Nhắn web để mở đúng hồ sơ.');
+  lines.push('', morning ? 'Nhắn web để xem toàn bộ và mở đúng hồ sơ.' : 'Nhắn deadline để xem toàn bộ. Nhắn web để mở đúng hồ sơ.');
   return lines.join('\n');
 }
 
