@@ -1,3 +1,4 @@
+import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { stripAnswerKey } from './_exam-core.js';
@@ -157,7 +158,7 @@ const readStudentLink = async (db: Db, uid: string): Promise<VerifiedStudentLink
     classId: asString(link.classId).trim(),
     teacherId: asString(link.teacherId).trim(),
   };
-  if (!result.studentId || !result.classId || !result.teacherId) {
+  if (!result.studentId || !result.classId || !result.teacherId || !await verifyStudentBotLink(db, uid, link)) {
     throw new ClassroomOnlineError(403, 'Phiên học sinh thiếu thông tin lớp.');
   }
   return result;

@@ -1,3 +1,4 @@
+import { BotWebHandoff, hasBotWebTicket } from '../components/features/classroom/BotWebHandoff';
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
@@ -146,7 +147,9 @@ const KhungDangNhap = ({ children }: { children: ReactNode }) => (
   </div>
 );
 
-export const StudentPortalPage = () => {
+export const StudentPortalPage = () => hasBotWebTicket() ? <BotWebHandoff role="student" /> : <StudentPortalContent />;
+
+const StudentPortalContent = () => {
   // Vào /lop bằng điều hướng trong app (Firebase đã khởi tạo ở app mặc định của GV) → tải lại một lần
   // để chạy trên app riêng của HS; không thì đăng nhập HS sẽ đè phiên Google của GV.
   useEffect(() => { if (auth.app.name !== STUDENT_PORTAL_APP) window.location.reload(); }, []);
@@ -251,6 +254,12 @@ export const StudentPortalPage = () => {
           getDoc(doc(db, CLASSES_COL, link.classId, 'students', link.studentId)),
         ]);
         if (!active || auth.currentUser?.uid !== user.uid) return;
+        if (!classSnap.exists() || !studentSnap.exists() || joinCodeParam && normalizeJoinCode(classSnap.data()?.joinCode || '') !== normalizeJoinCode(joinCodeParam)) {
+          setPhien(null);
+          if (joinCodeParam) void moLop(normalizeJoinCode(joinCodeParam));
+          else setStage('nhap-ma-lop');
+          return;
+        }
         setPhien({
           studentId: link.studentId,
           classId: link.classId,
@@ -436,7 +445,9 @@ export const StudentPortalPage = () => {
     } catch (error) {
       if (auth.currentUser?.uid !== uid || sessionRef.current !== phien) return;
       console.error('Không tải được dữ liệu cổng học sinh', error);
-      setLoiDuLieu('Không tải được dữ liệu từ máy chủ. Kiểm tra kết nối mạng rồi bấm thử lại nhé.');
+      setLoiDuLieu([401, 403].includes((error as { status?: number })?.status || 0)
+        ? 'Phiên học sinh đã hết hạn hoặc quyền truy cập đã đổi. Nhắn web trong bot để mở lại, hoặc đăng nhập bằng PIN.'
+        : 'Không tải được dữ liệu từ máy chủ. Kiểm tra kết nối mạng rồi bấm thử lại nhé.');
     } finally {
       if (auth.currentUser?.uid === uid && sessionRef.current === phien) setDangTaiDu(false);
     }

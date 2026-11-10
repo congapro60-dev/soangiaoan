@@ -184,8 +184,8 @@ const handleUnpublishParentReports = async (db: Db, body: Body, res: VercelRespo
  * PIN còn là mã giáo viên cấp (`pinSetBy !== 'parent'`) → `mustChange: true` và CHƯA trả báo cáo nào, tới khi phụ huynh đặt PIN riêng.
  */
 const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
-  const pin = body.pin;
-  if (!isValidParentPin(pin)) return void res.status(400).json({ error: PARENT_PIN_RULE });
+  const pin = typeof body.pin === 'string' ? body.pin : '';
+  if (!isValidParentPin(pin) && !body.webParentSession) return void res.status(400).json({ error: PARENT_PIN_RULE });
   const target = await resolveParentStudent(db, body, res);
   if (!target) return;
   const { classDoc, studentId, studentSnap, secretRef } = target;
@@ -223,9 +223,9 @@ const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Pro
  * Lưu băm để đăng nhập và bản hiển thị `pinPlain` để giáo viên xem/cấp lại (đồng bộ ngay lên bảng PIN của lớp).
  */
 const handleChangeParentPin = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
-  const pin = body.pin;
+  const pin = typeof body.pin === 'string' ? body.pin : '';
   const newPin = body.newPin;
-  if (!isValidParentPin(pin) || !isValidParentPin(newPin)) return void res.status(400).json({ error: PARENT_PIN_RULE });
+  if ((!isValidParentPin(pin) && !body.webParentSession) || !isValidParentPin(newPin)) return void res.status(400).json({ error: PARENT_PIN_RULE });
   const next = normalizeParentPin(newPin);
   if (next === normalizeParentPin(pin)) return void res.status(400).json({ error: 'Mã PIN mới phải khác mã PIN hiện tại.' });
   const target = await resolveParentStudent(db, body, res);
@@ -241,9 +241,9 @@ const handleChangeParentPin = async (db: Db, body: Body, res: VercelResponse): P
 
 /** Phụ huynh báo hiệu đang xem (`ping`), mở một báo cáo (`open`, kèm tên) hoặc tải PDF (`pdf`). Cần PIN do phụ huynh TỰ ĐẶT; PIN sai được đếm như mọi đường khác. */
 const handleParentEvent = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
-  const pin = body.pin;
+  const pin = typeof body.pin === 'string' ? body.pin : '';
   const type = body.type;
-  if (!isValidParentPin(pin)) return void res.status(400).json({ error: PARENT_PIN_RULE });
+  if (!isValidParentPin(pin) && !body.webParentSession) return void res.status(400).json({ error: PARENT_PIN_RULE });
   if (type !== 'ping' && type !== 'open' && type !== 'pdf') return void res.status(400).json({ error: 'Loại sự kiện không hợp lệ.' });
   const target = await resolveParentStudent(db, body, res);
   if (!target) return;

@@ -1,3 +1,4 @@
+import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 /**
  * Chi phí AI của CHÍNH học sinh đang đăng nhập — để em thấy mỗi hoạt động tốn bao nhiêu tiền của thầy cô (xem
  * `src/lib/classroom/studentAiCost.ts`). Chỉ đọc, không có số liệu ví/khoá của thầy cô.
@@ -36,7 +37,7 @@ const handleStudentAiCost = async (db: Db, body: Body, res: VercelResponse): Pro
   const studentId = str(link.studentId);
   const classId = str(link.classId);
   const teacherId = str(link.teacherId);
-  if (!studentId || !classId || !teacherId) return void res.status(403).json({ error: 'Phiên học sinh thiếu thông tin lớp.' });
+  if (!studentId || !classId || !teacherId || !await verifyStudentBotLink(db, uid, linkSnap.data())) return void res.status(403).json({ error: 'Phiên học sinh thiếu thông tin lớp.' });
 
   const [snap, usdVnd] = await Promise.all([
     db.collection(AI_USAGE_COL).where('refs.studentId', '==', studentId).limit(MAX_ROWS).get(),

@@ -14,6 +14,7 @@ import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessSe
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { ClassParentReportExport } from '../features/classroom/ClassParentReportExport';
 import { SheetSyncPanel } from '../features/classroom/SheetSyncPanel';
+import { DeadlinePanel } from '../features/classroom/DeadlinePanel';
 import { ScoreBookPanel } from '../features/classroom/ScoreBookPanel';
 import { SsmLinkPanel } from '../features/classroom/SsmLinkPanel';
 import { SsmPanel } from '../features/classroom/SsmPanel';
@@ -1277,6 +1278,7 @@ export const ClassesTab = ({ data, setData, user, showToast, focus, onFocusAppli
 
           {user?.uid && (showAssignments || showSubmissions) && (
             <div ref={assignmentPanelRef} className="mt-5 scroll-mt-6">
+              {selectedClass.id === 'class-1787188523562' && <DeadlinePanel key={selectedClass.id} classId={selectedClass.id} />}
               <SheetSyncPanel
                 classId={selectedClass.id}
                 teacherId={user.uid}

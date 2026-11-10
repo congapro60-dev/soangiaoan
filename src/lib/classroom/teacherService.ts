@@ -60,6 +60,19 @@ const callTeacherApi = async <T>(payload: Record<string, unknown>): Promise<T> =
   return data as T;
 };
 
+export type { DeadlineConfig } from '../../../api/_assistant-deadline';
+export interface DeadlineSettingsResult {
+  settings: import('../../../api/_assistant-deadline').DeadlineConfig | null;
+  revision: number;
+  roster: { id: string; code: string; name: string }[];
+  assignments: { id: string; title: string }[];
+  sources: { spreadsheetId: string; spreadsheetTitle: string }[];
+  deliveryEnabled: boolean;
+}
+export const getDeadlineSettings = (classId: string) => callTeacherApi<DeadlineSettingsResult>({ action: 'getDeadlineSettings', classId });
+export const previewDeadlineSettings = (classId: string, spreadsheetId: string) => callTeacherApi<{ studentNames: string[]; headers: string[]; sheetId: number }>({ action: 'previewDeadlineSettings', classId, settings: { spreadsheetId } });
+export const saveDeadlineSettings = (classId: string, settings: import('../../../api/_assistant-deadline').DeadlineConfig, revision: number) => callTeacherApi<{ revision: number }>({ action: 'saveDeadlineSettings', classId, settings, revision });
+
 export const listClassTeachers = async (classId: string): Promise<TeacherMembersResult> =>
   callTeacherApi<TeacherMembersResult>({ action: 'teacherMembers', classId });
 

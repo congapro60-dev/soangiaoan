@@ -1,3 +1,4 @@
+import { BotWebHandoff, hasBotWebTicket } from '../components/features/classroom/BotWebHandoff';
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, CalendarRange, CheckCircle2, Download, FileText, HeartHandshake, KeyRound, Loader2 } from 'lucide-react';
@@ -91,7 +92,9 @@ export const ParentPinChangeForm = ({ batBuoc, dangGoi, loiMay, onSubmit, onCanc
  * Cổng phụ huynh: mã lớp (trên link) → chọn tên con → PIN riêng của phụ huynh → xem các báo cáo giáo viên đã công bố,
  * hiện ngay trên màn hình đúng như bản PDF (giáo viên không phải tải file rồi gửi từng người).
  */
-export const ParentPortalPage = () => {
+export const ParentPortalPage = () => hasBotWebTicket() ? <BotWebHandoff role="parent" /> : <ParentPortalContent />;
+
+const ParentPortalContent = () => {
   const { joinCode: joinCodeParam } = useParams<{ joinCode?: string }>();
   const [workspaceTab, setWorkspaceTab] = useState<'reports' | 'assignments'>('reports');
   const [stage, setStage] = useState<Stage>(joinCodeParam ? 'chon-ten' : 'nhap-ma-lop');
@@ -136,7 +139,14 @@ export const ParentPortalPage = () => {
   }, []);
 
   useEffect(() => {
-    if (joinCodeParam) void moLop(normalizeJoinCode(joinCodeParam));
+    let active = true;
+    if (new URLSearchParams(window.location.search).get('bot') === '1') {
+      void fetch('/api/classroom', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'parentWebSession' }) })
+        .then(async response => { const identity = await response.json(); if (!response.ok) throw new Error(identity.error); if (joinCodeParam && normalizeJoinCode(identity.joinCode) !== normalizeJoinCode(joinCodeParam)) throw new Error('Phiên phụ huynh không thuộc lớp trong liên kết.'); const reports = await fetchParentReports(identity.joinCode, identity.studentId, ''); return { identity, reports }; })
+        .then(({ identity, reports }) => { if (!active) return; setJoinCode(identity.joinCode); setStudentId(identity.studentId); setStudentName(reports.studentName); setReports(reports.reports); setOpenId(reports.reports[0]?.id || ''); setBatBuocDoi(reports.mustChange); setStage(reports.mustChange ? 'doi-pin' : 'xem'); if (new URLSearchParams(window.location.search).get('assignment')) setWorkspaceTab('assignments'); })
+        .catch(reason => { if (active) { setLoi(reason.message || 'Phiên mở web đã hết hạn. Nhắn web trong bot để lấy lại.'); if (joinCodeParam) void moLop(normalizeJoinCode(joinCodeParam)); } });
+    } else if (joinCodeParam) void moLop(normalizeJoinCode(joinCodeParam));
+    return () => { active = false; };
   }, [joinCodeParam, moLop]);
 
   const xem = async () => {
@@ -206,6 +216,16 @@ export const ParentPortalPage = () => {
     } finally {
       setDangGoi(false);
     }
+  };
+
+  const dangXuat = async () => {
+    try {
+      const result = await fetch('/api/classroom', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'logoutParentWeb' }) });
+      if (!result.ok) throw new Error();
+    } catch { setLoi('Chưa đăng xuất được. Kiểm tra mạng rồi bấm quay lại lần nữa.'); return; }
+    phien.current += 1;
+    setStage('chon-ten'); setPin(''); setReports([]); setTuChon(null); setThongBao(''); setLoi(''); setDangTaoTuChon(false);
+    void moLop(joinCode);
   };
 
   const kinds = useMemo(() => [...new Set(reports.map(r => r.kind))], [reports]);
@@ -359,7 +379,7 @@ export const ParentPortalPage = () => {
     <div className="min-h-screen bg-slate-50 pb-10">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-[840px] items-center gap-3">
-          <button type="button" onClick={() => { phien.current += 1; setStage('chon-ten'); setPin(''); setReports([]); setTuChon(null); setThongBao(''); setLoi(''); setDangTaoTuChon(false); }} aria-label="Quay lại" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><ArrowLeft className="h-5 w-5" /></button>
+          <button type="button" onClick={() => void dangXuat()} aria-label="Quay lại" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><ArrowLeft className="h-5 w-5" /></button>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-black text-slate-900">{studentName}</p>
             <p className="truncate text-xs font-semibold text-slate-500">{roster?.className ? `Lớp ${roster.className} · ` : ''}Báo cáo học tập của con</p>

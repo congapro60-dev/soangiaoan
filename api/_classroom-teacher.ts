@@ -85,7 +85,7 @@ export const handleAssignAdaptiveLesson = async (db: Db, body: Body, res: Vercel
   const current = await ref.get();
   const now = nowIso();
   const assignment = compact({ teacherId: context.uid, classId, lessonId, discoverSeedId: typeof body.discoverSeedId === 'string' ? body.discoverSeedId.trim() : lesson.discoverSeedId, title: typeof body.title === 'string' && body.title.trim() ? body.title.trim() : lesson.title, targetStudentIds: targetStudentIds === undefined ? current.data()?.targetStudentIds : targetStudentIds, isOpen: body.isOpen !== false, createdAt: current.exists ? current.data()?.createdAt : now, updatedAt: now });
-  await ref.set(assignment);
+  await ref.set({ ...assignment, noticeRevision: current.data()?.isOpen === false && assignment.isOpen ? now : current.data()?.noticeRevision || '' });
   return void res.status(200).json({ assignmentId: id, assignment });
 };
 
@@ -946,6 +946,7 @@ export const handleUpdateAssignment = async (db: Db, body: Body, res: VercelResp
   } else if (action === 'setAssignmentOpen') {
     if (typeof body.isOpen !== 'boolean') return void res.status(422).json({ error: 'Trạng thái bài giao không hợp lệ.' });
     patch.isOpen = body.isOpen;
+    if (found.assignment.isOpen === false && body.isOpen) patch.noticeRevision = patch.updatedAt;
   } else {
     return void res.status(400).json({ error: 'Thao tác bài giao không hợp lệ.' });
   }

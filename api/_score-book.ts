@@ -1,3 +1,4 @@
+import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 /**
  * Sổ điểm của lớp — `scoreBooks/{classId}`, chỉ đi qua đây (rules mặc định chặn client).
  *
@@ -501,7 +502,7 @@ const handleStudentScoreBook = async (db: Db, body: Body, res: VercelResponse): 
   const link = linkSnap.data() as { classId?: unknown; studentId?: unknown };
   const classId = typeof link.classId === 'string' ? link.classId : '';
   const studentId = typeof link.studentId === 'string' ? link.studentId : '';
-  if (!classId || !studentId) return void res.status(403).json({ error: 'Phiên học sinh thiếu thông tin lớp.' });
+  if (!classId || !studentId || !await verifyStudentBotLink(db, uid, linkSnap.data())) return void res.status(403).json({ error: 'Phiên học sinh thiếu thông tin lớp.' });
   const book = await readBookWithAuto(db, classId, { studentIds: [studentId], onlyStudent: studentId });
   res.status(200).json({ scores: studentScoreView(book, studentId) });
 };
