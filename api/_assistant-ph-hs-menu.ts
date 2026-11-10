@@ -70,8 +70,9 @@ const scoreText = (score: number | null | undefined, maxScore: number | null | u
 const shortFeedback = (feedback: string): string => {
   // GV có thể gõ công thức LaTeX trong nhận xét; Zalo không render nên phải đổi sang Unicode.
   const flat = latexToUnicodeMath(feedback).replace(/[*_~`]/g, '').replace(/\s+/g, ' ').trim();
-  return flat.length > 200 ? `${flat.slice(0, 199).trimEnd()}…` : flat;
+  return flat.length > 120 ? `${flat.slice(0, 119).trimEnd()}…` : flat;
 };
+const uniqueText = (items: string[]): string[] => [...new Map(items.map(item => [item.normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('vi-VN'), item.trim().replace(/\s+/g, ' ')])).values()];
 
 /** Preserve complete lists; the send layer splits them into platform-sized messages. */
 export const fitZaloList = (header: string[], lines: string[], footer: string[] = []): string => {
@@ -162,12 +163,12 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
       const forStudent = role === 'student';
       const lines = graded.map(item => {
         const score = `• ${item.title}: ${scoreText(item.score, item.maxScore)}`;
-        return forStudent && item.feedback ? `${score}\n  💬 ${shortFeedback(item.feedback)}` : score;
+        return forStudent && item.feedback ? `${score} · Nhận xét: ${shortFeedback(item.feedback)}` : score;
       });
       return fitZaloList(
         [`📝 Bài tập đã chấm của ${name} (${graded.length} bài):`],
         lines,
-        ['👉 Xem bài kiểm tra định kỳ: nhắn 7.'],
+        [...(forStudent && graded.some(item => item.feedback) ? ['Nhắn web để xem nhận xét đầy đủ.'] : []), '👉 Xem bài kiểm tra định kỳ: nhắn 7.'],
       );
     }
     case '3': {
@@ -180,8 +181,8 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
       return fitZaloList([`⏳ Bài đang chờ của ${name} (${todo.length} bài):`], lines);
     }
     case '4': {
-      const strong = report.strengths.length ? report.strengths.map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định điểm mạnh.'];
-      const weak = report.areasToPractice.length ? report.areasToPractice.map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định phần cần luyện.'];
+      const strong = report.strengths.length ? uniqueText(report.strengths).map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định điểm mạnh.'];
+      const weak = report.areasToPractice.length ? uniqueText(report.areasToPractice).map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định phần cần luyện.'];
       return fitZaloList([`🌟 Điểm mạnh của ${name}:`], strong, ['🎯 Cần luyện thêm:', ...weak]);
     }
     case '5': {
@@ -189,7 +190,7 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
       // `parentActions` vốn viết theo góc nhìn người lớn ("nhắc con...").
       if (role === 'student') {
         if (!report.areasToPractice.length) return 'ℹ️ Chưa có gợi ý tự học riêng — em có thể hỏi thầy cô khi cần nhé.';
-        return fitZaloList([`💡 Gợi ý tự học của ${name}:`], report.areasToPractice.map(item => `• ${item}`));
+        return fitZaloList([`💡 Gợi ý tự học của ${name}:`], uniqueText(report.areasToPractice).map(item => `• ${item}`));
       }
       if (!report.parentActions.length) return 'ℹ️ Chưa có gợi ý riêng — phụ huynh nhắn thầy cô để được tư vấn thêm.';
       return fitZaloList([`🏡 Việc phụ huynh có thể làm ở nhà (${name}):`], report.parentActions.map(item => `• ${item}`));

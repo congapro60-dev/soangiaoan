@@ -21,6 +21,7 @@ vi.mock('../_bot-pin-guard', () => ({ canReplyToStranger: vi.fn(async () => true
 vi.mock('../_assistant-ph-hs-photo', () => ({
   PHOTO_REPLIES: { noSession: 'NO_SESSION_REPLY', max: 'MAX_REPLY', badImage: 'BAD_IMAGE_REPLY', assistIncomplete: 'ASSIST_INCOMPLETE_REPLY', expiredSession: 'EXPIRED_SESSION_REPLY' },
   requestPhotoCancellation: vi.fn(async () => 'CANCEL_CONFIRM'),
+  exitPhotoSelection: vi.fn(async () => undefined),
   revisionReply: vi.fn(async () => 'REVISION_OK'),
   cancelPhotoSession: vi.fn(async () => undefined),
   finishPhotoSession: vi.fn(async () => 'FINISH_OK'),
@@ -89,7 +90,7 @@ import { linkByPin, switchBotRole } from '../_assistant-ph-hs-link';
 import { canReplyToStranger } from '../_bot-pin-guard';
 import { runAssistantReadTool } from '../_assistant-tools';
 import { parentMenuReply, loadParentReport } from '../_assistant-ph-hs-menu';
-import { pickAssignmentByNumber, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, revisionReply, requestPhotoCancellation } from '../_assistant-ph-hs-photo';
+import { pickAssignmentByNumber, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, exitPhotoSelection, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, openPhotoSession, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, revisionReply, requestPhotoCancellation } from '../_assistant-ph-hs-photo';
 
 
 
@@ -490,6 +491,14 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
   const mockStudent = () => vi.mocked(resolveChannelActor).mockImplementation(async (...args) => {
     if ((args[5] as any)?.preferredRole === 'student') return studentActor;
     throw new Error('Channel is not linked');
+  });
+  it.each(['0', 'menu'])('menu %s leaves only the empty selection state before displaying the menu', async message => {
+    mockStudent(); await request(event(message));
+    expect(exitPhotoSelection).toHaveBeenCalledWith('bot-1', 'user-1', 'c', 's');
+  });
+  it('student help includes deadline command', async () => {
+    mockStudent(); await request(event('10'));
+    expect(JSON.parse(sent()[0][1].body).text).toContain('deadline');
   });
   it.each(['deadline', '11'])('deadline %s uses linked identity, preserves photos and public task URLs', async message => {
     mockStudent();

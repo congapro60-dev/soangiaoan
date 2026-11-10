@@ -231,6 +231,17 @@ describe('menu theo vai trò (M13)', () => {
     overallSummary: '', parentActions: ['Nhắc con làm bài tập về nhà mỗi tối'], teacherActions: [],
   } as any;
 
+  it('giữ điểm và nhận xét cùng một dòng; nói rõ khi nhận xét được rút gọn', () => {
+    const long = 'Lời nhận xét '.repeat(30);
+    const out = menuSectionText('2', { ...report, results: [{ ...report.results[0], feedback: long }] }, new Set(), 'student');
+    expect(out).toMatch(/BTVN tuần 3: 8\/10[^\n]*Nhận xét:/);
+    expect(out).toContain('nhận xét đầy đủ');
+  });
+  it('loại mục trùng chỉ khác chữ hoa hoặc khoảng trắng', () => {
+    const out = menuSectionText('4', { ...report, strengths: ['Giới hạn một bên', ' giới hạn   một bên '] }, new Set(), 'student');
+    expect(out.match(/giới hạn\s+một bên/gi)).toHaveLength(1);
+  });
+
   it('M13a: HS nhắn mục 5 nhận gợi ý tự học (từ areasToPractice), KHÔNG nhận việc của phụ huynh', () => {
     const out = menuSectionText('5', report, new Set(), 'student');
     expect(out).toContain('Gợi ý tự học của Trần Bảo Lâm');

@@ -16,7 +16,7 @@ import { getAdminDb } from './_exam-core.js';
 import { secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
 import { splitForChat } from './_assistant-natural-reply.js';
 import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
-import { PHOTO_REPLIES, revisionReply, requestPhotoCancellation, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
+import { PHOTO_REPLIES, revisionReply, requestPhotoCancellation, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, exitPhotoSelection, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
 import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveGroupImage, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
 import { requestRegrade } from './_assistant-ph-hs-regrade.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
@@ -339,6 +339,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     // Menu (0–8) + 'web' đi trước; tin không khớp thì chuyển cho trợ lý AI trả lời tự do.
     const choice = parseMenuChoice(message);
     if (choice.kind !== 'invalid') {
+      if (choice.kind === 'menu') await exitPhotoSelection(botId, userId, classId, studentId);
       // Xem menu không làm mất ảnh đã nhận; hủy cần xác nhận riêng.
       // Menu preserves accepted photos. Explicit cancellation is confirmed separately.
       if (choice.kind === 'help') {
@@ -349,6 +350,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
           '• Nhắn 0 hoặc menu: Mở lại danh mục tra cứu.',
           '• Nhắn số 1–7: Xem bảng điểm, bài chưa nộp, nhận xét của GV.',
           '• Nhắn web: Nhận link mở cổng thông tin chi tiết trên web.',
+          ...(role === 'student' ? ['• Nhắn 11 hoặc deadline: Xem deadline khi lớp đã được cấu hình.'] : []),
           '',
           '2️⃣ Nộp bài bằng ảnh (Học sinh & Phụ huynh nộp hộ):',
           '• Nhắn 8 hoặc chấm: Xem danh sách bài cần nộp.',

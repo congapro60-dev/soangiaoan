@@ -9,6 +9,7 @@ import {
 import { emptyQuota, chayNgam, getGradingChain } from '../_grading-core';
 import { gradeContextFor, gradeOneSubmission } from '../grade-homework';
 import { AiKeyRequiredError, ensureGeminiKey } from '../_ai-keys';
+import { submissionDeadlineState } from '../../src/lib/classroom/hanNop.js';
 
 /**
  * Việc 4 — test luồng HS nộp bài bằng ảnh qua bot Zalo.
@@ -133,6 +134,21 @@ describe('parsePhotoCommand', () => {
 });
 
 describe('pendingAssignmentsForStudent', () => {
+  it('so sánh chính xác giờ hạn nộp, cả ngày và múi giờ Việt Nam', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-11-10T03:40:00Z')); seedClass();
+      h.db.put('assignments/past', { classId: 'c1', teacherId: 'gv1', title: 'Hết hạn 08h', dueAt: '2026-11-10T01:00:00.000Z' });
+      h.db.put('assignments/future', { classId: 'c1', teacherId: 'gv1', title: 'Hạn 12h', dueAt: '2026-11-10T05:00:00Z' });
+      h.db.put('assignments/date', { classId: 'c1', teacherId: 'gv1', title: 'Hạn cuối ngày', dueAt: '2026-11-10' });
+      const { items } = await pendingAssignmentsForStudent('c1', 's1');
+      expect(items.find(i => i.id === 'past')?.overdue).toBe(true);
+      expect(items.find(i => i.id === 'future')?.overdue).toBe(false);
+      expect(items.find(i => i.id === 'date')?.overdue).toBe(submissionDeadlineState('2026-11-10', undefined, Date.now()).key === 'overdue');
+      expect(photoListReply(items)).toContain('08:00 10/11/2026 (quá hạn)');
+      expect(photoListReply(items)).toContain(`${submissionDeadlineState('2026-11-10').dueLabel.replace(',', '')} (quá hạn)`);
+    } finally { vi.useRealTimers(); }
+  });
   const seed = () => {
     seedClass();
     h.db.put('assignments/a2', { classId: 'c1', teacherId: 'gv1', title: 'Thi giữa kỳ', maxScore: 10, type: 'exam' });

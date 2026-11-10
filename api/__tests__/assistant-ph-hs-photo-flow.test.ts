@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeDb } from './_fake-db.js';
 import {
-  PHOTO_REPLIES, listPendingReply, parsePhotoCommand, photoReceivedReply, pickAssignmentByNumber,
+  PHOTO_REPLIES, listPendingReply, parsePhotoCommand, photoReceivedReply, pickAssignmentByNumber, exitPhotoSelection,
 } from '../_assistant-ph-hs-photo.js';
 
 /**
@@ -62,6 +62,35 @@ describe('L2 — chọn bài bằng số thuần (không rơi vào menu mục 1)
     expect(reply).toContain('Bài tập tuần 3');
     expect(reply).toContain('Nhắn số thứ tự để chọn bài');
     expect(h.db.rows.get(SESSION_PATH)?.awaitingPick).toBe(true);
+  });
+
+  it('trở về menu kết thúc chờ chọn bài, không diễn giải 1 là chọn bài', async () => {
+    await listPendingReply(BOT, USER, 'c', 's');
+    await exitPhotoSelection(BOT, USER, 'c', 's');
+    expect(await pickAssignmentByNumber(BOT, USER, 'c', 's', 1)).toBeNull();
+  });
+
+  it('trở về menu không xóa phiên có ảnh, ảnh đang tải hoặc phiên nộp đang mở', async () => {
+    for (const patch of [{ photos: [{ url: 'safe' }], awaitingPick: true }, { photos: [], pendingUploads: { p1: 1 }, awaitingPick: true }, { photos: [], assignmentId: 'a1' }]) {
+      const data = { botId: BOT, userId: USER, classId: 'c', studentId: 's', expiresAt: Date.now() + 60000, ...patch };
+      h.db.put(SESSION_PATH, data);
+      await exitPhotoSelection(BOT, USER, 'c', 's');
+      expect(h.db.rows.get(SESSION_PATH)).toEqual(data);
+    }
+  });
+
+  it('không xóa phiên của hồ sơ khác hoặc phiên vừa có ảnh trong transaction retry', async () => {
+    await listPendingReply(BOT, USER, 'c', 's');
+    await exitPhotoSelection(BOT, USER, 'another', 's');
+    expect(h.db.rows.has(SESSION_PATH)).toBe(true);
+    h.db.beforeCommit = () => h.db.put(SESSION_PATH, { ...h.db.rows.get(SESSION_PATH), photos: [{ url: 'new' }] });
+    await exitPhotoSelection(BOT, USER, 'c', 's');
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
+  });
+  it('không xóa ảnh khi phiên chọn bài đã hết hạn', async () => {
+    h.db.put(SESSION_PATH, { botId: BOT, userId: USER, classId: 'c', studentId: 's', expiresAt: Date.now() - 1, awaitingPick: true, photos: [{ url: 'safe' }] });
+    await exitPhotoSelection(BOT, USER, 'c', 's');
+    expect(h.db.rows.get(SESSION_PATH).photos).toHaveLength(1);
   });
 
   it('pickAssignmentByNumber trả null khi KHÔNG ở trạng thái chờ chọn (để menu xử lý)', async () => {

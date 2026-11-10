@@ -28,6 +28,7 @@ import { buildPhotoReviewReply } from './_assistant-photo-review.js';
 import { submissionRevisionLockId } from './_submission-revision-lock.js';
 import { issueWebHandoff } from './_assistant-web-handoff.js';
 import { awaitsClarification } from '../src/lib/classroom/clarification.js';
+import { submissionDeadlineState } from '../src/lib/classroom/hanNop.js';
 
 const db = () => getAdminDb();
 const SESSIONS = 'assistantPhotoSessions';// 60 phút (sửa 4/11): trước đây 10 phút — HS chọn bài xong làm bài rồi mới chụp, quá 10 phút là
@@ -184,7 +185,7 @@ export const pendingAssignmentsForStudent = async (
   const teacherId = String(cls.teacherId ?? '');
   const submittedAssignmentIds = new Set(submissionsSnap.docs.filter(doc => doc.data().classId === classId)
     .map(doc => String(doc.data()?.assignmentId ?? '')).filter(Boolean));
-  const today = new Date().toISOString().slice(0, 10);
+  const now = Date.now();
   const raw = assignmentsSnap.docs
     .map(doc => ({ id: doc.id, ...(doc.data() as Record<string, unknown>) }) as { id: string } & Record<string, unknown>)
     .filter(item => item.teacherId === teacherId && item.type !== 'exam' && item.deliveryMode !== 'online' && item.submissionLocked !== true
@@ -192,8 +193,7 @@ export const pendingAssignmentsForStudent = async (
       && !submittedAssignmentIds.has(item.id));
   const decorated = raw.map(item => {
     const dueAt = item.dueAt ? String(item.dueAt) : '';
-    // dueAt dạng ISO (date hoặc datetime) so sánh từ điển với YYYY-MM-DD vẫn đúng thứ tự thời gian.
-    const overdue = Boolean(dueAt) && dueAt < today;
+    const overdue = submissionDeadlineState(dueAt, undefined, now).key === 'overdue';
     // Đọc mảng attachments từ Firestore (nếu có)
     const rawAttachments = Array.isArray(item.attachments) ? item.attachments : [];
     const attachments: AssignmentAttachment[] = rawAttachments
@@ -237,7 +237,8 @@ export const photoListReply = (
   }
   const lines: string[] = [];
   items.forEach((item, index) => {
-    const prefix = `${String(index + 1).padStart(2, '0')} — ${item.title}${item.dueAt ? `\nHạn: ${item.dueAt.slice(0, 10)}${item.overdue ? ' (quá hạn)' : ''}` : ''}`;
+    const dueLabel = submissionDeadlineState(item.dueAt).dueLabel.replace(',', '') || item.dueAt;
+    const prefix = `${String(index + 1).padStart(2, '0')} — ${item.title}${item.dueAt ? `\nHạn: ${dueLabel}${item.overdue ? ' (quá hạn)' : ''}` : ''}`;
     lines.push(prefix);
     // Thêm file đính kèm (nếu có)
     if (item.attachments.length > 0) lines.push(`Đề bài: ${item.attachments.length} tệp — xem sau khi chọn bài.`);
@@ -249,6 +250,17 @@ export const photoListReply = (
 };
 
 const sessionId = (botId: string, userId: string): string => `${botId}_${userId}`;
+
+/** Leave a list-only selection when returning to the menu; never discard received or pending photos. */
+export const exitPhotoSelection = async (botId: string, userId: string, classId: string, studentId: string): Promise<void> => {
+  const ref = db().collection(SESSIONS).doc(sessionId(botId, userId));
+  await db().runTransaction(async tx => {
+    const current = (await tx.get(ref)).data() as PhotoSessionData | undefined;
+    if (current?.awaitingPick === true && current.classId === classId && current.studentId === studentId
+      && !current.assignmentId && !current.assistState && !current.revisionChoices
+      && !current.photos?.length && !current.receivedImages?.length && !Object.keys(current.pendingUploads ?? {}).length) tx.delete(ref);
+  });
+};
 
 /** Khớp tên bạn: chuẩn hóa dấu/hoa/thường; tên gọi là đuôi của họ tên ("minh anh" khớp "Nguyễn Thị Minh Anh"). */
 const normName = (value: string): string =>
