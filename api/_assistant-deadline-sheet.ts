@@ -2,7 +2,7 @@ import { createPrivateKey, sign } from 'node:crypto';
 import type { DeadlineCell, DeadlineConfig } from './_assistant-deadline.js';
 
 const MAX_BYTES = 2_000_000;
-async function boundedJson(response: Response): Promise<any> {
+export async function boundedSheetJson(response: Response): Promise<any> {
   if (Number(response.headers.get('content-length') || 0) > MAX_BYTES) throw new Error('Dữ liệu Sheet quá lớn.');
   if (!response.body) throw new Error('Sheet không trả dữ liệu.');
   const reader = response.body.getReader(), chunks: Uint8Array[] = []; let size = 0;
@@ -11,10 +11,17 @@ async function boundedJson(response: Response): Promise<any> {
     return JSON.parse(Buffer.concat(chunks).toString('utf8'));
   } finally { await reader.cancel().catch(() => undefined); }
 }
-let cached: { fingerprint: string; token: string; until: number } | undefined;
-let pending: Promise<string> | undefined;
+const cached = new Map<string, { token: string; until: number }>();
+const pending = new Map<string, Promise<string>>();
 /** Reuses the existing project service account; requests ONLY Sheets read-only scope. Creates no credential. */
 export async function deadlineReadToken(): Promise<string> {
+  return serviceAccountSheetsToken('readonly');
+}
+/** Only the dedicated, server-approved mirror writer calls this; deadline readers stay read-only. */
+export async function homeworkWriteToken(): Promise<string> {
+  return serviceAccountSheetsToken('write');
+}
+async function serviceAccountSheetsToken(scope: 'readonly' | 'write'): Promise<string> {
   let account: Record<string, string>;
   try {
     const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY || (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 ? Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8') : '');
@@ -24,20 +31,22 @@ export async function deadlineReadToken(): Promise<string> {
     } else account = { client_email: process.env.FIREBASE_CLIENT_EMAIL!, private_key: process.env.FIREBASE_PRIVATE_KEY! };
     if (!account?.client_email || !account?.private_key) throw new Error();
   } catch { throw new Error('Chưa cấu hình tài khoản dịch vụ sẵn có để đọc Sheet.'); }
-  const key = account.private_key.replace(/\\n/g, '\n'), fingerprint = account.client_email + key;
-  if (cached?.fingerprint === fingerprint && cached.until > Date.now()) return cached.token;
-  if (pending) return pending;
-  pending = (async () => {
+  const key = account.private_key.replace(/\\n/g, '\n'), fingerprint = account.client_email + key + scope;
+  const previous = cached.get(fingerprint);
+  if (previous && previous.until > Date.now()) return previous.token;
+  if (pending.has(fingerprint)) return pending.get(fingerprint)!;
+  const request = (async () => {
     const now = Math.floor(Date.now() / 1000), encode = (v: unknown) => Buffer.from(JSON.stringify(v)).toString('base64url');
-    const data = `${encode({ alg: 'RS256', typ: 'JWT' })}.${encode({ iss: account.client_email, scope: 'https://www.googleapis.com/auth/spreadsheets.readonly', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 })}`;
+    const data = `${encode({ alg: 'RS256', typ: 'JWT' })}.${encode({ iss: account.client_email, scope: `https://www.googleapis.com/auth/spreadsheets${scope === 'readonly' ? '.readonly' : ''}`, aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 })}`;
     const assertion = `${data}.${sign('RSA-SHA256', Buffer.from(data), createPrivateKey(key)).toString('base64url')}`;
     const response = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion }), signal: AbortSignal.timeout(15_000) });
-    const result = await boundedJson(response);
+    const result = await boundedSheetJson(response);
     if (!response.ok || typeof result.access_token !== 'string') throw new Error('Không cấp được quyền đọc Sheet; cần kiểm tra cấu hình tài khoản dịch vụ.');
-    cached = { fingerprint, token: result.access_token, until: Date.now() + Math.min(Number(result.expires_in) || 0, 3600) * 1000 - 60_000 };
+    cached.set(fingerprint, { token: result.access_token, until: Date.now() + Math.min(Number(result.expires_in) || 0, 3600) * 1000 - 60_000 });
     return result.access_token as string;
   })();
-  try { return await pending; } catch { throw new Error('Không xác thực được nguồn Sheet chỉ đọc.'); } finally { pending = undefined; }
+  pending.set(fingerprint, request);
+  try { return await request; } catch { throw new Error('Không xác thực được nguồn Sheet.'); } finally { pending.delete(fingerprint); }
 }
 
 export async function readDeadlineSheet(config: Pick<DeadlineConfig, 'spreadsheetId' | 'sheetTitle' | 'sheetId'>, token = deadlineReadToken): Promise<{ grid: DeadlineCell[][]; studentNames: string[]; headers: string[]; sheetId: number }> {
@@ -50,7 +59,7 @@ export async function readDeadlineSheet(config: Pick<DeadlineConfig, 'spreadshee
   url.searchParams.set('fields', 'sheets(properties(sheetId,title),data(startRow,startColumn,rowData(values(formattedValue,hyperlink,effectiveValue))))');
   const response = await fetch(url, { method: 'GET', redirect: 'error', headers: { authorization: `Bearer ${await token()}` }, signal: AbortSignal.timeout(20_000) });
   if (!response.ok) throw new Error(`Không đọc được Sheet (HTTP ${response.status}); kiểm tra quyền Xem của tài khoản dịch vụ.`);
-  const result = await boundedJson(response);
+  const result = await boundedSheetJson(response);
   const sheets = Array.isArray(result?.sheets) ? result.sheets.filter((sheet: any) => sheet.properties?.title === config.sheetTitle && (config.sheetId === -1 || sheet.properties?.sheetId === config.sheetId)) : [];
   if (sheets.length !== 1 || !Number.isSafeInteger(sheets[0]?.properties?.sheetId) || sheets[0]?.data?.length !== 1
     || sheets[0].data[0].startRow || sheets[0].data[0].startColumn) throw new Error('Tab Sheet không khớp cấu hình đã chọn.');

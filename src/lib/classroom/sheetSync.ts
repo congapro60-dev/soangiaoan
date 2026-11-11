@@ -8,7 +8,8 @@
  * Môn, 4 Nội dung, 5 Hạn kiểm tra, 6 Link, 7 Tính lỗi?, 8–10 ô đếm, 11 tiêu đề, học sinh từ dòng 12
  * ở cột B, trạng thái từ cột C.
  */
-import { moTaLoiDichVu } from '../httpErrorText';
+import { moTaLoiDichVu } from '../httpErrorText.js';
+import { awaitsClarification } from './clarification.js';
 
 /** Đúng từng ký tự, kể cả biểu tượng: công thức đếm và công thức Hạnh kiểm so chuỗi y hệt. */
 export const SHEET_STATUS = {
@@ -17,6 +18,8 @@ export const SHEET_STATUS = {
   thieu: '⚠️ Thiếu',
   chuaLam: '❌ Chưa làm',
   khongApDung: '➖ Không áp dụng',
+  daNopWeb: '📥 Đã nộp web',
+  canBoSung: '🔎 Cần bổ sung',
 } as const;
 
 export const SHEET_LAYOUT = {
@@ -77,6 +80,15 @@ export interface SyncSubmission {
   studentId: string;
   assignmentId: string | null;
   createdAt: string;
+  status?: string;
+  receiptStatus?: 'received' | 'review' | 'missing' | 'in_progress' | 'not_assigned';
+  firstSubmittedAt?: string;
+  errorReason?: string;
+  grade?: {
+    awaitingClarification?: boolean;
+    questionResults?: Parameters<typeof awaitsClarification>[0];
+    photoReview?: { missingQuestionNumbers?: unknown[]; unreadablePhotoNumbers?: unknown[]; assignmentMatch?: string };
+  } | null;
 }
 
 export interface SyncRosterStudent {
@@ -333,6 +345,7 @@ export type CellDecision = { action: 'write' } | { action: 'keep'; reason: 'huma
  */
 export const decideStatusCell = (cell: SheetCell | undefined, desired: string | null): CellDecision => {
   if (desired === null) return { action: 'keep', reason: 'nothing' };
+  if (cell?.formula || (cell?.note && !cell.note.startsWith(APP_NOTE_PREFIX))) return { action: 'keep', reason: 'human' };
   const current = cellText(cell);
   const written = appNoteValue(cell?.note);
   if (current === '') return written === null ? { action: 'write' } : { action: 'keep', reason: 'human' };
@@ -344,9 +357,9 @@ export const decideStatusCell = (cell: SheetCell | undefined, desired: string | 
 
 export type SheetWrite =
   | { kind: 'status'; row: number; column: number; value: string; note: string }
-  | { kind: 'content'; row: number; column: number; value: string }
-  | { kind: 'deadline'; row: number; column: number; serial: number }
-  | { kind: 'link'; row: number; column: number; value: string }
+  | { kind: 'content'; row: number; column: number; value: string; note?: string }
+  | { kind: 'deadline'; row: number; column: number; serial: number | null; note?: string }
+  | { kind: 'link'; row: number; column: number; value: string; note?: string }
   | { kind: 'countFormula'; row: number; column: number; formula: string };
 
 export interface PlannedColumn {
@@ -357,6 +370,7 @@ export interface PlannedColumn {
 }
 
 export interface SheetSyncPlan {
+  receiptOnly?: boolean;
   columns: PlannedColumn[];
   skipped: Array<{ assignmentId: string; title: string; reason: string }>;
   writes: SheetWrite[];
@@ -386,6 +400,23 @@ const isFreeColumn = (header: SheetColumnHeader, snapshot: SheetSnapshot): boole
   isBlank(header.subject) && isBlank(header.content) && isBlank(header.deadline) && isBlank(header.link)
   && snapshot.students.every(student => isBlank(snapshot.statusCells[`${student.row}:${header.column}`]));
 
+/** Receipt labels never feed the Sheet's existing conduct-penalty formulas. */
+export const submissionReceiptStatus = (submission: SyncSubmission): 'received' | 'review' | null => {
+  if (submission.receiptStatus !== undefined) return ['received', 'review'].includes(submission.receiptStatus)
+    ? submission.receiptStatus as 'received' | 'review' : null;
+  if (!['submitted', 'grading', 'graded', 'error', 'teacher_review', 'pending_review', 'pending_teacher'].includes(submission.status || '')) return null;
+  const grade = submission.grade;
+  return submission.errorReason === 'photo' || submission.errorReason === 'exam_code' || grade?.awaitingClarification
+    || awaitsClarification(Array.isArray(grade?.questionResults) ? grade.questionResults : undefined) || grade?.photoReview?.missingQuestionNumbers?.length
+    || grade?.photoReview?.unreadablePhotoNumbers?.length || ['possibly_wrong', 'uncertain'].includes(grade?.photoReview?.assignmentMatch || '')
+    ? 'review' : 'received';
+};
+
+const receiptOptions = (options: readonly string[]): string[] | null => {
+  const next = [...new Set([...options, SHEET_STATUS.daNopWeb, SHEET_STATUS.canBoSung])];
+  return next.length === options.length ? null : next;
+};
+
 export const planSheetSync = (input: {
   snapshot: SheetSnapshot;
   assignments: readonly SyncAssignment[];
@@ -397,22 +428,34 @@ export const planSheetSync = (input: {
   createFor?: ReadonlySet<string>;
   /** Giáo viên đồng ý bổ sung "Nộp muộn" cho tab chưa có. */
   addLateOption: boolean;
+  /** Auto receipt only: no inferred missing/late conduct penalty, no manual metadata overwrite. */
+  receiptOnly?: boolean;
 }): SheetSyncPlan => {
   const { snapshot } = input;
   const students = matchStudents(input.roster, snapshot.students);
-  const upgradedStatusOptions = input.addLateOption ? upgradedOptions(snapshot.statusOptions) : null;
+  const upgradedStatusOptions = input.receiptOnly ? receiptOptions(snapshot.statusOptions)
+    : input.addLateOption ? upgradedOptions(snapshot.statusOptions) : null;
   const options = upgradedStatusOptions ?? snapshot.statusOptions;
 
   const headers = snapshot.headers.filter(header => header.column >= SHEET_LAYOUT.firstColumn && header.column <= snapshot.lastColumn);
   const linkedColumn = new Map<string, number>();
+  const duplicateLinks = new Set<string>();
   for (const header of headers) {
     const id = assignmentIdFromCell(header.link);
+    if (id && linkedColumn.has(id)) duplicateLinks.add(id);
     if (id && !linkedColumn.has(id)) linkedColumn.set(id, header.column);
   }
-  const freeColumns = headers.filter(header => isFreeColumn(header, snapshot)).map(header => header.column);
+  const freeColumns = headers.filter(header => isFreeColumn(header, snapshot)
+    && (!input.receiptOnly || ![header.subject, header.content, header.deadline, header.link,
+      ...snapshot.students.map(student => snapshot.statusCells[`${student.row}:${header.column}`])].some(cell => cell?.note)))
+    .map(header => header.column);
   const taken = new Set<number>(linkedColumn.values());
+  const assignmentCounts = new Map<string, number>();
+  for (const assignment of input.assignments) assignmentCounts.set(assignment.id, (assignmentCounts.get(assignment.id) || 0) + 1);
+  const seenAssignments = new Set<string>();
 
   const plan: SheetSyncPlan = {
+    ...(input.receiptOnly ? { receiptOnly: true } : {}),
     columns: [],
     skipped: [],
     writes: [],
@@ -422,6 +465,16 @@ export const planSheetSync = (input: {
   };
 
   for (const assignment of input.assignments) {
+    if (seenAssignments.has(assignment.id)) continue;
+    seenAssignments.add(assignment.id);
+    if ((assignmentCounts.get(assignment.id) || 0) > 1) {
+      plan.skipped.push({ assignmentId: assignment.id, title: assignment.title, reason: 'Danh sách bài có mã lặp — chưa thể đồng bộ chính xác.' });
+      continue;
+    }
+    if (duplicateLinks.has(assignment.id)) {
+      plan.skipped.push({ assignmentId: assignment.id, title: assignment.title, reason: 'Mã bài xuất hiện ở nhiều cột — cần thầy cô chọn đúng cột.' });
+      continue;
+    }
     const linked = linkedColumn.get(assignment.id);
     if (linked !== undefined) {
       plan.columns.push({ assignmentId: assignment.id, title: assignment.title, column: linked, source: 'linked' });
@@ -429,13 +482,18 @@ export const planSheetSync = (input: {
     }
 
     // Cột gõ tay trùng tên bài → gắn link vào đó, không tạo cột trùng.
-    const sameTitle = headers.find(header => !taken.has(header.column)
+    const sameTitles = headers.filter(header => !taken.has(header.column)
       && !assignmentIdFromCell(header.link)
       && plain(cellText(header.content)) !== ''
       && plain(cellText(header.content)) === plain(assignment.title));
+    if (sameTitles.length > 1) {
+      plan.skipped.push({ assignmentId: assignment.id, title: assignment.title, reason: 'Tên bài trùng nhiều cột — cần thầy cô gắn mã bài trước.' });
+      continue;
+    }
+    const sameTitle = sameTitles[0];
     if (sameTitle) {
       taken.add(sameTitle.column);
-      if (!isBlank(sameTitle.link)) {
+      if (!isBlank(sameTitle.link) || (input.receiptOnly && sameTitle.link?.note)) {
         plan.skipped.push({
           assignmentId: assignment.id,
           title: assignment.title,
@@ -448,6 +506,7 @@ export const planSheetSync = (input: {
         row: SHEET_LAYOUT.linkRow,
         column: sameTitle.column,
         value: assignmentLink(input.appOrigin, assignment.id),
+        ...(input.receiptOnly ? { note: buildAppNote(assignmentLink(input.appOrigin, assignment.id), input.nowMs, snapshot.timeZone) } : {}),
       });
       plan.columns.push({ assignmentId: assignment.id, title: assignment.title, column: sameTitle.column, source: 'attached' });
       plan.counts.attached += 1;
@@ -465,23 +524,35 @@ export const planSheetSync = (input: {
       continue;
     }
     taken.add(column);
-    plan.writes.push({ kind: 'content', row: SHEET_LAYOUT.contentRow, column, value: assignment.title });
+    plan.writes.push({ kind: 'content', row: SHEET_LAYOUT.contentRow, column, value: assignment.title,
+      ...(input.receiptOnly ? { note: buildAppNote(assignment.title, input.nowMs, snapshot.timeZone) } : {}) });
     const deadline = deadlineSerial(assignment.dueAt, snapshot.timeZone);
-    if (deadline !== null) plan.writes.push({ kind: 'deadline', row: SHEET_LAYOUT.deadlineRow, column, serial: deadline });
-    plan.writes.push({ kind: 'link', row: SHEET_LAYOUT.linkRow, column, value: assignmentLink(input.appOrigin, assignment.id) });
+    if (deadline !== null || input.receiptOnly) plan.writes.push({ kind: 'deadline', row: SHEET_LAYOUT.deadlineRow, column, serial: deadline,
+      ...(input.receiptOnly ? { note: buildAppNote(deadline === null ? '' : String(deadline), input.nowMs, snapshot.timeZone) } : {}) });
+    plan.writes.push({ kind: 'link', row: SHEET_LAYOUT.linkRow, column, value: assignmentLink(input.appOrigin, assignment.id),
+      ...(input.receiptOnly ? { note: buildAppNote(assignmentLink(input.appOrigin, assignment.id), input.nowMs, snapshot.timeZone) } : {}) });
     plan.columns.push({ assignmentId: assignment.id, title: assignment.title, column, source: 'created' });
     plan.counts.created += 1;
   }
 
   // Lượt nộp ĐẦU TIÊN mới là mốc nộp; bổ sung ảnh sau hạn không biến bài nộp đúng hạn thành muộn.
   const firstSubmittedAt = new Map<string, number>();
+  const latestReceipt = new Map<string, { at: number; status: 'received' | 'review' }>();
   for (const submission of input.submissions) {
     if (!submission.assignmentId) continue;
     const at = Date.parse(submission.createdAt);
     if (!Number.isFinite(at)) continue;
     const key = `${submission.studentId}:${submission.assignmentId}`;
+    if (input.receiptOnly) {
+      const status = submissionReceiptStatus(submission);
+      if (!status) continue;
+      const latest = latestReceipt.get(key);
+      if (!latest || at > latest.at || (at === latest.at && status === 'review')) latestReceipt.set(key, { at, status });
+    }
+    const suppliedFirst = Date.parse(String(submission.firstSubmittedAt || ''));
+    const firstAt = Number.isFinite(suppliedFirst) ? Math.min(at, suppliedFirst) : at;
     const previous = firstSubmittedAt.get(key);
-    if (previous === undefined || at < previous) firstSubmittedAt.set(key, at);
+    if (previous === undefined || firstAt < previous) firstSubmittedAt.set(key, firstAt);
   }
 
   const assignmentById = new Map(input.assignments.map(assignment => [assignment.id, assignment]));
@@ -495,10 +566,27 @@ export const planSheetSync = (input: {
     const appDeadlineMs = Number.isFinite(Date.parse(String(assignment.dueAt ?? ''))) ? Date.parse(String(assignment.dueAt)) : null;
     const sheetMs = sheetDeadlineMs(header?.deadline, snapshot.timeZone);
     const deadlineMs = appDeadlineMs ?? sheetMs;
-    if (appDeadlineMs !== null && planned.source !== 'created') {
+    if (!input.receiptOnly && appDeadlineMs !== null && planned.source !== 'created') {
       const serial = deadlineSerial(assignment.dueAt, snapshot.timeZone);
       if (serial !== null && (sheetMs === null || Math.abs(sheetMs - appDeadlineMs) > 60_000)) {
         plan.writes.push({ kind: 'deadline', row: SHEET_LAYOUT.deadlineRow, column: planned.column, serial });
+        plan.counts.deadlineWrites += 1;
+      }
+    }
+    if (input.receiptOnly && planned.source === 'linked') {
+      const titleDecision = decideStatusCell(header?.content, assignment.title);
+      if (titleDecision.action === 'write' && appNoteValue(header?.content?.note) !== null) {
+        plan.writes.push({ kind: 'content', row: SHEET_LAYOUT.contentRow, column: planned.column, value: assignment.title,
+          note: buildAppNote(assignment.title, input.nowMs, snapshot.timeZone) });
+      }
+      const serial = deadlineSerial(assignment.dueAt, snapshot.timeZone);
+      const writtenDeadline = appNoteValue(header?.deadline?.note)
+        ?? (header?.deadline?.note?.startsWith(`${APP_NOTE_PREFIX} · `) ? '' : null);
+      const currentDeadline = String(header?.deadline?.value ?? '');
+      const desiredDeadline = serial === null ? '' : String(serial);
+      if (!header?.deadline?.formula && writtenDeadline !== null && writtenDeadline === currentDeadline && currentDeadline !== desiredDeadline) {
+        plan.writes.push({ kind: 'deadline', row: SHEET_LAYOUT.deadlineRow, column: planned.column, serial,
+          note: buildAppNote(desiredDeadline, input.nowMs, snapshot.timeZone) });
         plan.counts.deadlineWrites += 1;
       }
     }
@@ -507,21 +595,27 @@ export const planSheetSync = (input: {
       : null;
 
     for (const [studentId, row] of students.rowByStudentId) {
-      const desired = desiredStatus({
+      const key = `${studentId}:${assignment.id}`;
+      const receipt = targets !== null && !targets.has(studentId) ? undefined : latestReceipt.get(key);
+      const existing = snapshot.statusCells[`${row}:${planned.column}`];
+      const ownReceipt = [SHEET_STATUS.daNopWeb, SHEET_STATUS.canBoSung].includes(appNoteValue(existing?.note) as typeof SHEET_STATUS.daNopWeb);
+      const desired = input.receiptOnly ? receipt ? receipt.status === 'review' ? SHEET_STATUS.canBoSung : SHEET_STATUS.daNopWeb
+        : ownReceipt ? '' : null : desiredStatus({
         submittedAtMs: firstSubmittedAt.get(`${studentId}:${assignment.id}`) ?? null,
         deadlineMs,
         nowMs: input.nowMs,
         notAssigned: targets !== null && !targets.has(studentId),
         options,
       });
-      const decision = decideStatusCell(snapshot.statusCells[`${row}:${planned.column}`], desired);
+      const decision = decideStatusCell(existing, desired);
       if (decision.action === 'write' && desired !== null) {
         plan.writes.push({
           kind: 'status',
           row,
           column: planned.column,
           value: desired,
-          note: buildAppNote(desired, input.nowMs, snapshot.timeZone),
+          note: desired === '' ? '' : buildAppNote(desired, input.nowMs, snapshot.timeZone)
+            + (input.receiptOnly && firstSubmittedAt.has(key) ? ` · Lần đầu: ${new Date(firstSubmittedAt.get(key)!).toISOString()}` : ''),
         });
         plan.counts.statusWrites += 1;
       } else if (decision.action === 'keep' && decision.reason === 'human') {
@@ -530,7 +624,7 @@ export const planSheetSync = (input: {
     }
   }
 
-  if (upgradedStatusOptions) {
+  if (upgradedStatusOptions && !input.receiptOnly) {
     for (const [column, formula] of Object.entries(snapshot.countFormulas)) {
       const upgraded = upgradeCountFormula(formula);
       if (upgraded) plan.writes.push({ kind: 'countFormula', row: SHEET_LAYOUT.countRow, column: Number(column), formula: upgraded });
@@ -577,7 +671,17 @@ export const buildSheetRequests = (plan: SheetSyncPlan, snapshot: SheetSnapshot)
   const lastStudentRow = Math.max(...snapshot.students.map(student => student.row));
   const requests: Array<Record<string, unknown>> = [];
 
-  if (plan.upgradedStatusOptions) {
+  if (plan.upgradedStatusOptions && plan.receiptOnly) {
+    for (const write of plan.writes) {
+      if (write.kind !== 'status' || !write.value) continue;
+      assertWriteAllowed(write, snapshot);
+      requests.push({ setDataValidation: {
+        range: { sheetId: snapshot.sheetId, startRowIndex: write.row - 1, endRowIndex: write.row,
+          startColumnIndex: write.column - 1, endColumnIndex: write.column },
+        rule: { condition: { type: 'ONE_OF_LIST', values: plan.upgradedStatusOptions.map(value => ({ userEnteredValue: value })) }, strict: true, showCustomUi: true },
+      } });
+    }
+  } else if (plan.upgradedStatusOptions) {
     requests.push({
       setDataValidation: {
         range: {
@@ -602,17 +706,19 @@ export const buildSheetRequests = (plan: SheetSyncPlan, snapshot: SheetSnapshot)
     let fields = 'userEnteredValue';
     if (write.kind === 'deadline') {
       // Số ngày + định dạng ngày giờ: hiển thị ra ngày, không lệ thuộc dấu phân cách như công thức.
-      cell.userEnteredValue = { numberValue: write.serial };
-      cell.userEnteredFormat = { numberFormat: { type: 'DATE_TIME', pattern: 'dd/mm/yyyy hh:mm' } };
-      fields = 'userEnteredValue,userEnteredFormat.numberFormat';
+      cell.userEnteredValue = write.serial === null ? {} : { numberValue: write.serial };
+      if (write.serial !== null) {
+        cell.userEnteredFormat = { numberFormat: { type: 'DATE_TIME', pattern: 'dd/mm/yyyy hh:mm' } };
+        fields = 'userEnteredValue,userEnteredFormat.numberFormat';
+      }
     } else if (write.kind === 'countFormula') {
       cell.userEnteredValue = { formulaValue: write.formula };
     } else {
       cell.userEnteredValue = { stringValue: write.value };
     }
-    if (write.kind === 'status') {
+    if ('note' in write && write.note !== undefined) {
       cell.note = write.note;
-      fields = 'userEnteredValue,note';
+      fields += ',note';
     }
     requests.push({
       updateCells: {

@@ -1,4 +1,5 @@
 import { handleWebHandoffAction, bindParentWebCookie, verifyStudentBotLink } from './_assistant-web-handoff.js';
+import { notifyHomeworkSheet } from './_assistant-homework-sheet.js';
 import { handleCorrectionAttemptAction } from './_correction-attempts.js';
 import { handleHandMarkedWorkAction, handMarkedProjection } from './_hand-marked-work.js';
 import { assignmentSolutionInput, attachAssignmentSolutions } from './_assignment-solutions.js';
@@ -298,6 +299,7 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
   for (const doc of corrections.docs) await doc.ref.delete();
   await submissionRef.delete();
   deleted = true;
+  await notifyHomeworkSheet(db, String(submission.classId || ''));
 
   // Bài biến mất khỏi màn hình em mà không một lời giải thích thì em tưởng máy nuốt mất bài. Phải
   // ghi tại đây: sau lệnh delete ở trên không còn dấu vết nào để cổng học sinh dựng lại việc này.
@@ -547,6 +549,7 @@ const handleSaveSubmissionGrade = async (
       // Best-effort: marker write failure must not overwrite successful response
     }
   }
+  await notifyHomeworkSheet(db, owned.submission.classId);
   return res.status(200).json({ saved: true, submissionId: owned.submissionId, historyId });
 };
 
@@ -739,6 +742,7 @@ const handleDeleteSubmissionGrade = async (
     }
     throw error;
   }
+  await notifyHomeworkSheet(db, owned.submission.classId);
   return res.status(200).json({ deletedGrade: true, submissionId: owned.submissionId, historyId });
 };
 
@@ -828,6 +832,7 @@ const handleApproveSubmissionGrade = async (
     response.syncPending = true;
     response.syncError = syncError;
   }
+  await notifyHomeworkSheet(db, owned.submission.classId);
   return res.status(200).json(response);
 };
 
@@ -931,6 +936,7 @@ const handleDeleteAssignment = async (db: FirebaseFirestore.Firestore, body: Rec
     throw error;
   }
   await assignmentRef.delete();
+  await notifyHomeworkSheet(db, String(assignment.classId || ''));
   return res.status(200).json({ deleted: true, deletedFiles });
 };
 
