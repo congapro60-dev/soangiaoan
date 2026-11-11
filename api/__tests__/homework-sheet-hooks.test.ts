@@ -66,12 +66,32 @@ describe('BTVN server mutation hooks', () => {
   it('returns only safe counters and timestamps from the authenticated class sync state', async () => {
     h.store['classes/class'].sheetSync = { spreadsheetId: 'sheet', sheetId: 5 };
     h.store['assistantHomeworkSheets/class'] = { enabled: true, writeApproved: true, teacherId: 'teacher', spreadsheetId: 'sheet', sheetId: 5, sheetTitle: '02. BTVN', private: 'never return' };
+    h.store['assistantHomeworkSources/class'] = { active: true, teacherId: 'teacher', spreadsheetId: 'sheet', sheetId: 5, sheetTitle: '02. BTVN' };
     h.store['assistantHomeworkSyncState/class'] = { revision: 3, syncedRevision: 2, syncedAt: 100, failed: true, nextAt: 200, lease: 'private', counts: { created: 2, statusWrites: 4, keptHuman: 3, skipped: 1, unmatched: 0, private: 'secret' } };
     const res = response();
     expect(await handleTeacherAction(h.db, { action: 'getClassSheetSyncStatus', idToken: 'token', classId: 'class' }, res as never)).toBe(true);
     expect(res.statusCode).toBe(200);
     expect(res.payload).toEqual({ enabled: true, syncedAt: 100, failed: true, pending: true, nextAt: 200, counts: { created: 2, statusWrites: 4, keptHuman: 3, skipped: 1, unmatched: 0 } });
     expect(h.notify).not.toHaveBeenCalled();
+  });
+  it.each(['02. BTVN', '10. OLINDA', '12. TOÁN LT1'])('requires a separate exact BTVN approval for %s; deadline access grants nothing', async sheetTitle => {
+    const scope = { teacherId: 'teacher', spreadsheetId: 'sheet', sheetId: 5, sheetTitle };
+    h.store['classes/class'].sheetSync = { spreadsheetId: 'sheet', sheetId: 5 };
+    h.store['assistantHomeworkSheets/class'] = { enabled: true, writeApproved: true, ...scope };
+    h.store['assistantHomeworkSyncState/class'] = { syncedAt: 100, revision: 2, syncedRevision: 1, private: 'never return' };
+    h.store['assistantDeadlineSources/class'] = { active: true, ...scope };
+    const check = async () => {
+      const res = response();
+      await handleTeacherAction(h.db, { action: 'getClassSheetSyncStatus', idToken: 'token', classId: 'class' }, res as never);
+      return res.payload;
+    };
+    expect(await check()).toMatchObject({ enabled: false, syncedAt: null, pending: false });
+    h.store['assistantHomeworkSources/class'] = { active: true, ...scope, sheetId: 6 };
+    expect(await check()).toMatchObject({ enabled: false, syncedAt: null, pending: false });
+    h.store['assistantHomeworkSources/class'] = { active: true, ...scope };
+    expect(await check()).toEqual({ enabled: true, syncedAt: 100, pending: true, failed: false, nextAt: null, counts: { created: 0, statusWrites: 0, keptHuman: 0, skipped: 0, unmatched: 0 } });
+    h.store['assistantHomeworkSources/class'].active = false;
+    expect(await check()).toMatchObject({ enabled: false, syncedAt: null, pending: false });
   });
   it('rejects another class and disables old-owner or wrong-tab configurations', async () => {
     const denied = response();

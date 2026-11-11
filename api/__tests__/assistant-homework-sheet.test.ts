@@ -3,14 +3,37 @@ import { readHomeworkSnapshot, writeHomeworkBtvn } from '../_assistant-homework-
 const config = { spreadsheetId: 'abcdefghijklmnopqrstuvwx', sheetId: 456, sheetTitle: '02. BTVN', writeApproved: true };
 const labels = ['BTVN', 'Hướng dẫn', 'Môn', 'Nội dung', 'Hạn kiểm tra', 'Link', 'Tính lỗi?', 'Đủ', 'Thiếu', 'Chưa làm', 'Tổ'];
 const options = ['✅ Đủ', '⚠️ Thiếu', '❌ Chưa làm', '⏰ Nộp muộn', '➖ Không áp dụng'];
-function source(value = '', note = ''): any {
+function source(value = '', note = '', title = config.sheetTitle): any {
  const rows: any[] = Array.from({ length: 12 }, (_, i) => ({ values: [{ formattedValue: labels[i] || '' }] }));
  rows[11].values = [{}, { formattedValue: 'Em Một' }, { formattedValue: value, note, dataValidation: { condition: { type: 'ONE_OF_LIST', values: options.map(v => ({ userEnteredValue: v })) } } }];
- return { properties: { timeZone: 'Asia/Saigon' }, sheets: [{ properties: { sheetId: 456, title: '02. BTVN', gridProperties: { rowCount: 200, columnCount: 61 } }, data: [{ rowData: rows }] }] };
+ return { properties: { timeZone: 'Asia/Saigon' }, sheets: [{ properties: { sheetId: 456, title, gridProperties: { rowCount: 200, columnCount: 61 } }, data: [{ rowData: rows }] }] };
 }
 const view: any = { updatedAt: '2026-11-11T01:00:00Z', assignments: [{ id: 'a1', title: '=PRIVATE_FORMULA()', dueAt: '', open: true }], students: [{ id: 's1', name: 'Em Một', groupId: '1', work: [{ assignmentId: 'a1', status: 'received', submittedAt: '2026-11-11T00:00:00Z', firstSubmittedAt: '2026-11-10T00:00:00Z' }] }] };
 afterEach(() => vi.unstubAllGlobals());
 describe('existing BTVN server writer', () => {
+ it.each(['02. BTVN', '10. OLINDA', '12. TOÁN LT1'])('accepts exactly approved homework tab %s', async title => {
+  const requests: any[] = [];
+  const fetcher = vi.fn(async (_url: unknown, o: any) => {
+   if (o.method === 'POST') { requests.push(...JSON.parse(o.body).requests); return new Response('{}'); }
+   return new Response(JSON.stringify(source('', '', title)));
+  });
+  vi.stubGlobal('fetch', fetcher);
+  const result = await writeHomeworkBtvn({ ...config, sheetTitle: title }, view, 'https://giaoandewey.vercel.app', async () => 'synthetic');
+  expect(result.statusWrites).toBe(1);
+  expect(fetcher.mock.calls.filter(([, o]) => o.method === 'GET').every(([url]) => new URL(String(url)).searchParams.get('ranges')?.startsWith(`'${title}'!`))).toBe(true);
+  expect(requests.every(r => (r.updateCells || r.setDataValidation).range.sheetId === config.sheetId)).toBe(true);
+ });
+ it('blocks the Columbus LINK mirror and any IMPORTRANGE template before writing', async () => {
+  const token = vi.fn(async () => 'synthetic');
+  await expect(writeHomeworkBtvn({ ...config, sheetTitle: '11.COLUMBUS(LINK)' }, view, 'https://giaoandewey.vercel.app', token)).rejects.toThrow();
+  expect(token).not.toHaveBeenCalled();
+  const input = source('', '', '10. OLINDA');
+  input.sheets[0].data[0].rowData[0].values[0] = { formattedValue: 'BTVN', userEnteredValue: { formulaValue: '=IMPORTRANGE("external";"A1:BI91")' } };
+  const fetcher = vi.fn(async () => new Response(JSON.stringify(input)));
+  vi.stubGlobal('fetch', fetcher);
+  await expect(writeHomeworkBtvn({ ...config, sheetTitle: '10. OLINDA' }, view, 'https://giaoandewey.vercel.app', token)).rejects.toThrow();
+  expect(fetcher).toHaveBeenCalledTimes(1);
+ });
  it('creates a column and receipt through surgical cells, never whole-tab clear or penalty', async () => {
   const requests: any[] = [];
   vi.stubGlobal('fetch', vi.fn(async (_u: unknown, o: any) => {

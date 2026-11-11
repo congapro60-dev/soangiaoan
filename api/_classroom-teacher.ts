@@ -1360,14 +1360,17 @@ export const handleTeacherAction = async (db: Db, body: Body, res: VercelRespons
   if (action === 'getClassSheetSyncStatus') {
     const context = await teacherContext(db, body, res);
     if (!context) return true;
-    const [configSnap, stateSnap] = await Promise.all([
+    const [configSnap, stateSnap, sourceSnap] = await Promise.all([
       db.collection('assistantHomeworkSheets').doc(context.classId).get(),
       db.collection('assistantHomeworkSyncState').doc(context.classId).get(),
+      db.collection('assistantHomeworkSources').doc(context.classId).get(),
     ]);
-    const config = configSnap.data(), owner = context.classData.ownerId || context.classData.teacherId;
-    const enabled = config?.enabled === true && config.writeApproved === true && config.sheetTitle === '02. BTVN'
+    const config = configSnap.data(), source = sourceSnap.data(), owner = context.classData.ownerId || context.classData.teacherId;
+    const enabled = config?.enabled === true && config.writeApproved === true && ['02. BTVN', '10. OLINDA', '12. TOÁN LT1'].includes(config.sheetTitle)
       && typeof owner === 'string' && !!owner && config.teacherId === owner
-      && config.spreadsheetId === context.classData.sheetSync?.spreadsheetId && config.sheetId === context.classData.sheetSync?.sheetId;
+      && config.spreadsheetId === context.classData.sheetSync?.spreadsheetId && config.sheetId === context.classData.sheetSync?.sheetId
+      && source?.active === true && source.teacherId === owner && source.spreadsheetId === config.spreadsheetId
+      && source.sheetId === config.sheetId && source.sheetTitle === config.sheetTitle;
     const state = enabled ? stateSnap.data() || {} : {};
     const count = (value: unknown): number => Number.isSafeInteger(value) && Number(value) >= 0 ? Number(value) : 0;
     res.status(200).json({

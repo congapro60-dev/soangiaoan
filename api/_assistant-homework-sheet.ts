@@ -2,27 +2,27 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { Firestore } from 'firebase-admin/firestore';
 import { buildGroupHomework, type GroupHomeworkView } from '../src/lib/classroom/groupHomework.js';
 import { buildSheetRequests, checkSheetLayout, planSheetSync, type SheetCell, type SheetSnapshot } from '../src/lib/classroom/sheetSync.js';
-import { deadlineOwner, requireDeadlineSource } from './_assistant-deadline-config.js';
+import { deadlineOwner } from './_assistant-deadline-config.js';
 import { boundedSheetJson, homeworkWriteToken } from './_assistant-deadline-sheet.js';
 
 type Data = Record<string, any>;
 export type HomeworkSheetConfig = { spreadsheetId: string; sheetId: number; sheetTitle: string; writeApproved: boolean };
-const TITLE = '02. BTVN';
+const TITLES = ['02. BTVN', '10. OLINDA', '12. TOÁN LT1'];
 const validConfig = (c: HomeworkSheetConfig) => c?.writeApproved === true && /^[A-Za-z0-9_-]{20,200}$/.test(c.spreadsheetId)
-  && c.sheetTitle === TITLE && Number.isSafeInteger(c.sheetId) && c.sheetId >= 0;
+  && TITLES.includes(c.sheetTitle) && Number.isSafeInteger(c.sheetId) && c.sheetId >= 0;
 const fingerprint = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
 
 /** One bounded read of the existing template. No other tab, private contact data or sheet-wide writes. */
 export async function readHomeworkSnapshot(config: HomeworkSheetConfig, token: string): Promise<{ snapshot: SheetSnapshot; grid: Data[][] }> {
   if (!validConfig(config)) throw new Error('Tab BTVN chưa được phê duyệt.');
   const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}`);
-  // ponytail: template ceiling BI91; refuse a larger roster instead of guessing rows or extending conduct formulas.
-  url.searchParams.set('ranges', "'02. BTVN'!A1:BI91"); url.searchParams.set('includeGridData', 'true');
+  // ponytail: template ceiling BJ91; refuse a larger roster instead of guessing rows or extending conduct formulas.
+  url.searchParams.set('ranges', `'${config.sheetTitle}'!A1:BJ91`); url.searchParams.set('includeGridData', 'true');
   url.searchParams.set('fields', 'properties(timeZone),sheets(properties(sheetId,title,gridProperties),data(startRow,startColumn,rowData(values(userEnteredValue,effectiveValue,formattedValue,note,dataValidation))))');
   const response = await fetch(url, { method: 'GET', redirect: 'error', headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15_000) });
   if (!response.ok) throw new Error('Chưa đọc được tab BTVN.');
   const body = await boundedSheetJson(response), sheet = body.sheets?.[0], data = sheet?.data?.[0];
-  if (body.sheets?.length !== 1 || sheet?.properties?.sheetId !== config.sheetId || sheet.properties.title !== TITLE
+  if (body.sheets?.length !== 1 || sheet?.properties?.sheetId !== config.sheetId || sheet.properties.title !== config.sheetTitle
     || sheet.data?.length !== 1 || data?.startRow || data?.startColumn || !Array.isArray(data?.rowData) || data.rowData.length > 91) throw new Error('Tab BTVN đã đổi hoặc không đúng khuôn.');
   const grid: Data[][] = data.rowData.map((r: Data) => r.values || []);
   const cell = (r: number, c: number): SheetCell => {
@@ -31,13 +31,13 @@ export async function readHomeworkSnapshot(config: HomeworkSheetConfig, token: s
       ...(u.formulaValue ? { formula: u.formulaValue } : {}), ...(v.note ? { note: v.note } : {}) };
   };
   let lastColumn = 2; let statusOptions: string[] = [];
-  for (let c = 3; c <= Math.min(61, sheet.properties.gridProperties?.columnCount || 61); c++) {
+  for (let c = 3; c <= Math.min(62, sheet.properties.gridProperties?.columnCount || 62); c++) {
     const rule = grid[11]?.[c - 1]?.dataValidation?.condition;
     if (rule?.type === 'ONE_OF_LIST') { lastColumn = c; if (!statusOptions.length) statusOptions = rule.values.map((v: Data) => String(v.userEnteredValue)); }
   }
   const students: SheetSnapshot['students'] = [];
   for (let r = 12; r <= grid.length; r++) { const name = String(cell(r, 2).value || '').trim(); if (name) students.push({ row: r, name }); }
-  const snapshot: SheetSnapshot = { sheetId: config.sheetId, sheetTitle: TITLE, timeZone: body.properties?.timeZone || 'Asia/Ho_Chi_Minh',
+  const snapshot: SheetSnapshot = { sheetId: config.sheetId, sheetTitle: config.sheetTitle, timeZone: body.properties?.timeZone || 'Asia/Ho_Chi_Minh',
     labels: Array.from({ length: 11 }, (_, i) => cell(i + 1, 1)), students,
     headers: Array.from({ length: lastColumn - 2 }, (_, i) => ({ column: i + 3, subject: cell(3, i + 3), content: cell(4, i + 3), deadline: cell(5, i + 3), link: cell(6, i + 3) })),
     statusCells: {}, statusOptions, lastColumn, countFormulas: {} };
@@ -123,17 +123,20 @@ export async function syncHomeworkSheet(db: Firestore, classId: string, catchUp 
   try {
     const cls = (await db.collection('classes').doc(classId).get()).data() || {};
     if (deadlineOwner(cls) !== taken.config.teacherId || cls.sheetSync?.spreadsheetId !== taken.config.spreadsheetId || cls.sheetSync?.sheetId !== taken.config.sheetId) throw new Error('Nguồn BTVN hoặc chủ lớp đã thay đổi.');
-    await requireDeadlineSource(db, classId, taken.config.teacherId, taken.config.spreadsheetId);
+    const approved = (await db.collection('assistantHomeworkSources').doc(classId).get()).data();
+    if (approved?.active !== true || approved.teacherId !== taken.config.teacherId || approved.spreadsheetId !== taken.config.spreadsheetId
+      || approved.sheetId !== taken.config.sheetId || approved.sheetTitle !== taken.config.sheetTitle) throw new Error('Nguồn BTVN chưa được phê duyệt cho đúng lớp và tab.');
     const namespace = String(cls.teacherId || taken.config.teacherId);
     const view = await loadHomework(db, classId, namespace);
     const counts = await writeHomeworkBtvn(taken.config as HomeworkSheetConfig, view, 'https://giaoandewey.vercel.app', homeworkWriteToken, async () => {
       await db.runTransaction(async tx => {
-        const [s, c, liveClass, approved] = await Promise.all([tx.get(ref), tx.get(cfg), tx.get(db.collection('classes').doc(classId)), tx.get(db.collection('assistantDeadlineSources').doc(classId))]);
+        const [s, c, liveClass, approved] = await Promise.all([tx.get(ref), tx.get(cfg), tx.get(db.collection('classes').doc(classId)), tx.get(db.collection('assistantHomeworkSources').doc(classId))]);
         if (s.data()?.lease !== lease || s.data()!.leaseUntil <= Date.now() || fingerprint(c.data()) !== fingerprint(taken.config)
           || deadlineOwner(liveClass.data() || {}) !== taken.config.teacherId || String(liveClass.data()?.teacherId || taken.config.teacherId) !== namespace
           || liveClass.data()?.sheetSync?.spreadsheetId !== taken.config.spreadsheetId
           || liveClass.data()?.sheetSync?.sheetId !== taken.config.sheetId || approved.data()?.active !== true
-          || approved.data()?.teacherId !== taken.config.teacherId || approved.data()?.spreadsheetId !== taken.config.spreadsheetId) throw new Error('Quyền hoặc nguồn đồng bộ đã thay đổi.');
+          || approved.data()?.teacherId !== taken.config.teacherId || approved.data()?.spreadsheetId !== taken.config.spreadsheetId
+          || approved.data()?.sheetId !== taken.config.sheetId || approved.data()?.sheetTitle !== taken.config.sheetTitle) throw new Error('Quyền hoặc nguồn đồng bộ đã thay đổi.');
         tx.set(ref, { leaseUntil: Date.now() + 120_000 }, { merge: true });
       });
     });
