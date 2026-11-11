@@ -16,8 +16,16 @@ Chủ máy duyệt: “triển khai đi các hạng mục mà tôi với bạn v
 - [x] Test hồi quy writer: đúng tab, đúng ô, không xoá vùng, công thức/ghi tay, đổi Sheet khi đang đọc, token/quyền/lease, injection.
 - [x] Planner receipt mode, dùng chung cho web và máy chủ; test bài mới, bổ sung, xoá, trạng thái mơ hồ và cột trùng/hết.
 - [x] Writer server + revision/lease/đối soát độc lập thông báo; hook giao/nộp/chấm/xoá.
-- [ ] Chạy focused/full API, TypeScript web/API, build, rà độc lập.
-- [ ] Chuyển cấu hình đúng tab đã duyệt; xuất bản cả API web và bot, xác minh thực tế không tạo bài/nộp giả cho HS.
+- [x] Focused bot 80/80, main 79/79; TypeScript web/API và build hai repo; CI main 5261 test pass. Claude review độc lập hoãn theo chỉ đạo chủ máy.
+- [x] Cấu hình đúng ba tab; web main c02f163 và bot 0197bbc đã xuất bản; đối soát Sheet thật, không tạo bài/nộp giả.
 
 ## Giới hạn phát hành
 Không reset/stash WIP, không merge cả preview vào main. Giữ nguyên cấu trúc/công thức Sheet. Không in secret hoặc nạp lại env đã bị sanitize. Không tự gửi tin nhóm/HS.
+
+## Nghiệm thu 11/11/2026
+- Web chính: dpl_6tVAcEU4fH2986r2h9rmphLh7Cef, domain giaoandewey.vercel.app, PR #30 đã merge.
+- Bot: dpl_AkQNfjb43SimuDLcd3wzfDNVzj5X, Production, alias đầy đủ zalo-test.congapro60-devs-projects.vercel.app.
+- Lượt Preview thiếu secret scheduler (Production-only) trả HTTP lỗi; đã thay bằng Production hiện có, không đổi env/secret. Scheduler 42986114564 SUCCESS; ba state failed=false, syncedAt tăng, lượt lặp created=0/statusWrites=0.
+- Lượt ghi đầu: Columbus 5 cột/231 ô trạng thái, Olinda 2/352, LT1 10/10. Giữ 567 công thức; 62 ô trạng thái nhập tay Columbus được giữ. Không ghi tab IMPORTRANGE.
+- Webhook GET 200, deadline không xác thực 401, classroom POST không xác thực 401. Chưa E2E tạo/nộp thật trong trình duyệt; CUA không truy cập được. Đã đọc định dạng Google API, giữ kích thước/công thức/validation; chưa xác nhận hình thức bằng ảnh Google-rendered.
+- Claude QA và màn hình tổ trưởng thật còn chờ; không tuyên bố review khác họ đã PASS. Hai file WIP ngoài phạm vi giữ nguyên.
