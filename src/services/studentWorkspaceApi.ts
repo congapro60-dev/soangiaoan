@@ -3,6 +3,7 @@ import type {
   PublishedStudentReport, StudentAssignmentDetail, StudentReportSummary, StudentWorkspaceIndex,
 } from '../lib/classroom/studentWorkspace';
 import { moTaLoiHttp } from '../lib/httpErrorText';
+import type { GroupHomeworkView } from '../lib/classroom/groupHomework';
 
 const call = async <T,>(action: string, payload: Record<string, unknown> = {}): Promise<T> => {
   const current = auth.currentUser;
@@ -18,6 +19,8 @@ const call = async <T,>(action: string, payload: Record<string, unknown> = {}): 
 };
 
 export const fetchStudentWorkspace = (): Promise<StudentWorkspaceIndex> => call('studentWorkspace');
+export const fetchStudentGroupHomework = async (): Promise<GroupHomeworkView | null> =>
+  (await call<{ group: GroupHomeworkView | null }>('studentGroupHomework')).group;
 export const fetchStudentAssignmentDetail = (assignmentId: string | null, submissionId?: string): Promise<StudentAssignmentDetail> =>
   call('studentAssignmentDetail', { assignmentId, ...(submissionId ? { submissionId } : {}) });
 export const loadStudentReports = async (): Promise<StudentReportSummary[]> =>

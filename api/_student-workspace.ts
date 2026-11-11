@@ -1,4 +1,5 @@
 import { verifyStudentBotLink } from './_assistant-web-handoff.js';
+import { studentGroupHomework } from './_classroom-group-homework.js';
 import { attachAssignmentSolutions } from './_assignment-solutions.js';
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
@@ -196,9 +197,13 @@ const studentDiscoverCatalog = (grade: string): StudentDiscoverCatalogItem[] =>
     }));
 
 export const handleStudentWorkspaceAction = async (db: Db, body: Data, res: VercelResponse, projectors: Projectors): Promise<boolean> => {
-  if (!['studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport', 'studentDiscoverCatalog', 'studentAdaptiveList', 'studentAdaptiveOpen', 'studentAdaptiveSubmit', 'studentAdaptiveClosed', 'studentAdaptiveLibraryOpen', 'studentAdaptiveLibrarySubmit'].includes(body.action)) return false;
+  if (!['studentGroupHomework', 'studentWorkspace', 'studentAssignmentDetail', 'studentReports', 'studentReport', 'studentDiscoverCatalog', 'studentAdaptiveList', 'studentAdaptiveOpen', 'studentAdaptiveSubmit', 'studentAdaptiveClosed', 'studentAdaptiveLibraryOpen', 'studentAdaptiveLibrarySubmit'].includes(body.action)) return false;
   try {
     const context = await studentContext(db, body);
+    if (body.action === 'studentGroupHomework') {
+      res.status(200).json({ group: await studentGroupHomework(db, context) });
+      return true;
+    }
     if (body.action === 'studentDiscoverCatalog') {
       res.status(200).json({ catalog: studentDiscoverCatalog(text(context.classDoc.data()?.grade)) });
       return true;
