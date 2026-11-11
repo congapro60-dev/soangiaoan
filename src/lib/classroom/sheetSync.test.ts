@@ -364,6 +364,84 @@ describe('upgradeCountFormula', () => {
   });
 });
 
+describe('receiptOnly — tự động nhận bài không chấm hạnh kiểm', () => {
+  const base = (patch: Record<string, unknown> = {}) => ({
+    snapshot: snapshotOf({ headers: [{ column: 3, content: cell('Bài một'), link: cell(assignmentLink(ORIGIN, 'a1')) }], lastColumn: 3 }),
+    assignments: [{ id: 'a1', title: 'Bài một', dueAt: '2026-09-01T00:00:00Z' }],
+    roster, appOrigin: ORIGIN, nowMs: Date.UTC(2026, 10, 11), addLateOption: false,
+    receiptOnly: true, submissions: [], ...patch,
+  });
+  it('bài nháp/chưa nộp không thành Đủ hay Chưa làm dù đã quá hạn', () => {
+    const plan = planSheetSync(base({ submissions: [{ studentId: 's1', assignmentId: 'a1', createdAt: '2026-08-30T00:00:00Z', status: 'draft' }] }));
+    expect(plan.writes.filter(w => w.kind === 'status' || w.kind === 'countFormula')).toEqual([]);
+    expect(plan.upgradedStatusOptions).toContain('📥 Đã nộp web');
+    expect(plan.upgradedStatusOptions).toContain('🔎 Cần bổ sung');
+  });
+  it('lượt mới quyết định cần bổ sung; ghi chú giữ mốc nhận đầu tiên', () => {
+    const plan = planSheetSync(base({ submissions: [
+      { studentId: 's1', assignmentId: 'a1', createdAt: '2026-08-30T00:00:00Z', status: 'submitted' },
+      { studentId: 's1', assignmentId: 'a1', createdAt: '2026-09-02T00:00:00Z', status: 'graded', grade: { photoReview: { missingQuestionNumbers: ['2'] } } },
+      { studentId: 's2', assignmentId: 'a1', createdAt: '2026-09-02T00:00:00Z', status: 'grading' },
+    ] }));
+    expect(plan.writes.find(w => w.kind === 'status' && w.row === 12)).toMatchObject({ value: '🔎 Cần bổ sung', note: expect.stringContaining('2026-08-30T00:00:00.000Z') });
+    expect(plan.writes.find(w => w.kind === 'status' && w.row === 13)).toMatchObject({ value: '📥 Đã nộp web' });
+    expect(plan.writes.filter(w => w.kind === 'deadline' || w.kind === 'countFormula')).toEqual([]);
+  });
+  it('giữ công thức trả trống, ghi chú người dùng và trạng thái kiểm vở', () => {
+    const snapshot = snapshotOf({ headers: [{ column: 3, link: cell(assignmentLink(ORIGIN, 'a1')) }], lastColumn: 3,
+      statusCells: { '12:3': cell('', { formula: '=IF(TRUE;"";"x")' }), '13:3': cell('', { note: 'Đợi kiểm vở' }), '14:3': cell(SHEET_STATUS.thieu) } });
+    const submissions = roster.map(s => ({ ...s, assignmentId: 'a1', createdAt: '2026-09-02T00:00:00Z', status: 'submitted' }));
+    const plan = planSheetSync(base({ snapshot, submissions }));
+    expect(plan.writes.filter(w => w.kind === 'status')).toEqual([]);
+    expect(plan.counts.keptHuman).toBe(3);
+  });
+  it('không đoán cột có mã bài hoặc tên bài bị trùng', () => {
+    for (const headers of [
+      [3, 4].map(column => ({ column, link: cell(assignmentLink(ORIGIN, 'a1')) })),
+      [3, 4].map(column => ({ column, content: cell('Bài một') })),
+    ]) {
+      const plan = planSheetSync(base({ snapshot: snapshotOf({ headers, lastColumn: 4 }) }));
+      expect(plan.writes).toEqual([]);
+      expect(plan.skipped).toHaveLength(1);
+    }
+  });
+  it('xóa dấu nhận tự động khi bài nộp bị gỡ, giữ nguyên dấu sửa tay', () => {
+    const snapshot = snapshotOf({ headers: [{ column: 3, link: cell(assignmentLink(ORIGIN, 'a1')) }], lastColumn: 3,
+      statusCells: { '12:3': cell('📥 Đã nộp web', { note: 'SmartPlan: 📥 Đã nộp web · trước đây' }), '13:3': cell(SHEET_STATUS.du) } });
+    const plan = planSheetSync(base({ snapshot }));
+    expect(plan.writes.filter(w => w.kind === 'status')).toEqual([{ kind: 'status', row: 12, column: 3, value: '', note: '' }]);
+  });
+  it('cột tự tạo theo dõi đổi tên, thêm/bỏ hạn; cột thủ công giữ nguyên', () => {
+    const first = planSheetSync(base({ snapshot: snapshotOf(), assignments: [{ id: 'a1', title: 'Bài một' }] }));
+    const deadline = first.writes.find(w => w.kind === 'deadline');
+    expect(deadline).toMatchObject({ serial: null, note: expect.stringContaining('SmartPlan: ') });
+    const headers = [{ column: 3, content: cell('Bài một', { note: 'SmartPlan: Bài một · trước đây' }),
+      link: cell(assignmentLink(ORIGIN, 'a1')), deadline: cell(null, { note: 'SmartPlan:  · trước đây' }) }];
+    const add = planSheetSync(base({ snapshot: snapshotOf({ headers, lastColumn: 3 }), assignments: [{ id: 'a1', title: 'Bài đổi tên', dueAt: '2026-11-12T00:00:00Z' }] }));
+    expect(add.writes.find(w => w.kind === 'content')).toMatchObject({ value: 'Bài đổi tên' });
+    expect(add.writes.find(w => w.kind === 'deadline')).toMatchObject({ serial: expect.any(Number) });
+    const value = serial(2026, 11, 12, 7);
+    headers[0].deadline = cell(value, { note: `SmartPlan: ${value} · trước đây` });
+    const remove = planSheetSync(base({ snapshot: snapshotOf({ headers, lastColumn: 3 }), assignments: [{ id: 'a1', title: 'Bài một' }] }));
+    expect(remove.writes.find(w => w.kind === 'deadline')).toMatchObject({ serial: null });
+    const request = buildSheetRequests(remove, snapshotOf({ headers, lastColumn: 3 })).find((r: any) => r.updateCells?.range.startRowIndex === 4) as any;
+    expect(request.updateCells.rows[0].values[0].userEnteredValue).toEqual({});
+  });
+  it('không chiếm cột trống có ghi chú hoặc nhận danh sách mã bài lặp', () => {
+    const snapshot = snapshotOf({ headers: [{ column: 3, content: cell('', { note: 'Để dành' }) }], lastColumn: 3 });
+    expect(planSheetSync(base({ snapshot })).writes).toEqual([]);
+    expect(planSheetSync(base({ assignments: [{ id: 'a1', title: 'Một' }, { id: 'a1', title: 'Hai' }] })).writes).toEqual([]);
+  });
+  it('chỉ bổ sung lựa chọn ở ô nhận bài, không thay công thức đếm hay dropdown toàn lớp', () => {
+    const input = base({ submissions: [{ studentId: 's1', assignmentId: 'a1', createdAt: '2026-09-02T00:00:00Z', status: 'submitted' }] });
+    const requests = buildSheetRequests(planSheetSync(input), input.snapshot);
+    const validations = requests.filter(r => r.setDataValidation) as any[];
+    expect(validations).toHaveLength(1);
+    expect(validations[0].setDataValidation.range).toEqual({ sheetId: 559729920, startRowIndex: 11, endRowIndex: 12, startColumnIndex: 2, endColumnIndex: 3 });
+    expect(requests.some((r: any) => r.updateCells?.range.startRowIndex === 7)).toBe(false);
+  });
+});
+
 describe('cổng chặn vùng ghi', () => {
   const snapshot = snapshotOf();
   const status = (row: number, column: number): SheetWrite => ({ kind: 'status', row, column, value: SHEET_STATUS.du, note: 'SmartPlan: ✅ Đủ' });

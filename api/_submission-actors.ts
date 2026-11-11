@@ -1,3 +1,4 @@
+import { notifyHomeworkSheet } from './_assistant-homework-sheet.js';
 import { awaitsClarification } from '../src/lib/classroom/clarification.js';
 import { attachAssignmentSolutions } from './_assignment-solutions.js';
 import type { VercelResponse } from '@vercel/node';
@@ -313,6 +314,7 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
       if (grantRef) tx.update(grantRef, { consumed: true, consumedAt: now, submissionId });
     });
     } catch (reason) { await discardActorFiles(prepared); throw reason; }
+    await notifyHomeworkSheet(db, actor.classId);
     await releasePendingSources(prepared);
     res.status(200).json({ submission: created }); return true;
   } catch (reason) { if (reason instanceof SubmissionAccessError) { res.status(reason.statusCode).json({ error: reason.message }); return true; } throw reason; }

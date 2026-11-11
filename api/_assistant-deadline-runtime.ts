@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { deadlineTasksForStudent, digestText, digestWindow, sheetTaskRows, vietnamDate, type DeadlineConfig, type SheetTaskRow } from './_assistant-deadline.js';
 import { deadlineOwner, publicationVersion, requireDeadlineSource, validateDeadlineConfig } from './_assistant-deadline-config.js';
 import { readDeadlineSheet } from './_assistant-deadline-sheet.js';
-import { syncHomeworkSheet } from './_assistant-homework-sheet.js';
+import { runHomeworkSheetBatch } from './_assistant-homework-sheet.js';
 import { deadlineRecipientAllowed, drainDeadlineOutbox, enqueueDeadlineDigest, syncDeadlineNotices, zaloDeadlineSender, type DeadlineDeliveryPolicy, type DeadlineNotice, type DeadlineTarget } from './_assistant-deadline-notify.js';
 
 type Data = Record<string, any>;
@@ -152,8 +152,12 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
 
 /** At most three classes per authenticated invocation; scheduler follows nextAfter for the rest. */
 export async function runDeadlineBatch(db: Firestore, after = '') {
+  const homework = await runHomeworkSheetBatch(db, after);
   const policy = deadlineDeliveryPolicy();
-  if (!policy.enabled || !policy.botId || !process.env.ZALO_BOT_TOKEN) return { disabled: true };
+  if (!policy.enabled || !policy.botId || !process.env.ZALO_BOT_TOKEN) return {
+    disabled: homework.processed === 0 && homework.failed === 0 && !homework.nextAfter,
+    processed: homework.processed, failed: homework.failed, homework, nextAfter: homework.nextAfter,
+  };
   if (!(process.env.ZALO_BOT_ALLOWED_IDS || '').split(',').map(s => s.trim()).includes(policy.botId)) throw new Error('Bot chưa nằm trong danh sách cho phép.');
   const identity = await fetch(`https://bot-api.zaloplatforms.com/bot${encodeURIComponent(process.env.ZALO_BOT_TOKEN)}/getMe`, {
     method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(10_000),
@@ -164,9 +168,9 @@ export async function runDeadlineBatch(db: Firestore, after = '') {
   if (after) query = query.startAfter(after);
   const configs = await query.get(); let processed = 0, failed = 0;
   for (const doc of configs.docs.slice(0, 3)) {
-    try { await syncHomeworkSheet(db, doc.id); } catch { /* Mirror availability never gates deadline delivery. */ }
     try { await runDeadlineClass(db, doc.id, policy, process.env.ZALO_BOT_TOKEN); processed++; }
     catch { failed++; } // Only counts leave this endpoint; never source data, names or credentials.
   }
-  return { processed, failed, nextAfter: configs.size > 3 ? configs.docs[2].id : null };
+  const cursors = [homework.nextAfter, configs.size > 3 ? configs.docs[2].id : null].filter((id): id is string => Boolean(id));
+  return { processed, failed: failed + homework.failed, homework, nextAfter: cursors.sort()[0] || null };
 }

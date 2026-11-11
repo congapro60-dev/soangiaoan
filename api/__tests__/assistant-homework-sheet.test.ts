@@ -1,53 +1,73 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { homeworkSheetRows, writeHomeworkMirror } from '../_assistant-homework-sheet';
-const config = { spreadsheetId: 'abcdefghijklmnopqrstuvwx', sheetId: 456, sheetTitle: '02A. NỘP WEB', writeApproved: true };
+import { readHomeworkSnapshot, writeHomeworkBtvn } from '../_assistant-homework-sheet';
+const config = { spreadsheetId: 'abcdefghijklmnopqrstuvwx', sheetId: 456, sheetTitle: '02. BTVN', writeApproved: true };
+const labels = ['BTVN', 'Hướng dẫn', 'Môn', 'Nội dung', 'Hạn kiểm tra', 'Link', 'Tính lỗi?', 'Đủ', 'Thiếu', 'Chưa làm', 'Tổ'];
+const options = ['✅ Đủ', '⚠️ Thiếu', '❌ Chưa làm', '⏰ Nộp muộn', '➖ Không áp dụng'];
+function source(value = '', note = ''): any {
+ const rows: any[] = Array.from({ length: 12 }, (_, i) => ({ values: [{ formattedValue: labels[i] || '' }] }));
+ rows[11].values = [{}, { formattedValue: 'Em Một' }, { formattedValue: value, note, dataValidation: { condition: { type: 'ONE_OF_LIST', values: options.map(v => ({ userEnteredValue: v })) } } }];
+ return { properties: { timeZone: 'Asia/Saigon' }, sheets: [{ properties: { sheetId: 456, title: '02. BTVN', gridProperties: { rowCount: 200, columnCount: 61 } }, data: [{ rowData: rows }] }] };
+}
 const view: any = { updatedAt: '2026-11-11T01:00:00Z', assignments: [{ id: 'a1', title: '=PRIVATE_FORMULA()', dueAt: '', open: true }], students: [{ id: 's1', name: 'Em Một', groupId: '1', work: [{ assignmentId: 'a1', status: 'received', submittedAt: '2026-11-11T00:00:00Z', firstSubmittedAt: '2026-11-10T00:00:00Z' }] }] };
 afterEach(() => vi.unstubAllGlobals());
-describe('homework Sheet mirror is isolated from notebook checks', () => {
-  it('renders receipt labels and login-protected assignment links, never claims Đủ', () => {
-    const rows = homeworkSheetRows(view, 'https://giaoandewey.vercel.app');
-    expect(JSON.stringify(rows)).toContain('Đã nhận bài');
-    expect(JSON.stringify(rows)).not.toContain('✅ Đủ');
-    expect(JSON.stringify(rows)).toContain('/?baiGiao=a1');
-    expect(JSON.stringify(rows)).not.toContain('s1');
-  });
-  it('checks the dedicated tab marker and writes string cells only to its approved sheetId', async () => {
-    const fetcher = vi.fn(async (_url: unknown, options: any) => options?.method === 'POST' ? new Response('{}') : new Response(JSON.stringify({ sheets: [{ properties: { sheetId: 456, title: config.sheetTitle }, data: [{ rowData: [{ values: [{ formattedValue: 'BTVN TRÊN WEB — TỰ ĐỘNG' }] }] }] }] })));
-    vi.stubGlobal('fetch', fetcher);
-    await writeHomeworkMirror(config, view, 'https://giaoandewey.vercel.app', async () => 'synthetic');
-    const writes = fetcher.mock.calls.filter(([, opts]) => opts.method === 'POST');
-    expect(writes).toHaveLength(1);
-    const body = JSON.parse(writes[0][1].body);
-    expect(body.requests).toHaveLength(1);
-    expect(body.requests[0].updateCells.range.sheetId).toBe(456);
-    expect(body.requests[0].updateCells.fields).toBe('userEnteredValue');
-    expect(JSON.stringify(body)).not.toContain('formulaValue');
-    expect(JSON.stringify(body)).toContain('=PRIVATE_FORMULA()');
-    expect(body.requests.every((r: any) => r.updateCells?.range?.sheetId === config.sheetId)).toBe(true);
-  });
-  it('denies absent write approval, wrong title/id before obtaining a token', async () => {
-    for (const patch of [{ writeApproved: false }, { sheetTitle: '02. BTVN' }, { sheetId: -1 }, { spreadsheetId: '../secret' }]) {
-      const token = vi.fn();
-      await expect(writeHomeworkMirror({ ...config, ...patch }, view, 'https://giaoandewey.vercel.app', token)).rejects.toThrow();
-      expect(token).not.toHaveBeenCalled();
-    }
-  });
-  it('renews authorization after marker read and blocks POST when a lease has changed', async () => {
-    const events: string[] = [];
-    const fetcher = vi.fn(async (_url: unknown, options: any) => {
-      events.push(options?.method === 'POST' ? 'post' : 'get');
-      return new Response(JSON.stringify({ sheets: [{ properties: { sheetId: 456, title: config.sheetTitle }, data: [{ rowData: [{ values: [{ formattedValue: 'BTVN TRÊN WEB — TỰ ĐỘNG' }] }] }] }] }));
-    });
-    vi.stubGlobal('fetch', fetcher);
-    await expect(writeHomeworkMirror(config, view, 'https://giaoandewey.vercel.app', async () => 'synthetic', async () => { events.push('authorize'); throw new Error('lease expired'); })).rejects.toThrow('lease expired');
-    expect(events).toEqual(['get', 'authorize']);
-  });
-  it('does not overwrite a tab renamed/replaced or one that lacks its marker', async () => {
-    for (const props of [{ sheetId: 456, title: '02. BTVN' }, { sheetId: 999, title: config.sheetTitle }, { sheetId: 456, title: config.sheetTitle }]) {
-      const fetcher = vi.fn(async () => new Response(JSON.stringify({ sheets: [{ properties: props, data: [] }] })));
-      vi.stubGlobal('fetch', fetcher);
-      await expect(writeHomeworkMirror(config, view, 'https://giaoandewey.vercel.app', async () => 'synthetic')).rejects.toThrow();
-      expect(fetcher).toHaveBeenCalledTimes(1);
-    }
-  });
+describe('existing BTVN server writer', () => {
+ it('creates a column and receipt through surgical cells, never whole-tab clear or penalty', async () => {
+  const requests: any[] = [];
+  vi.stubGlobal('fetch', vi.fn(async (_u: unknown, o: any) => {
+   if (o.method === 'POST') { requests.push(...JSON.parse(o.body).requests); return new Response('{}'); }
+   return new Response(JSON.stringify(source()));
+  }));
+  const result = await writeHomeworkBtvn(config, view, 'https://giaoandewey.vercel.app', async () => 'synthetic');
+  expect(result.statusWrites).toBe(1);
+  expect(requests.length).toBeGreaterThan(2);
+  for (const r of requests) {
+   const body = r.updateCells || r.setDataValidation;
+   expect(body.range.sheetId).toBe(456);
+   if (r.updateCells) {
+    expect(body.range.endRowIndex - body.range.startRowIndex).toBe(1);
+    expect(body.range.endColumnIndex - body.range.startColumnIndex).toBe(1);
+    expect([6, 7, 8, 9]).not.toContain(body.range.startRowIndex);
+   }
+  }
+  expect(JSON.stringify(requests)).toContain('📥 Đã nộp web');
+  expect(JSON.stringify(requests)).toContain('=PRIVATE_FORMULA()');
+  expect(JSON.stringify(requests)).not.toContain('formulaValue');
+ });
+ it('preserves manual statuses, unrelated notes, and formulas', async () => {
+  for (const [value, note, formula] of [['⚠️ Thiếu', '', ''], ['', 'Ghi chú của tổ trưởng', ''], ['', '', '=IF(TRUE;"";"x")']]) {
+   const input = source(value, note);
+   input.sheets[0].data[0].rowData[3].values[2] = { formattedValue: 'Bài đã liên kết' };
+   input.sheets[0].data[0].rowData[5].values[2] = { formattedValue: 'https://giaoandewey.vercel.app/?baiGiao=a1' };
+   if (formula) input.sheets[0].data[0].rowData[11].values[2].userEnteredValue = { formulaValue: formula };
+   const posts: any[] = [];
+   vi.stubGlobal('fetch', vi.fn(async (_u: unknown, o: any) => { if (o.method === 'POST') posts.push(JSON.parse(o.body)); return new Response(JSON.stringify(input)); }));
+   await writeHomeworkBtvn(config, view, 'https://giaoandewey.vercel.app', async () => 'synthetic');
+   expect(posts.flatMap(p => p.requests).filter(r => r.updateCells?.range.startRowIndex === 11)).toHaveLength(0);
+  }
+ });
+ it('refuses a changed sheet before POST so a concurrent manual edit is not lost', async () => {
+  let reads = 0; const post = vi.fn();
+  vi.stubGlobal('fetch', vi.fn(async (_u: unknown, o: any) => {
+   if (o.method === 'POST') { post(); return new Response('{}'); }
+   return new Response(JSON.stringify(++reads === 1 ? source() : source('⚠️ Thiếu')));
+  }));
+  await expect(writeHomeworkBtvn(config, view, 'https://giaoandewey.vercel.app', async () => 'synthetic')).rejects.toThrow();
+  expect(post).not.toHaveBeenCalled();
+ });
+ it('blocks unapproved/replaced tabs and wrong origins before writes', async () => {
+  for (const patch of [{ writeApproved: false }, { sheetTitle: '02A. NỘP WEB' }, { sheetId: -1 }, { spreadsheetId: '../secret' }]) {
+   const token = vi.fn();
+   await expect(writeHomeworkBtvn({ ...config, ...patch }, view, 'https://giaoandewey.vercel.app', token)).rejects.toThrow();
+   expect(token).not.toHaveBeenCalled();
+  }
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ ...source(), sheets: [] }))));
+  await expect(readHomeworkSnapshot(config, 'synthetic')).rejects.toThrow();
+ });
+ it('rechecks authorization before POST and surfaces Google errors for retry', async () => {
+  const fetcher = vi.fn(async (_u: unknown, o: any) => o.method === 'POST' ? new Response('{}', { status: 429 }) : new Response(JSON.stringify(source())));
+  vi.stubGlobal('fetch', fetcher);
+  await expect(writeHomeworkBtvn(config, view, 'https://giaoandewey.vercel.app', async () => 'synthetic', async () => { throw new Error('lease changed'); })).rejects.toThrow('lease changed');
+  expect(fetcher.mock.calls.every(([, o]) => o.method !== 'POST')).toBe(true);
+  await expect(writeHomeworkBtvn(config, view, 'https://giaoandewey.vercel.app', async () => 'synthetic')).rejects.toThrow();
+ });
 });

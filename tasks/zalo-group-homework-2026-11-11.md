@@ -1,5 +1,7 @@
 # BTVN web và tổ trưởng — 11/11/2026
 
+> Lịch sử đợt phát hành trước. Thiết kế tab riêng dưới đây đã được chủ máy thay bằng đồng bộ ngay `02. BTVN`; xem `tasks/btvn-auto-sync-2026-11-11.md`. Chưa coi mô tả lịch sử là bằng chứng bản mới đã lên production.
+
 Chủ máy duyệt triển khai sau tư vấn; Codex viết trực tiếp, Claude QA sau. Đúng repo `spai-assistant-ph-hs`, nhánh `preview/zalo-live-test`. Không đụng WIP `scripts/zalo-webhook-sync.cjs`, `tasks/zalo-improvements-2026-11-06.md`.
 
 ## Kết quả và giới hạn

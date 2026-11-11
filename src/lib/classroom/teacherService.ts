@@ -121,6 +121,17 @@ export const setClassSheetSync = async (classId: string, sheetSync: ClassSheetSy
   await callTeacherApi({ action: 'setClassSheetSync', classId, sheetSync });
 };
 
+export interface ClassSheetSyncStatus {
+  enabled: boolean;
+  syncedAt?: number;
+  failed: boolean;
+  pending: boolean;
+  nextAt?: number;
+  counts?: { created: number; statusWrites: number; keptHuman: number; skipped: number; unmatched: number };
+}
+export const getClassSheetSyncStatus = (classId: string): Promise<ClassSheetSyncStatus> =>
+  callTeacherApi({ action: 'getClassSheetSyncStatus', classId });
+
 /** Lưu file điểm thi (tab MOET/TDS) của lớp; truyền null để bỏ nối. */
 export const setClassExamSheet = async (
   classId: string,

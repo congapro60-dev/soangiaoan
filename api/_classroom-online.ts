@@ -1,3 +1,4 @@
+import { notifyHomeworkSheet } from './_assistant-homework-sheet.js';
 import { verifyStudentBotLink } from './_assistant-web-handoff.js';
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
@@ -601,6 +602,7 @@ const submitExam = async (db: Db, body: Body, res: ResponseLike): Promise<void> 
       ...(nonce ? { lastSubmitNonce: nonce.slice(0, 200) } : {}),
     });
   });
+  await notifyHomeworkSheet(db, loaded.context.link.classId);
   return void res.status(200).json({ submitted: true, alreadySubmitted: false, attempt: attemptProjection(loaded.context, loaded.attemptRef.id, next || loaded.attempt) });
 };
 
@@ -838,6 +840,7 @@ const commitOnlineGradeChange = async (
     committed = nextDocument as unknown as StoredOnlineAttempt;
   });
   if (!committed) throw new ClassroomOnlineError(500, 'Không thể lưu kết quả chấm.');
+  await notifyHomeworkSheet(db, context.classId);
   try {
     await syncOnlineSkillEvidence(db, context, committed, now);
   } catch (error) {

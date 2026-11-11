@@ -1,3 +1,4 @@
+import { notifyHomeworkSheet } from './_assistant-homework-sheet.js';
 // Việc 4 — HS chụp bài gửi bot Zalo tự chấm.
 //
 // Luồng: HS nhắn 8 → chọn bài (chấm <số>) → gửi ảnh (tối đa 10, trong 60 phút) → nhắn xong
@@ -916,6 +917,7 @@ export const finishPhotoSession = async (botId: string, userId: string, actor?: 
     return [outcome.reason, '', MENU_HINT].join('\n');
   }
 
+  await notifyHomeworkSheet(db(), s.classId);
   const token = String(process.env.ZALO_BOT_TOKEN || '');
   const chatId = userId;
   chayNgam(gradeAndNotify(token, chatId, submissionId, outcome.session, actor));
