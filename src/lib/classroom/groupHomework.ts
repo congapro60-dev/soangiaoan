@@ -1,4 +1,4 @@
-import { awaitsClarification } from './clarification';
+import { awaitsClarification } from './clarification.js';
 
 type Data = Record<string, any>;
 export interface HomeworkGroup { id: string; leaderStudentId: string; memberStudentIds: string[] }

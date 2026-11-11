@@ -966,3 +966,5 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 
 ## 2026-11-11 — Phạm vi deadline
 - Mục 11 chỉ phục vụ file deadline online; trạng thái hoàn thành lấy từ ô Sheet. BTVN web nằm ở mục 3. Bản tin tổng hợp phải phân biệt hai nguồn. Link workbook cần quyết định chủ máy vì có tab khác; chủ máy đã chọn dùng nguyên link gốc.
+
+- 11/11/2026: Module dùng chung được API Vercel import phải dùng đường dẫn ESM có .js. TypeScript moduleResolution=bundler và Vitest đều có thể bỏ sót lỗi runtime ERR_MODULE_NOT_FOUND; smoke URL deployment trước khi đổi alias.
