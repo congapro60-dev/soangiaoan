@@ -25,6 +25,7 @@ import type { StudentFeedItem } from '../../../../lib/classroom/studentNotificat
 import type { StudentDiscoverCatalogItem } from '../../../../lib/discover/types';
 import type { StudentAdaptiveAssignment } from '../../../../services/studentPortalApi';
 import { StudentClosedAdaptive } from './StudentClosedAdaptive';
+import { StudentGroupHomework } from './StudentGroupHomework';
 
 const StudentPublishedReports = lazy(() => import('./StudentPublishedReports').then(module => ({ default: module.StudentPublishedReports })));
 
@@ -377,6 +378,7 @@ export const StudentPortalDashboard = (props: Props) => {
         )}
 
 
+      {section === 'assignments' && !opened && !showPractice && <StudentGroupHomework key={session.studentId} />}
       {section === 'assignments' && !opened && !showPractice && <section aria-labelledby="assignments-heading">
         <div className="flex flex-wrap items-center justify-between gap-2"><h1 id="assignments-heading" className="text-xl font-black text-slate-900">Bài tập của em</h1>
           <div className="flex gap-2"><button type="button" className={buttonClass} onClick={() => setShowPractice(true)}>Luyện tập</button><button type="button" className={buttonClass} disabled={uploadingId !== ''} onClick={() => onChooseImage(null)}><Camera className="h-4 w-4" />Chấm thử</button></div>

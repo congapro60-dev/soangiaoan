@@ -26,6 +26,16 @@ describe('bot student Firestore authorization', () => {
     await assertFails(getDoc(doc(db, `assistantStudentWebSessions/${sessionId}`)));
     await assertFails(getDoc(doc(db, 'classes/c/studentSecrets/s')));
   });
+  it('keeps group grants and mirror configuration server-only, including for teachers', async () => {
+    for (const collection of ['classHomeworkGroups', 'assistantHomeworkSheets', 'assistantHomeworkSyncState']) {
+      await env.withSecurityRulesDisabled(async context => { await setDoc(doc(context.firestore(), `${collection}/c`), { teacherId: 'teacher', active: true }); });
+      for (const user of [uid, 'teacher']) {
+        const db = env.authenticatedContext(user).firestore();
+        await assertFails(getDoc(doc(db, `${collection}/c`)));
+        await assertFails(setDoc(doc(db, `${collection}/c`), { teacherId: user, active: true }));
+      }
+    }
+  });
   it.each(['pin', 'unlink', 'student', 'class', 'expiry'])('revokes direct reads after %s change', async change => {
     await env.withSecurityRulesDisabled(async context => {
       const db = context.firestore();

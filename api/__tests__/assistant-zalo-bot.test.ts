@@ -83,6 +83,10 @@ vi.mock('../_assistant-confirmations', () => ({
 vi.mock('../_assistant-jobs', () => ({ getAssistantJobStatus: vi.fn(async () => ({ status: 'succeeded', result: { url: 'https://private.test/?token=secret' } })) }));
 
 import { issueWebHandoff } from '../_assistant-web-handoff';
+import { homeworkGroupsContext, loadGroupHomework } from '../_classroom-group-homework';
+vi.mock('../_classroom-group-homework', () => ({
+  homeworkGroupsContext: vi.fn(async () => null), loadGroupHomework: vi.fn(async () => null), groupHomeworkSummary: vi.fn(() => 'GROUP_SUMMARY'),
+}));
 import handler from '../assistant';
 import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from '../_assistant-auth';
 import { executeAssistantConfirmation, cancelAssistantConfirmation } from '../_assistant-confirmations';
@@ -124,6 +128,8 @@ async function request(body: unknown = event(), secret: string | undefined = 'we
 const sent = () => fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/sendMessage'));
 beforeEach(() => {
   vi.restoreAllMocks(); vi.clearAllMocks();
+  vi.mocked(homeworkGroupsContext).mockReset().mockResolvedValue(null);
+  vi.mocked(loadGroupHomework).mockReset().mockResolvedValue(null);
   vi.mocked(hasPhotoSubmissionIntent).mockReset().mockResolvedValue(false);
   vi.stubEnv('ZALO_BOT_TOKEN', 'fake-token'); vi.stubEnv('ZALO_BOT_ID', 'bot-1');
   vi.stubEnv('ZALO_BOT_ALLOWED_IDS', 'bot-1'); vi.stubEnv('ZALO_BOT_ALLOWED_USER_IDS', 'user-1');
@@ -134,6 +140,21 @@ beforeEach(() => {
 });
 
 describe('official Zalo Bot webhook through assistant HTTP route', () => {
+  it('lệnh tổ uses the linked pupil; ordinary pupils and parents receive no group data', async () => {
+    vi.mocked(resolveChannelActor).mockResolvedValue({ firebaseUid: 'pinlink:student:c-1:s-1', linkId: 'l', role: 'student', classId: 'c-1', studentId: 's-1' } as any);
+    await request(event('tổ', 'group-ordinary'));
+    expect(JSON.parse(sent()[0][1].body).text).toContain('chưa được phân quyền');
+    expect(loadGroupHomework).not.toHaveBeenCalled();
+    vi.mocked(homeworkGroupsContext).mockResolvedValue({ classId: 'c-1', teacherId: 't-1', groups: [], students: [] } as any);
+    vi.mocked(loadGroupHomework).mockResolvedValue({ assignments: [], students: [], updatedAt: '' });
+    await request(event('tổ', 'group-leader'));
+    expect(loadGroupHomework).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), 's-1');
+    expect(JSON.parse(sent().at(-1)![1].body).text).toContain('GROUP_SUMMARY');
+    vi.mocked(resolveChannelActor).mockResolvedValue({ role: 'parent', classId: 'c-1', studentId: 's-1' } as any);
+    vi.mocked(loadGroupHomework).mockClear();
+    await request(event('tổ', 'group-parent'));
+    expect(loadGroupHomework).not.toHaveBeenCalled();
+  });
   it.each(['wrong', undefined])('rejects invalid or missing webhook secret %s', async secret => {
     // Passing undefined explicitly must omit the header rather than use the helper default.
     const result = await request(event(), secret === undefined ? '' : secret);

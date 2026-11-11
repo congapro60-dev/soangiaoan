@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { deadlineCommand } from './_assistant-deadline.js';
 import { deadlineMenuReply } from './_assistant-deadline-runtime.js';
 import { issueWebHandoff, confirmWebHandoff } from './_assistant-web-handoff.js';
+import { homeworkGroupsContext, loadGroupHomework, groupHomeworkSummary } from './_classroom-group-homework.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { claimAssistantRequestNonce, consumeLinkCode, resolveChannelActor } from './_assistant-auth.js';
 import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssistantConfirmation } from './_assistant-confirmations.js';
@@ -288,6 +289,15 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
   if (role === 'parent' || role === 'student') {
     const classId = String(linkedActor.classId ?? ''); const studentId = String(linkedActor.studentId ?? '');
     if (!classId || !studentId) return MENU_REPLIES.noData;
+    if (/^(tổ|to|theo dõi tổ|theo doi to)$/i.test(message.trim().normalize('NFC'))) {
+      if (role !== 'student') { await sendStyled(token, chatId, 'Chức năng này dành cho tổ trưởng đã được thầy cô phân công.'); return ''; }
+      try {
+        const context = await homeworkGroupsContext(getAdminDb(), classId);
+        const view = context ? await loadGroupHomework(getAdminDb(), context, studentId) : null;
+        await sendStyled(token, chatId, view ? groupHomeworkSummary(view) : 'Em chưa được phân quyền tổ trưởng. Nếu thầy cô đã phân công, em nhờ thầy cô kiểm tra tài khoản liên kết.', false);
+      } catch { await sendStyled(token, chatId, 'Chưa xác minh được dữ liệu tổ. Em thử lại sau; thông báo này chưa xác nhận các bạn đã nộp đủ.'); }
+      return '';
+    }
     const handoffConfirmation = await confirmWebHandoff(getAdminDb(), botId, userId, message);
     if (handoffConfirmation !== null) { await sendStyled(token, chatId, handoffConfirmation, false); return ''; }
     if (/^(web|link)$/i.test(message.trim())) {
@@ -387,7 +397,13 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
         await sendStyled(token, chatId, statusText, false);
         return '';
       }
-      const menuReply = await parentMenuReply(getAdminDb(), classId, studentId, message, role);
+      let menuReply = await parentMenuReply(getAdminDb(), classId, studentId, message, role);
+      if (role === 'student' && choice.kind === 'menu') {
+        try {
+          const context = await homeworkGroupsContext(getAdminDb(), classId);
+          if (context?.groups.some(g => g.leaderStudentId === studentId)) menuReply += '\n\nTổ trưởng: nhắn "tổ" vào ô chat để kiểm tra tình trạng nộp BTVN của tổ mình.';
+        } catch { /* Optional group access must not interrupt the student's own menu. */ }
+      }
       // Cả hai đường đều KHÔNG qua output() (che link) vì nội dung do hệ tự dựng:
       // link web gửi THUẦN để URL render được.
       // MENU gửi THUẦN, KHÔNG markdown: Zalo markdown tự đánh số lại danh sách 1..10 nên

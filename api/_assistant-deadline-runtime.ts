@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { deadlineTasksForStudent, digestText, digestWindow, sheetTaskRows, vietnamDate, type DeadlineConfig, type SheetTaskRow } from './_assistant-deadline.js';
 import { deadlineOwner, publicationVersion, requireDeadlineSource, validateDeadlineConfig } from './_assistant-deadline-config.js';
 import { readDeadlineSheet } from './_assistant-deadline-sheet.js';
+import { syncHomeworkSheet } from './_assistant-homework-sheet.js';
 import { deadlineRecipientAllowed, drainDeadlineOutbox, enqueueDeadlineDigest, syncDeadlineNotices, zaloDeadlineSender, type DeadlineDeliveryPolicy, type DeadlineNotice, type DeadlineTarget } from './_assistant-deadline-notify.js';
 
 type Data = Record<string, any>;
@@ -163,6 +164,7 @@ export async function runDeadlineBatch(db: Firestore, after = '') {
   if (after) query = query.startAfter(after);
   const configs = await query.get(); let processed = 0, failed = 0;
   for (const doc of configs.docs.slice(0, 3)) {
+    try { await syncHomeworkSheet(db, doc.id); } catch { /* Mirror availability never gates deadline delivery. */ }
     try { await runDeadlineClass(db, doc.id, policy, process.env.ZALO_BOT_TOKEN); processed++; }
     catch { failed++; } // Only counts leave this endpoint; never source data, names or credentials.
   }

@@ -22,6 +22,7 @@ const makeDb = (store: Record<string, Data>) => {
   const collection = (path: string, filters: Array<[string, unknown]> = []) => ({
     doc: (id: string) => doc(`${path}/${id}`),
     where: (field: string, _op: string, value: unknown) => collection(path, [...filters, [field, value]]),
+    limit: (_max: number) => collection(path, filters),
     get: async () => ({ docs: Object.entries(store).filter(([key, value]) => key.startsWith(`${path}/`)
       && !key.slice(path.length + 1).includes('/') && filters.every(([field, target]) => value[field] === target))
       .map(([path, value]) => ({ id: path.split('/').at(-1)!, data: () => value, ref: doc(path) })) }),
@@ -61,6 +62,26 @@ beforeEach(() => {
 });
 
 describe('student workspace private read', () => {
+  it('group access comes only from the linked student, never caller IDs; ordinary pupils get no group', async () => {
+    store['classes/class/students/member'] = { name: 'Em Trong Tổ' };
+    store['classes/class/students/other'] = { name: 'Em Tổ Khác' };
+    store['classHomeworkGroups/class'] = { active: true, teacherId: 'teacher', groups: [
+      { id: '1', leaderStudentId: 'student', memberStudentIds: ['student', 'member'] },
+      { id: '2', leaderStudentId: 'other', memberStudentIds: ['other'] },
+    ] };
+    store['submissions/member'] = submission({ studentId: 'member' });
+    const result = await call({ action: 'studentGroupHomework', classId: 'forged', studentId: 'other' });
+    expect(result.status).toBe(200);
+    const group = result.payload.group as any;
+    expect(group.students.map((s: any) => s.id)).toEqual(['student', 'member']);
+    for (const secret of ['PHOTO', 'ANSWER', 'FEEDBACK', 'INTERNAL', 'SECRET KEY', 'fileUrls', 'grade']) expect(JSON.stringify(group)).not.toContain(secret);
+    store['studentLinks/uid'].studentId = 'member';
+    expect((await call({ action: 'studentGroupHomework', studentId: 'student' })).payload.group).toBeNull();
+    expect((await call({ action: 'studentGroupHomework', idToken: 'bad' })).status).toBe(401);
+    store['studentLinks/uid'].studentId = 'student';
+    store['classHomeworkGroups/class'].teacherId = 'old-owner';
+    expect((await call({ action: 'studentGroupHomework' })).payload.group).toBeNull();
+  });
   it('returns only safe Discover seed metadata for the linked class grade', async () => {
     store['classes/class'].grade = '10';
     store['adaptiveLessons/private'] = {
