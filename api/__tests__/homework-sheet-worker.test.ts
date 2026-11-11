@@ -13,7 +13,7 @@ function fakeDb(patch: Data = {}) {
     [configPath]: { ...config }, [statePath]: { revision: 0 },
     'classes/c1': { teacherId: 'gv', sheetSync: { ...config } },
     'classes/c1/students/s1': { name: 'Em Một' },
-    'assistantDeadlineSources/c1': { active: true, teacherId: 'gv', spreadsheetId: config.spreadsheetId },
+    'assistantHomeworkSources/c1': { active: true, teacherId: 'gv', spreadsheetId: config.spreadsheetId, sheetId: config.sheetId, sheetTitle: config.sheetTitle },
     'assignments/a1': { classId: 'c1', teacherId: 'gv', title: 'Bài 1', type: 'upload', createdAt: '2026-11-11T00:00:00Z' },
     'submissions/w1': { classId: 'c1', teacherId: 'gv', studentId: 's1', assignmentId: 'a1', status: 'submitted', createdAt: '2026-11-11T01:00:00Z' },
     ...patch,
@@ -34,13 +34,13 @@ function fakeDb(patch: Data = {}) {
   } };
   return { db, data };
 }
-function sheet() {
+function sheet(title = config.sheetTitle) {
   const labels = ['BTVN', 'Hướng dẫn', 'Môn', 'Nội dung', 'Hạn kiểm tra', 'Link', 'Tính lỗi?', 'Đủ', 'Thiếu', 'Chưa làm', 'Tổ'];
   const rows: any[] = Array.from({ length: 12 }, (_, i) => ({ values: [{ formattedValue: labels[i] || '' }] }));
   rows[3].values[2] = { formattedValue: 'Bài 1' };
   rows[5].values[2] = { formattedValue: 'https://giaoandewey.vercel.app/?baiGiao=a1' };
   rows[11].values = [{}, { formattedValue: 'Em Một' }, { dataValidation: { condition: { type: 'ONE_OF_LIST', values: ['✅ Đủ', '❌ Chưa làm'].map(userEnteredValue => ({ userEnteredValue })) } } }];
-  return { properties: { timeZone: 'Asia/Saigon' }, sheets: [{ properties: { sheetId: 456, title: '02. BTVN', gridProperties: { rowCount: 200, columnCount: 61 } }, data: [{ rowData: rows }] }] };
+  return { properties: { timeZone: 'Asia/Saigon' }, sheets: [{ properties: { sheetId: 456, title, gridProperties: { rowCount: 200, columnCount: 61 } }, data: [{ rowData: rows }] }] };
 }
 function stubSheets(post: () => void | Promise<void> = () => {}) {
   const fetcher = vi.fn(async (_url: unknown, options: any) => { if (options.method === 'POST') { await post(); return new Response('{}'); } return new Response(JSON.stringify(sheet())); });
@@ -48,6 +48,25 @@ function stubSheets(post: () => void | Promise<void> = () => {}) {
 }
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 describe('BTVN durable worker', () => {
+  it.each(['02. BTVN', '10. OLINDA', '12. TOÁN LT1'])('isolates the approved class and tab %s', async title => {
+    const selected = { ...config, sheetTitle: title };
+    const { db, data } = fakeDb({
+      [configPath]: selected,
+      'classes/c1': { teacherId: 'gv', sheetSync: selected },
+      'assistantHomeworkSources/c1': { ...selected, active: true },
+      'assignments/foreign': { classId: 'other-class', teacherId: 'gv', title: 'FOREIGN_ASSIGNMENT', type: 'upload' },
+      'submissions/foreign': { classId: 'other-class', teacherId: 'gv', studentId: 's1', assignmentId: 'a1', status: 'submitted', createdAt: '2026-11-11T02:00:00Z' },
+    });
+    const writes: any[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (_url: unknown, options: any) => {
+      if (options.method === 'POST') { writes.push(...JSON.parse(options.body).requests); return new Response('{}'); }
+      return new Response(JSON.stringify(sheet(title)));
+    }));
+    await syncHomeworkSheet(db, 'c1');
+    expect(data[statePath]).toMatchObject({ failed: false, counts: { statusWrites: 1, created: 0 } });
+    expect(JSON.stringify(writes)).not.toContain('FOREIGN_ASSIGNMENT');
+    expect(JSON.stringify(writes)).not.toContain('2026-11-11T02:00:00');
+  });
   it('retains a durable dirty revision when another worker owns the lease', async () => {
     const { db, data } = fakeDb({ [statePath]: { revision: 4, syncedRevision: 3, lease: 'running', leaseUntil: Date.now() + 60_000 } });
     const fetcher = stubSheets();
@@ -79,8 +98,10 @@ describe('BTVN durable worker', () => {
   it('rejects owner/source changes before Google writes', async () => {
     for (const changed of [
       { 'classes/c1': { teacherId: 'other', sheetSync: { ...config } } },
-      { 'assistantDeadlineSources/c1': { teacherId: 'gv', active: false, spreadsheetId: config.spreadsheetId } },
+      { 'assistantHomeworkSources/c1': { teacherId: 'gv', active: false, spreadsheetId: config.spreadsheetId, sheetId: config.sheetId, sheetTitle: config.sheetTitle } },
       { 'classes/c1': { teacherId: 'gv', sheetSync: { ...config, sheetId: 99 } } },
+      { 'assistantHomeworkSources/c1': { teacherId: 'gv', active: true, spreadsheetId: config.spreadsheetId, sheetId: 999, sheetTitle: config.sheetTitle } },
+      { 'assistantHomeworkSources/c1': { teacherId: 'gv', active: true, spreadsheetId: config.spreadsheetId, sheetId: config.sheetId, sheetTitle: '10. OLINDA' } },
     ]) {
       const { db, data } = fakeDb(changed), fetcher = stubSheets();
       await syncHomeworkSheet(db, 'c1');
