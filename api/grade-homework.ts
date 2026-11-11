@@ -1,4 +1,5 @@
 import { bindParentWebCookie, verifyStudentBotLink } from './_assistant-web-handoff.js';
+import { notifyHomeworkSheet } from './_assistant-homework-sheet.js';
 import { annotateSubmission, handleAnnotateSubmissionPhotos, annotationImageUrls, buildAnnotationPrompt, missingAnnotationRows } from './_submission-annotations.js';
 import { runGradingRefreshItem } from './_grading-refresh.js';
 import { handleReviewCorrectionAttempt, buildCorrectionReviewPrompt } from './_correction-attempts.js';
@@ -753,6 +754,7 @@ const gradeOneSubmission = async (
       previous.assignmentId && solutionVersionAtGrading ? { assignmentId: previous.assignmentId, examCode: gradeCtx.examCode || previous.examCode || '', version: solutionVersionAtGrading } : undefined,
     );
     if (!committed.committed) return { success: false };
+    await notifyHomeworkSheet(db, previous.classId);
 
     if (isTeacherHandMarked) {
       await claim.ref.update({ handMarkedPublished: true, handMarkedPublishedAt: now, handMarkedPublishedBy: actorUid }).catch(() => undefined);
@@ -804,6 +806,7 @@ const gradeOneSubmission = async (
         aiBlockedReason: error.reason,
         aiBlockedAt: new Date().toISOString(),
       });
+      await notifyHomeworkSheet(db, previous.classId);
       throw error;
     }
     const safeMessage = safeGradeErrorMessage(error);
@@ -834,6 +837,7 @@ const gradeOneSubmission = async (
       ...(newLastGradingError ? { lastGradingError: newLastGradingError } : {}),
       ...(newLastGradingErrorRaw ? { lastGradingErrorRaw: newLastGradingErrorRaw } : {}),
     });
+    await notifyHomeworkSheet(db, previous.classId);
     return { success: false, gradePreserved: hadPreviousGrade, failureCode: gradeFailureCode(error), failureMessage: safeMessage, ...retryAfterOf(error) };
   }
 };

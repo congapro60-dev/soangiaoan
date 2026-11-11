@@ -1,4 +1,5 @@
 import { attachAssignmentSolutions } from './_assignment-solutions.js';
+import { notifyHomeworkSheet } from './_assistant-homework-sheet.js';
 import { handMarkedProjection } from './_hand-marked-work.js';
 import type { VercelResponse } from '@vercel/node';
 import { projectPhotoMarks, projectPhotoSteps, projectReadingRegions } from '../src/lib/classroom/photoMarks.js';
@@ -706,6 +707,7 @@ export const handleCreateAssignment = async (db: Db, body: Body, res: VercelResp
     updatedBy: context.uid,
   });
   await db.collection('assignments').doc(id).set(assignment);
+  await notifyHomeworkSheet(db, context.classId);
   return void res.status(200).json({ assignment });
 };
 
@@ -743,6 +745,7 @@ export const handleCreateExamAssignment = async (db: Db, body: Body, res: Vercel
     updatedBy: context.uid,
   });
   await db.collection('assignments').doc(id).set(assignment);
+  await notifyHomeworkSheet(db, context.classId);
   return void res.status(200).json({ assignment });
 };
 
@@ -887,6 +890,7 @@ export const handleCreateSupportActivity = async (db: Db, body: Body, res: Verce
     transaction.set(db.collection('exams').doc(examId), exam);
     transaction.set(db.collection('assignments').doc(assignmentId), assignment);
   });
+  await notifyHomeworkSheet(db, context.classId);
   return void res.status(200).json({ exam, assignment });
 };
 
@@ -951,6 +955,7 @@ export const handleUpdateAssignment = async (db: Db, body: Body, res: VercelResp
     return void res.status(400).json({ error: 'Thao tác bài giao không hợp lệ.' });
   }
   await found.assignmentRef.update(patch);
+  await notifyHomeworkSheet(db, found.context.classId);
   return void res.status(200).json({ updated: true, assignmentId: found.assignmentRef.id });
 };
 
@@ -1352,6 +1357,29 @@ export const handleRemoveTeacher = async (db: Db, body: Body, res: VercelRespons
 
 export const handleTeacherAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
   const action = String(body.action || '');
+  if (action === 'getClassSheetSyncStatus') {
+    const context = await teacherContext(db, body, res);
+    if (!context) return true;
+    const [configSnap, stateSnap, sourceSnap] = await Promise.all([
+      db.collection('assistantHomeworkSheets').doc(context.classId).get(),
+      db.collection('assistantHomeworkSyncState').doc(context.classId).get(),
+      db.collection('assistantHomeworkSources').doc(context.classId).get(),
+    ]);
+    const config = configSnap.data(), source = sourceSnap.data(), owner = context.classData.ownerId || context.classData.teacherId;
+    const enabled = config?.enabled === true && config.writeApproved === true && ['02. BTVN', '10. OLINDA', '12. TOÁN LT1'].includes(config.sheetTitle)
+      && typeof owner === 'string' && !!owner && config.teacherId === owner
+      && config.spreadsheetId === context.classData.sheetSync?.spreadsheetId && config.sheetId === context.classData.sheetSync?.sheetId
+      && source?.active === true && source.teacherId === owner && source.spreadsheetId === config.spreadsheetId
+      && source.sheetId === config.sheetId && source.sheetTitle === config.sheetTitle;
+    const state = enabled ? stateSnap.data() || {} : {};
+    const count = (value: unknown): number => Number.isSafeInteger(value) && Number(value) >= 0 ? Number(value) : 0;
+    res.status(200).json({
+      enabled, syncedAt: count(state.syncedAt) || null, failed: state.failed === true,
+      pending: count(state.revision) > count(state.syncedRevision), nextAt: count(state.nextAt) || null,
+      counts: Object.fromEntries(['created', 'statusWrites', 'keptHuman', 'skipped', 'unmatched'].map(key => [key, count(state.counts?.[key])])),
+    });
+    return true;
+  }
   if (action === 'listAccessibleClasses') { await handleListAccessibleClasses(db, body, res); return true; }
   if (action === 'getAccessibleClass') { await handleGetAccessibleClass(db, body, res); return true; }
   if (action === 'teacherAssignments') { await handleTeacherAssignments(db, body, res); return true; }

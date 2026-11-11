@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, FileSpreadsheet, Link2, Loader2, RefreshCw, Unlink, X } from 'lucide-react';
 import type { AssignmentDoc, ClassSheetSync, SubmissionDoc } from '../../../lib/classroom/types';
 import { listAssignmentsForClass, listClassRoster, listSubmissionsForClass, type RosterStudent } from '../../../lib/classroom/submissionService';
-import { setClassSheetSync } from '../../../lib/classroom/teacherService';
+import { getClassSheetSyncStatus, setClassSheetSync, type ClassSheetSyncStatus } from '../../../lib/classroom/teacherService';
 import {
   applySheetRequests,
   readSpreadsheetInfo,
@@ -37,7 +37,7 @@ const errorText = (error: unknown): string => error instanceof Error ? error.mes
 
 /** Chỉ bài giao nộp ảnh/file là BTVN; đề online và bài luyện không lên sheet. */
 const isHomework = (assignment: AssignmentDoc): boolean =>
-  assignment.type !== 'exam' && (assignment.purpose ?? 'assignment') === 'assignment';
+  assignment.type !== 'exam' && !assignment.periodicTest && (assignment.purpose ?? 'assignment') === 'assignment';
 
 interface LinkCheck {
   info: SpreadsheetInfo;
@@ -74,13 +74,29 @@ const StudentProblems = ({ match }: { match: StudentMatch }) => {
 /**
  * Nút nối và đồng bộ BTVN sang Google Sheet của lớp.
  *
- * Không có gì chạy tự động: chỉ khi giáo viên bấm "Đồng bộ", app đọc sheet, dựng bản xem trước,
- * và chỉ ghi khi giáo viên bấm "Ghi vào Sheet".
+ * Máy chủ tự cập nhật khi lớp đã bật đồng bộ tự động. Nút thủ công vẫn có bản xem trước,
+ * chỉ ghi khi giáo viên bấm "Ghi vào Sheet".
  */
 export const SheetSyncPanel = ({ classId, teacherId, sheetSync, onChanged, showToast }: SheetSyncPanelProps) => {
   const [mode, setMode] = useState<'idle' | 'link' | 'sync'>('idle');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  const [syncStatus, setSyncStatus] = useState<ClassSheetSyncStatus | null>(null);
+  const [statusError, setStatusError] = useState('');
+  useEffect(() => {
+    let current = true;
+    setSyncStatus(null);
+    setStatusError('');
+    const refresh = () => {
+      if (!sheetSync) return;
+      void getClassSheetSyncStatus(classId).then(status => {
+        if (current) { setSyncStatus(status); setStatusError(''); }
+      }).catch(() => { if (current) setStatusError('Chưa đọc được trạng thái đồng bộ tự động.'); });
+    };
+    refresh();
+    window.addEventListener('focus', refresh);
+    return () => { current = false; window.removeEventListener('focus', refresh); };
+  }, [classId, sheetSync?.spreadsheetId, sheetSync?.sheetId]);
 
   const [linkInput, setLinkInput] = useState('');
   const [info, setInfo] = useState<SpreadsheetInfo | null>(null);
@@ -89,7 +105,6 @@ export const SheetSyncPanel = ({ classId, teacherId, sheetSync, onChanged, showT
 
   const [syncData, setSyncData] = useState<SyncData | null>(null);
   const [excludedNew, setExcludedNew] = useState<Set<string>>(new Set());
-  const [addLate, setAddLate] = useState(true);
 
   const close = () => {
     setMode('idle');
@@ -196,13 +211,15 @@ export const SheetSyncPanel = ({ classId, teacherId, sheetSync, onChanged, showT
       studentId: submission.studentId,
       assignmentId: submission.assignmentId,
       createdAt: submission.createdAt,
+      status: submission.status,
+      grade: submission.grade,
+      errorReason: submission.errorReason,
     })),
     roster: syncData.roster,
     appOrigin: window.location.origin,
     nowMs: Date.now(),
+    receiptOnly: true,
   }, [syncData]);
-
-  const lateMissing = Boolean(syncData && !syncData.snapshot.statusOptions.includes(SHEET_STATUS.muon));
 
   const newCandidates = useMemo(() => {
     if (!planInput) return [];
@@ -212,11 +229,13 @@ export const SheetSyncPanel = ({ classId, teacherId, sheetSync, onChanged, showT
   const plan = useMemo(() => {
     if (!planInput) return null;
     const createFor = new Set(newCandidates.map(column => column.assignmentId).filter(id => !excludedNew.has(id)));
-    return planSheetSync({ ...planInput, createFor, addLateOption: lateMissing && addLate });
-  }, [planInput, newCandidates, excludedNew, lateMissing, addLate]);
+    return planSheetSync({ ...planInput, createFor, addLateOption: false });
+  }, [planInput, newCandidates, excludedNew]);
 
   const applyPlan = () => run('Đang ghi vào Sheet…', async () => {
     if (!plan || !syncData || !sheetSync) return;
+    const fresh = await readTabSnapshot(sheetSync.spreadsheetId, { sheetId: syncData.snapshot.sheetId, title: syncData.snapshot.sheetTitle }, syncData.snapshot.timeZone);
+    if (JSON.stringify(fresh) !== JSON.stringify(syncData.snapshot)) throw new Error('Sheet vừa thay đổi. Đóng bản xem trước, bấm đồng bộ lại để giữ dữ liệu mới.');
     const requests = buildSheetRequests(plan, syncData.snapshot);
     await applySheetRequests(sheetSync.spreadsheetId, syncData.snapshot.sheetId, requests);
     showToast(`Đã ghi vào Sheet: ${plan.counts.statusWrites} ô trạng thái${plan.counts.created ? `, ${plan.counts.created} cột mới` : ''}.`, 'success');
@@ -267,6 +286,16 @@ export const SheetSyncPanel = ({ classId, teacherId, sheetSync, onChanged, showT
   return (
     <section className="mb-4 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
       {headerBar}
+      {sheetSync && (syncStatus || statusError) && (
+        <p role="status" className={`mt-3 rounded-xl p-3 text-xs font-semibold ${statusError || syncStatus?.failed || syncStatus?.counts?.skipped || syncStatus?.counts?.unmatched ? 'bg-amber-50 text-amber-900' : 'bg-slate-50 text-slate-600'}`}>
+          {statusError || (syncStatus?.enabled ? [
+            syncStatus.failed ? 'Đồng bộ tự động gặp lỗi; máy chủ sẽ thử lại.' : syncStatus.pending ? 'Đang chờ cập nhật Sheet.' : 'Đồng bộ tự động đã bật.',
+            syncStatus.syncedAt ? `Lần thành công: ${new Date(syncStatus.syncedAt).toLocaleString('vi-VN')}.` : '',
+            syncStatus.counts?.skipped ? `${syncStatus.counts.skipped} bài chưa ghép được cột hoặc hết cột trống; mở bản xem trước để kiểm tra.` : '',
+            syncStatus.counts?.unmatched ? `${syncStatus.counts.unmatched} trường hợp tên HS chưa khớp; mở bản xem trước để xử lý.` : '',
+          ].filter(Boolean).join(' ') : 'Chưa bật đồng bộ tự động cho lớp này. Có thể dùng nút đồng bộ thủ công.')}
+        </p>
+      )}
 
       {busy && (
         <p className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" /> {busy}</p>
@@ -358,15 +387,10 @@ export const SheetSyncPanel = ({ classId, teacherId, sheetSync, onChanged, showT
             </div>
           )}
 
-          {lateMissing && (
-            <label className="flex items-start gap-2 rounded-xl border border-slate-200 p-3">
-              <input type="checkbox" checked={addLate} onChange={event => setAddLate(event.target.checked)} className="mt-0.5 accent-emerald-600" />
-              <span>
-                Bổ sung lựa chọn <span className="font-black">{SHEET_STATUS.muon}</span> vào tab này (danh sách chọn và ô đếm "Số HS đủ").
-                Bỏ tích thì em nộp muộn vẫn ghi là {SHEET_STATUS.du}.
-              </span>
-            </label>
-          )}
+          <p className="rounded-xl bg-slate-50 p-3">
+            {SHEET_STATUS.daNopWeb} chỉ xác nhận đã nhận bài; {SHEET_STATUS.canBoSung} cần kiểm tra ảnh/bài làm.
+            Không tự đánh Đủ, Chưa làm hay tính lỗi hạnh kiểm. Giữ nguyên ô tổ trưởng đã sửa.
+          </p>
 
           <StudentProblems match={plan.students} />
 
