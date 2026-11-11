@@ -317,7 +317,7 @@ describe('official Zalo Bot webhook through assistant HTTP route', () => {
     vi.mocked(resolveChannelActor).mockResolvedValue({ firebaseUid: 'pinlink:student:c:s', channel: 'zalo_bot', channelAccountId: 'bot-1', channelUserId: 'user-1', channelChatId: 'user-1', linkId: 'slink', active: true, role: 'student', classId: 'c', studentId: 's' } as any);
     const body = event('', 'm-1'); body.result.event_name = 'message.sticker.received';
     expect((await request(body)).code).toBe(200);
-    expect(JSON.parse(sent()[0][1].body).text).toContain('Nhắn 0');
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Nhắn "0"');
     expect(canReplyToStranger).not.toHaveBeenCalled();
   });
 
@@ -636,7 +636,7 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     mockStudent();
     await request(event('chấm 5', 'm-10'));
     expect(openPhotoSession).not.toHaveBeenCalled();
-    expect(JSON.parse(sent()[0][1].body).text).toContain('Nhắn chấm để xem danh sách');
+    expect(JSON.parse(sent()[0][1].body).text).toContain('Nhắn "chấm" để xem danh sách');
   });
   it('HS nhắn xong → finishPhotoSession', async () => {
     mockStudent();

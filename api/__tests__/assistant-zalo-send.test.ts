@@ -1,8 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { sendPhoto, sendStyled, splitZaloMessage } from '../_assistant-zalo-send.js';
+import { quoteChatCommands, sendPhoto, sendStyled, splitZaloMessage } from '../_assistant-zalo-send.js';
 
 afterEach(() => vi.unstubAllGlobals());
 describe('Zalo delivery boundaries', () => {
+  it('quotes exact commands, including alternatives and templates, without changing prose or existing quotes', () => {
+    expect(quoteChatCommands('Nhắn 11 hoặc deadline. Nhắn: nộp hộ <số>. Nhắn hủy rồi xác nhận hủy.'))
+      .toBe('Nhắn "11" hoặc "deadline". Nhắn: "nộp hộ <số>". Nhắn "hủy" rồi "xác nhận hủy".');
+    const safe = 'Nhắn "web" vào ô chat. Nhắn thầy cô. Nhắn số thứ tự. https://example.com/web?x=123';
+    expect(quoteChatCommands(safe)).toBe(safe);
+    expect(quoteChatCommands(quoteChatCommands('Nhắn web để mở.'))).toBe('Nhắn "web" để mở.');
+  });
   it('preserves a long list completely, including emoji and last assignment', async () => {
     const message = Array.from({ length: 80 }, (_, i) => `${i + 1} — Bài tập 📚 ${'x'.repeat(70)}`).join('\n');
     const fetcher = vi.fn(async () => ({ ok: true, json: async () => ({ ok: true }) }));

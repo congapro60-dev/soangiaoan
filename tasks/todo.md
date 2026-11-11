@@ -66,3 +66,9 @@
 - [x] Gate API 1455 đạt/8 bỏ qua; hai TypeScript và build đạt.
 - [x] Baseline 2 lớp/4 HS, chạy lặp lại đạt; không gửi, không cấp Sheet.
 - Phát hành sau commit; biên bản: %TEMP%/zalo-release-qa-20261110.md.
+
+## 2026-11-11 — Sửa đúng phạm vi mục 11
+- [x] Mục 11 chỉ việc chưa hoàn thành trên Sheet + link file gốc đã duyệt.
+- [x] Bản tin sáng chia nguồn; hướng dẫn đặt lệnh trong ngoặc kép.
+- [x] API 1459 đạt/8 bỏ qua; focused cuối 281 đạt; hai TypeScript/build/review đạt.
+- Phát hành sau commit; biên bản: %TEMP%/zalo-sheet-only-qa-20261111.md.

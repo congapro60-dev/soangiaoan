@@ -424,7 +424,7 @@ describe('finishPhotoSession — tạo bài nộp + chấm + báo tin', () => {
     expect(call[8]).toBeUndefined();
     expect(call[9]).toBeUndefined();
     expect(lastSentText()).toContain('Đã xử lý bài "BTVN tuần 5": 8/10 điểm');
-    expect(lastSentText()).toContain('Nhắn 0 để xem lại menu.');
+    expect(lastSentText()).toContain('Nhắn "0" để xem lại menu.');
   });
   it('chưa cấu hình khoá chấm (chuỗi rỗng) → bài vẫn lưu, tin báo tử tế', async () => {
     seedClass();

@@ -1,5 +1,6 @@
 /** Deadline domain: no credentials, network calls or class-wide student payloads. */
 import { awaitsClarification } from '../src/lib/classroom/clarification.js';
+import { quoteChatCommands } from './_assistant-chat-commands.js';
 export interface DeadlineTaskConfig {
   id: string;
   header: string;
@@ -19,6 +20,7 @@ export interface DeadlineConfig {
 }
 export interface DeadlineItem {
   id: string;
+  source?: 'sheet';
   title: string;
   dueAt: string;
   url: string;
@@ -136,7 +138,7 @@ export function deadlineTasksForStudent(config: DeadlineConfig, studentCode: str
     const conflict = row.complete && state === 'missing';
     if (conflict) state = 'review';
     const id = task.assignmentId || `sheet:${task.id}`;
-    result.set(id, { id, title: row.title, dueAt: row.dueAt, url: safeTaskUrl(row.url), status: state,
+    result.set(id, { id, source: 'sheet', title: row.title, dueAt: row.dueAt, url: safeTaskUrl(row.url), status: state,
       ...(assignment ? { description: String(assignment.description || '').replace(/https?:\/\/\S+/gi, '[mở qua web]').slice(0, 2000) } : {}),
       ...(conflict ? { note: 'Bảng đã đánh dấu hoàn thành; web chưa ghi nhận bài nộp. Em nhờ thầy cô đối chiếu.' } : {}),
       ...(task.assignmentId ? { assignmentId: task.assignmentId } : {}) });
@@ -157,21 +159,24 @@ export const digestWindow = (now: number): boolean => {
 };
 export function digestText(tasks: DeadlineItem[], now: number, morning: boolean): string {
   const today = vietnamDate(now), last = vietnamDate(now + 3 * 86400_000);
-  const selected = morning ? tasks.filter(task => task.status === 'review' || !task.dueAt || vietnamDate(Date.parse(task.dueAt)) <= last) : tasks;
-  const lines = [morning ? `VIỆC CỦA EM HÔM NAY · ${today.split('-').reverse().join('/')}` : 'DEADLINE & VIỆC CẦN LÀM'];
+  const selected = morning ? tasks.filter(task => task.source === 'sheet' || task.status === 'review' || !task.dueAt || vietnamDate(Date.parse(task.dueAt)) <= last)
+    .sort((a, b) => Number(b.source === 'sheet') - Number(a.source === 'sheet')) : tasks;
+  const lines = [morning ? `VIỆC CỦA EM HÔM NAY · ${today.split('-').reverse().join('/')}` : 'DEADLINE TRÊN SHEET'];
   if (!selected.length) lines.push(morning ? 'Hôm nay em không có việc tồn đọng hoặc sắp đến hạn.' : 'Em không còn việc cần làm trong danh sách đã công bố.');
-  let shown = 0;
+  let shown = 0, section = '';
   selected.forEach((task, i) => {
     const day = task.dueAt ? vietnamDate(Date.parse(task.dueAt)) : '';
     const label = task.status === 'review' ? 'cần kiểm tra/bổ sung' : !day ? 'chưa có hạn' : day < today ? 'quá hạn' : day === today ? 'hạn hôm nay' : 'sắp đến hạn';
     const at = task.dueAt ? new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(task.dueAt)) : '';
-    const block = ['', `${i + 1}. ${String(task.title).replace(/[\r\n]+/g, ' ').slice(0, 300)}`, `${label}${at ? ` · ${at}` : ''}`, ...(task.note ? [task.note] : []), ...(!morning && task.description ? [task.description] : []), ...(!morning && safeTaskUrl(task.url) ? [`Thực hiện: ${safeTaskUrl(task.url)}`] : [])];
-    if (morning && (shown !== i || [...lines, ...block].join('\n').length > 1550)) return;
-    lines.push(...block); shown++;
+    const nextSection = task.source === 'sheet' ? 'DEADLINE TRÊN SHEET' : 'BÀI TẬP TRÊN WEB';
+    const block = ['', ...(morning && section !== nextSection ? [nextSection, ''] : []), `${i + 1}. ${String(task.title).replace(/[\r\n]+/g, ' ').slice(0, 300)}`, `${label}${at ? ` · ${at}` : ''}`, ...(task.note ? [task.note] : []), ...(!morning && task.description ? [task.description] : []), ...(!morning && safeTaskUrl(task.url) ? [`Thực hiện: ${safeTaskUrl(task.url)}`] : [])];
+    if (morning && (shown !== i || quoteChatCommands([...lines, ...block].join('\n')).length > 1550)) return;
+    lines.push(...block); shown++; section = nextSection;
   });
   if (shown < selected.length) lines.push('', `Còn ${selected.length - shown} việc khác trong danh sách.`);
-  lines.push('', morning ? 'Nhắn web để xem toàn bộ và mở đúng hồ sơ.' : 'Nhắn deadline để xem toàn bộ. Nhắn web để mở đúng hồ sơ.');
-  return lines.join('\n');
+  if (morning && selected.some(task => task.source === 'sheet')) lines.push('', 'Nhắn "deadline" vào ô chat để xem việc chưa xong và mở file deadline.');
+  lines.push('', morning ? 'Nhắn "web" vào ô chat để xem toàn bộ và mở đúng hồ sơ.' : 'Nhắn "0" vào ô chat để xem lại menu.');
+  return quoteChatCommands(lines.join('\n'));
 }
 
 /** Read-only source; never accept its configuration from an HS message. */

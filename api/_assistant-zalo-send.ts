@@ -1,6 +1,8 @@
 // Gửi tin Zalo dùng chung cho webhook bot và luồng chấm bài (việc 4) — tách khỏi
 // _assistant-zalo-bot.ts để photo module gửi kết quả mà không tạo import cycle.
 import crypto from 'node:crypto';
+import { quoteChatCommands } from './_assistant-chat-commands.js';
+export { quoteChatCommands } from './_assistant-chat-commands.js';
 
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
 
@@ -9,6 +11,7 @@ export const escMd = (value: string): string => value.replace(/[*_~]/g, '\\$&');
 
 /** Keep every line; leave room for markdown escaping and never split a surrogate pair. */
 export const splitZaloMessage = (message: string, limit = 1800): string[] => {
+  message = quoteChatCommands(message);
   const parts: string[] = [];
   let rest = message;
   while (rest.length > limit) {

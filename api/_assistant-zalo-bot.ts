@@ -13,7 +13,7 @@ import { AI_CHAT_REPLIES, answerGroupQuestion, answerParentQuestionDetailed, vil
 import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
 import { getAdminDb } from './_exam-core.js';
-import { secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
+import { quoteChatCommands, secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
 import { splitForChat } from './_assistant-natural-reply.js';
 import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
 import { PHOTO_REPLIES, revisionReply, requestPhotoCancellation, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, exitPhotoSelection, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
@@ -33,7 +33,7 @@ const output = (value: unknown): string => {
 };
 const send = async (token: string, chatId: string, message: string) => {
   try {
-    await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/sendMessage`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: output(message) }) });
+    await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}/sendMessage`, { method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text: output(quoteChatCommands(message)) }) });
   } catch { /* ambiguous send: never retry or expose credentials */ }
 };
 const identity = (botId: string, userId: string) => ({ channel: 'zalo_bot' as any, channelAccountId: botId, channelUserId: userId, channelChatId: userId, verifiedChannelAccountId: botId });
@@ -350,7 +350,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
           '• Nhắn 0 hoặc menu: Mở lại danh mục tra cứu.',
           '• Nhắn số 1–7: Xem bảng điểm, bài chưa nộp, nhận xét của GV.',
           '• Nhắn web: Nhận link mở cổng thông tin chi tiết trên web.',
-          ...(deadlineAvailable(role, classId) ? ['• Nhắn 11 hoặc deadline: Xem deadline khi lớp đã được cấu hình.'] : []),
+          ...(deadlineAvailable(role, classId) ? ['• Nhắn "11" hoặc "deadline": Mở file deadline và xem việc trên Sheet chưa hoàn thành.'] : []),
           '',
           '2️⃣ Nộp bài bằng ảnh (Học sinh & Phụ huynh nộp hộ):',
           '• Nhắn 8 hoặc chấm: Xem danh sách bài cần nộp.',

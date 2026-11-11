@@ -1,10 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { deadlineDeliveryPolicy, deadlineDispatchEligible, loadDeadlineClass, noticesFor, studentDeadlineView } from '../_assistant-deadline-runtime';
+import { deadlineDeliveryPolicy, deadlineDispatchEligible, deadlineMenuReply, loadDeadlineClass, noticesFor, studentDeadlineView, studentSheetDeadlineView } from '../_assistant-deadline-runtime';
 import { vi } from 'vitest';
 
 const settings = { spreadsheetId: 'abcdefghijklmnopqrstuvwx', sheetId: 1, sheetTitle: '01. DEADLINE', studentNames: { HS01: 'Em Một' }, tasks: [], notifications: false, digest: false };
 const bundle: any = { settings, rows: [], students: [{ id: 's1', code: 'HS01' }], assignments: [{ id: 'a1', classId: 'c1', teacherId: 'gv', title: 'Bài' }], submissions: [{ classId: 'c1', studentId: 's2', assignmentId: 'a1', status: 'graded' }], classId: 'c1', teacherId: 'gv' };
 describe('deadline runtime boundaries', () => {
+  it('menu 11 uses only unfinished Sheet cells, never the web homework list', () => {
+    const own = { ...bundle, settings: { ...settings, tasks: [
+      { id: 'missing', header: 'Việc Sheet', state: 'published', optional: false, studentCodes: [], assignmentId: 'a1' },
+      { id: 'done', header: 'Đã làm', state: 'published', optional: false, studentCodes: [] },
+    ] }, rows: [
+      { id: 'missing', title: 'Việc Sheet', studentCode: 'HS01', complete: false, dueAt: '', url: '' },
+      { id: 'done', title: 'Đã làm', studentCode: 'HS01', complete: true, dueAt: '', url: '' },
+    ], submissions: [{ classId: 'c1', studentId: 's1', assignmentId: 'a1', status: 'graded' }] } as any;
+    expect(studentSheetDeadlineView(own, 's1').map(t => t.title)).toEqual(['Việc Sheet']);
+    expect(noticesFor(own, 's1').map(t => t.title)).toEqual(['Việc Sheet']);
+    expect(noticesFor({ ...own, rows: own.rows.map((row: any) => ({ ...row, complete: true })), submissions: [] }, 's1').map(t => t.title)).toEqual(['Bài']);
+    expect(() => studentSheetDeadlineView(own, 's2')).toThrow();
+  });
   it('does not trust another student submission', () => expect(studentDeadlineView(bundle, 's1')[0].status).toBe('missing'));
   it('blocks unknown students and unmapped identities rather than claiming all clear', () => {
     expect(() => studentDeadlineView(bundle, 's2')).toThrow();
@@ -56,6 +69,17 @@ function sourceDb(change: Record<string, any> = {}) {
 }
 const read = () => vi.fn(async () => ({ grid: [[], [{ formattedValue: 'Tên việc' }], [{ formattedValue: 'Hạn chót (tự tính)' }], [], [], [{ formattedValue: 'Link' }], [], [], [{}, { formattedValue: 'Học sinh' }], [{}, { formattedValue: 'Em Một' }]], studentNames: ['Em Một'], headers: [], sheetId: 1 }));
 describe('deadline source loader', () => {
+  it('menu 11 includes the approved workbook tab, with no unrelated homework or submission reads', async () => {
+    const db = sourceDb(), collection = db.collection, paths: string[] = [];
+    db.collection = (path: string) => { paths.push(path); return collection(path); };
+    const spy = vi.spyOn(await import('../_assistant-deadline-sheet'), 'readDeadlineSheet').mockImplementation(read());
+    try {
+      const text = await deadlineMenuReply(db, 'c1', 's1');
+      expect(text).toContain('https://docs.google.com/spreadsheets/d/abcdefghijklmnopqrstuvwx/edit#gid=1');
+      expect(text).not.toContain('Bài');
+      expect(paths).not.toContain('submissions');
+    } finally { spy.mockRestore(); }
+  });
   it('supports homework reminders without granting any Sheet access to other classes', async () => {
     const reader = read();
     const result = await loadDeadlineClass(sourceDb({

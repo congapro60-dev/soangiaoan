@@ -51,7 +51,7 @@ export const menuText = (studentName: string, className: string, role: MenuRole 
     // Mục 9 "Đổi vai trò" (chốt chủ dự án 29/10): hướng dẫn chuyển HS/PH/GV, mỗi lần đổi bắt nhập mã.
     '9. Đổi vai trò (HS/PH/GV)',
     '10. Hướng dẫn sử dụng các tính năng',
-    ...(deadlineAvailable(role, classId) ? ['11. Deadline & việc cần làm (hoặc nhắn deadline)'] : []),
+    ...(deadlineAvailable(role, classId) ? ['11. File deadline của lớp (nhắn "deadline")'] : []),
     '0. Xem lại menu'].join('\n');
 
 const percent = (value: number | null): string => (value == null ? 'chưa đủ dữ liệu' : `${Math.round(value)}%`);

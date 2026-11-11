@@ -2,8 +2,10 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { Firestore } from 'firebase-admin/firestore';
 import { digestText, digestWindow, vietnamDate, type DeadlineItem } from './_assistant-deadline.js';
 import { deadlineOwner } from './_assistant-deadline-config.js';
+import { quoteChatCommands } from './_assistant-zalo-send.js';
 
 export interface DeadlineNotice {
+  source?: 'sheet';
   taskId: string; version: string; studentId: string; classId: string; teacherId: string;
   title: string; dueAt: string; description: string; url: string;
 }
@@ -24,7 +26,9 @@ const snapshotRef = (db: Firestore, botId: string, classId: string, studentId: s
 const noticeText = (notice: DeadlineNotice) => [
   'VIỆC MỚI / CẬP NHẬT NHIỆM VỤ', String(notice.title).replace(/[\r\n]+/g, ' ').slice(0, 250),
   ...(notice.dueAt ? [`Hạn: ${new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(notice.dueAt))}`] : []),
-  notice.description.slice(0, 700), 'Nhắn web để xem yêu cầu và mở đúng hồ sơ của em.',
+  notice.description.slice(0, 700), notice.source === 'sheet'
+    ? 'Nhắn "deadline" vào ô chat để xem yêu cầu và mở file deadline của lớp.'
+    : 'Nhắn "web" vào ô chat để xem yêu cầu và mở đúng hồ sơ của em.',
 ].filter(Boolean).join('\n');
 
 /** Each student's snapshot + baseline are atomic; source failures must never call this with []. */
@@ -123,6 +127,7 @@ export async function drainDeadlineOutbox(db: Firestore, ids: string[], policy: 
 
 /** One bounded message per job. No transport fallback/retry on a network timeout or server error. */
 export const zaloDeadlineSender = (token: string): DeadlineSender => async (userId, text) => {
+  text = quoteChatCommands(text);
   if (!token || text.length > 2000) return { state: 'rejected', code: 400 };
   try {
     const response = await fetch(`https://bot-api.zaloplatforms.com/bot${encodeURIComponent(token)}/sendMessage`, {

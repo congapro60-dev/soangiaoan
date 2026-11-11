@@ -75,6 +75,19 @@ describe('deadline privacy and source mapping', () => {
   });
 });
 describe('Vietnam date and safe messages', () => {
+  it('separates and prioritizes unfinished Sheet tasks ahead of web homework', () => {
+    const tasks = [
+      ...Array.from({ length: 30 }, (_, i) => ({ id: `web${i}`, title: `BTVN ${i} `.repeat(10), dueAt: '', url: '', status: 'missing' as const })),
+      { id: 'sheet:t1', source: 'sheet' as const, title: 'Việc bắt buộc trên Sheet', dueAt: '2027-01-01T00:00:00Z', url: '', status: 'missing' as const },
+    ];
+    const text = digestText(tasks, Date.parse('2026-11-11T00:00:00Z'), true);
+    expect(text).toContain('DEADLINE TRÊN SHEET');
+    expect(text).toContain('BÀI TẬP TRÊN WEB');
+    expect(text.indexOf('Việc bắt buộc trên Sheet')).toBeLessThan(text.indexOf('BTVN 0'));
+    expect(text).toContain('Nhắn "deadline"');
+    expect(text).toContain('Nhắn "web" vào ô chat để xem toàn bộ và mở đúng hồ sơ.');
+    expect(text.length).toBeLessThanOrEqual(2000);
+  });
   it('keeps uncertain/wrong or unreadable photos in review using the actual review schema', () => {
     for (const review of [{ assignmentMatch: 'possibly_wrong' }, { assignmentMatch: 'uncertain' }, { unreadablePhotoNumbers: [1] }]) {
       expect(deadlineTasksForStudent(config, 'HS01', 's1', [], [{ id: 'a1' }], [{ assignmentId: 'a1', status: 'graded', grade: { photoReview: review } }])[0]?.status).toBe('review');
@@ -83,7 +96,14 @@ describe('Vietnam date and safe messages', () => {
   it('bounds the morning message without truncating a URL or losing the full-menu instruction', () => {
     const tasks = Array.from({ length: 60 }, (_, i) => ({ id: `t${i}`, title: 'Việc '.repeat(80), dueAt: '2026-11-09T01:00:00Z', url: 'https://example.com/' + 'a'.repeat(150), status: 'missing' as const }));
     const text = digestText(tasks, Date.parse('2026-11-09T00:00:00Z'), true);
-    expect(text.length).toBeLessThanOrEqual(1800); expect(text).toContain('Nhắn web'); expect(text).not.toContain('Nhắn deadline'); expect(text).toContain('việc khác');
+    expect(text.length).toBeLessThanOrEqual(1800); expect(text).toContain('Nhắn "web"'); expect(text).not.toContain('Nhắn "deadline"'); expect(text).toContain('việc khác');
+  });
+  it('budgets command quotes before enforcing the platform message limit', () => {
+    const tasks = Array.from({ length: 60 }, (_, i) => ({ id: `sheet:${i}`, source: 'sheet' as const, title: 'Nhắn 0 '.repeat(40), dueAt: '', url: '', status: 'missing' as const }));
+    const text = digestText(tasks, Date.parse('2026-11-11T00:00:00Z'), true);
+    expect(text.length).toBeLessThanOrEqual(1800);
+    expect(text).toContain('Nhắn "deadline"');
+    expect(text).toContain('Nhắn "web" vào ô chat');
   });
   it('parses local date, datetime and rejects impossible dates', () => {
     expect(dueTime('10/11/2026 08:00')).toBe('2026-11-10T01:00:00.000Z');

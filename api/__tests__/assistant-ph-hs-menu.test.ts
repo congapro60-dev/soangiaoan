@@ -26,7 +26,7 @@ const seed = () => {
 
 describe('menu PH/HS — Phase 2', () => {
   it('chỉ hiện deadline cho học sinh lớp 11 Columbus', () => {
-    expect(menuText('HS', '11Columbus', 'student', 'class-1787188523562')).toContain('11. Deadline');
+    expect(menuText('HS', '11Columbus', 'student', 'class-1787188523562')).toContain('11. File deadline');
     expect(menuText('HS', '11Columbus', 'student', 'other-class')).not.toContain('11. Deadline');
     expect(menuText('HS', '11Columbus', 'parent', 'class-1787188523562')).not.toContain('11. Deadline');
   });

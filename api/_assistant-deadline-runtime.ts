@@ -66,14 +66,26 @@ export function studentDeadlineView(bundle: Bundle, studentId: string) {
     bundle.submissions.filter(s => s.studentId === studentId && s.classId === bundle.classId));
 }
 export async function deadlineMenuReply(db: Firestore, classId: string, studentId: string): Promise<string> {
-  try { return digestText(studentDeadlineView(await loadDeadlineClass(db, classId), studentId), Date.now(), false); }
-  catch { return 'Chưa xác minh được danh sách deadline. Em nhắn web để xem bài trên web, hoặc nhắn 0 để về menu. Nhờ thầy cô kiểm tra nguồn và mã HS; thông báo này chưa xác nhận em đã hoàn thành.'; }
+  try {
+    const bundle = await loadDeadlineClass(db, classId, readDeadlineSheet, false);
+    const items = studentSheetDeadlineView(bundle, studentId);
+    if (!bundle.settings.spreadsheetId) throw new Error('Không có nguồn Sheet.');
+    const url = `https://docs.google.com/spreadsheets/d/${bundle.settings.spreadsheetId}/edit#gid=${bundle.settings.sheetId}`;
+    return `File deadline của lớp:\n${url}\n\n${digestText(items, Date.now(), false)}`;
+  } catch { return 'Chưa xác minh được danh sách deadline trên Sheet. Nhắn "0" vào ô chat để về menu. Nhờ thầy cô kiểm tra nguồn và mã HS; thông báo này chưa xác nhận em đã hoàn thành.'; }
+}
+export function studentSheetDeadlineView(bundle: Bundle, studentId: string) {
+  // Menu 11 follows Sheet checkboxes; web homework remains in menu 3.
+  return studentDeadlineView({ ...bundle, settings: { ...bundle.settings, tasks: bundle.settings.tasks.map(task => ({ ...task, assignmentId: undefined })) }, assignments: [], submissions: [] }, studentId);
+}
+function studentReminderView(bundle: Bundle, studentId: string) {
+  return [...studentSheetDeadlineView(bundle, studentId), ...studentDeadlineView({ ...bundle, settings: { ...bundle.settings, tasks: [] }, rows: [] }, studentId)];
 }
 export function noticesFor(bundle: Bundle, studentId: string): DeadlineNotice[] {
-  return studentDeadlineView(bundle, studentId).map(item => {
+  return studentReminderView(bundle, studentId).map(item => {
     const assignment = bundle.assignments.find(a => a.id === item.assignmentId);
     const description = String(assignment?.description || '').replace(/https?:\/\/\S+/gi, bundle.settings.spreadsheetId ? '[mở qua mục deadline]' : '[mở qua web]').slice(0, 2000);
-    return { classId: bundle.classId, teacherId: bundle.teacherId, studentId, taskId: item.id, title: item.title, dueAt: item.dueAt,
+    return { classId: bundle.classId, teacherId: bundle.teacherId, studentId, taskId: item.id, title: item.title, dueAt: item.dueAt, ...(item.source ? { source: item.source } : {}),
       description, url: item.url, version: publicationVersion({ dueAt: item.dueAt, description, targetStudentIds: assignment?.targetStudentIds,
         noticeRevision: [item.url, assignment?.noticeRevision || 0,
           bundle.settings.tasks.filter(t => item.assignmentId && t.assignmentId === item.assignmentId || `sheet:${t.id}` === item.id).map(t => [bundle.publicationRevisions?.[t.id] || 0, [...t.studentCodes].sort()])], isOpen: true }) };
@@ -110,7 +122,7 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
   const notices = targets.flatMap(t => noticesFor(bundle, t.studentId));
   // Off still advances the baseline; enabling later does not broadcast old work.
   await syncDeadlineNotices(db, classId, notices, targets, { ...policy, enabled: policy.enabled && bundle.settings.notifications }, now);
-  if (bundle.settings.digest) for (const target of targets) await enqueueDeadlineDigest(db, target, studentDeadlineView(bundle, target.studentId), policy, now);
+  if (bundle.settings.digest) for (const target of targets) await enqueueDeadlineDigest(db, target, studentReminderView(bundle, target.studentId), policy, now);
   const ready = await db.collection('assistantDeadlineOutbox').where('classId', '==', classId).where('botId', '==', policy.botId)
     .where('state', 'in', ['pending', 'rejected']).where('nextAt', '<=', now).orderBy('nextAt').limit(100).get();
   const jobs: Data[] = ready.docs.map(doc => ({ ...doc.data(), id: doc.id }));
@@ -130,7 +142,7 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
     if (fresh.teacherId !== job.teacherId) return false;
     if (!fresh.students.some(s => s.id === job.studentId && (!fresh.settings.spreadsheetId || Object.hasOwn(fresh.settings.studentNames, s.code)))) return false;
     if (job.kind === 'digest') return fresh.settings.digest && digestWindow(now) && job.version === vietnamDate(now)
-      && digestText(studentDeadlineView(fresh, job.studentId), now, true) === job.text;
+      && digestText(studentReminderView(fresh, job.studentId), now, true) === job.text;
     return fresh.settings.notifications && noticesFor(fresh, job.studentId).some(n => n.taskId === job.taskId && n.version === job.version);
   }, now);
   await pollRef.set({ fingerprint, ...(previous?.digestDate ? { digestDate: previous.digestDate } : {}),
