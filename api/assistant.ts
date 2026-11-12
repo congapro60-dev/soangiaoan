@@ -106,8 +106,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (transport === 'deadline') {
     res.setHeader('Cache-Control', 'no-store');
     if (req.method !== 'GET') return res.status(405).json({ code: 'METHOD_NOT_ALLOWED' });
-    const secret = process.env.ZALO_DEADLINE_CRON_SECRET || '';
-    if (secret.length < 32 || !secretEqual(bearer(header(req.headers.authorization)), secret)) return res.status(401).json({ code: 'UNAUTHORIZED' });
+    // Two server-only secrets, each ≥32 chars: ZALO_DEADLINE_CRON_SECRET for the GitHub poller, CRON_SECRET for Vercel Cron.
+    const token = bearer(header(req.headers.authorization));
+    const accepted = [process.env.ZALO_DEADLINE_CRON_SECRET, process.env.CRON_SECRET].filter((s): s is string => typeof s === 'string' && s.length >= 32);
+    if (!accepted.some(secret => secretEqual(token, secret))) return res.status(401).json({ code: 'UNAUTHORIZED' });
     const after = text(req.query?.after);
     if (after && !/^[A-Za-z0-9_-]{1,200}$/.test(after)) return res.status(400).json({ code: 'INVALID_REQUEST' });
     try { return res.status(200).json(await runDeadlineBatch(getAdminDb(), after)); }

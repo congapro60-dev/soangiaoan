@@ -1,6 +1,6 @@
 import type { Firestore, Query } from 'firebase-admin/firestore';
 import { createHash } from 'node:crypto';
-import { deadlineTasksForStudent, digestText, digestWindow, sheetTaskRows, vietnamDate, type DeadlineConfig, type SheetTaskRow } from './_assistant-deadline.js';
+import { deadlineTasksForStudent, digestText, digestWindow, sheetTaskRows, stripLinks, vietnamDate, type DeadlineConfig, type DeadlineItem, type SheetTaskRow } from './_assistant-deadline.js';
 import { deadlineOwner, publicationVersion, requireDeadlineSource, validateDeadlineConfig } from './_assistant-deadline-config.js';
 import { readDeadlineSheet } from './_assistant-deadline-sheet.js';
 import { runHomeworkSheetBatch } from './_assistant-homework-sheet.js';
@@ -41,7 +41,7 @@ export async function loadDeadlineClass(db: Firestore, classId: string, read = r
       notifications: stored.settings.notifications === true, digest: stored.settings.digest === true };
     rows = [];
   } else {
-    if (![cls.data()?.sheetSync?.spreadsheetId, cls.data()?.examSheet?.spreadsheetId].includes(stored.settings.spreadsheetId)) throw new Error('Nguồn deadline đã thay đổi; thầy cô cần nối lại.');
+    if (typeof stored.settings.spreadsheetId !== 'string' || ![cls.data()?.sheetSync?.spreadsheetId, cls.data()?.examSheet?.spreadsheetId].includes(stored.settings.spreadsheetId)) throw new Error('Nguồn deadline đã thay đổi; thầy cô cần nối lại.');
     await requireDeadlineSource(db, classId, owner, stored.settings.spreadsheetId);
     settings = validateDeadlineConfig(stored.settings, students, assignments);
     const source = await read(settings);
@@ -85,7 +85,7 @@ function studentReminderView(bundle: Bundle, studentId: string) {
 export function noticesFor(bundle: Bundle, studentId: string): DeadlineNotice[] {
   return studentReminderView(bundle, studentId).map(item => {
     const assignment = bundle.assignments.find(a => a.id === item.assignmentId);
-    const description = String(assignment?.description || '').replace(/https?:\/\/\S+/gi, bundle.settings.spreadsheetId ? '[mở qua mục deadline]' : '[mở qua web]').slice(0, 2000);
+    const description = stripLinks(String(assignment?.description || ''), bundle.settings.spreadsheetId ? '[mở qua mục deadline]' : '[mở qua web]').slice(0, 2000);
     return { classId: bundle.classId, teacherId: bundle.teacherId, studentId, taskId: item.id, title: item.title, dueAt: item.dueAt, ...(item.source ? { source: item.source } : {}),
       description, url: item.url, version: publicationVersion({ dueAt: item.dueAt, description, targetStudentIds: assignment?.targetStudentIds,
         noticeRevision: [item.url, assignment?.noticeRevision || 0,
@@ -95,6 +95,21 @@ export function noticesFor(bundle: Bundle, studentId: string): DeadlineNotice[] 
 export const deadlineDispatchEligible = (job: Data, targets: DeadlineTarget[], policy: DeadlineDeliveryPolicy, now: number): boolean =>
   job.botId === policy.botId && deadlineRecipientAllowed(policy, job.userId) && job.nextAt <= now && job.attempts < 3
   && now - job.createdAt < 24 * 3600_000 && targets.some(t => t.linkId === job.linkId && t.userId === job.userId && t.studentId === job.studentId && t.teacherId === job.teacherId);
+/** Students get notices and digests, one link per student (first id wins). Guardian links get the morning digest only. */
+export function deadlineTargets(links: Data[], bundle: Pick<Bundle, 'classId' | 'teacherId' | 'students' | 'settings'>, botId: string, now: number): DeadlineTarget[] {
+  const eligible = links.filter(l => l.active && l.channel === 'zalo_bot' && l.channelAccountId === botId
+    && (l.role === 'student' || l.role === 'parent') && (!l.channelChatId || l.channelChatId === l.channelUserId) && (!l.expiresAt || l.expiresAt > now)
+    && bundle.students.some(s => s.id === l.studentId && (!bundle.settings.spreadsheetId || Object.hasOwn(bundle.settings.studentNames, s.code))))
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  const toTarget = (l: Data): DeadlineTarget => ({ linkId: l.id, userId: l.channelUserId, studentId: l.studentId, classId: bundle.classId, teacherId: bundle.teacherId, role: l.role });
+  const students = eligible.filter(l => l.role === 'student').filter((l, i, all) => all.findIndex(x => x.studentId === l.studentId) === i).map(toTarget);
+  return [...students, ...eligible.filter(l => l.role === 'parent').map(toTarget)];
+}
+/** Re-checked before each digest send: same Vietnam date, digest still enabled, and the rendered text still matches the queued job. */
+export function digestStillValid(job: Data, items: DeadlineItem[], digestEnabled: boolean, now: number): boolean {
+  return digestEnabled === true && job.version === vietnamDate(now)
+    && digestText(items, now, true, job.audience === 'parent' ? 'parent' : 'student') === job.text;
+}
 /** Polling runs separately from publication: provider/source failure cannot undo a teacher's save. */
 export async function runDeadlineClass(db: Firestore, classId: string, policy: DeadlineDeliveryPolicy, token: string, now = Date.now()): Promise<void> {
   // ponytail: one Sheet snapshot per class/run, max 60s; a later run refreshes it.
@@ -115,14 +130,11 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
   // ponytail: poll the bounded class snapshot; read submission history after source/link changes or queued delivery.
   if (previous?.fingerprint === fingerprint && !digestDue && pending.empty) return;
   const bundle = await loadDeadlineClass(db, classId, read);
-  const targets: DeadlineTarget[] = links.filter(l => l.active && l.channel === 'zalo_bot' && l.channelAccountId === policy.botId
-    && l.role === 'student' && (!l.channelChatId || l.channelChatId === l.channelUserId) && (!l.expiresAt || l.expiresAt > now)
-    && bundle.students.some(s => s.id === l.studentId && (!bundle.settings.spreadsheetId || Object.hasOwn(bundle.settings.studentNames, s.code))))
-    .sort((a, b) => a.id.localeCompare(b.id)).filter((l, i, all) => all.findIndex(x => x.studentId === l.studentId) === i)
-    .map(l => ({ linkId: l.id, userId: l.channelUserId, studentId: l.studentId, classId, teacherId: bundle.teacherId }));
-  const notices = targets.flatMap(t => noticesFor(bundle, t.studentId));
-  // Off still advances the baseline; enabling later does not broadcast old work.
-  await syncDeadlineNotices(db, classId, notices, targets, { ...policy, enabled: policy.enabled && bundle.settings.notifications }, now);
+  const targets = deadlineTargets(links, bundle, policy.botId, now);
+  const studentTargets = targets.filter(t => t.role !== 'parent');
+  const notices = studentTargets.flatMap(t => noticesFor(bundle, t.studentId));
+  // Off still advances the baseline; enabling later does not broadcast old work. Guardians get digests only, never notices.
+  await syncDeadlineNotices(db, classId, notices, studentTargets, { ...policy, enabled: policy.enabled && bundle.settings.notifications }, now);
   if (bundle.settings.digest) for (const target of targets) await enqueueDeadlineDigest(db, target, studentReminderView(bundle, target.studentId), policy, now);
   const ready = await db.collection('assistantDeadlineOutbox').where('classId', '==', classId).where('botId', '==', policy.botId)
     .where('state', 'in', ['pending', 'rejected']).where('nextAt', '<=', now).orderBy('nextAt').limit(100).get();
@@ -142,8 +154,7 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
     const fresh = await loadDeadlineClass(db, classId, read);
     if (fresh.teacherId !== job.teacherId) return false;
     if (!fresh.students.some(s => s.id === job.studentId && (!fresh.settings.spreadsheetId || Object.hasOwn(fresh.settings.studentNames, s.code)))) return false;
-    if (job.kind === 'digest') return fresh.settings.digest && digestWindow(now) && job.version === vietnamDate(now)
-      && digestText(studentReminderView(fresh, job.studentId), now, true) === job.text;
+    if (job.kind === 'digest') return digestStillValid(job, studentReminderView(fresh, job.studentId), fresh.settings.digest, now);
     return fresh.settings.notifications && noticesFor(fresh, job.studentId).some(n => n.taskId === job.taskId && n.version === job.version);
   }, now);
   await pollRef.set({ fingerprint, ...(previous?.digestDate ? { digestDate: previous.digestDate } : {}),

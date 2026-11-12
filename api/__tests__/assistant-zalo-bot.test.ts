@@ -20,6 +20,7 @@ vi.mock('../_bot-pin-guard', () => ({ canReplyToStranger: vi.fn(async () => true
 // Việc 4 — mock TOÀN BỘ photo module để không kéo grade-homework/_grading-core vào test bot.
 vi.mock('../_assistant-ph-hs-photo', () => ({
   PHOTO_REPLIES: { noSession: 'NO_SESSION_REPLY', max: 'MAX_REPLY', badImage: 'BAD_IMAGE_REPLY', assistIncomplete: 'ASSIST_INCOMPLETE_REPLY', expiredSession: 'EXPIRED_SESSION_REPLY' },
+  PICK_MISS: 'Số không khớp hoặc bài đã thay đổi. Nhắn chấm để tải lại danh sách rồi chọn bài nhé.',
   requestPhotoCancellation: vi.fn(async () => 'CANCEL_CONFIRM'),
   exitPhotoSelection: vi.fn(async () => undefined),
   revisionReply: vi.fn(async () => 'REVISION_OK'),

@@ -23,12 +23,13 @@ export function validateDeadlineConfig(raw: Data, roster: Data[], assignments: D
   if (!raw || !/^[A-Za-z0-9_-]{20,200}$/.test(raw.spreadsheetId) || raw.sheetTitle !== '01. DEADLINE'
     || !Number.isSafeInteger(raw.sheetId) || raw.sheetId < 0 || !raw.studentNames || typeof raw.studentNames !== 'object'
     || Array.isArray(raw.studentNames) || !Array.isArray(raw.tasks) || raw.tasks.length > 60) fail();
-  const codes = roster.map(s => text(s.code)), names = Object.entries(raw.studentNames);
+  // Exact match: runtime lookups use the stored roster code verbatim, so validation must too.
+  const codes = roster.map(s => String(s.code ?? '')), names = Object.entries(raw.studentNames);
   if (names.length > 100 || new Set(names.map(([, name]) => text(name))).size !== names.length) fail();
   for (const [code, name] of names) if (!code || ['__proto__', 'constructor', 'prototype'].includes(code) || codes.filter(c => c === code).length !== 1 || !text(name) || text(name).length > 150) fail();
   const ids = new Set<string>(), headers = new Set<string>();
   const tasks = raw.tasks.map((task: Data) => {
-    if (!task || typeof task !== 'object' || !/^[A-Za-z0-9_-]{1,100}$/.test(task.id) || ids.has(task.id) || !text(task.header)
+    if (!task || typeof task !== 'object' || typeof task.id !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(task.id) || ids.has(task.id) || !text(task.header)
       || text(task.header).length > 1000 || headers.has(text(task.header)) || !['draft', 'published', 'closed'].includes(task.state)
       || typeof task.optional !== 'boolean' || !Array.isArray(task.studentCodes)
       || task.studentCodes.some((code: unknown) => typeof code !== 'string' || !Object.hasOwn(raw.studentNames, code))

@@ -18,7 +18,7 @@ import { getAdminDb } from './_exam-core.js';
 import { quoteChatCommands, secretEqual, sendPhoto, sendStyled, sendTyping } from './_assistant-zalo-send.js';
 import { splitForChat } from './_assistant-natural-reply.js';
 import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-render.js';
-import { PHOTO_REPLIES, revisionReply, requestPhotoCancellation, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, exitPhotoSelection, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber } from './_assistant-ph-hs-photo.js';
+import { PHOTO_REPLIES, revisionReply, requestPhotoCancellation, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, exitPhotoSelection, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber, PICK_MISS } from './_assistant-ph-hs-photo.js';
 import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveGroupImage, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
 import { requestRegrade } from './_assistant-ph-hs-regrade.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
@@ -334,8 +334,11 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     // Đang CHỜ CHỌN BÀI (vừa nhắn 8): số thuần "1".."9" = chọn bài đó, KHÔNG rơi vào menu
     // mục 1–7 (lỗi thật 29/10: HS chọn bài 1 lại nhận "Tổng quan học tập").
     if ((role === 'student' || role === 'parent') && /^[1-9][0-9]*$/.test(message.trim())) {
-      const picked = await pickAssignmentByNumber(botId, userId, classId, studentId, Number(message.trim()), role);
-      if (picked !== null) { await sendStyled(token, chatId, picked); return ''; }
+      const n = Number(message.trim());
+      const picked = await pickAssignmentByNumber(botId, userId, classId, studentId, n, role);
+      // "11" outside the pending list is the deadline menu where it is enabled; it must not be consumed here.
+      const menuEleven = picked === PICK_MISS && n === 11 && deadlineAvailable(role, classId);
+      if (picked !== null && !menuEleven) { await sendStyled(token, chatId, picked); return ''; }
     }
     // Upload numbers win over menu 11; deadline never mutates a photo session.
     if (role === 'student' && (message.trim() === '11' || deadlineCommand(message))) {

@@ -42,7 +42,18 @@
       "memory": 1024
     }
   },
+  "schedules": {
+    "deadline-digest": {
+      "schedule": "0 0 * * *",
+      "path": "/api/deadline-digest",
+      "requestMethod": "GET"
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/deadline-digest",
+      "destination": "/api/assistant?transport=deadline"
+    },
     {
       "source": "/api/:path*",
       "destination": "/api/:path*"

@@ -447,6 +447,8 @@ export const listPendingReply = async (botId: string, userId: string, classId: s
   return warning || photoListReply(items, total);
 };
 
+/** Out-of-range pick reply. Callers compare against it so a number like 11 can fall through to the deadline menu. */
+export const PICK_MISS = 'Số không khớp hoặc bài đã thay đổi. Nhắn chấm để tải lại danh sách rồi chọn bài nhé.';
 /**
  * Nhắn số thuần ("1", "2"…) khi ĐANG chờ chọn bài → mở phiên nhận ảnh cho bài đó.
  * Trả null nếu không ở trạng thái chờ chọn (caller để tin đi tiếp luồng menu/AI bình thường).
@@ -462,7 +464,7 @@ export const pickAssignmentByNumber = async (
   const target = targetId ? items.find(item => item.id === targetId) : !session.data.assignmentChoices && n >= 1 ? items[n - 1] : null;
   if (!target) {
     // Số không khớp: giữ trạng thái chờ chọn để em nhắn lại đúng số.
-    return 'Số không khớp hoặc bài đã thay đổi. Nhắn chấm để tải lại danh sách rồi chọn bài nhé.';
+    return PICK_MISS;
   }
   // Xoá cờ chờ chọn rồi mới mở phiên (openPhotoSession ghi đè doc).
   return openPhotoSession(botId, userId, { studentId, classId, teacherId, role: userRole }, target, undefined, session.data);

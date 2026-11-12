@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { Firestore } from 'firebase-admin/firestore';
-import { digestText, digestWindow, vietnamDate, type DeadlineItem } from './_assistant-deadline.js';
+import { digestText, digestWindow, vietnamDate, type DeadlineItem, type DigestAudience } from './_assistant-deadline.js';
 import { deadlineOwner } from './_assistant-deadline-config.js';
 import { quoteChatCommands } from './_assistant-zalo-send.js';
 
@@ -9,7 +9,7 @@ export interface DeadlineNotice {
   taskId: string; version: string; studentId: string; classId: string; teacherId: string;
   title: string; dueAt: string; description: string; url: string;
 }
-export interface DeadlineTarget { linkId: string; userId: string; studentId: string; classId: string; teacherId: string }
+export interface DeadlineTarget { linkId: string; userId: string; studentId: string; classId: string; teacherId: string; role?: 'student' | 'parent' }
 export interface DeadlineDeliveryPolicy {
   enabled: boolean; botId: string; testUserIds: string[];
   /** These must be derived from separately approved server config, never a teacher/HS request. */
@@ -71,10 +71,12 @@ async function syncStudentNotices(db: Firestore, classId: string, studentId: str
 /** Default off; the caller supplies freshly loaded data, never a stale cached "all clear". */
 export async function enqueueDeadlineDigest(db: Firestore, target: DeadlineTarget, items: DeadlineItem[], policy: DeadlineDeliveryPolicy, now = Date.now()): Promise<string | null> {
   if (!deadlineRecipientAllowed(policy, target.userId) || !digestWindow(now)) return null;
-  const date = vietnamDate(now), id = deliveryId(policy.botId, target.classId, target.studentId, 'digest', date), ref = outbox(db, id);
+  const audience: DigestAudience = target.role === 'parent' ? 'parent' : 'student', date = vietnamDate(now);
+  // Guardian digests are keyed per link: each guardian receives one copy per day, and student keys stay unchanged.
+  const id = deliveryId(policy.botId, target.classId, target.studentId, audience === 'parent' ? `digest-parent:${target.linkId}` : 'digest', date), ref = outbox(db, id);
   await db.runTransaction(async tx => {
     if ((await tx.get(ref)).exists) return;
-    tx.set(ref, { ...target, botId: policy.botId, taskId: 'digest', version: date, kind: 'digest', text: digestText(items, now, true), state: 'pending', attempts: 0, createdAt: now, nextAt: now });
+    tx.set(ref, { ...target, botId: policy.botId, taskId: 'digest', version: date, kind: 'digest', audience, text: digestText(items, now, true, audience), state: 'pending', attempts: 0, createdAt: now, nextAt: now });
   });
   return id;
 }
@@ -101,7 +103,7 @@ export async function drainDeadlineOutbox(db: Firestore, ids: string[], policy: 
       const student = (await tx.get(db.collection('classes').doc(job.classId).collection('students').doc(job.studentId))).data();
       const state = job.kind === 'notice' ? (await tx.get(snapshotRef(db, policy.botId, job.classId, job.studentId))).data() : undefined;
       const key = hash([job.taskId, job.studentId]);
-      if (!link?.active || link.channel !== 'zalo_bot' || link.channelAccountId !== policy.botId || link.role !== 'student'
+      if (!link?.active || link.channel !== 'zalo_bot' || link.channelAccountId !== policy.botId || !(link.role === 'student' || job.kind === 'digest' && link.role === 'parent')
         || link.classId !== job.classId || link.studentId !== job.studentId || link.channelUserId !== job.userId
         || link.channelChatId && link.channelChatId !== job.userId || link.expiresAt && link.expiresAt <= now
         || deadlineOwner(cls || {}) !== job.teacherId || !student
