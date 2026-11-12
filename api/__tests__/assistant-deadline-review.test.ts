@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { digestText, digestWindow, stripLinks, type DeadlineItem } from '../_assistant-deadline';
 import { validateDeadlineConfig } from '../_assistant-deadline-config';
-import { deadlineDeliveryPolicy, deadlineTargets, digestStillValid } from '../_assistant-deadline-runtime';
+import { deadlineDeliveryPolicy, deadlineDispatchEligible, deadlineTargets, digestStillValid } from '../_assistant-deadline-runtime';
 import { enqueueDeadlineDigest } from '../_assistant-deadline-notify';
 import { readDeadlineSheet } from '../_assistant-deadline-sheet';
 
@@ -132,7 +132,7 @@ describe('guardian digest jobs (PH digest)', () => {
   }
   it('queues one digest per guardian link and keeps the student digest key separate', async () => {
     const db = fakeDb();
-    const policy = { enabled: true, botId: 'bot', testUserIds: ['pu1', 'pu2', 'u-l0'] };
+    const policy = { enabled: true, botId: 'bot', testUserIds: ['pu1', 'pu2', 'u-l0'], parentTestUserIds: ['pu1', 'pu2'] };
     const base = { classId: 'c1', teacherId: 't1', studentId: 's1' };
     await enqueueDeadlineDigest(db, { ...base, linkId: 'p1', userId: 'pu1', role: 'parent' }, items, policy, at('07:10'));
     await enqueueDeadlineDigest(db, { ...base, linkId: 'p2', userId: 'pu2', role: 'parent' }, items, policy, at('07:10'));
@@ -142,5 +142,45 @@ describe('guardian digest jobs (PH digest)', () => {
     expect(jobs.map(j => j.audience).sort()).toEqual(['parent', 'parent', 'student']);
     expect(jobs.filter(j => j.audience === 'parent').every(j => j.text.includes('VIỆC CỦA CON'))).toBe(true);
     expect(jobs.find(j => j.audience === 'student').text).toContain('VIỆC CỦA EM');
+  });
+});
+
+describe('guardian test gate (PARENT_TEST_USER_IDS)', () => {
+  const real = { enabled: true, botId: 'bot', testUserIds: [] as string[], realDeliveryApproved: true, quotaVerified: true };
+  function fakeDb() {
+    const store = new Map<string, any>();
+    const ref = (path: string) => ({ path });
+    return {
+      store,
+      collection: (name: string) => ({ doc: (id: string) => ref(`${name}/${id}`) }),
+      runTransaction: async (fn: (tx: any) => Promise<unknown>) => fn({
+        get: async (r: { path: string }) => ({ exists: store.has(r.path), data: () => store.get(r.path) }),
+        set: (r: { path: string }, value: unknown) => { store.set(r.path, value); },
+      }),
+    } as any;
+  }
+  const base = { classId: 'c1', teacherId: 't1', studentId: 's1' };
+  it('parses the list from env and defaults to empty', () => {
+    expect(deadlineDeliveryPolicy({}).parentTestUserIds).toEqual([]);
+    expect(deadlineDeliveryPolicy({ ZALO_DEADLINE_PARENT_TEST_USER_IDS: 'a, b' }).parentTestUserIds).toEqual(['a', 'b']);
+  });
+  it('real-delivery flags do not open guardian digests; only listed ids get one, students unaffected', async () => {
+    const db = fakeDb();
+    const policy = { ...real, parentTestUserIds: ['pu1'] };
+    await enqueueDeadlineDigest(db, { ...base, linkId: 'p1', userId: 'pu1', role: 'parent' }, items, policy, at('07:10'));
+    await enqueueDeadlineDigest(db, { ...base, linkId: 'p2', userId: 'pu2', role: 'parent' }, items, policy, at('07:10'));
+    await enqueueDeadlineDigest(db, { ...base, linkId: 'l1', userId: 'u1', role: 'student' }, items, policy, at('07:10'));
+    expect([...db.store.values()].map(j => j.userId).sort()).toEqual(['pu1', 'u1']);
+  });
+  it('an empty list means no guardian digest at all', async () => {
+    const db = fakeDb();
+    await enqueueDeadlineDigest(db, { ...base, linkId: 'p1', userId: 'pu1', role: 'parent' }, items, { ...real, parentTestUserIds: [] }, at('07:10'));
+    expect(db.store.size).toBe(0);
+  });
+  it('dispatch ignores queued guardian jobs whose id is not listed', () => {
+    const targets = [{ ...base, linkId: 'p2', userId: 'pu2', role: 'parent' as const }];
+    const job = { ...base, linkId: 'p2', userId: 'pu2', botId: 'bot', audience: 'parent', nextAt: 0, attempts: 0, createdAt: at('07:10') };
+    expect(deadlineDispatchEligible(job, targets, { ...real, parentTestUserIds: [] }, at('07:20'))).toBe(false);
+    expect(deadlineDispatchEligible(job, targets, { ...real, parentTestUserIds: ['pu2'] }, at('07:20'))).toBe(true);
   });
 });

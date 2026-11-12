@@ -16,6 +16,8 @@ export interface DeadlineDeliveryPolicy {
   realDeliveryApproved?: boolean; quotaVerified?: boolean;
   /** Guardian (PH) digests stay off unless the server flag is literally "true". Notices never go to guardians. */
   parentDigest?: boolean;
+  /** Guardian digests go only to these ids, whatever the real-delivery flags say. Empty list means no guardian sends. */
+  parentTestUserIds?: string[];
 }
 export type DeliveryReceipt = { state: 'sent' | 'rejected' | 'unknown'; code?: number };
 export type DeadlineSender = (userId: string, text: string) => Promise<DeliveryReceipt>;
@@ -23,6 +25,9 @@ const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(valu
 export const deliveryId = (bot: string, cls: string, student: string, task: string, version: string) => hash([bot, cls, student, task, version]);
 export const deadlineRecipientAllowed = (policy: DeadlineDeliveryPolicy, user: string) => policy.enabled && Boolean(policy.botId)
   && (policy.testUserIds.includes(user) || policy.realDeliveryApproved === true && policy.quotaVerified === true);
+/** Student rule unchanged; guardian jobs additionally need an explicit entry in the guardian test list. */
+export const jobRecipientAllowed = (policy: DeadlineDeliveryPolicy, job: Record<string, any>): boolean =>
+  deadlineRecipientAllowed(policy, String(job.userId)) && (job.audience !== 'parent' || (policy.parentTestUserIds ?? []).includes(String(job.userId)));
 const outbox = (db: Firestore, id: string) => db.collection('assistantDeadlineOutbox').doc(id);
 const snapshotRef = (db: Firestore, botId: string, classId: string, studentId: string) => db.collection('assistantDeadlineSnapshots').doc(hash([botId, classId, studentId]));
 const noticeText = (notice: DeadlineNotice) => [
@@ -72,7 +77,7 @@ async function syncStudentNotices(db: Firestore, classId: string, studentId: str
 
 /** Default off; the caller supplies freshly loaded data, never a stale cached "all clear". */
 export async function enqueueDeadlineDigest(db: Firestore, target: DeadlineTarget, items: DeadlineItem[], policy: DeadlineDeliveryPolicy, now = Date.now()): Promise<string | null> {
-  if (!deadlineRecipientAllowed(policy, target.userId) || !digestWindow(now)) return null;
+  if (!jobRecipientAllowed(policy, { userId: target.userId, audience: target.role === 'parent' ? 'parent' : 'student' }) || !digestWindow(now)) return null;
   const audience: DigestAudience = target.role === 'parent' ? 'parent' : 'student', date = vietnamDate(now);
   // Guardian digests are keyed per link: each guardian receives one copy per day, and student keys stay unchanged.
   const id = deliveryId(policy.botId, target.classId, target.studentId, audience === 'parent' ? `digest-parent:${target.linkId}` : 'digest', date), ref = outbox(db, id);
@@ -89,14 +94,14 @@ export async function drainDeadlineOutbox(db: Firestore, ids: string[], policy: 
   for (const id of [...new Set(ids)].slice(0, 100)) {
     const ref = outbox(db, id), attemptId = randomUUID();
     const observed = (await ref.get()).data();
-    if (!observed || observed.botId !== policy.botId || !deadlineRecipientAllowed(policy, String(observed.userId))
+    if (!observed || observed.botId !== policy.botId || !jobRecipientAllowed(policy, observed)
       || !['pending', 'rejected'].includes(observed.state) || observed.attempts >= 3 || observed.nextAt > now) continue;
     let currentTask: boolean;
     try { currentTask = now - observed.createdAt < 24 * 3600_000 && await stillCurrent(observed); }
     catch { continue; } // No send attempted: a source outage remains safely retryable.
     const job = await db.runTransaction(async tx => {
       const snap = await tx.get(ref), job = snap.data();
-      if (!job || job.botId !== policy.botId || !deadlineRecipientAllowed(policy, String(job.userId))
+      if (!job || job.botId !== policy.botId || !jobRecipientAllowed(policy, job)
         || !['pending', 'rejected'].includes(job.state) || job.attempts >= 3 || job.nextAt > now) return null;
       if (job.text !== observed.text || job.version !== observed.version || job.sequence !== observed.sequence || job.linkId !== observed.linkId) return null;
       if (!currentTask) { tx.update(ref, { state: 'cancelled', updatedAt: now }); return null; }

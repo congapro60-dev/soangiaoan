@@ -4,7 +4,7 @@ import { deadlineTasksForStudent, digestText, digestWindow, sheetTaskRows, strip
 import { deadlineOwner, publicationVersion, requireDeadlineSource, validateDeadlineConfig } from './_assistant-deadline-config.js';
 import { readDeadlineSheet } from './_assistant-deadline-sheet.js';
 import { runHomeworkSheetBatch } from './_assistant-homework-sheet.js';
-import { deadlineRecipientAllowed, drainDeadlineOutbox, enqueueDeadlineDigest, syncDeadlineNotices, zaloDeadlineSender, type DeadlineDeliveryPolicy, type DeadlineNotice, type DeadlineTarget } from './_assistant-deadline-notify.js';
+import { jobRecipientAllowed, drainDeadlineOutbox, enqueueDeadlineDigest, syncDeadlineNotices, zaloDeadlineSender, type DeadlineDeliveryPolicy, type DeadlineNotice, type DeadlineTarget } from './_assistant-deadline-notify.js';
 
 type Data = Record<string, any>;
 interface Bundle {
@@ -17,6 +17,7 @@ export const deadlineDeliveryPolicy = (env: Record<string, string | undefined> =
   testUserIds: (env.ZALO_DEADLINE_TEST_USER_IDS || '').split(',').map(x => x.trim()).filter(Boolean),
   realDeliveryApproved: env.ZALO_DEADLINE_REAL_APPROVED === 'true', quotaVerified: env.ZALO_DEADLINE_QUOTA_VERIFIED === 'true',
   parentDigest: env.ZALO_DEADLINE_PARENT_DIGEST === 'true',
+  parentTestUserIds: (env.ZALO_DEADLINE_PARENT_TEST_USER_IDS || '').split(',').map(x => x.trim()).filter(Boolean),
 });
 async function records(query: Query, max = 2000): Promise<Data[]> {
   // ponytail: bounded per-class reads; add pagination before classes exceed this ceiling.
@@ -94,7 +95,7 @@ export function noticesFor(bundle: Bundle, studentId: string): DeadlineNotice[] 
   });
 }
 export const deadlineDispatchEligible = (job: Data, targets: DeadlineTarget[], policy: DeadlineDeliveryPolicy, now: number): boolean =>
-  job.botId === policy.botId && deadlineRecipientAllowed(policy, job.userId) && job.nextAt <= now && job.attempts < 3
+  job.botId === policy.botId && jobRecipientAllowed(policy, job) && job.nextAt <= now && job.attempts < 3
   && now - job.createdAt < 24 * 3600_000 && targets.some(t => t.linkId === job.linkId && t.userId === job.userId && t.studentId === job.studentId && t.teacherId === job.teacherId);
 /** Students get notices and digests, one link per student (first id wins). Guardian links get the morning digest only when `guardians` is on. */
 export function deadlineTargets(links: Data[], bundle: Pick<Bundle, 'classId' | 'teacherId' | 'students' | 'settings'>, botId: string, now: number, guardians = false): DeadlineTarget[] {
