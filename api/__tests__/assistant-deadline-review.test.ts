@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { digestText, digestWindow, stripLinks, type DeadlineItem } from '../_assistant-deadline';
 import { validateDeadlineConfig } from '../_assistant-deadline-config';
-import { deadlineTargets, digestStillValid } from '../_assistant-deadline-runtime';
+import { deadlineDeliveryPolicy, deadlineTargets, digestStillValid } from '../_assistant-deadline-runtime';
 import { enqueueDeadlineDigest } from '../_assistant-deadline-notify';
 import { readDeadlineSheet } from '../_assistant-deadline-sheet';
 
@@ -93,7 +93,7 @@ describe('recipient selection (DLV-1 window, PH digest targets)', () => {
     return { id, active: true, channel: 'zalo_bot', channelAccountId: 'bot', role: 'student', studentId: 's1',
       channelChatId: channelUserId, ...patch, channelUserId };
   };
-  it('keeps one student link per student and every usable guardian link, students first', () => {
+  it('keeps one student link per student; guardian links appear only when the switch is on, students first', () => {
     const links = [
       link('p2', { role: 'parent', channelUserId: 'pu2' }),
       link('l1'),
@@ -105,8 +105,14 @@ describe('recipient selection (DLV-1 window, PH digest targets)', () => {
       link('x-unmapped', { studentId: 's2' }),
       link('x-chat', { role: 'parent', channelChatId: 'other-chat' }),
     ];
-    const targets = deadlineTargets(links, bundle, 'bot', at('08:00'));
+    expect(deadlineTargets(links, bundle, 'bot', at('08:00')).map(t => t.linkId)).toEqual(['l0']);
+    const targets = deadlineTargets(links, bundle, 'bot', at('08:00'), true);
     expect(targets.map(t => [t.linkId, t.role])).toEqual([['l0', 'student'], ['p1', 'parent'], ['p2', 'parent']]);
+  });
+  it('the guardian digest switch is off unless the env value is literally "true"', () => {
+    expect(deadlineDeliveryPolicy({}).parentDigest).toBe(false);
+    expect(deadlineDeliveryPolicy({ ZALO_DEADLINE_PARENT_DIGEST: '1' }).parentDigest).toBe(false);
+    expect(deadlineDeliveryPolicy({ ZALO_DEADLINE_PARENT_DIGEST: 'true' }).parentDigest).toBe(true);
   });
 });
 

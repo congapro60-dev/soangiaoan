@@ -14,6 +14,8 @@ export interface DeadlineDeliveryPolicy {
   enabled: boolean; botId: string; testUserIds: string[];
   /** These must be derived from separately approved server config, never a teacher/HS request. */
   realDeliveryApproved?: boolean; quotaVerified?: boolean;
+  /** Guardian (PH) digests stay off unless the server flag is literally "true". Notices never go to guardians. */
+  parentDigest?: boolean;
 }
 export type DeliveryReceipt = { state: 'sent' | 'rejected' | 'unknown'; code?: number };
 export type DeadlineSender = (userId: string, text: string) => Promise<DeliveryReceipt>;

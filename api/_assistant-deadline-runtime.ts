@@ -16,6 +16,7 @@ export const deadlineDeliveryPolicy = (env: Record<string, string | undefined> =
   enabled: env.ZALO_DEADLINE_ENABLED === 'true', botId: env.ZALO_BOT_ID || '',
   testUserIds: (env.ZALO_DEADLINE_TEST_USER_IDS || '').split(',').map(x => x.trim()).filter(Boolean),
   realDeliveryApproved: env.ZALO_DEADLINE_REAL_APPROVED === 'true', quotaVerified: env.ZALO_DEADLINE_QUOTA_VERIFIED === 'true',
+  parentDigest: env.ZALO_DEADLINE_PARENT_DIGEST === 'true',
 });
 async function records(query: Query, max = 2000): Promise<Data[]> {
   // ponytail: bounded per-class reads; add pagination before classes exceed this ceiling.
@@ -95,15 +96,15 @@ export function noticesFor(bundle: Bundle, studentId: string): DeadlineNotice[] 
 export const deadlineDispatchEligible = (job: Data, targets: DeadlineTarget[], policy: DeadlineDeliveryPolicy, now: number): boolean =>
   job.botId === policy.botId && deadlineRecipientAllowed(policy, job.userId) && job.nextAt <= now && job.attempts < 3
   && now - job.createdAt < 24 * 3600_000 && targets.some(t => t.linkId === job.linkId && t.userId === job.userId && t.studentId === job.studentId && t.teacherId === job.teacherId);
-/** Students get notices and digests, one link per student (first id wins). Guardian links get the morning digest only. */
-export function deadlineTargets(links: Data[], bundle: Pick<Bundle, 'classId' | 'teacherId' | 'students' | 'settings'>, botId: string, now: number): DeadlineTarget[] {
+/** Students get notices and digests, one link per student (first id wins). Guardian links get the morning digest only when `guardians` is on. */
+export function deadlineTargets(links: Data[], bundle: Pick<Bundle, 'classId' | 'teacherId' | 'students' | 'settings'>, botId: string, now: number, guardians = false): DeadlineTarget[] {
   const eligible = links.filter(l => l.active && l.channel === 'zalo_bot' && l.channelAccountId === botId
     && (l.role === 'student' || l.role === 'parent') && (!l.channelChatId || l.channelChatId === l.channelUserId) && (!l.expiresAt || l.expiresAt > now)
     && bundle.students.some(s => s.id === l.studentId && (!bundle.settings.spreadsheetId || Object.hasOwn(bundle.settings.studentNames, s.code))))
     .sort((a, b) => String(a.id).localeCompare(String(b.id)));
   const toTarget = (l: Data): DeadlineTarget => ({ linkId: l.id, userId: l.channelUserId, studentId: l.studentId, classId: bundle.classId, teacherId: bundle.teacherId, role: l.role });
   const students = eligible.filter(l => l.role === 'student').filter((l, i, all) => all.findIndex(x => x.studentId === l.studentId) === i).map(toTarget);
-  return [...students, ...eligible.filter(l => l.role === 'parent').map(toTarget)];
+  return [...students, ...(guardians ? eligible.filter(l => l.role === 'parent').map(toTarget) : [])];
 }
 /** Re-checked before each digest send: same Vietnam date, digest still enabled, and the rendered text still matches the queued job. */
 export function digestStillValid(job: Data, items: DeadlineItem[], digestEnabled: boolean, now: number): boolean {
@@ -130,7 +131,7 @@ export async function runDeadlineClass(db: Firestore, classId: string, policy: D
   // ponytail: poll the bounded class snapshot; read submission history after source/link changes or queued delivery.
   if (previous?.fingerprint === fingerprint && !digestDue && pending.empty) return;
   const bundle = await loadDeadlineClass(db, classId, read);
-  const targets = deadlineTargets(links, bundle, policy.botId, now);
+  const targets = deadlineTargets(links, bundle, policy.botId, now, policy.parentDigest === true);
   const studentTargets = targets.filter(t => t.role !== 'parent');
   const notices = studentTargets.flatMap(t => noticesFor(bundle, t.studentId));
   // Off still advances the baseline; enabling later does not broadcast old work. Guardians get digests only, never notices.
