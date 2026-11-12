@@ -715,6 +715,11 @@ export const buildSheetRequests = (plan: SheetSyncPlan, snapshot: SheetSnapshot)
       cell.userEnteredValue = { formulaValue: write.formula };
     } else {
       cell.userEnteredValue = { stringValue: write.value };
+      if (write.kind === 'link') {
+        // URL dài không được làm cao cả hàng; giá trị giữ nguyên để nhận diện bài theo mã.
+        cell.userEnteredFormat = { wrapStrategy: 'CLIP' };
+        fields = 'userEnteredValue,userEnteredFormat.wrapStrategy';
+      }
     }
     if ('note' in write && write.note !== undefined) {
       cell.note = write.note;

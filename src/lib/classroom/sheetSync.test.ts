@@ -432,6 +432,15 @@ describe('receiptOnly — tự động nhận bài không chấm hạnh kiểm',
     expect(planSheetSync(base({ snapshot })).writes).toEqual([]);
     expect(planSheetSync(base({ assignments: [{ id: 'a1', title: 'Một' }, { id: 'a1', title: 'Hai' }] })).writes).toEqual([]);
   });
+  it('ô link bài mới được cắt gọn để URL dài không làm cao hàng, giá trị URL giữ nguyên', () => {
+    const input = base({ snapshot: snapshotOf({ headers: [{ column: 3, content: cell('Bài mới') }], lastColumn: 3 }), assignments: [{ id: 'a9', title: 'Bài mới' }] });
+    const plan = planSheetSync(input);
+    expect(plan.writes.find(w => w.kind === 'link')).toBeTruthy();
+    const request = buildSheetRequests(plan, input.snapshot).find((r: any) => r.updateCells?.range.startRowIndex === 5) as any;
+    expect(request.updateCells.fields).toContain('userEnteredFormat.wrapStrategy');
+    expect(request.updateCells.rows[0].values[0].userEnteredFormat).toEqual({ wrapStrategy: 'CLIP' });
+    expect(request.updateCells.rows[0].values[0].userEnteredValue.stringValue).toContain('a9');
+  });
   it('chỉ bổ sung lựa chọn ở ô nhận bài, không thay công thức đếm hay dropdown toàn lớp', () => {
     const input = base({ submissions: [{ studentId: 's1', assignmentId: 'a1', createdAt: '2026-09-02T00:00:00Z', status: 'submitted' }] });
     const requests = buildSheetRequests(planSheetSync(input), input.snapshot);

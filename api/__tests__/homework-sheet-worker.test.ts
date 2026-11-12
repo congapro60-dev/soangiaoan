@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../_assistant-deadline-sheet.js', async importOriginal => ({
   ...await importOriginal<typeof import('../_assistant-deadline-sheet.js')>(), homeworkWriteToken: vi.fn(async () => 'synthetic-token'),
 }));
-import { notifyHomeworkSheet, runHomeworkSheetBatch, syncHomeworkSheet } from '../_assistant-homework-sheet';
+import { kickHomeworkReconcile, notifyHomeworkSheet, reconcileHomeworkIfDue, runHomeworkSheetBatch, syncHomeworkSheet } from '../_assistant-homework-sheet';
 import { runDeadlineBatch } from '../_assistant-deadline-runtime';
 
 type Data = Record<string, any>;
@@ -138,6 +138,20 @@ describe('BTVN durable worker', () => {
       expect(data[statePath].syncedAt).toBeGreaterThan(0);
       expect(fetcher.mock.calls.every(([url]) => !String(url).includes('zaloplatforms'))).toBe(true);
     } finally { vi.unstubAllEnvs(); }
+  });
+  it('bot traffic reconciliation runs once per 2-minute gate and then syncs the dirty class', async () => {
+    const { db, data } = fakeDb({ [statePath]: { revision: 1 } }); stubSheets();
+    const first = await reconcileHomeworkIfDue(db, 1_000_000);
+    expect(first).toMatchObject({ processed: 1, failed: 0 });
+    expect(data[statePath].syncedAt).toBeGreaterThan(0);
+    expect(data['assistantHomeworkSyncState/reconcile-gate'].nextAt).toBe(1_120_000);
+    const within = await reconcileHomeworkIfDue(db, 1_060_000);
+    expect(within).toBeNull();
+    const after = await reconcileHomeworkIfDue(db, 1_120_001);
+    expect(after).toMatchObject({ processed: 1 });
+  });
+  it('kickHomeworkReconcile never throws, even with a broken database', () => {
+    expect(() => kickHomeworkReconcile({} as any)).not.toThrow();
   });
   it('disabled configs and invalid class IDs do not enqueue work', async () => {
     const { db, data } = fakeDb({ [configPath]: { ...config, enabled: false } }); const fetcher = stubSheets();

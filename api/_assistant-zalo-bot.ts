@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { deadlineCommand } from './_assistant-deadline.js';
 import { deadlineMenuReply } from './_assistant-deadline-runtime.js';
+import { kickHomeworkReconcile } from './_assistant-homework-sheet.js';
 import { issueWebHandoff, confirmWebHandoff } from './_assistant-web-handoff.js';
 import { homeworkGroupsContext, loadGroupHomework, groupHomeworkSummary } from './_classroom-group-homework.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
@@ -504,6 +505,8 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   // Zalo verify webhook bằng event riêng `webhook.test` (body KHÔNG có `ok`/`result` như tin nhắn).
   // Đúng yêu cầu của Zalo: trả 200. Không phải tin nhắn người dùng nên không xử lý gì thêm.
   if (body?.event_name === 'webhook.test') { res.status(200).json({ ok: true }); return true; }
+  // Lịch GitHub thực tế chạy cách nhau nhiều giờ: mỗi tin nhắn hợp lệ cũng kích một lượt đối soát BTVN có giới hạn 2 phút.
+  try { kickHomeworkReconcile(getAdminDb()); } catch { /* scheduler vẫn là đường dự phòng */ }
   // Zalo Bot Platform (cấu trúc THẬT, đã xác minh bằng log): { event_name, message } ở cấp gốc.
   // Bản cũ đọc body.result.message (cấu trúc Zalo OA) nên không bao giờ khớp → mọi tin nhắn bị
   // coi là INVALID_REQUEST. Hỗ trợ cả hai để không phá client khác.

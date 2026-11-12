@@ -156,6 +156,25 @@ export async function syncHomeworkSheet(db: Firestore, classId: string, catchUp 
   }
 }
 
+const RECONCILE_EVERY_MS = 120_000;
+
+/** Claims a shared 2-minute gate, then runs one bounded reconciliation pass. Returns null when another caller holds the gate. */
+export async function reconcileHomeworkIfDue(db: Firestore, now = Date.now()) {
+  const gate = db.collection('assistantHomeworkSyncState').doc('reconcile-gate');
+  const claimed = await db.runTransaction(async tx => {
+    if (((await tx.get(gate)).data()?.nextAt || 0) > now) return false;
+    tx.set(gate, { nextAt: now + RECONCILE_EVERY_MS }, { merge: true }); return true;
+  });
+  return claimed ? runHomeworkSheetBatch(db) : null;
+}
+
+/** GitHub's every-5-minutes cron is throttled to hours in practice, so bot traffic also starts a throttled catch-up. Never throws. */
+export function kickHomeworkReconcile(db: Firestore): void {
+  const work = Promise.resolve().then(() => reconcileHomeworkIfDue(db)).catch(() => undefined);
+  const context = (globalThis as Record<symbol, any>)[Symbol.for('@vercel/request-context')]?.get?.();
+  if (typeof context?.waitUntil === 'function') context.waitUntil(work);
+}
+
 /** Independent of Zalo notification policy/token. Scheduler uses the same authenticated route. */
 export async function runHomeworkSheetBatch(db: Firestore, after = '') {
   let q = db.collection('assistantHomeworkSheets').orderBy('__name__').limit(4); if (after) q = q.startAfter(after);
