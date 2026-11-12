@@ -2,6 +2,13 @@
 
 > Cập nhật: 04/11/2026 — **HOÀN TẤT TRỌN VẸN TUẦN 12 CẢ 3 KHỐI: 76/76 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER (100%)**
 
+## Nhánh feat/ssm-bridge: Hướng dẫn phụ huynh (12/11/2026)
+- Commit `9c7e45b`: GV soạn hướng dẫn cho bài về nhà bằng AI (chỉ tạo nháp), sửa rồi đăng. Phụ huynh chỉ thấy bản đã đăng và khớp nội dung hiện tại; học sinh không nhận field này.
+- Nơi làm việc: `api/grade-homework.ts` (`prepareParentGuide`, `saveParentGuide`), `api/_submission-actors.ts` (`projectParentView`), `api/_classroom-teacher.ts`, `src/lib/classroom/parentGuide.ts`, `ParentGuideEditor` (AssignmentPanel), `ParentGuideCard` (ParentAssignmentWorkspace).
+- Quyết định: hướng dẫn được ghi đáp án cuối; mỗi bài một bản; bài đổi đề, đáp án hoặc hướng dẫn chấm thì bản đã đăng bị ẩn cho tới khi soạn lại. Tạo lời giải chung có thể đổi danh sách câu, khi đó bản đã đăng cũng bị ẩn.
+- Đã kiểm: 11 file test liên quan (104 test) PASS; `lint:api` PASS; `npm run build` PASS.
+- Chưa kiểm: thử tay trên trình duyệt với tài khoản GV và phụ huynh thật. `npm run lint` gốc đỏ vì 2 lỗi cú pháp trong `qa_artifacts/` (file backup có sẵn, không thuộc tính năng này).
+
 ## 1. Trạng thái hiện tại
 - **TOÀN BỘ 76/76 BÀI TƯƠNG TÁC TOÁN 10–12 HOÀN THÀNH CHUẨN V8.8 MASTER TEACHER:**
   - Khối 10: **24 bài** (Tuần 5–6: 16 bài; Tuần 11: 2 bài; Tuần 12: 6/6 bài `10-12-88`..`93`).
