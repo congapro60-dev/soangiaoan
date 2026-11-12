@@ -362,6 +362,8 @@ export const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.
     submissionLocked: data.submissionLocked === true,
     lockedAt: data.lockedAt, lockedBy: data.lockedBy,
     workedSolutions: data.workedSolutions, workedSolutionsByExamCode: data.workedSolutionsByExamCode,
+    // Hướng dẫn phụ huynh (bản nháp hoặc đã đăng) chỉ là đường GV đọc và sửa; học sinh đi qua projectStudentAssignment.
+    parentGuide: data.parentGuide,
     questionCatalogByExamCode: data.questionCatalogByExamCode,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,

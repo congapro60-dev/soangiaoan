@@ -11,6 +11,7 @@ import { submissionDeadlineState } from '../../../lib/classroom/hanNop';
 import { Camera, ChevronRight, Search } from 'lucide-react';
 import { HandMarkedWork } from './HandMarkedWork';
 import { CorrectionAttempts } from './CorrectionAttempts';
+import { ParentGuideCard } from './ParentGuideCard';
 
 const PARENT_POLL_MS = 4000;
 /** Quá ngần này mà máy chưa chấm xong thì thôi tự làm mới — phụ huynh bấm mở lại bài là thấy kết quả mới. */
@@ -106,6 +107,7 @@ export const ParentAssignmentWorkspace = ({ credentials }: { credentials: Submis
     {busy && <p role="status">Đang tải bài…</p>}
     {detail && <div ref={detailRef} tabIndex={-1} className="scroll-mt-20"><h2 className="text-lg font-black">{detail.assignment.title}</h2>
       <p className="text-sm font-bold text-slate-600">{detail.assignment.submissionLocked ? 'Đã khóa chốt · chỉ xem' : 'Có thể nộp / bổ sung bất kỳ lúc nào'}</p>
+      <ParentGuideCard guide={detail.assignment.parentGuidePublic} />
       {!detail.assignment.submissionLocked && detail.assignment.type !== 'exam' && detail.assignment.deliveryMode !== 'online' && <button type="button" className="min-h-11 rounded-xl bg-indigo-600 px-4 text-sm font-bold text-white" onClick={() => setUpload('')}>Nộp bài hộ con</button>}
       {upload !== null && detail.assignment.type !== 'exam' && detail.assignment.deliveryMode !== 'online' && <ActorSubmissionUpload key={detail.assignment.id + ':' + upload} credentials={credentials} assignmentId={detail.assignment.id} locked={detail.assignment.submissionLocked} supplementOf={upload || undefined} onClose={() => setUpload(null)} onSubmitted={() => { setUpload(null); void refresh().catch(reason => setError(reason.message)); }} />}
       {[...detail.submissions].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((submission, index) => {

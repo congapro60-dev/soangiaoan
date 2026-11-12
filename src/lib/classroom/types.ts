@@ -227,6 +227,28 @@ export interface WorkedSolutionCache {
   status: 'ready' | 'incomplete';
   questions: { questionNumber: string; workedSolution: string; status: 'ready' | 'unavailable' }[];
 }
+/** Hướng dẫn phụ huynh cho bài về nhà: AI soạn nháp, GV sửa rồi đăng. Học sinh không bao giờ nhận field này. */
+export interface ParentGuide {
+  /** Hash nội dung bài lúc soạn; bài đổi đề, đáp án hay hướng dẫn chấm thì bản này coi như cũ. */
+  version: string;
+  status: 'draft' | 'published';
+  /** Mã đề đã soạn; vắng nghĩa là bài không chia mã đề. Tính phiên bản nội dung theo đúng mã này. */
+  examCode?: string;
+  generatedAt: string;
+  editedAt?: string;
+  publishedAt?: string;
+  goal: string;
+  /** Câu gợi mở để phụ huynh hỏi con trước khi con làm. */
+  askFirst: string[];
+  /** Các bước để con làm theo, nêu lý do. Đáp án đúng của từng câu có thể ghi sau khi đã giải thích cách ra. */
+  steps: string[];
+  commonMistakes: string[];
+  askTeacher: string;
+}
+
+/** Phần phụ huynh được xem: chỉ bản đã đăng và khớp nội dung hiện tại. */
+export type ParentGuidePublic = Pick<ParentGuide, 'goal' | 'askFirst' | 'steps' | 'commonMistakes' | 'askTeacher'>;
+
 export interface SubmissionActor { role: 'teacher' | 'student' | 'parent'; uid?: string; studentId: string; at: string }
 export interface SubmissionFeedbackMessage { id: string; role: 'student' | 'teacher'; text: string; at: string }
 export interface SubmissionFeedbackDoc {
@@ -315,6 +337,10 @@ export interface AssignmentDoc {
   examVariants?: ExamVariant[];
   workedSolutions?: WorkedSolutionCache;
   workedSolutionsByExamCode?: Record<string, WorkedSolutionCache>;
+  /** Hướng dẫn phụ huynh. Học sinh không nhận field này; phụ huynh chỉ nhận bản đã đăng khớp nội dung. */
+  parentGuide?: ParentGuide;
+  /** Khóa chống soạn trùng hướng dẫn phụ huynh (5 phút), cùng cách với workedSolutionsClaims. */
+  parentGuideClaim?: { id: string; expiresAt: number };
   submissionLocked?: boolean;
   lockedAt?: string;
   lockedBy?: string;
@@ -332,6 +358,8 @@ export type StudentAssignmentView = Pick<
 > & {
   hasAnswerKey: boolean;
   exportBundle?: StudentActivityExportBundle;
+  /** Chỉ phụ huynh nhận, và chỉ khi GV đã đăng đúng nội dung hiện tại. Tên khác AssignmentDoc.parentGuide để không lệch kiểu. */
+  parentGuidePublic?: ParentGuidePublic;
 };
 
 export type SubmissionStatus = 'submitted' | 'grading' | 'graded' | 'error';

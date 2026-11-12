@@ -173,6 +173,62 @@ const seed = (submission: DocData = {}, assignment: DocData = {}): Harness => ({
   },
 });
 
+describe('POST /api/grade-homework · hướng dẫn phụ huynh', () => {
+  const guideDraft = JSON.stringify({ goal: 'Hiểu phép nhân', askFirst: ['Con nhớ bảng nhân không?'], steps: ['Đọc đề', 'Nhân 6 với 7 được 42'], commonMistakes: ['Nhầm phép cộng'], askTeacher: 'Khi con vẫn sai sau hai lần thử.' });
+  const plainAssignment = { examVariants: undefined, sourceText: 'Tính 6 × 7', answerKey: '42', questionCatalog: [{ questionNumber: '1', content: 'Tính 6 × 7', expectedAnswer: '42' }] };
+  beforeEach(() => {
+    process.env.GRADING_GEMINI_API_KEY = 'test-key';
+    h.uid = 'gv-1';
+  });
+  it('soạn bản NHÁP bằng AI, chưa đăng; gọi lại cùng nội dung thì dùng lại, không gọi AI thêm', async () => {
+    const harness = seed({}, plainAssignment); h.db = makeDb(harness);
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse(guideDraft));
+    const first = await call({ action: 'prepareParentGuide', assignmentId: 'kt-1' });
+    expect(first.statusCode).toBe(200);
+    expect(first.body?.parentGuide).toMatchObject({ status: 'draft', goal: 'Hiểu phép nhân' });
+    expect(harness.state.assignments['kt-1'].parentGuide).toMatchObject({ status: 'draft' });
+    expect(prompts[0]).toContain('HƯỚNG DẪN CHO PHỤ HUYNH');
+    const again = await call({ action: 'prepareParentGuide', assignmentId: 'kt-1' });
+    expect(again.statusCode).toBe(200); expect(prompts).toHaveLength(1);
+  });
+  it('bài chưa có đề hoặc đáp án thì không gọi AI', async () => {
+    const harness = seed({}, { ...plainAssignment, sourceText: '', answerKey: '', questionCatalog: [] }); h.db = makeDb(harness);
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse(guideDraft));
+    expect((await call({ action: 'prepareParentGuide', assignmentId: 'kt-1' })).statusCode).toBe(422);
+    expect(prompts).toHaveLength(0);
+  });
+  it('AI trả sai khuôn thì không lưu bản nháp và không trừ lượt', async () => {
+    const harness = seed({}, plainAssignment); h.db = makeDb(harness);
+    stubImageThenGeminiResponses(makeGeminiResponse('{"goal":"","steps":[]}'));
+    expect((await call({ action: 'prepareParentGuide', assignmentId: 'kt-1' })).statusCode).toBe(502);
+    expect(harness.state.assignments['kt-1'].parentGuide).toBeUndefined();
+    expect(harness.state.gradingQuota['gv-1']).toMatchObject({ teacherCount: 0 });
+  });
+  it('GV đăng bản đã sửa; khi bài đổi đáp án thì lưu bị từ chối', async () => {
+    const harness = seed({}, plainAssignment); h.db = makeDb(harness);
+    stubImageThenGeminiResponses(makeGeminiResponse(guideDraft));
+    await call({ action: 'prepareParentGuide', assignmentId: 'kt-1' });
+    const edited = { goal: 'Hiểu phép nhân', askFirst: [], steps: ['Đọc đề', 'Nhân 6 với 7 được 42'], commonMistakes: [], askTeacher: '' };
+    expect((await call({ action: 'saveParentGuide', assignmentId: 'kt-1', publish: true, guide: edited })).statusCode).toBe(200);
+    expect(harness.state.assignments['kt-1'].parentGuide).toMatchObject({ status: 'published', publishedAt: expect.any(String) });
+    harness.state.assignments['kt-1'].answerKey = '43';
+    expect((await call({ action: 'saveParentGuide', assignmentId: 'kt-1', publish: true, guide: edited })).statusCode).toBe(409);
+  });
+  it('lưu nháp thì ẩn lại bản đã đăng; thiếu bước thì báo 422', async () => {
+    const harness = seed({}, plainAssignment); h.db = makeDb(harness);
+    stubImageThenGeminiResponses(makeGeminiResponse(guideDraft));
+    await call({ action: 'prepareParentGuide', assignmentId: 'kt-1' });
+    const edited = { goal: 'Hiểu phép nhân', askFirst: [], steps: ['Đọc đề'], commonMistakes: [], askTeacher: '' };
+    expect((await call({ action: 'saveParentGuide', assignmentId: 'kt-1', publish: false, guide: edited })).statusCode).toBe(200);
+    expect(harness.state.assignments['kt-1'].parentGuide).toMatchObject({ status: 'draft' });
+    expect((await call({ action: 'saveParentGuide', assignmentId: 'kt-1', publish: true, guide: { ...edited, steps: [] } })).statusCode).toBe(422);
+  });
+  it('chưa có bản nháp thì không lưu được', async () => {
+    const harness = seed({}, plainAssignment); h.db = makeDb(harness);
+    expect((await call({ action: 'saveParentGuide', assignmentId: 'kt-1', publish: true, guide: { goal: 'x', askFirst: [], steps: ['y'], commonMistakes: [], askTeacher: '' } })).statusCode).toBe(409);
+  });
+});
+
 describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đề', () => {
   beforeEach(() => {
     process.env.GRADING_GEMINI_API_KEY = 'test-key';

@@ -5,6 +5,8 @@ import { isPublishedSubmission } from './_submission-feedback.js';
 import { publishedHandMarkedImages } from './_hand-marked-work.js';
 import { assignmentSolutionInput, attachAssignmentSolutions } from './_assignment-solutions.js';
 import { generateWorkedSolutions, workedSolutionVersion } from './_worked-solutions.js';
+import { buildParentGuidePrompt, normalizeParentGuideDraft, parseParentGuideDraft, type ParentGuideDraft } from '../src/lib/classroom/parentGuide.js';
+import type { ParentGuide } from '../src/lib/classroom/types.js';
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
@@ -1031,6 +1033,100 @@ const handlePrepareWorkedSolutions = async (db: FirebaseFirestore.Firestore, bod
   if (!saved) return res.status(409).json({ error: 'Đề, đáp án hoặc quyền đã đổi. Tạo lại lời giải theo bản mới.' });
   return res.status(200).json({ cache });
   } finally { await db.runTransaction(async tx => { const fresh = (await tx.get(ref)).data(); if (fresh?.workedSolutionsClaims?.[claimKey]?.id === claimId) tx.update(ref, { workedSolutionsClaims: { ...(fresh.workedSolutionsClaims || {}), [claimKey]: { id: '', expiresAt: 0 } } }); }); }
+};
+
+/** Kết quả lưu hướng dẫn: lỗi trả về dạng dữ liệu, không ném ngoại lệ, để route trả đúng mã. */
+type ParentGuideSaveOutcome = { ok: true; guide: ParentGuide } | { ok: false; status: number; error: string };
+
+/** Hướng dẫn phụ huynh: AI chỉ soạn NHÁP. Phụ huynh không thấy cho tới khi GV đăng và bài chưa đổi nội dung. */
+const handlePrepareParentGuide = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const startedAt = Date.now();
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập giáo viên.' });
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  if (!assignmentId || assignmentId.includes('/')) return res.status(422).json({ error: 'Mã bài không hợp lệ.' });
+  const ref = db.collection('assignments').doc(assignmentId), assignment = (await ref.get()).data();
+  if (!assignment) return res.status(404).json({ error: 'Không tìm thấy bài giao.' });
+  const access = await readClassAccess(db, assignment.classId, uid);
+  if (!access || access.data.teacherId !== assignment.teacherId) return res.status(403).json({ error: 'Không có quyền với bài này.' });
+  const examCode = typeof body.examCode === 'string' ? body.examCode.trim() : '';
+  if (assignment.examVariants?.length && !assignment.examVariants.some((v: { code: string }) => v.code === examCode)) return res.status(422).json({ error: 'Chọn đúng mã đề để soạn hướng dẫn.' });
+  const input = assignmentSolutionInput(assignment, examCode);
+  if (!input.questions.length && !input.assignmentText.trim() && !input.answerKey.trim() && !input.sourceUrls?.length) return res.status(422).json({ error: 'Bài chưa có đề hoặc đáp án để soạn hướng dẫn.' });
+  const version = workedSolutionVersion(input);
+  if (!body.force && assignment.parentGuide?.version === version) return res.status(200).json({ parentGuide: assignment.parentGuide });
+  const claimId = `${uid}:${Date.now()}:${Math.random()}`;
+  const claimed = await db.runTransaction(async tx => {
+    const fresh = (await tx.get(ref)).data();
+    if (!fresh || fresh.parentGuideClaim?.expiresAt > Date.now()) return false;
+    const classData = (await tx.get(db.collection('classes').doc(fresh.classId))).data();
+    const member = (await tx.get(db.collection('classMembers').doc(classMemberId(fresh.classId, uid)))).data();
+    if (!classData || classData.teacherId !== fresh.teacherId || !deriveClassAccess(classData, memberFromData(member), uid)) throw new SubmissionAccessError(403, 'Quyền giáo viên đã bị thu hồi.');
+    tx.update(ref, { parentGuideClaim: { id: claimId, expiresAt: Date.now() + 5 * 60 * 1000 } });
+    return true;
+  });
+  if (!claimed) return res.status(409).json({ error: 'Hướng dẫn đang được soạn. Chờ lượt hiện tại kết thúc.' });
+  try {
+    setAiKeyOwner(assignment.teacherId);
+    await ensureGeminiKey(getGradingApiKey());
+    const [quota, quotaRef] = await loadQuotaDoc(db, uid);
+    const quotaVerdict = remainingQuota(quota, 'teacher', '');
+    if (quotaVerdict.allowed <= 0) return res.status(429).json({ error: quotaVerdict.reason });
+    const images = (await Promise.all((input.sourceUrls || []).map(url => fetchImage(url).catch(() => null)))).filter((image): image is InlineImage => image !== null);
+    if (FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS < MIN_GEMINI_BUDGET_MS) return res.status(409).json({ error: 'Đọc đề mất nhiều thời gian. Thử lại để soạn hướng dẫn.' });
+    const raw = await (images.length ? (p: string, o: GeminiOptions) => callGradingVision(p, images, o) : callTextModel)(buildParentGuidePrompt(input), { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: Math.max(MIN_GEMINI_BUDGET_MS, Math.min(GRADING_BUDGET_MS, FUNCTION_MAX_MS - (Date.now() - startedAt) - FINISH_MARGIN_MS)) });
+    let draft: ParentGuideDraft;
+    try { draft = parseParentGuideDraft(raw); }
+    catch (reason) { return res.status(502).json({ error: reason instanceof Error ? reason.message : 'Máy chưa soạn được hướng dẫn. Thử lại.' }); }
+    await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
+    const guide: ParentGuide = { version, status: 'draft', generatedAt: new Date().toISOString(), ...draft, ...(examCode ? { examCode } : {}) };
+    const saved = await db.runTransaction(async tx => {
+      const fresh = (await tx.get(ref)).data();
+      if (!fresh || fresh.parentGuideClaim?.id !== claimId || workedSolutionVersion(assignmentSolutionInput(fresh, examCode)) !== version) return false;
+      const classData = (await tx.get(db.collection('classes').doc(fresh.classId))).data();
+      const member = (await tx.get(db.collection('classMembers').doc(classMemberId(fresh.classId, uid)))).data();
+      if (!classData || !deriveClassAccess(classData, memberFromData(member), uid)) return false;
+      tx.update(ref, { parentGuide: guide });
+      return true;
+    });
+    if (!saved) return res.status(409).json({ error: 'Bài, đề hoặc quyền đã đổi. Soạn lại hướng dẫn theo bản mới.' });
+    return res.status(200).json({ parentGuide: guide });
+  } finally {
+    await db.runTransaction(async tx => { const fresh = (await tx.get(ref)).data(); if (fresh?.parentGuideClaim?.id === claimId) tx.update(ref, { parentGuideClaim: { id: '', expiresAt: 0 } }); });
+  }
+};
+
+/** GV lưu bản sửa hoặc đăng. publish=false thì ẩn ngay khỏi phụ huynh; publish=true mới cho phụ huynh xem. */
+const handleSaveParentGuide = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập giáo viên.' });
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  if (!assignmentId || assignmentId.includes('/')) return res.status(422).json({ error: 'Mã bài không hợp lệ.' });
+  const ref = db.collection('assignments').doc(assignmentId), assignment = (await ref.get()).data();
+  if (!assignment) return res.status(404).json({ error: 'Không tìm thấy bài giao.' });
+  const access = await readClassAccess(db, assignment.classId, uid);
+  if (!access || access.data.teacherId !== assignment.teacherId) return res.status(403).json({ error: 'Không có quyền với bài này.' });
+  if (!assignment.parentGuide) return res.status(409).json({ error: 'Chưa có hướng dẫn để lưu. Soạn bằng AI trước.' });
+  let draft: ParentGuideDraft;
+  try { draft = normalizeParentGuideDraft(body.guide && typeof body.guide === 'object' ? body.guide as Record<string, unknown> : {}); }
+  catch (reason) { return res.status(422).json({ error: reason instanceof Error ? reason.message : 'Nội dung hướng dẫn chưa hợp lệ.' }); }
+  const publish = body.publish === true, now = new Date().toISOString();
+  // Bài đổi đề/đáp án/hướng dẫn chấm thì bản đã soạn không còn đúng: bắt GV soạn lại, không lưu thành "đã đăng" giả.
+  const contentVersion = (data: FirebaseFirestore.DocumentData) => workedSolutionVersion(assignmentSolutionInput(data, data.parentGuide?.examCode || ''));
+  if (contentVersion(assignment) !== assignment.parentGuide.version) return res.status(409).json({ error: 'Bài đã đổi nội dung. Soạn lại hướng dẫn theo bản mới.' });
+  const outcome = await db.runTransaction(async (tx): Promise<ParentGuideSaveOutcome> => {
+    const fresh = (await tx.get(ref)).data();
+    if (!fresh?.parentGuide) return { ok: false, status: 409, error: 'Hướng dẫn đã bị xóa. Soạn lại bằng AI.' };
+    if (contentVersion(fresh) !== fresh.parentGuide.version) return { ok: false, status: 409, error: 'Bài đã đổi nội dung. Soạn lại hướng dẫn theo bản mới.' };
+    const classData = (await tx.get(db.collection('classes').doc(fresh.classId))).data();
+    const member = (await tx.get(db.collection('classMembers').doc(classMemberId(fresh.classId, uid)))).data();
+    if (!classData || classData.teacherId !== fresh.teacherId || !deriveClassAccess(classData, memberFromData(member), uid)) return { ok: false, status: 403, error: 'Quyền giáo viên đã bị thu hồi.' };
+    const guide: ParentGuide = { ...fresh.parentGuide, ...draft, status: publish ? 'published' : 'draft', editedAt: now, ...(publish ? { publishedAt: now } : {}) };
+    tx.update(ref, { parentGuide: guide });
+    return { ok: true, guide };
+  });
+  if (!outcome.ok) return res.status(outcome.status).json({ error: outcome.error });
+  return res.status(200).json({ parentGuide: outcome.guide });
 };
 
 const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
@@ -2461,6 +2557,8 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     if (action === 'aiGateway') return await handleAiGateway(req, res);
     const db = getAdminDb();
     if (action === 'prepareWorkedSolutions') return await handlePrepareWorkedSolutions(db, body, res);
+    if (action === 'prepareParentGuide') return await handlePrepareParentGuide(db, body, res);
+    if (action === 'saveParentGuide') return await handleSaveParentGuide(db, body, res);
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
     if (action === 'annotateSubmissionPhotos') return await handleAnnotateSubmissionPhotos(db, body, res, { locate: locateAnnotation(db, false) });
     if (action === 'reviewCorrectionAttempt') return await handleReviewCorrection(db, body, res);

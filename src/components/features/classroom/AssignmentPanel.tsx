@@ -38,6 +38,7 @@ import { isActionableClarifyQuestion } from '../../../lib/classroom/clarificatio
 import { setSubmissionLock, prepareWorkedSolutions, annotateSubmissionPhotos, setSubmissionPhotosVisibility } from '../../../services/submissionActorsApi';
 import { isBlankAnswer } from '../../../lib/classroom/questionRescore';
 import { SubmissionPhotoReview } from './SubmissionPhotoReview';
+import { ParentGuideEditor } from './ParentGuideEditor';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { confirmPaperExamScore, renameAssignment } from '../../../lib/classroom/teacherService';
 import { countKeyQuestions } from '../../../lib/classroom/examVariants';
@@ -1965,6 +1966,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                   )}
 
                   <WorkedSolutionsButton assignment={a} classId={classId} studentId={lopHocSinh[0]?.studentId} onChanged={() => void taiBai()} />
+                  {!submissionsOnly && !a.periodicTest && <ParentGuideEditor assignment={a} classId={classId} studentId={lopHocSinh[0]?.studentId} onChanged={() => void taiBai()} />}
                   <BaiNopTheoLop
                     assignment={a} onRefresh={() => void taiBai()}
                     onBaiNopXong={message => showToast(message, 'success')}

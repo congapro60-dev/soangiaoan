@@ -1,5 +1,7 @@
 import { awaitsClarification } from '../src/lib/classroom/clarification.js';
-import { attachAssignmentSolutions } from './_assignment-solutions.js';
+import { assignmentSolutionInput, attachAssignmentSolutions } from './_assignment-solutions.js';
+import { workedSolutionVersion } from './_worked-solutions.js';
+import { publicParentGuide } from '../src/lib/classroom/parentGuide.js';
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { randomUUID } from 'node:crypto';
@@ -231,6 +233,12 @@ const sweepStudentGrants = async (db: Db, studentId: string, now: number): Promi
   return open;
 };
 export const discardActorFiles = async (prepared: Awaited<ReturnType<typeof prepareActorFiles>>): Promise<void> => { const bucket = getAdminStorage(); await Promise.allSettled(uniqueStoragePaths(prepared.fileUrls, bucket.name).filter(path => path.startsWith('accepted-homework/') || path.startsWith('hand-marked-homework/')).map(path => bucket.file(path).delete())); };
+/** Hướng dẫn phụ huynh chỉ đi tới vai phụ huynh, và chỉ bản đã đăng khớp nội dung hiện tại. Học sinh không đi qua đường này. */
+export const projectParentView = (view: StudentAssignmentView, data: Data, role: SubmissionActor['role']): StudentAssignmentView => {
+  if (role !== 'parent') return view;
+  const parentGuidePublic = publicParentGuide(data.parentGuide, workedSolutionVersion(assignmentSolutionInput(data, data.parentGuide?.examCode || '')));
+  return parentGuidePublic ? { ...view, parentGuidePublic } : view;
+};
 interface Projectors { projectStudentAssignment(id: string, data: Data): StudentAssignmentView; projectStudentSubmission(id: string, data: Data): SubmissionDoc }
 export const handleSubmissionActorAction = async (db: Db, body: Data, res: VercelResponse, projectors: Projectors): Promise<boolean> => {
   if (!['setSubmissionLock', 'issueSubmissionUpload', 'submitActorSubmission', 'actorAssignments', 'actorAssignmentDetail'].includes(body.action)) return false;
@@ -266,12 +274,12 @@ export const handleSubmissionActorAction = async (db: Db, body: Data, res: Verce
         const { handMarkedEvidence: _evidence, ...summary } = safe;
         return { ...summary, fileUrls: [], attachments: [], note: '', ...(safe.grade ? { grade: { score: safe.grade.score, maxScore: safe.grade.maxScore, teacherApproved: safe.grade.teacherApproved, scoreHidden: safe.grade.scoreHidden === true, awaitingClarification: safe.grade.awaitingClarification === true, gradedAt: safe.grade.gradedAt, feedback: '', strengths: [], weaknesses: [] } } : {}) };
       }).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-      res.status(200).json({ assignments: allowed.map(doc => projectors.projectStudentAssignment(doc.id, doc.data())), submissions: summaries }); return true;
+      res.status(200).json({ assignments: allowed.map(doc => projectParentView(projectors.projectStudentAssignment(doc.id, doc.data()), doc.data(), actor.role)), submissions: summaries }); return true;
     }
     if (body.action === 'actorAssignmentDetail') {
       await db.runTransaction(tx => assertActorCurrent(db, tx, actor, assignmentId));
       const snap = await db.collection('submissions').where('studentId', '==', actor.studentId).get();
-      res.status(200).json({ ...(assignment ? { assignment: projectors.projectStudentAssignment(assignmentId!, assignment) } : {}), submissions: snap.docs.filter(doc => doc.data().classId === actor.classId && doc.data().teacherId === actor.teacherId && doc.data().assignmentId === assignmentId).map(doc => projectors.projectStudentSubmission(doc.id, attachAssignmentSolutions({ id: doc.id, ...doc.data() } as SubmissionDoc, assignment))) }); return true;
+      res.status(200).json({ ...(assignment ? { assignment: projectParentView(projectors.projectStudentAssignment(assignmentId!, assignment), assignment, actor.role) } : {}), submissions: snap.docs.filter(doc => doc.data().classId === actor.classId && doc.data().teacherId === actor.teacherId && doc.data().assignmentId === assignmentId).map(doc => projectors.projectStudentSubmission(doc.id, attachAssignmentSolutions({ id: doc.id, ...doc.data() } as SubmissionDoc, assignment))) }); return true;
     }
     const correction = body.action === 'saveCorrectionAttempt' || body.action === 'issueSubmissionUpload' && body.purpose === 'correction';
     const handMarked = body.action === 'issueSubmissionUpload' && body.purpose === 'hand_marked';
