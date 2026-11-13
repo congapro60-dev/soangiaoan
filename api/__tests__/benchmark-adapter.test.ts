@@ -48,6 +48,36 @@ describe('cầu dao nguồn chấm', () => {
     expect(seen[1]).toBeGreaterThan(100_000);
     resetGradingHealth();
   });
+
+  it('bài nhiều ảnh được trần dài hơn nhưng vẫn chừa 20 giây cho lớp sau', async () => {
+    const { callGradingVision, resetGradingHealth } = await import('../_grading-core');
+    resetGradingHealth();
+    const seen: (number | undefined)[] = [];
+    const img = { mimeType: 'image/jpeg', data: 'x' };
+    const slow = { name: 's', tier: 're' as const, maxMs: 120_000, call: async (_p: string, _i: unknown[], o: { timeoutMs?: number }) => { seen.push(o.timeoutMs); throw new Error('timeout'); } };
+    const last = { name: 'l', tier: 're' as const, call: async (_p: string, _i: unknown[], o: { timeoutMs?: number }) => { seen.push(o.timeoutMs); return 'ok'; } };
+    await runWithGradingChain([slow, last], () => callGradingVision('p', Array(11).fill(img), { timeoutMs: 180_000 }));
+    expect(seen[0]).toBeGreaterThan(120_000);
+    expect(seen[0]).toBeLessThanOrEqual(160_000);
+    resetGradingHealth(); // lượt trước đã gác nguồn chậm xuống cuối
+    await runWithGradingChain([slow, last], () => callGradingVision('p', [img], { timeoutMs: 180_000 }));
+    expect(seen[2]).toBe(120_000); // 1 ảnh: giữ trần cũ
+    resetGradingHealth();
+  });
+
+  it('hết giờ chung trước khi tới lớp kế thì báo lỗi provider có chữ rõ, không phải lỗi thường', async () => {
+    const { callGradingVision, resetGradingHealth, GeminiResponseError } = await import('../_grading-core');
+    resetGradingHealth();
+    vi.useFakeTimers();
+    try {
+      const slow = { name: 's', tier: 're' as const, call: async () => { vi.setSystemTime(Date.now() + 70_000); throw new Error('timeout'); } };
+      const next = { name: 'n', tier: 're' as const, call: async () => 'ok' };
+      const err = await runWithGradingChain([slow, next], () => callGradingVision('p', [], { timeoutMs: 60_000 })).catch(e => e);
+      expect(err).toBeInstanceOf(GeminiResponseError);
+      expect(err.kind).toBe('provider');
+      expect(err.message).toMatch(/quá lâu/);
+    } finally { vi.useRealTimers(); resetGradingHealth(); }
+  });
 });
 
 describe('nhóm chữ: nguồn miễn phí / gói trước, rồi chuỗi chấm thường', () => {

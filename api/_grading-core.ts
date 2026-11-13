@@ -979,9 +979,13 @@ const runChain = async (
   const ordered = orderByHealth(chain);
   for (const [index, adapter] of ordered.entries()) {
     const remainingMs = deadline === null ? null : deadline - Date.now();
-    if (remainingMs !== null && remainingMs <= 0) throw new Error('AI xử lý quá lâu nên máy chủ đã dừng lượt gọi. Vui lòng thử lại.');
+    if (remainingMs !== null && remainingMs <= 0) throw new GeminiResponseError('provider', 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).');
     // Lớp chưa phải cuối chỉ được tiêu tối đa `maxMs`: nguồn miễn phí treo không được ăn hết giờ của lớp trả phí phía sau.
-    const cap = index < ordered.length - 1 && adapter.maxMs ? adapter.maxMs : null;
+    // Bài nhiều ảnh (từ 5 ảnh) cần nhiều giờ hơn bài 1-4 ảnh: trần tăng theo số ảnh nhưng luôn chừa 20 giây cho lớp sau
+    // (bài 11 ảnh từng chết vì lớp đầu bị cắt ở 120 giây khi chưa kịp trả kết quả).
+    const baseCap = index < ordered.length - 1 && adapter.maxMs ? adapter.maxMs : null;
+    const cap = baseCap === null ? null
+      : Math.max(baseCap, Math.min(Math.round(baseCap * images.length / 4), remainingMs === null ? Infinity : remainingMs - 20_000));
     const timeoutMs = cap === null ? remainingMs : remainingMs === null ? cap : Math.min(cap, remainingMs);
     try {
       const raw = await adapter.call(prompt, images, timeoutMs === null ? options : { ...options, timeoutMs }, segment);
