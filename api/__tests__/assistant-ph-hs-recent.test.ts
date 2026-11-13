@@ -16,3 +16,11 @@ describe('ngữ cảnh ảnh/chữ gần nhất', () => {
     expect(recentPromptContext({ ...base, kind: 'practice', status: 'done', text: 'Câu 1: ...' })).toContain('BÀI LUYỆN');
   });
 });
+
+describe('Zalo không hiển thị markdown', () => {
+  it('bỏ dấu đậm và tiêu đề, giữ phép nhân', async () => {
+    const { stripMarkdown, composeAiReply } = await import('../_assistant-ph-hs-chat');
+    expect(stripMarkdown('**Câu 1:** Vì f(x) ≤ 0\n**Đáp án: B.**\n### Giải\n2 * 3 = 6')).toBe('Câu 1: Vì f(x) ≤ 0\nĐáp án: B.\nGiải\n2 * 3 = 6');
+    expect(composeAiReply('**Giải:** ok')).not.toContain('**');
+  });
+});

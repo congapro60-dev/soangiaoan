@@ -157,11 +157,21 @@ export const sanitizeAiReply = (raw: string): string => String(raw ?? '')
   .replace(/\n{3,}/g, '\n\n')
   .trim();
 
+/**
+ * Zalo không hiển thị markdown: "**Đáp án: B.**" hiện nguyên dấu sao (lỗi thật 13/11).
+ * Bỏ đậm/nghiêng/tiêu đề markdown, giữ chữ; không đụng dấu * đứng một mình (phép nhân).
+ */
+export const stripMarkdown = (text: string): string => text
+  .replace(/\*\*([^*\n]+?)\*\*/g, '$1')
+  .replace(/__([^_\n]+?)__/g, '$1')
+  .replace(/^#{1,6}[ \t]+/gm, '')
+  .replace(/`([^`\n]+)`/g, '$1');
+
 /** Ghép câu trả lời cuối: nội dung AI + nhắc menu. Rỗng thì trả câu lịch sự. */
 export const composeAiReply = (raw: string): string => {
   // Lọc rò rỉ TRƯỚC, rồi mới chuyển công thức — để bộ chuyển không vô tình ghép
   // các mảnh thành chuỗi trông như số điện thoại/hash.
-  const clean = latexToUnicodeMath(sanitizeAiReply(raw));
+  const clean = stripMarkdown(latexToUnicodeMath(sanitizeAiReply(raw)));
   if (!clean) return AI_CHAT_REPLIES.empty;
   return `${clean}\n\n${AI_MENU_HINT}`;
 };

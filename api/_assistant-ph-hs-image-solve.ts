@@ -23,6 +23,41 @@ import type { ParentSafeReport } from '../src/lib/classroom/parentSafeReport.js'
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
+/**
+ * Lỗi thật 13/11: Gemini qua key chấm bài hết 55 giây hai lần, key chat bị 403 "subscribe" hai lần,
+ * tới model thứ 5 mới đọc được — HS chờ 3 phút. Nay: mỗi model tối đa 30 giây; một tên Gemini đã
+ * quá thời gian thì bỏ các biến thể Gemini còn lại trong lượt; cặp key+model bị 403 thì nhớ 1 giờ
+ * (trong cùng instance) để lượt sau không thử lại.
+ */
+const VISION_TIMEOUT_MS = 30_000;
+const FORBIDDEN_TTL_MS = 60 * 60_000;
+const forbiddenUntil = new Map<string, number>();
+const pairKey = (c: { key: string; model: string }) => `${c.key.slice(-6)}:${c.model}`;
+const family = (model: string) => (/gemini/i.test(model) ? 'gemini' : model);
+/** Chạy lần lượt các cặp key+model, áp các luật bỏ qua ở trên. */
+const tryVision = async (
+  candidates: Array<{ key: string; model: string; baseUrl: string }>,
+  label: string,
+  call: (c: { key: string; model: string; baseUrl: string }) => Promise<string>,
+): Promise<string | null> => {
+  const timedOut = new Set<string>();
+  for (const candidate of candidates) {
+    if ((forbiddenUntil.get(pairKey(candidate)) ?? 0) > Date.now() || timedOut.has(family(candidate.model))) continue;
+    try {
+      const raw = await call(candidate);
+      if (!raw?.trim()) { console.error(`[assistant-image-solve] ${label}${candidate.model}: trả rỗng`); continue; }
+      console.log(`[assistant-image-solve] ${label}OK model=${candidate.model} chars=${raw.length}`);
+      return raw;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (/403|subscribe/i.test(message)) forbiddenUntil.set(pairKey(candidate), Date.now() + FORBIDDEN_TTL_MS);
+      if (/timeout|aborted/i.test(message)) timedOut.add(family(candidate.model));
+      console.error(`[assistant-image-solve] ${label}${candidate.model} lỗi:`, message.slice(0, 160));
+    }
+  }
+  return null;
+};
+
 /** Prompt riêng cho ảnh: nhấn mạnh ĐỌC ĐỀ TRONG ẢNH rồi giải, không bịa đề khác. */
 export const IMAGE_SOLVE_RULE = [
   'ẢNH HỌC SINH GỬI LÀ ĐỀ BÀI. Hãy:',
@@ -90,39 +125,18 @@ export const solveProblemFromImage = async (
       : 'Học sinh không gửi kèm lời nhắn — hãy giải đề trong ảnh.',
   ].join('\n');
   const images: InlineImage[] = [{ mimeType: image.mimeType, data: image.buffer.toString('base64') }];
-  for (const candidate of candidates) {
-    try {
-      const raw = await callOpenAiCompatibleVision(
-        prompt,
-        images,
-        candidate.key,
-        {
-          baseUrl: candidate.baseUrl,
-          model: candidate.model,
-          reasoningEffort: 'none',
-          maxOutputTokens: 1600,
-          temperature: 0.2,
-          timeoutMs: 55_000,
-        },
-      );
-      if (!raw?.trim()) { console.error(`[assistant-image-solve] ${candidate.model}: trả rỗng`); continue; }
-      // Log ĐỘ DÀI thôi (không log nội dung — tránh lộ đề/câu trả lời của HS vào log).
-      // Có dòng này nghĩa là vision ĐÃ trả lời thành công bằng model ghi kèm.
-      console.log(`[assistant-image-solve] OK model=${candidate.model} chars=${raw.length}`);
-      const { text, spec } = extractGeometryReply(raw);
-      const mathSource = sanitizeAiReply(text);
-      return {
-        text: composeAiReply(latexToUnicodeMath(text)),
-        mathSource,
-        geometry: spec,
-        hasMath: hasLatexFormula(mathSource),
-      };
-    } catch (error) {
-      // 403 = key chưa đăng ký model → thử cặp kế tiếp; các lỗi khác cũng thử tiếp.
-      console.error(`[assistant-image-solve] ${candidate.model} lỗi:`, error instanceof Error ? error.message.slice(0, 160) : error);
-    }
-  }
-  return null;
+  const raw = await tryVision(candidates, '', candidate => callOpenAiCompatibleVision(prompt, images, candidate.key, {
+    baseUrl: candidate.baseUrl, model: candidate.model, reasoningEffort: 'none', maxOutputTokens: 1600, temperature: 0.2, timeoutMs: VISION_TIMEOUT_MS,
+  }));
+  if (!raw) return null;
+  const { text, spec } = extractGeometryReply(raw);
+  const mathSource = sanitizeAiReply(text);
+  return {
+    text: composeAiReply(latexToUnicodeMath(text)),
+    mathSource,
+    geometry: spec,
+    hasMath: hasLatexFormula(mathSource),
+  };
 };
 
 export const IMAGE_SOLVE_REPLIES = {
@@ -146,19 +160,10 @@ export const solveGroupImage = async (image: { buffer: Buffer; mimeType: string 
     caption?.trim() ? `Người gửi kèm lời nhắn: ${caption.trim().slice(0, 300)}` : 'Không có lời nhắn kèm theo — hãy giải đề trong ảnh.',
   ].join('\n');
   const images: InlineImage[] = [{ mimeType: image.mimeType, data: image.buffer.toString('base64') }];
-  for (const candidate of candidates) {
-    try {
-      const raw = await callOpenAiCompatibleVision(prompt, images, candidate.key, {
-        baseUrl: candidate.baseUrl, model: candidate.model, reasoningEffort: 'none', maxOutputTokens: 1600, temperature: 0.2, timeoutMs: 55_000,
-      });
-      if (!raw?.trim()) { console.error(`[assistant-image-solve] group ${candidate.model}: trả rỗng`); continue; }
-      console.log(`[assistant-image-solve] group OK model=${candidate.model} chars=${raw.length}`);
-      const clean = composeAiReply(latexToUnicodeMath(sanitizeAiReply(raw)));
-      if (!clean) continue;
-      return clean.slice(0, 1800);
-    } catch (error) {
-      console.error(`[assistant-image-solve] group ${candidate.model} lỗi:`, error instanceof Error ? error.message.slice(0, 160) : error);
-    }
-  }
-  return null;
+  const raw = await tryVision(candidates, 'group ', candidate => callOpenAiCompatibleVision(prompt, images, candidate.key, {
+    baseUrl: candidate.baseUrl, model: candidate.model, reasoningEffort: 'none', maxOutputTokens: 1600, temperature: 0.2, timeoutMs: VISION_TIMEOUT_MS,
+  }));
+  if (!raw) return null;
+  const clean = composeAiReply(latexToUnicodeMath(sanitizeAiReply(raw)));
+  return clean ? clean.slice(0, 1800) : null;
 };
