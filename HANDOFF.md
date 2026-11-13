@@ -172,3 +172,9 @@ Danh sách bài nộp hiện `9.129999999999999/10`: `coerceHomeworkGrade` (và 
 ## 2. Việc tiếp theo
 1. Trình duyệt kết quả nâng cấp hồi tố toàn bộ 5 bài `12-12-82` → `12-12-86` (mục 13 XONG).
 2. Khối 12 Tuần 12 hoàn chỉnh 6/6 bài chuẩn V8.8 Master Teacher — sẵn sàng cho các tuần tiếp theo theo PPCT.
+
+## Chấm quá giờ bài nhiều ảnh (13/11/2026)
+- Bài Nam Phong (11 ảnh) và Hoàng Tuấn Minh (3 ảnh) báo "lỗi hệ thống"; Chi tiết kỹ thuật: "AI xử lý quá lâu…" = hết hạn chót chung của chuỗi chấm (`runChain`), trước đây là `Error` thường nên bị gộp nhãn chung.
+- Sửa (`bbbd604`): lỗi này là `GeminiResponseError('provider')` có chữ rõ; trần lớp chưa cuối tăng theo số ảnh (tối đa chừa 20 giây cho lớp sau). 1–4 ảnh giữ 120 giây.
+- Đã kiểm: 68 test PASS, tsc sạch, deploy READY, chấm lại cả hai bài trên web đều ra điểm (Nam Phong 6,75/10 bằng model chính, chờ duyệt).
+- Chưa làm: chia lượt chấm theo nhóm ảnh (bỏ vì một câu có thể trải nhiều ảnh). Nếu bài lớn vẫn quá giờ thì cân nhắc.
