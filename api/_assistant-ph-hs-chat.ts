@@ -177,7 +177,7 @@ export type AiCaller = (systemPrompt: string, userText: string, signal?: AbortSi
 export const PH_CHAT_MODEL = 'cnt/glm-5.3-flash';
 export const PH_CHAT_ENDPOINT = 'https://api.vilao.ai/v1/chat/completions';
 
-export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL, maxTokens = 1200): AiCaller => async (systemPrompt, userText, signal) => {
+export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL, maxTokens = 3000): AiCaller => async (systemPrompt, userText, signal) => {
   const res = await fetch(PH_CHAT_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
@@ -206,6 +206,8 @@ export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL, maxTokens = 1
     const usedReasoning = Number(body?.usage?.completion_tokens_details?.reasoning_tokens ?? 0);
     throw new Error(usedReasoning > 0 ? 'AI reasoning-only (het token truoc khi tra loi)' : 'AI empty');
   }
+  // Bị cắt giữa chừng (lỗi thật 13/11: "Bước 1: …" rồi dừng) — ghi log để chỉnh trần token.
+  if (body?.choices?.[0]?.finish_reason === 'length') console.error(`[ph-chat] reply cut at max_tokens=${maxTokens} chars=${reply.length}`);
   return reply;
 };
 

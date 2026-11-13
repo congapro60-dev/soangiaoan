@@ -510,7 +510,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     sendTyping(token, chatId); // "đang nhập..." trong lúc AI suy nghĩ — lỗi thì bỏ qua
     try {
       // Bài ôn (tóm tắt + ví dụ + 3 câu) dài hơn hẳn câu hỏi thường; model suy luận cần trần cao hơn.
-      const detail = await answerParentQuestionDetailed(vilaoCaller(apiKey, undefined, practiceMatch ? 4000 : 1200), question, bundle.report, bundle.periodicIds, role, undefined, recentPromptContext(recent));
+      const detail = await answerParentQuestionDetailed(vilaoCaller(apiKey, undefined, practiceMatch ? 5000 : 3000), question, bundle.report, bundle.periodicIds, role, undefined, recentPromptContext(recent));
       if (detail && practiceMatch) await savePractice(botId, userId, scope, detail.mathSource);
       if (!detail) return MENU_REPLIES.invalid;
       // Link cổng web lấy từ `joinCode` của CHÍNH lớp HS này (bundle vừa nạp theo link),
