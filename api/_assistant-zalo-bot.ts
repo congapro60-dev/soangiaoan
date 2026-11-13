@@ -179,8 +179,8 @@ const dispatchPhotoMessage = async (token: string, botId: string, userId: string
   return '';
 };
 
-/** Lời nhắn chữ gửi ngay sau ảnh (Zalo tách 2 webhook) thường tới trong 1–2 giây. */
-const PHOTO_CAPTION_GRACE_MS = 2_500;
+/** Lời nhắn chữ gửi ngay sau ảnh (Zalo tách 2 webhook) tới trong vài giây; tin chữ dò ảnh mỗi 1,5 giây. */
+const PHOTO_CAPTION_GRACE_MS = 5_000;
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
@@ -202,9 +202,10 @@ const solvePhotoAsQuestion = async (
   // Chờ lời nhắn đi kèm ("chữa câu 1-2") rồi mới đọc ảnh, để giải đúng yêu cầu ngay lần đầu.
   const wait = PHOTO_CAPTION_GRACE_MS - (Date.now() - startedAt);
   if (wait > 0) await sleep(wait);
-  const instruction = (await readRecent(botId, userId, scope))?.instruction ?? merged;
-  const answer = await solveProblemFromImage(image, bundle.report, bundle.periodicIds, role, instruction);
-  await finishPhoto(botId, userId, scope, answer?.mathSource ?? '', instruction);
+  const latest = async () => (await readRecent(botId, userId, scope))?.instruction ?? merged;
+  const instruction = await latest();
+  const answer = await solveProblemFromImage(image, bundle.report, bundle.periodicIds, role, instruction, latest);
+  await finishPhoto(botId, userId, scope, answer?.mathSource ?? '', answer?.usedCaption ?? instruction);
   if (!answer) { await sendStyled(token, chatId, IMAGE_SOLVE_REPLIES.busy); return; }
   // Link chuẩn giaoandewey + PIN; câu trả lời AI không mang link đăng nhập một lần.
   const fullCaption = withWebPortalLink(answer.text, role, bundle.joinCode);

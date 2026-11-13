@@ -67,7 +67,7 @@ export const IMAGE_SOLVE_RULE = [
   '4. Nếu ảnh không phải đề Toán (ảnh cá nhân, ảnh chụp màn hình khác), trả lời ngắn: ảnh này không phải đề bài, em gửi lại ảnh đề nhé.',
 ].join('\n');
 
-export type ImageSolveAnswer = { text: string; mathSource: string; geometry: GeometrySpec | null; hasMath: boolean };
+export type ImageSolveAnswer = { text: string; mathSource: string; geometry: GeometrySpec | null; hasMath: boolean; usedCaption?: string };
 
 /** Tải ảnh Zalo về buffer. Dùng chung `downloadImage` (sniff magic bytes + thử lại 2 lần). */
 export const fetchPhotoBuffer = async (photoUrl: string): Promise<{ buffer: Buffer; mimeType: string } | null> =>
@@ -111,23 +111,29 @@ export const solveProblemFromImage = async (
   periodicIds: ReadonlySet<string>,
   role: ChatRole = 'student',
   caption?: string,
+  /** Đọc lại lời nhắn ngay trước mỗi lần gọi model (tin chữ có thể tới khi ảnh đang giải). */
+  readCaption?: () => Promise<string>,
 ): Promise<ImageSolveAnswer | null> => {
   const candidates = visionCandidates();
   if (!candidates.length) return null;
   const context = buildAiContext(report, periodicIds, role);
-  const prompt = [
+  const promptFor = (note: string) => [
     buildSystemPrompt(context, role, report.studentName ?? ''),
     '',
     IMAGE_SOLVE_RULE,
     '',
-    caption?.trim()
-      ? `Học sinh gửi kèm lời nhắn: ${caption.trim().slice(0, 300)}\nLàm ĐÚNG theo lời nhắn này (ví dụ "chữa câu 1-2" thì chỉ chép đề và chữa câu 1 và câu 2, mỗi câu chỉ rõ đáp án đúng và vì sao). Được viết dài hơn giới hạn 6 câu khi cần chữa nhiều câu.`
+    note.trim()
+      ? `Học sinh gửi kèm lời nhắn: ${note.trim().slice(0, 300)}\nLàm ĐÚNG theo lời nhắn này (ví dụ "chữa câu 1-2" thì chỉ chép đề và chữa câu 1 và câu 2, mỗi câu chỉ rõ đáp án đúng và vì sao). Được viết dài hơn giới hạn 6 câu khi cần chữa nhiều câu.`
       : 'Học sinh không gửi kèm lời nhắn — hãy giải đề trong ảnh.',
   ].join('\n');
   const images: InlineImage[] = [{ mimeType: image.mimeType, data: image.buffer.toString('base64') }];
-  const raw = await tryVision(candidates, '', candidate => callOpenAiCompatibleVision(prompt, images, candidate.key, {
-    baseUrl: candidate.baseUrl, model: candidate.model, reasoningEffort: 'none', maxOutputTokens: 1600, temperature: 0.2, timeoutMs: VISION_TIMEOUT_MS,
-  }));
+  let usedCaption = caption ?? '';
+  const raw = await tryVision(candidates, '', async candidate => {
+    if (readCaption) usedCaption = await readCaption().catch(() => usedCaption);
+    return callOpenAiCompatibleVision(promptFor(usedCaption), images, candidate.key, {
+      baseUrl: candidate.baseUrl, model: candidate.model, reasoningEffort: 'none', maxOutputTokens: 1600, temperature: 0.2, timeoutMs: VISION_TIMEOUT_MS,
+    });
+  });
   if (!raw) return null;
   const { text, spec } = extractGeometryReply(raw);
   const mathSource = sanitizeAiReply(text);
@@ -136,6 +142,7 @@ export const solveProblemFromImage = async (
     mathSource,
     geometry: spec,
     hasMath: hasLatexFormula(mathSource),
+    usedCaption,
   };
 };
 
