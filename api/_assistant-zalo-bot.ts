@@ -10,7 +10,7 @@ import { cancelAssistantConfirmation, executeAssistantConfirmation, inspectAssis
 import { deactivateStudentParentLinks, dualRoleAllowed, linkByPin, parsePinLinkMessage, PIN_LINK_REPLIES, switchBotRole } from './_assistant-ph-hs-link.js';
 
 import { recoveryReply } from './_assistant-ph-hs-recovery.js';
-import { parentMenuReply, parseMenuChoice, loadParentReport, menuText, deadlineAvailable, MENU_REPLIES, MENU_HINT, withWebPortalLink } from './_assistant-ph-hs-menu.js';
+import { parentMenuReply, parseMenuChoice, loadParentReport, menuText, deadlineAvailable, MENU_REPLIES, MENU_HINT, practiceTopics, withWebPortalLink } from './_assistant-ph-hs-menu.js';
 import { AI_CHAT_REPLIES, answerGroupQuestion, answerParentQuestionDetailed, vilaoCaller } from './_assistant-ph-hs-chat.js';
 import { canReplyToStranger } from './_bot-pin-guard.js';import { getAssistantJobStatus } from './_assistant-jobs.js';
 import { runAssistantReadTool } from './_assistant-tools.js';
@@ -21,6 +21,7 @@ import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-r
 import { PHOTO_REPLIES, revisionReply, requestPhotoCancellation, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, exitPhotoSelection, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber, PICK_MISS } from './_assistant-ph-hs-photo.js';
 import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveGroupImage, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
 import { requestRegrade } from './_assistant-ph-hs-regrade.js';
+import { addInstruction, finishPhoto, readRecent, recentPromptContext, refersToProblem, savePractice, startPhoto, waitPhotoDone, type RecentContext } from './_assistant-ph-hs-recent.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
 
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
@@ -159,7 +160,7 @@ const chooseAndOpen = async (
  * Trước đây mọi ảnh đều đi đường (a) nên HS gửi đề nhờ giải lại nhận câu về dữ liệu báo cáo.
  * Trả '' khi hàm ĐÃ tự gửi tin (nhánh giải đề), ngược lại trả nội dung để caller gửi.
  */
-const dispatchPhotoMessage = async (token: string, botId: string, userId: string, chatId: string, photoUrl: string): Promise<string> => {
+const dispatchPhotoMessage = async (token: string, botId: string, userId: string, chatId: string, photoUrl: string, caption = ''): Promise<string> => {
   const linked = await resolveAnyActor(botId, userId, chatId);
   // HS hay gửi ảnh bài làm trước cả khi liên kết — im lặng khiến bot có vẻ "chết".
   if (!linked) return (await canReplyToStranger(getAdminDb(), botId, userId)) ? STRANGER_HINT : '';
@@ -174,24 +175,36 @@ const dispatchPhotoMessage = async (token: string, botId: string, userId: string
   // (sự cố 3–4/11: ảnh bài làm bị coi là đề nhờ giải nên web không có bài nộp nào).
   if (await hasExpiredAssignmentSession(botId, userId)) return PHOTO_REPLIES.expiredSession;
   // (b) Không có phiên nộp → GIẢI ĐỀ TỪ ẢNH (HS nhờ giải bài).
-  await solvePhotoAsQuestion(token, botId, chatId, classId, studentId, role, photoUrl);
+  await solvePhotoAsQuestion(token, botId, userId, chatId, classId, studentId, role, photoUrl, caption);
   return '';
 };
+
+/** Lời nhắn chữ gửi ngay sau ảnh (Zalo tách 2 webhook) thường tới trong 1–2 giây. */
+const PHOTO_CAPTION_GRACE_MS = 2_500;
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
  * Giải đề trong ảnh rồi gửi: hình vẽ > ảnh công thức > text (giống nhánh chat text).
  * Mọi bước lỗi → vẫn gửi text đầy đủ, không bao giờ im lặng.
  */
 const solvePhotoAsQuestion = async (
-  token: string, botId: string, chatId: string, classId: string, studentId: string,
-  role: 'student' | 'parent', photoUrl: string,
+  token: string, botId: string, userId: string, chatId: string, classId: string, studentId: string,
+  role: 'student' | 'parent', photoUrl: string, caption = '',
 ): Promise<void> => {
+  const scope = { classId, studentId, role };
+  const startedAt = Date.now();
+  await startPhoto(botId, userId, scope, caption, startedAt);
   const image = await fetchPhotoBuffer(photoUrl);
-  if (!image) { await sendStyled(token, chatId, IMAGE_SOLVE_REPLIES.unreadable); return; }
+  if (!image) { await finishPhoto(botId, userId, scope, '', caption); await sendStyled(token, chatId, IMAGE_SOLVE_REPLIES.unreadable); return; }
   const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
-  if (!bundle) { await sendStyled(token, chatId, MENU_REPLIES.noData); return; }
+  if (!bundle) { await finishPhoto(botId, userId, scope, '', caption); await sendStyled(token, chatId, MENU_REPLIES.noData); return; }
   sendTyping(token, chatId);
-  const answer = await solveProblemFromImage(image, bundle.report, bundle.periodicIds, role);
+  // Chờ lời nhắn đi kèm ("chữa câu 1-2") rồi mới đọc ảnh, để giải đúng yêu cầu ngay lần đầu.
+  const wait = PHOTO_CAPTION_GRACE_MS - (Date.now() - startedAt);
+  if (wait > 0) await sleep(wait);
+  const instruction = (await readRecent(botId, userId, scope))?.instruction ?? caption;
+  const answer = await solveProblemFromImage(image, bundle.report, bundle.periodicIds, role, instruction);
+  await finishPhoto(botId, userId, scope, answer?.mathSource ?? '', instruction);
   if (!answer) { await sendStyled(token, chatId, IMAGE_SOLVE_REPLIES.busy); return; }
   // Link chuẩn giaoandewey + PIN; câu trả lời AI không mang link đăng nhập một lần.
   const fullCaption = withWebPortalLink(answer.text, role, bundle.joinCode);
@@ -384,6 +397,8 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
           '',
           '4️⃣ Hỏi bài tập & Trợ lý AI:',
           '• Gửi ảnh đề bài hoặc gõ câu hỏi trực tiếp: Trợ lý AI sẽ hướng dẫn giải chi tiết.',
+          '• Gửi ảnh đề kèm lời nhắn (ví dụ: chữa câu 1-2): trợ lý chữa đúng các câu đó.',
+          '• Nhắn ôn 1, ôn 2…: ôn phần cần rèn ở mục 5, có bài luyện và chấm đáp án.',
           '',
           '5️⃣ Khôi phục mã PIN & Kiểm tra:',
           '• Quên mã PIN: Nhắn /khoiphuc <mã học sinh> <số điện thoại>.',
@@ -455,15 +470,47 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       await sendStyled(token, chatId, await listPendingReply(botId, userId, classId, studentId, role), false);
       return '';
     }
+    // Ảnh và chữ tới bằng 2 webhook riêng (lỗi 13/11): nối tin chữ với ảnh đề vừa gửi.
+    const scope = { classId, studentId, role };
+    let recent: RecentContext | null = await readRecent(botId, userId, scope);
+    if (!recent && refersToProblem(message)) { await sleep(4_000); recent = await readRecent(botId, userId, scope); }
+    if (recent?.kind === 'photo' && recent.status === 'solving') {
+      await addInstruction(botId, userId, scope, message);
+      await sendStyled(token, chatId, `⏳ Mình đang đọc ảnh đề ${role === 'student' ? 'em' : 'anh/chị'} vừa gửi, sẽ làm theo yêu cầu "${message.trim().slice(0, 60)}" ngay trong lời giải nhé.`, false);
+      const done = await waitPhotoDone(botId, userId, scope);
+      // Lời giải ảnh đã dùng lời nhắn này, hoặc ảnh lỗi (đã báo riêng) → không trả lời lặp.
+      if (!done || done.status !== 'done' || done.instructionUsed || !done.text) return '';
+      recent = done;
+    }
     const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
     if (!bundle) return MENU_REPLIES.noData;
+    // "ôn N": ôn phần thứ N của mục 5 — tóm tắt, ví dụ mẫu, 3 câu luyện; tin sau được chấm theo bài này.
+    const practiceMatch = /^(?:ôn|on|luyện|luyen)\s*(\d{1,2})$/iu.exec(message.trim().normalize('NFC'));
+    let question = message;
+    if (practiceMatch) {
+      const topics = practiceTopics(bundle.report);
+      const topic = topics[Number(practiceMatch[1]) - 1];
+      if (!topic) {
+        await sendStyled(token, chatId, topics.length
+          ? `Mục ôn tập hiện có ${topics.length} phần. Nhắn ôn 1 đến ôn ${topics.length}, hoặc nhắn 5 để xem danh sách.`
+          : 'Chưa có phần nào cần ôn từ các bài đã chấm. Em có thể gửi ảnh đề hoặc gõ câu hỏi để mình giải cùng.');
+        return '';
+      }
+      question = [`Mình muốn ôn phần "${topic}" (Toán, lớp ${bundle.report.className}). Lần này được viết dài hơn giới hạn 6 câu (tối đa khoảng 20 dòng). Hãy:`,
+        '1. Tóm tắt kiến thức cần nhớ trong 2–4 gạch đầu dòng.',
+        '2. Giải 1 ví dụ mẫu ngắn, trình bày từng bước.',
+        '3. Ra 3 câu luyện từ dễ đến khó, đánh số Câu 1–3, CHƯA đưa đáp án.',
+        '4. Kết bằng: làm xong nhắn đáp án (ví dụ "1) x=2  2) ...") hoặc gửi ảnh bài làm để được chấm.'].join('\n');
+      recent = null;
+    }
     // AI CHAT PH chỉ dùng key RIÊNG (PH_CHAT_VILAO_KEY) — tách khỏi key chấm bài để theo dõi
     // chi phí độc lập và không tiêu nhầm hạn mức chấm bài. Không có key thì báo "bận", không im lặng.
     const apiKey = String(process.env.PH_CHAT_VILAO_KEY || '');
     if (!apiKey) return AI_CHAT_REPLIES.unavailable;
     sendTyping(token, chatId); // "đang nhập..." trong lúc AI suy nghĩ — lỗi thì bỏ qua
     try {
-      const detail = await answerParentQuestionDetailed(vilaoCaller(apiKey), message, bundle.report, bundle.periodicIds, role);
+      const detail = await answerParentQuestionDetailed(vilaoCaller(apiKey), question, bundle.report, bundle.periodicIds, role, undefined, recentPromptContext(recent));
+      if (detail && practiceMatch) await savePractice(botId, userId, scope, detail.mathSource);
       if (!detail) return MENU_REPLIES.invalid;
       // Link cổng web lấy từ `joinCode` của CHÍNH lớp HS này (bundle vừa nạp theo link),
       // chèn ngay trước "Nhắn 0 để xem lại menu" để em luôn bấm được vào web.
@@ -626,7 +673,7 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   try {
     if (isImageEvent) {
       // Ảnh HS gửi: nội dung do hệ tự dựng → gửi sendStyled (không qua output() che nội dung).
-      reply = await dispatchPhotoMessage(token, botId, senderId, chatId, photoUrl);
+      reply = await dispatchPhotoMessage(token, botId, senderId, chatId, photoUrl, msgText);
       if (reply) await sendStyled(token, chatId, reply);
       res.status(200).json({ ok: true }); return true;
     }

@@ -85,7 +85,9 @@ export const solveProblemFromImage = async (
     '',
     IMAGE_SOLVE_RULE,
     '',
-    caption?.trim() ? `Học sinh gửi kèm lời nhắn: ${caption.trim().slice(0, 300)}` : 'Học sinh không gửi kèm lời nhắn — hãy giải đề trong ảnh.',
+    caption?.trim()
+      ? `Học sinh gửi kèm lời nhắn: ${caption.trim().slice(0, 300)}\nLàm ĐÚNG theo lời nhắn này (ví dụ "chữa câu 1-2" thì chỉ chép đề và chữa câu 1 và câu 2, mỗi câu chỉ rõ đáp án đúng và vì sao). Được viết dài hơn giới hạn 6 câu khi cần chữa nhiều câu.`
+      : 'Học sinh không gửi kèm lời nhắn — hãy giải đề trong ảnh.',
   ].join('\n');
   const images: InlineImage[] = [{ mimeType: image.mimeType, data: image.buffer.toString('base64') }];
   for (const candidate of candidates) {

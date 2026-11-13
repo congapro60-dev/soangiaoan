@@ -169,9 +169,20 @@ export const menuSectionText = (key: MenuKey | '8', report: ParentSafeReport, pe
   return body.endsWith(MENU_HINT) ? body : `${body}\n\n${MENU_HINT}`;
 };
 
+/** Phần cần rèn, đánh số cố định — "ôn N" ở bot dùng đúng thứ tự này. */
+export const practiceTopics = (report: ParentSafeReport): string[] => uniqueText(report.areasToPractice).map(capitalize).slice(0, 10);
+
+type ResultItem = ParentSafeReport['results'][number];
+const isLow = (item: ResultItem) => item.status === 'official' && typeof item.score === 'number' && typeof item.maxScore === 'number' && item.maxScore > 0 && item.score / item.maxScore < 0.5;
+const isOverdue = (item: ResultItem, now: number) => item.status === 'not_submitted' && Date.parse(String(item.dueAt ?? '')) < now;
+const NEXT = '👉 Nên làm tiếp:';
+
 const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicIds: ReadonlySet<string>, role: MenuRole): string => {
   const name = report.studentName;
   const isPeriodic = (assignmentId: string) => periodicIds.has(assignmentId);
+  const student = role === 'student';
+  const low = report.results.filter(isLow);
+  const lowList = low.slice(0, 3).map(item => `${item.title} (${scoreText(item.score, item.maxScore)})`).join(', ');
   switch (key) {
     case '1': {
       // Tách số bài để khớp mục 2 (bài tập) và mục 7 (kiểm tra định kì); GV sửa tay số tổng thì giữ nguyên số đó.
@@ -184,7 +195,16 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
         `• Chưa nộp: ${report.missingCount} bài`,
         `• Xu hướng: ${trendText(report)}`,
         '',
-        role === 'student' ? studentSummary(report) : report.overallSummary].join('\n');
+        student ? studentSummary(report) : report.overallSummary,
+        '',
+        NEXT,
+        ...(report.missingCount > 0 ? [student
+          ? `• Em còn ${report.missingCount} bài chưa nộp: nhắn 3 xem danh sách, nhắn 8 để nộp bằng ảnh.`
+          : `• Con còn ${report.missingCount} bài chưa nộp: nhắn 3 xem danh sách, nhắn 8 để chụp bài nộp hộ con.`] : []),
+        ...(low.length ? [student
+          ? `• Bài dưới 5 điểm: ${lowList}. Chụp ảnh câu làm sai gửi mình để chữa từng câu.`
+          : `• Bài dưới 5 điểm: ${lowList}. Hỏi con câu nào chưa làm được; nhắn 4 xem phần con cần rèn.`] : []),
+        student ? '• Nhắn 5 rồi ôn 1 để luyện phần cần rèn đầu tiên.' : '• Nhắn 5 xem phụ huynh nên làm gì ở nhà.'].join('\n');
     }
     case '2': {
       // Mục 2 = BTVN các ngày (KHÔNG gồm bài kiểm tra định kì — bài đó ở mục 7).
@@ -200,7 +220,12 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
       return fitZaloList(
         [`📝 Bài tập đã chấm của ${name} (${graded.length} bài):`],
         lines,
-        [...(forStudent && graded.some(item => item.feedback) ? ['Nhắn web để xem nhận xét đầy đủ.'] : []), '👉 Xem bài kiểm tra định kì: nhắn 7.'],
+        [NEXT,
+          ...(graded.some(isLow) ? [forStudent
+            ? `• Bài dưới 5 điểm: ${graded.filter(isLow).slice(0, 3).map(item => item.title).join(', ')}. Chụp ảnh câu làm sai gửi mình để chữa.`
+            : `• Bài dưới 5 điểm: ${graded.filter(isLow).slice(0, 3).map(item => item.title).join(', ')}. Hỏi con câu nào chưa làm được; con có thể chụp câu đó gửi bot để được chữa.`] : []),
+          ...(forStudent && graded.some(item => item.feedback) ? ['• Nhắn web để đọc đầy đủ nhận xét của thầy cô.'] : []),
+          '• Xem bài kiểm tra định kì: nhắn 7.'],
       );
     }
     case '3': {
@@ -211,25 +236,44 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
         const due = dueDate(item.dueAt);
         return `• ${item.title} — ${tag}${due ? `, hạn ${due}` : ''}`;
       });
-      return fitZaloList([`⏳ Bài đang chờ của ${name} (${todo.length} bài):`], lines);
+      const overdue = todo.filter(item => isOverdue(item, Date.now())).length;
+      const missing = todo.some(item => item.status === 'not_submitted');
+      return fitZaloList([`⏳ Bài đang chờ của ${name} (${todo.length} bài):`], lines, [NEXT,
+        ...(missing ? [student ? '• Nộp ngay: nhắn 8, chọn số bài rồi gửi ảnh bài làm.' : '• Nộp hộ con: nhắn 8, chọn số bài rồi gửi ảnh bài làm của con.'] : []),
+        ...(overdue ? [student
+          ? `• ${overdue} bài đã quá hạn: hỏi thầy cô bài nào còn nhận và làm bài đó trước.`
+          : `• ${overdue} bài đã quá hạn: nên hỏi thầy cô bài nào còn nhận để con ưu tiên làm trước.`] : []),
+        ...(todo.some(item => item.status === 'error') ? ['• Bài "lỗi xử lý": nhắn 8 để nộp lại ảnh rõ hơn.'] : [])]);
     }
     case '4': {
       const strong = report.strengths.length ? uniqueText(report.strengths).map(item => `• ${capitalize(item)}`) : ['• Chưa đủ dữ liệu để xác định điểm mạnh.'];
       const weak = report.areasToPractice.length ? uniqueText(report.areasToPractice).map(item => `• ${capitalize(item)}`) : ['• Chưa đủ dữ liệu để xác định phần cần luyện.'];
       // "Cần rèn thêm" trùng tên mục trên báo cáo web và câu gợi ý ở mục 5.
-      return fitZaloList([`🌟 Điểm mạnh của ${name}:`], strong, ['🎯 Cần rèn thêm:', ...weak]);
+      return fitZaloList([`🌟 Điểm mạnh của ${name}:`], strong, ['🎯 Cần rèn thêm:', ...weak, '',
+        report.areasToPractice.length
+          ? (student ? '👉 Nhắn 5 để chọn phần ôn: mình tóm tắt kiến thức, ra bài luyện và chấm cho em.' : '👉 Nhắn 5 xem phụ huynh nên làm gì ở nhà để con rèn các phần này.')
+          : '👉 Nhắn 2 xem điểm từng bài.']);
     }
     case '5': {
       // HS tự luyện: dùng `areasToPractice` (dữ liệu có thật, cùng nguồn mục 4) thay cho
       // `parentActions` vốn viết theo góc nhìn người lớn ("nhắc con...").
       if (role === 'student') {
-        if (!report.areasToPractice.length) return 'ℹ️ Chưa có gợi ý tự học riêng — em có thể hỏi thầy cô khi cần nhé.';
-        return fitZaloList([`💡 Gợi ý tự học của ${name}:`, 'Mỗi tối em chọn 1 phần dưới đây, xem lại bài đã chấm rồi tự làm lại vài câu:'],
-          uniqueText(report.areasToPractice).map(item => `• ${capitalize(item)}`));
+        const topics = practiceTopics(report);
+        if (!topics.length) return 'ℹ️ Chưa có phần cần ôn từ các bài đã chấm. Em gửi ảnh đề hoặc gõ câu hỏi bất kì, mình giải cùng em.';
+        return fitZaloList([`💡 Gợi ý tự học của ${name}`, 'Các phần em cần rèn (từ bài đã chấm):'],
+          topics.map((item, i) => `${i + 1}. ${item}`),
+          ['👉 Cách ôn mỗi tối, khoảng 20 phút:',
+            '• Nhắn ôn 1 (hoặc ôn 2, ôn 3…): mình tóm tắt kiến thức, giải 1 ví dụ và ra 3 câu cho em làm.',
+            '• Làm xong nhắn đáp án hoặc gửi ảnh bài làm, mình chấm và chỉ chỗ sai.',
+            '• Nên bắt đầu từ phần 1; mỗi tối 1 phần.']);
       }
       if (!report.parentActions.length) return 'ℹ️ Chưa có gợi ý riêng — phụ huynh nhắn thầy cô để được tư vấn thêm.';
       return fitZaloList([`🏡 Việc phụ huynh có thể làm ở nhà (${name}):`],
-        report.parentActions.map(item => `• ${item.replace('mục “Cần rèn thêm”', 'mục “Cần rèn thêm” (nhắn 4)')}`));
+        report.parentActions.map(item => `• ${item.replace('mục “Cần rèn thêm”', 'mục “Cần rèn thêm” (nhắn 4)')}`),
+        ['👉 Tối nay có thể bắt đầu:',
+          '• Nhắn 4, chọn 1 phần con cần rèn và hỏi con phần đó đang vướng ở đâu.',
+          '• Con dùng Zalo của con nhắn bot: ôn 1 — bot tóm tắt kiến thức, ra 3 câu luyện và chấm đáp án cho con.',
+          '• Nhắn 3 xem con còn bài nào chưa nộp.']);
     }
     case '6':
       return [`🔗 Tài khoản Zalo này đang liên kết với ${name} — lớp ${report.className}.`,
@@ -252,7 +296,11 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
         const due = dueDate(item.dueAt);
         return `• ${item.title} — ${tag}${due ? `, hạn ${due}` : ''}`;
       });
-      return fitZaloList([`📑 Bài kiểm tra định kì của ${name} (${periodic.length} bài):`], lines);
+      return fitZaloList([`📑 Bài kiểm tra định kì của ${name} (${periodic.length} bài):`], lines, [NEXT,
+        ...(periodic.some(isLow) ? [student
+          ? '• Bài dưới 5 điểm: chụp ảnh câu làm sai gửi mình để chữa, rồi nhắn 5 để ôn phần còn yếu.'
+          : '• Bài dưới 5 điểm: nhắn 4 xem phần con cần rèn, nhắn 5 xem cách đồng hành ở nhà.'] : []),
+        '• Nhắn web để xem bài làm và nhận xét chi tiết.']);
     }
     case '8':
       // Việc 4 — nộp bài bằng ảnh. Cả HS và PH nộp bài hộ con.

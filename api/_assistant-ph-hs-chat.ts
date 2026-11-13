@@ -125,8 +125,10 @@ export const buildSystemPrompt = (context: string, role: ChatRole = 'parent', st
       : 'Trả lời bằng tiếng Việt, ngắn gọn (tối đa 6 câu), giọng thân thiện, gọi phụ huynh là "anh/chị".',
     '',
     'QUY TẮC BẮT BUỘC:',
-    '1. Chỉ nói về điểm số, bài tập, nhận xét CÓ TRONG phần DỮ LIỆU dưới đây.',
-    `2. Nếu dữ liệu không có thông tin được hỏi, trả lời đúng ý: "Dữ liệu hiện có chưa ghi nhận thông tin này, ${student ? 'em' : 'anh/chị'} nhắn thầy cô để rõ hơn." KHÔNG được suy đoán, KHÔNG bịa thêm bài hay điểm.`,
+    '1. Về điểm số, bài đã nộp, nhận xét của thầy cô: chỉ nói điều CÓ TRONG phần DỮ LIỆU dưới đây.',
+    `2. Nếu hỏi về điểm/bài/nhận xét mà dữ liệu không có, nói ngắn là chưa có trong dữ liệu và chỉ ${student ? 'em' : 'anh/chị'} việc làm tiếp (nhắn 3 xem bài chưa nộp, nhắn web xem chi tiết, hoặc hỏi thầy cô). KHÔNG được suy đoán, KHÔNG bịa thêm bài hay điểm.`,
+    '2b. Câu hỏi giải bài, chữa bài, kiến thức Toán KHÔNG thuộc quy tắc 2: giải và hướng dẫn bình thường. Nếu thiếu đề (ví dụ "chữa câu 1-2" mà không có đề trong DỮ LIỆU), đừng xin lỗi chung chung — nói rõ cần em chụp ảnh đề hoặc gõ đề câu đó để mình chữa ngay.',
+    '2c. Mỗi câu trả lời kết thúc bằng MỘT bước tiếp theo cụ thể người nhắn làm được ngay (làm thử câu tương tự, gửi ảnh bài làm, nhắn số mục menu...). Không kết bằng câu thông báo suông.',
     '3. Không hứa hẹn về điểm số tương lai, không cam kết kết quả thi.',
     '4. Không nhắc tên, điểm, hay thông tin của học sinh khác.',
     '5. Không đưa số điện thoại, mã học sinh, email hay thông tin liên hệ nội bộ.',
@@ -226,10 +228,11 @@ export const answerParentQuestionDetailed = async (
   periodicIds: ReadonlySet<string>,
   role: ChatRole = 'parent',
   signal?: AbortSignal,
+  extraContext = '',
 ): Promise<AiChatAnswer | null> => {
   const q = String(question ?? '').trim();
   if (!q) return null;
-  const context = buildAiContext(report, periodicIds, role);
+  const context = [buildAiContext(report, periodicIds, role), extraContext].filter(Boolean).join('\n\n');
   const raw = await call(buildSystemPrompt(context, role, report.studentName ?? ''), q.slice(0, 1000), signal);
   const { text, spec } = extractGeometryReply(raw);
   // Lọc rò rỉ trên bản raw TRƯỚC, nhưng KHÔNG convert công thức — giữ LaTeX cho renderer.

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { FakeDb } from './_fake-db.js';
 import { buildParentSafeReport } from '../../src/lib/classroom/parentSafeReport.js';
 import { MENU_ITEMS, MENU_REPLIES, loadParentReport, menuSectionText, menuText, parseMenuChoice, parentMenuReply } from '../_assistant-ph-hs-menu.js';
+import { quoteChatCommands } from '../_assistant-chat-commands.js';
 
 /**
  * Phase 2 — menu 1–6.
@@ -242,7 +243,7 @@ describe('menu theo vai trò (M13)', () => {
     const long = 'Lời nhận xét '.repeat(30);
     const out = menuSectionText('2', { ...report, results: [{ ...report.results[0], feedback: long }] }, new Set(), 'student');
     expect(out).toMatch(/BTVN tuần 3: 8\/10[^\n]*Nhận xét:/);
-    expect(out).toContain('nhận xét đầy đủ');
+    expect(out).toContain('đầy đủ nhận xét');
   });
   it('loại mục trùng chỉ khác chữ hoa hoặc khoảng trắng', () => {
     const out = menuSectionText('4', { ...report, strengths: ['Giới hạn một bên', ' giới hạn   một bên '] }, new Set(), 'student');
@@ -268,7 +269,7 @@ describe('menu theo vai trò (M13)', () => {
     expect(menuText('Trần Bảo Lâm', '12LoTrinh1', 'student')).toContain('5. Gợi ý tự học ở nhà');
     const db = seed();
     const out = await parentMenuReply(db.db, 'c', 's1', '5', 'student');
-    expect(out).toContain('Chưa có gợi ý tự học riêng');
+    expect(out).toContain('Chưa có phần cần ôn');
     expect(out).not.toContain('undefined');
   });
 });
@@ -366,5 +367,27 @@ describe('QA 13/11: mục menu', () => {
     expect(text).toContain('• Tính giới hạn');
     expect(text).toContain('Cần rèn thêm');
     expect(menuSectionText('5', base)).toMatch(/Cần rèn thêm” \(nhắn "?4"?\)/);
+  });
+});
+
+describe('QA 13/11 (2): mục menu có bước tiếp theo', () => {
+  const report = { studentName: 'An', className: '11A', officialCount: 2, officialAveragePercent: 55, pendingCount: 0, missingCount: 1,
+    strengths: [], areasToPractice: ['cấp số cộng', 'Cấp số cộng', 'lượng giác'], progress: { trend: 'flat' }, overallSummary: 'x',
+    parentActions: ['Nhắc con'], teacherActions: [],
+    results: [
+      { assignmentId: 'a1', title: 'Thi thử', status: 'official', score: 2.75, maxScore: 10 },
+      { assignmentId: 'a2', title: 'BTVN', status: 'official', score: 9, maxScore: 10 },
+      { assignmentId: 'a3', title: 'Bài cũ', status: 'not_submitted', dueAt: '2026-01-01T01:00:00.000Z' },
+    ] } as any;
+  it('mục 5 HS đánh số phần cần rèn (bỏ trùng) và chỉ lệnh ôn N', () => {
+    const text = menuSectionText('5', report, new Set(), 'student');
+    expect(text).toContain('1. Cấp số cộng');
+    expect(text).toContain('2. Lượng giác');
+    expect(quoteChatCommands(text)).toContain('Nhắn "ôn 1"');
+  });
+  it('mục 1, 2, 3 nêu bài điểm thấp, bài quá hạn và việc làm tiếp', () => {
+    expect(quoteChatCommands(menuSectionText('1', report, new Set(), 'student'))).toMatch(/Nên làm tiếp[\s\S]*Thi thử \(2\.75\/10\)[\s\S]*Nhắn "5" rồi "ôn 1"/);
+    expect(menuSectionText('2', report)).toContain('Bài dưới 5 điểm: Thi thử');
+    expect(menuSectionText('3', report)).toMatch(/1 bài đã quá hạn/);
   });
 });
