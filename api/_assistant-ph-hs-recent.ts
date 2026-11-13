@@ -13,7 +13,7 @@
 import crypto from 'node:crypto';
 import { getAdminDb } from './_exam-core.js';
 
-export type RecentKind = 'photo' | 'practice';
+export type RecentKind = 'photo' | 'practice' | 'text';
 export interface RecentScope { classId: string; studentId: string; role: string }
 export interface RecentContext extends RecentScope {
   kind: RecentKind;
@@ -47,8 +47,19 @@ export const readRecent = async (botId: string, userId: string, scope: RecentSco
   return now - Number(data.updatedAt || 0) <= limit ? data : null;
 });
 
-export const startPhoto = async (botId: string, userId: string, scope: RecentScope, caption = '', now = Date.now()): Promise<void> => safe(undefined, async () => {
-  await ref(botId, userId).set({ ...scope, kind: 'photo', status: 'solving', startedAt: now, updatedAt: now, text: '', instruction: caption.trim().slice(0, 300), instructionUsed: false });
+/** Lời nhắn chữ tới TRƯỚC ảnh (Zalo tải ảnh lên chậm ~5 giây): giữ 2 phút để ảnh tới sau dùng làm yêu cầu. */
+const EARLY_TEXT_TTL_MS = 2 * 60_000;
+export const saveEarlyText = async (botId: string, userId: string, scope: RecentScope, message: string, now = Date.now()): Promise<void> => safe(undefined, async () => {
+  await ref(botId, userId).set({ ...scope, kind: 'text', status: 'done', startedAt: now, updatedAt: now, text: '', instruction: message.trim().slice(0, 300), instructionUsed: false });
+});
+
+/** Ảnh mới: gộp lời nhắn đi kèm và lời nhắn chữ vừa tới trước đó (nếu có); trả về yêu cầu đã gộp. */
+export const startPhoto = async (botId: string, userId: string, scope: RecentScope, caption = '', now = Date.now()): Promise<string> => safe(caption.trim(), async () => {
+  const previous = (await ref(botId, userId).get()).data() as RecentContext | undefined;
+  const early = previous && previous.kind === 'text' && sameScope(previous, scope) && now - Number(previous.updatedAt || 0) <= EARLY_TEXT_TTL_MS ? previous.instruction : '';
+  const instruction = [early, caption.trim()].filter(Boolean).join('\n').slice(0, 300);
+  await ref(botId, userId).set({ ...scope, kind: 'photo', status: 'solving', startedAt: now, updatedAt: now, text: '', instruction, instructionUsed: false });
+  return instruction;
 });
 
 /** Lời nhắn chữ tới khi ảnh đang giải: gộp vào yêu cầu (tối đa 300 ký tự). */
@@ -79,13 +90,23 @@ export const refersToProblem = (message: string): boolean => {
 
 /** Ngữ cảnh gắn vào prompt AI cho tin chữ kế tiếp. */
 export const recentPromptContext = (recent: RecentContext | null): string => {
-  if (!recent || recent.status !== 'done' || !recent.text) return '';
+  if (!recent || recent.status !== 'done' || !recent.text || recent.kind === 'text') return '';
   return recent.kind === 'photo'
     ? `ĐỀ BÀI TRONG ẢNH HỌC SINH VỪA GỬI (đã đọc và giải ở tin trước — dùng đúng đề này khi em hỏi "câu 1", "chữa câu 2", "bài này"):\n${recent.text}`
     : `BÀI LUYỆN VỪA RA CHO HỌC SINH (em đang trả lời bài này — chấm từng câu, chỉ ra chỗ sai và cách sửa, chưa làm thì gợi ý bước đầu):\n${recent.text}`;
 };
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/** Tin chữ nói về đề mà chưa thấy ảnh: chờ webhook ảnh tới (tối đa `maxMs`). */
+export const waitPhotoStart = async (botId: string, userId: string, scope: RecentScope, maxMs = 12_000, stepMs = 1_500): Promise<RecentContext | null> => {
+  const end = Date.now() + maxMs;
+  for (;;) {
+    const current = await readRecent(botId, userId, scope);
+    if (current?.kind === 'photo' || Date.now() >= end) return current?.kind === 'photo' ? current : null;
+    await sleep(stepMs);
+  }
+};
 
 /** Chờ ảnh đang giải xong (tối đa `maxMs`), trả bản mới nhất. */
 export const waitPhotoDone = async (botId: string, userId: string, scope: RecentScope, maxMs = 60_000, stepMs = 2_000): Promise<RecentContext | null> => {

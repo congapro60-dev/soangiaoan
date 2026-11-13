@@ -21,7 +21,7 @@ import { sendGeometryPhoto, sendMathFormulaPhoto } from './_assistant-geometry-r
 import { PHOTO_REPLIES, revisionReply, requestPhotoCancellation, assistChooseReply, assistFreeTextReply, assistOpenReply, assistStartReply, cancelPhotoSession, exitPhotoSelection, finishPhotoSession, hasExpiredAssignmentSession, hasLiveAssignmentSession, hasPhotoSubmissionIntent, isPendingListQuestion, listPendingReply, openPhotoSession, parsePhotoCommand, pendingAssignmentsForStudent, photoListReply, photoReceivedReply, pickAssignmentByNumber, PICK_MISS } from './_assistant-ph-hs-photo.js';
 import { IMAGE_SOLVE_REPLIES, fetchPhotoBuffer, solveGroupImage, solveProblemFromImage } from './_assistant-ph-hs-image-solve.js';
 import { requestRegrade } from './_assistant-ph-hs-regrade.js';
-import { addInstruction, finishPhoto, readRecent, recentPromptContext, refersToProblem, savePractice, startPhoto, waitPhotoDone, type RecentContext } from './_assistant-ph-hs-recent.js';
+import { addInstruction, finishPhoto, readRecent, recentPromptContext, refersToProblem, saveEarlyText, savePractice, startPhoto, waitPhotoDone, waitPhotoStart, type RecentContext } from './_assistant-ph-hs-recent.js';
 import { teacherBotReply } from './_assistant-ph-hs-teacher.js';
 
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
@@ -193,7 +193,7 @@ const solvePhotoAsQuestion = async (
 ): Promise<void> => {
   const scope = { classId, studentId, role };
   const startedAt = Date.now();
-  await startPhoto(botId, userId, scope, caption, startedAt);
+  const merged = await startPhoto(botId, userId, scope, caption, startedAt);
   const image = await fetchPhotoBuffer(photoUrl);
   if (!image) { await finishPhoto(botId, userId, scope, '', caption); await sendStyled(token, chatId, IMAGE_SOLVE_REPLIES.unreadable); return; }
   const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
@@ -202,7 +202,7 @@ const solvePhotoAsQuestion = async (
   // Chờ lời nhắn đi kèm ("chữa câu 1-2") rồi mới đọc ảnh, để giải đúng yêu cầu ngay lần đầu.
   const wait = PHOTO_CAPTION_GRACE_MS - (Date.now() - startedAt);
   if (wait > 0) await sleep(wait);
-  const instruction = (await readRecent(botId, userId, scope))?.instruction ?? caption;
+  const instruction = (await readRecent(botId, userId, scope))?.instruction ?? merged;
   const answer = await solveProblemFromImage(image, bundle.report, bundle.periodicIds, role, instruction);
   await finishPhoto(botId, userId, scope, answer?.mathSource ?? '', instruction);
   if (!answer) { await sendStyled(token, chatId, IMAGE_SOLVE_REPLIES.busy); return; }
@@ -473,7 +473,9 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     // Ảnh và chữ tới bằng 2 webhook riêng (lỗi 13/11): nối tin chữ với ảnh đề vừa gửi.
     const scope = { classId, studentId, role };
     let recent: RecentContext | null = await readRecent(botId, userId, scope);
-    if (!recent && refersToProblem(message)) { await sleep(4_000); recent = await readRecent(botId, userId, scope); }
+    // Zalo tải ảnh lên trước nên webhook ảnh có thể tới SAU tin chữ ~5 giây (đo thật 13/11).
+    const earlyText = !recent && refersToProblem(message);
+    if (earlyText) recent = await waitPhotoStart(botId, userId, scope);
     if (recent?.kind === 'photo' && recent.status === 'solving') {
       await addInstruction(botId, userId, scope, message);
       await sendStyled(token, chatId, `⏳ Mình đang đọc ảnh đề ${role === 'student' ? 'em' : 'anh/chị'} vừa gửi, sẽ làm theo yêu cầu "${message.trim().slice(0, 60)}" ngay trong lời giải nhé.`, false);
@@ -481,6 +483,9 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       // Lời giải ảnh đã dùng lời nhắn này, hoặc ảnh lỗi (đã báo riêng) → không trả lời lặp.
       if (!done || done.status !== 'done' || done.instructionUsed || !done.text) return '';
       recent = done;
+    } else if (earlyText) {
+      // Vẫn chưa thấy ảnh: trả lời như thường (xin đề), và giữ lời nhắn để ảnh tới muộn vẫn được chữa đúng yêu cầu.
+      await saveEarlyText(botId, userId, scope, message);
     }
     const bundle = await loadParentReport(getAdminDb(), classId, studentId, role);
     if (!bundle) return MENU_REPLIES.noData;
