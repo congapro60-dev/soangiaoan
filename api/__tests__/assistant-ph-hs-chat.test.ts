@@ -134,7 +134,7 @@ describe('chat AI — gọi model', () => {
       expect(payload.messages[0].role).toBe('system');
       expect(payload.messages[0].content).toBe('SYS');
       expect(payload.messages[1]).toEqual({ role: 'user', content: 'Con em thế nào?' });
-      expect(payload.max_tokens).toBe(1200);
+      expect(payload.max_tokens).toBe(3000);
     } finally { spy.mockRestore(); }
   });
 
