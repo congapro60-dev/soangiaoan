@@ -509,7 +509,8 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
     if (!apiKey) return AI_CHAT_REPLIES.unavailable;
     sendTyping(token, chatId); // "đang nhập..." trong lúc AI suy nghĩ — lỗi thì bỏ qua
     try {
-      const detail = await answerParentQuestionDetailed(vilaoCaller(apiKey), question, bundle.report, bundle.periodicIds, role, undefined, recentPromptContext(recent));
+      // Bài ôn (tóm tắt + ví dụ + 3 câu) dài hơn hẳn câu hỏi thường; model suy luận cần trần cao hơn.
+      const detail = await answerParentQuestionDetailed(vilaoCaller(apiKey, undefined, practiceMatch ? 4000 : 1200), question, bundle.report, bundle.periodicIds, role, undefined, recentPromptContext(recent));
       if (detail && practiceMatch) await savePractice(botId, userId, scope, detail.mathSource);
       if (!detail) return MENU_REPLIES.invalid;
       // Link cổng web lấy từ `joinCode` của CHÍNH lớp HS này (bundle vừa nạp theo link),
@@ -536,7 +537,9 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       }
       if (!photoSent) await sendChatty(token, chatId, fullCaption);
       return '';
-    } catch {
+    } catch (error) {
+      // Chỉ loại lỗi, không log nội dung tin nhắn.
+      console.error(`[zalo-bot] ai chat failed practice=${Boolean(practiceMatch)} error=${error instanceof Error ? error.message.slice(0, 160) : 'unknown'}`);
       return AI_CHAT_REPLIES.unavailable;
     }
   }

@@ -177,7 +177,7 @@ export type AiCaller = (systemPrompt: string, userText: string, signal?: AbortSi
 export const PH_CHAT_MODEL = 'cnt/glm-5.3-flash';
 export const PH_CHAT_ENDPOINT = 'https://api.vilao.ai/v1/chat/completions';
 
-export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL): AiCaller => async (systemPrompt, userText, signal) => {
+export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL, maxTokens = 1200): AiCaller => async (systemPrompt, userText, signal) => {
   const res = await fetch(PH_CHAT_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
@@ -190,7 +190,7 @@ export const vilaoCaller = (apiKey: string, model = PH_CHAT_MODEL): AiCaller => 
       temperature: 0.3,
       // Reasoning model tiêu token cho suy luận trước khi viết câu trả lời; 800 đo được là đủ
       // cho câu ngắn nhưng 1.200 an toàn hơn khi ngữ cảnh dài (báo cáo nhiều bài).
-      max_tokens: 1200,
+      max_tokens: maxTokens,
     }),
     ...(signal ? { signal } : {}),
   });
