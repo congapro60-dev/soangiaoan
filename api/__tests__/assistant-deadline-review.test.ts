@@ -211,3 +211,25 @@ describe('guardian open-to-all flag (PARENT_ALL)', () => {
     expect(b).toContain('Việc của B'); expect(b).not.toContain('Việc của A');
   });
 });
+
+describe('QA 13/11: nội dung gửi PH/HS', () => {
+  it('bài đã được thầy cô duyệt điểm chính thức không còn là việc tồn đọng dù máy từng cờ ảnh', async () => {
+    const { deadlineTasksForStudent } = await import('../_assistant-deadline');
+    const config = { ...settings, tasks: [] } as any;
+    const flagged = { assignmentId: 'a1', status: 'graded', grade: { photoReview: { missingQuestionNumbers: [2] } } };
+    expect(deadlineTasksForStudent(config, 'HS01', 's1', [], [{ id: 'a1', title: 'BTVN' }], [flagged])[0].status).toBe('review');
+    expect(deadlineTasksForStudent(config, 'HS01', 's1', [], [{ id: 'a1', title: 'BTVN' }], [{ ...flagged, gradeState: 'official' }])).toEqual([]);
+  });
+  it('hạn 00:00 ghi là hết ngày hôm trước; danh sách đầy đủ của PH có tiêu đề nhóm và lời nhắc menu chuẩn', () => {
+    const list: DeadlineItem[] = [
+      { id: 'sheet:t1', source: 'sheet', title: 'Khảo sát', dueAt: '2026-10-26T17:00:00.000Z', url: '', status: 'missing' },
+      { id: 'a1', source: 'web' as any, title: 'BTVN', dueAt: '2026-10-27T01:00:00.000Z', url: '', status: 'missing' },
+    ];
+    const text = digestText(list, at('13:00'), false, 'parent');
+    expect(text).toContain('hết ngày 26/10/26');
+    expect(text).toContain('08:00 27/10/26');
+    expect(text).toMatch(/DEADLINE TRÊN SHEET[\s\S]*BÀI TẬP TRÊN WEB/);
+    expect(text).toContain('Nhắn "0" để xem lại menu.');
+    expect(text).not.toContain('vào ô chat');
+  });
+});

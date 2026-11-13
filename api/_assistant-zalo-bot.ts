@@ -367,9 +367,10 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
           '',
           '1️⃣ Tra cứu học tập (Menu chính):',
           '• Nhắn 0 hoặc menu: Mở lại danh mục tra cứu.',
-          '• Nhắn số 1–7: Xem bảng điểm, bài chưa nộp, nhận xét của GV.',
+          '• Nhắn số 1–7: Xem tổng quan, điểm, bài chưa nộp, điểm mạnh và phần cần rèn.',
           '• Nhắn web: Nhận link mở cổng thông tin chi tiết trên web.',
-          ...(deadlineAvailable(role, classId) ? ['• Nhắn "11" hoặc "deadline": Mở file deadline và xem việc trên Sheet chưa hoàn thành.'] : []),
+          ...(deadlineAvailable(role, classId) ? ['• Nhắn 11 hoặc deadline: Mở file deadline và xem việc trên Sheet chưa hoàn thành.'] : []),
+          ...(role === 'parent' ? ['• Nhắn 11 (hoặc *11#): Xem toàn bộ việc và bài tập của con.'] : []),
           '',
           '2️⃣ Nộp bài bằng ảnh (Học sinh & Phụ huynh nộp hộ):',
           '• Nhắn 8 hoặc chấm: Xem danh sách bài cần nộp.',
@@ -379,7 +380,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
           '• Nhắn bổ sung hoặc nộp lại: Thêm ảnh hoặc thay bộ ảnh cho bài đã nộp.',
           ...(role === 'student'
             ? ['', '3️⃣ Chấm lại bài (Dành cho Học sinh):', '• Nhắn: chấm lại (khi thấy kết quả chưa chính xác để máy đọc kỹ lại).']
-            : ['', '3️⃣ Chuyển đổi con (Phụ huynh có nhiều con):', '• Nhắn 9 hoặc đổi con: Chuyển đổi sang hồ sơ con khác.']),
+            : ['', '3️⃣ Chuyển đổi con (Phụ huynh có nhiều con):', '• Nhắn 9 hoặc đổi con: Xem cách chuyển sang hồ sơ con khác (cần mã lớp và mã PIN của con).']),
           '',
           '4️⃣ Hỏi bài tập & Trợ lý AI:',
           '• Gửi ảnh đề bài hoặc gõ câu hỏi trực tiếp: Trợ lý AI sẽ hướng dẫn giải chi tiết.',

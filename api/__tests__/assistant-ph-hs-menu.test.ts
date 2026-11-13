@@ -149,7 +149,8 @@ describe('menu PH/HS — Phase 2', () => {
     const { report } = (await loadParentReport(db.db, 'c', 's1'))!;
     const text = menuSectionText('6', report);
     expect(text).toContain('Trần Bảo Lâm');
-    expect(text).toContain('phụ huynh');
+    expect(text).toMatch(/Đổi sang con khác: nhắn "?9"?/);
+    expect(menuSectionText('6', report, new Set(), 'student')).not.toMatch(/phụ huynh|con khác/);
     expect(text).toContain('/khoiphuc');
     expect(text).not.toContain('87168299');
   });
@@ -334,5 +335,36 @@ describe('mục 8 — nộp bài bằng ảnh (việc 4)', () => {
     expect(hs).toContain('nhắn 8');
     const ph = await parentMenuReply(db.db, 'c', 's1', '6', 'parent');
     expect(ph).toContain('nhắn 8');
+  });
+});
+
+describe('QA 13/11: mục menu', () => {
+  const base = { studentName: 'An', className: '11A', officialCount: 3, officialAveragePercent: 70, pendingCount: 0, missingCount: 2,
+    strengths: ['tính giới hạn'], areasToPractice: ['cấp số cộng'], progress: { trend: 'flat' }, overallSummary: 'Nhìn chung con nắm được kiến thức cơ bản.',
+    parentActions: ['Nhắc con luyện ở mục “Cần rèn thêm”.'], teacherActions: [],
+    results: [
+      { assignmentId: 'a1', title: 'BTVN 1', status: 'official', score: 8, maxScore: 10 },
+      { assignmentId: 'a2', title: 'BTVN 2', status: 'official', score: 7, maxScore: 10 },
+      { assignmentId: 'k1', title: 'Thi giữa kì', status: 'official', score: 5, maxScore: 10 },
+      { assignmentId: 'a3', title: 'Bài B', status: 'not_submitted', dueAt: '2026-11-09T17:00:00.000Z' },
+      { assignmentId: 'a4', title: 'Bài A', status: 'not_submitted', dueAt: '2026-11-01T01:00:00.000Z' },
+    ] } as any;
+  it('mục 1 tách số bài khớp mục 2 và 7; bản HS xưng em', () => {
+    expect(menuSectionText('1', base, new Set(['k1']))).toContain('Đã chấm: 3 bài (2 bài tập, 1 bài kiểm tra định kì)');
+    const hs = menuSectionText('1', base, new Set(['k1']), 'student');
+    expect(hs).toContain('em nắm được');
+    expect(hs).not.toMatch(/\bcon\b/);
+  });
+  it('mục 3 xếp theo hạn, ngày theo giờ Việt Nam, không có dòng trống thừa', () => {
+    const text = menuSectionText('3', base);
+    expect(text.indexOf('Bài A')).toBeLessThan(text.indexOf('Bài B'));
+    expect(text).toContain('Bài B — chưa nộp, hạn 10/11/2026');
+    expect(text).not.toContain('\n\n\n');
+  });
+  it('mục 4 viết hoa đầu dòng, cùng tên "Cần rèn thêm" với mục 5', () => {
+    const text = menuSectionText('4', base);
+    expect(text).toContain('• Tính giới hạn');
+    expect(text).toContain('Cần rèn thêm');
+    expect(menuSectionText('5', base)).toMatch(/Cần rèn thêm” \(nhắn "?4"?\)/);
   });
 });

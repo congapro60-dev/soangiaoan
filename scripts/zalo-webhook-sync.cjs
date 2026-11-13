@@ -3,8 +3,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+const { execSync } = require('node:child_process');
+
 let envText = '';
-const envFile = process.argv[2] || path.join(__dirname, '../.env') || path.join(__dirname, '../.env.local');
 if (process.argv[2] && fs.existsSync(process.argv[2])) {
   envText = fs.readFileSync(process.argv[2], 'utf8');
 } else if (fs.existsSync(path.join(__dirname, '../.env'))) {
@@ -12,8 +13,15 @@ if (process.argv[2] && fs.existsSync(process.argv[2])) {
 } else if (fs.existsSync(path.join(__dirname, '../.env.local'))) {
   envText = fs.readFileSync(path.join(__dirname, '../.env.local'), 'utf8');
 } else {
-  // Thử đọc biến môi trường có sẵn
-  envText = `ZALO_BOT_TOKEN=${process.env.ZALO_BOT_TOKEN || ''}\nZALO_BOT_WEBHOOK_SECRET=${process.env.ZALO_BOT_WEBHOOK_SECRET || ''}`;
+  // Tự động kéo env từ Vercel nếu chưa có file local
+  try {
+    const tmp = path.join(require('node:os').tmpdir(), 'zalo_auto_env.txt');
+    execSync('npx vercel env pull "' + tmp + '" --environment production --scope congapro60-devs-projects --yes', { stdio: 'ignore' });
+    if (fs.existsSync(tmp)) {
+      envText = fs.readFileSync(tmp, 'utf8');
+      fs.unlinkSync(tmp);
+    }
+  } catch {}
 }
 const get = k => { const m = new RegExp(`^${k}=(.+)$`, 'm').exec(envText); return m ? m[1].trim().replace(/^["']|["']$/g, '') : ''; };
 const token = get('ZALO_BOT_TOKEN');

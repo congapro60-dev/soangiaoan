@@ -63,7 +63,7 @@ describe('deadline privacy and source mapping', () => {
   it('flags uncertain review without claiming no submission', () => {
     const items = deadlineTasksForStudent(config, 'HS01', 's1', [], [{ id: 'a1', title: 'Bài', isOpen: true }], [{ assignmentId: 'a1', status: 'graded', grade: { photoReview: { missingQuestionNumbers: ['2'] } } }]);
     expect(items[0].status).toBe('review');
-    expect(digestText(items, Date.parse('2026-11-09T00:00:00Z'), false)).toContain('cần kiểm tra/bổ sung');
+    expect(digestText(items, Date.parse('2026-11-09T00:00:00Z'), false)).toContain('đã nộp, chờ bổ sung hoặc thầy cô kiểm tra');
   });
   it('does not leak another target group or count a draft online attempt as submitted', () => {
     const tasks = deadlineTasksForStudent(config, 'HS01', 's1', [], [{ id: 'a1', title: 'Bài', targetStudentIds: ['s2'] }], []);

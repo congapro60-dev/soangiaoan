@@ -52,7 +52,7 @@ export const menuText = (studentName: string, className: string, role: MenuRole 
     '9. Đổi vai trò (HS/PH/GV)',
     '10. Hướng dẫn sử dụng các tính năng',
     ...(deadlineAvailable(role, classId) ? ['11. File deadline của lớp (nhắn "deadline")'] : []),
-    ...(role === 'parent' ? ['11. Việc và bài tập của con (nhắn 11 hoặc *11#)'] : []),
+    ...(role === 'parent' ? ['11. Việc và bài tập của con'] : []),
     '0. Xem lại menu'].join('\n');
 
 const percent = (value: number | null): string => (value == null ? 'chưa đủ dữ liệu' : `${Math.round(value)}%`);
@@ -80,7 +80,30 @@ const uniqueText = (items: string[]): string[] => [...new Map(items.map(item => 
 
 /** Preserve complete lists; the send layer splits them into platform-sized messages. */
 export const fitZaloList = (header: string[], lines: string[], footer: string[] = []): string => {
-  return [...header, ...lines, '', ...footer, '', MENU_HINT].join('\n');
+  return [...header, ...lines, ...(footer.length ? ['', ...footer] : []), '', MENU_HINT].join('\n');
+};
+
+/** Hạn theo giờ Việt Nam, dạng 05/11/2026 (không cắt chuỗi UTC: hạn trước 07:00 sẽ lệch một ngày). */
+const dueDate = (dueAt: string | null | undefined): string => {
+  const at = Date.parse(String(dueAt ?? ''));
+  if (!Number.isFinite(at)) return '';
+  return new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(at));
+};
+const byDue = <T extends { dueAt?: string | null }>(items: T[]): T[] =>
+  [...items].sort((a, b) => (Date.parse(String(a.dueAt ?? '')) || Infinity) - (Date.parse(String(b.dueAt ?? '')) || Infinity));
+const capitalize = (text: string): string => text.charAt(0).toLocaleUpperCase('vi-VN') + text.slice(1);
+
+/** Nhận xét tổng quan cho HS, xưng "em" (bản PH viết cho phụ huynh, gọi "con"). */
+const studentSummary = (report: ParentSafeReport): string => {
+  const average = report.officialAveragePercent;
+  if (average == null || !report.officialCount) return 'Chưa đủ bài được chấm chính thức để nhận định tổng quan.';
+  const base = average >= 80 ? 'Nhìn chung em đang học rất tốt, nắm vững phần lớn kiến thức.'
+    : average >= 65 ? 'Nhìn chung em nắm được kiến thức cơ bản, còn một vài phần cần củng cố cho chắc hơn.'
+      : average >= 50 ? 'Em đã có nền tảng nhưng còn một số phần chưa vững, cần luyện thêm đều đặn.'
+        : 'Em đang gặp khó ở khá nhiều phần, hãy hỏi thầy cô và luyện lại các phần ở mục 4.';
+  const trend = report.progress.trend === 'up' ? ' Gần đây em đang tiến bộ, cố gắng giữ nhịp nhé.'
+    : report.progress.trend === 'down' ? ' Gần đây kết quả có phần đi xuống, em chú ý ôn lại nhé.' : '';
+  return base + trend;
 };
 
 /** Nhắc xem lại menu — LUÔN ở cuối mỗi tin để PH không phải nhớ cú pháp. */
@@ -150,14 +173,19 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
   const name = report.studentName;
   const isPeriodic = (assignmentId: string) => periodicIds.has(assignmentId);
   switch (key) {
-    case '1':
+    case '1': {
+      // Tách số bài để khớp mục 2 (bài tập) và mục 7 (kiểm tra định kì); GV sửa tay số tổng thì giữ nguyên số đó.
+      const official = report.results.filter(item => item.status === 'official');
+      const tests = official.filter(item => isPeriodic(item.assignmentId)).length;
+      const split = tests && official.length === report.officialCount ? ` (${official.length - tests} bài tập, ${tests} bài kiểm tra định kì)` : '';
       return [`📊 Tổng quan của ${name} — lớp ${report.className}`,
-        `• Đã chấm: ${report.officialCount} bài`,
+        `• Đã chấm: ${report.officialCount} bài${split}`,
         `• Đang chờ chấm: ${report.pendingCount} bài`,
         `• Chưa nộp: ${report.missingCount} bài`,
         `• Xu hướng: ${trendText(report)}`,
         '',
-        report.overallSummary].join('\n');
+        role === 'student' ? studentSummary(report) : report.overallSummary].join('\n');
+    }
     case '2': {
       // Mục 2 = BTVN các ngày (KHÔNG gồm bài kiểm tra định kì — bài đó ở mục 7).
       const graded = report.results.filter(item => item.status === 'official' && !isPeriodic(item.assignmentId));
@@ -172,41 +200,45 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
       return fitZaloList(
         [`📝 Bài tập đã chấm của ${name} (${graded.length} bài):`],
         lines,
-        [...(forStudent && graded.some(item => item.feedback) ? ['Nhắn web để xem nhận xét đầy đủ.'] : []), '👉 Xem bài kiểm tra định kỳ: nhắn 7.'],
+        [...(forStudent && graded.some(item => item.feedback) ? ['Nhắn web để xem nhận xét đầy đủ.'] : []), '👉 Xem bài kiểm tra định kì: nhắn 7.'],
       );
     }
     case '3': {
       const todo = report.results.filter(item => item.status === 'not_submitted' || item.status === 'pending' || item.status === 'grading' || item.status === 'error');
       if (!todo.length) return `🎉 ${name} không còn bài nào đang chờ nộp hay chờ chấm.`;
-      const lines = todo.map(item => {
+      const lines = byDue(todo).map(item => {
         const tag = item.status === 'not_submitted' ? 'chưa nộp' : item.status === 'grading' ? 'đang chấm' : item.status === 'error' ? 'lỗi xử lý' : 'chờ chấm';
-        return `• ${item.title} — [${tag}]${item.dueAt ? ` (hạn: ${item.dueAt.slice(0, 10)})` : ''}`;
+        const due = dueDate(item.dueAt);
+        return `• ${item.title} — ${tag}${due ? `, hạn ${due}` : ''}`;
       });
       return fitZaloList([`⏳ Bài đang chờ của ${name} (${todo.length} bài):`], lines);
     }
     case '4': {
-      const strong = report.strengths.length ? uniqueText(report.strengths).map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định điểm mạnh.'];
-      const weak = report.areasToPractice.length ? uniqueText(report.areasToPractice).map(item => `• ${item}`) : ['• Chưa đủ dữ liệu để xác định phần cần luyện.'];
-      return fitZaloList([`🌟 Điểm mạnh của ${name}:`], strong, ['🎯 Cần luyện thêm:', ...weak]);
+      const strong = report.strengths.length ? uniqueText(report.strengths).map(item => `• ${capitalize(item)}`) : ['• Chưa đủ dữ liệu để xác định điểm mạnh.'];
+      const weak = report.areasToPractice.length ? uniqueText(report.areasToPractice).map(item => `• ${capitalize(item)}`) : ['• Chưa đủ dữ liệu để xác định phần cần luyện.'];
+      // "Cần rèn thêm" trùng tên mục trên báo cáo web và câu gợi ý ở mục 5.
+      return fitZaloList([`🌟 Điểm mạnh của ${name}:`], strong, ['🎯 Cần rèn thêm:', ...weak]);
     }
     case '5': {
       // HS tự luyện: dùng `areasToPractice` (dữ liệu có thật, cùng nguồn mục 4) thay cho
       // `parentActions` vốn viết theo góc nhìn người lớn ("nhắc con...").
       if (role === 'student') {
         if (!report.areasToPractice.length) return 'ℹ️ Chưa có gợi ý tự học riêng — em có thể hỏi thầy cô khi cần nhé.';
-        return fitZaloList([`💡 Gợi ý tự học của ${name}:`], uniqueText(report.areasToPractice).map(item => `• ${item}`));
+        return fitZaloList([`💡 Gợi ý tự học của ${name}:`, 'Mỗi tối em chọn 1 phần dưới đây, xem lại bài đã chấm rồi tự làm lại vài câu:'],
+          uniqueText(report.areasToPractice).map(item => `• ${capitalize(item)}`));
       }
       if (!report.parentActions.length) return 'ℹ️ Chưa có gợi ý riêng — phụ huynh nhắn thầy cô để được tư vấn thêm.';
-      return fitZaloList([`🏡 Việc phụ huynh có thể làm ở nhà (${name}):`], report.parentActions.map(item => `• ${item}`));
+      return fitZaloList([`🏡 Việc phụ huynh có thể làm ở nhà (${name}):`],
+        report.parentActions.map(item => `• ${item.replace('mục “Cần rèn thêm”', 'mục “Cần rèn thêm” (nhắn 4)')}`));
     }
     case '6':
       return [`🔗 Tài khoản Zalo này đang liên kết với ${name} — lớp ${report.className}.`,
-        '• Mục 1–5 và 7: xem dữ liệu học tập của học sinh này.',
+        role === 'student' ? '• Mục 1–5 và 7: xem dữ liệu học tập của em.' : '• Mục 1–5, 7 và 11: xem dữ liệu học tập của con.',
         role === 'student'
           ? '• Gửi ảnh bài làm để tự chấm: nhắn 8.'
           : '• Gửi ảnh bài làm nộp hộ con: nhắn 8.',
         '• Xem báo cáo hoặc nộp bài trên web: nhắn web.',
-        '• Muốn đổi em khác: nhắn <mã lớp> <PIN> phụ huynh.',
+        role === 'student' ? '• Đổi vai trò: nhắn 9 để xem cách làm.' : '• Đổi sang con khác: nhắn 9 để xem cách làm.',
         '• Quên mã PIN: nhắn /khoiphuc <mã học sinh> <số điện thoại>.'].join('\n');
     case '7': {
       // Bài kiểm tra định kì — nhận diện bằng `assignment.periodicTest`, cùng cờ app và portal HS đang dùng.
@@ -217,7 +249,8 @@ const menuSectionBody = (key: MenuKey | '8', report: ParentSafeReport, periodicI
           return `• ${item.title}: ${scoreText(item.score, item.maxScore)}`;
         }
         const tag = item.status === 'not_submitted' ? 'chưa nộp' : item.status === 'grading' ? 'đang chấm' : item.status === 'error' ? 'lỗi xử lý' : 'chờ chấm';
-        return `• ${item.title} — [${tag}]${item.dueAt ? ` (hạn: ${item.dueAt.slice(0, 10)})` : ''}`;
+        const due = dueDate(item.dueAt);
+        return `• ${item.title} — ${tag}${due ? `, hạn ${due}` : ''}`;
       });
       return fitZaloList([`📑 Bài kiểm tra định kì của ${name} (${periodic.length} bài):`], lines);
     }

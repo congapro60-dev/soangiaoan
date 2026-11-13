@@ -119,6 +119,8 @@ function submissionState(submissions: Data[], assignmentId: string): 'missing' |
   accepted.sort((a, b) => String(b.updatedAt || b.createdAt || b.submittedAt || '').localeCompare(String(a.updatedAt || a.createdAt || a.submittedAt || '')));
   const sub = accepted[0];
   if (!sub) return 'missing';
+  // Điểm đã được thầy cô duyệt chính thức thì cờ soát ảnh của máy không còn là việc tồn đọng.
+  if (sub.gradeState === 'official' || sub.grade?.teacherApproved === true) return 'done';
   const review = sub.grade?.photoReview;
   return awaitsClarification(sub.grade?.questionResults) || sub.grade?.awaitingClarification || review?.missingQuestionNumbers?.length || review?.unreadablePhotoNumbers?.length
     || ['possibly_wrong', 'uncertain'].includes(review?.assignmentMatch) ? 'review' : 'done';
@@ -164,11 +166,19 @@ export const digestWindow = (now: number): boolean => {
 };
 /** Teacher-authored text may contain any link form; recipients see a placeholder, never a raw URL. */
 export const stripLinks = (value: string, placeholder: string): string => value.replace(/(?:https?:\/\/|www\.)\S+/gi, placeholder);
-const shortWhen = (iso: string) => iso ? new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(iso)) : '';
+/** "08:00 4/9/26"; a 00:00 deadline reads as the end of the previous day so nobody thinks they have that whole day. */
+const shortWhen = (iso: string) => {
+  if (!iso) return '';
+  const at = Date.parse(iso);
+  const fmt = (time: number, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour12: false, ...opts }).format(new Date(time));
+  if (fmt(at, { hour: '2-digit', minute: '2-digit' }) === '00:00') return `hết ngày ${fmt(at - 60_000, { dateStyle: 'short' })}`;
+  return fmt(at, { dateStyle: 'short', timeStyle: 'short' });
+};
+const REVIEW_LABEL = 'đã nộp, chờ bổ sung hoặc thầy cô kiểm tra';
 /** Short guardian digest: the 2 nearest sheet deadlines and the 2 newest web assignments; the rest is behind the number 11. */
 function guardianMorningText(tasks: DeadlineItem[], now: number): string {
   const today = vietnamDate(now);
-  const label = (t: DeadlineItem) => t.status === 'review' ? 'cần kiểm tra/bổ sung' : !t.dueAt ? 'chưa có hạn'
+  const label = (t: DeadlineItem) => t.status === 'review' ? REVIEW_LABEL : !t.dueAt ? 'chưa có hạn'
     : vietnamDate(Date.parse(t.dueAt)) < today ? 'quá hạn' : vietnamDate(Date.parse(t.dueAt)) === today ? 'hạn hôm nay' : 'sắp đến hạn';
   const sheet = tasks.filter(t => t.source === 'sheet').slice(0, 2);
   const web = tasks.filter(t => t.source !== 'sheet').sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))).slice(0, 2);
@@ -191,16 +201,16 @@ export function digestText(tasks: DeadlineItem[], now: number, morning: boolean,
   let shown = 0, section = '';
   selected.forEach((task, i) => {
     const day = task.dueAt ? vietnamDate(Date.parse(task.dueAt)) : '';
-    const label = task.status === 'review' ? 'cần kiểm tra/bổ sung' : !day ? 'chưa có hạn' : day < today ? 'quá hạn' : day === today ? 'hạn hôm nay' : 'sắp đến hạn';
-    const at = task.dueAt ? new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(task.dueAt)) : '';
+    const label = task.status === 'review' ? REVIEW_LABEL : !day ? 'chưa có hạn' : day < today ? 'quá hạn' : day === today ? 'hạn hôm nay' : 'sắp đến hạn';
+    const at = shortWhen(task.dueAt);
     const nextSection = task.source === 'sheet' ? 'DEADLINE TRÊN SHEET' : 'BÀI TẬP TRÊN WEB';
-    const block = ['', ...(morning && section !== nextSection ? [nextSection, ''] : []), `${i + 1}. ${String(task.title).replace(/[\r\n]+/g, ' ').slice(0, 300)}`, `${label}${at ? ` · ${at}` : ''}`, ...(task.note ? [parent ? task.note.replace('Em nhờ', 'Nhờ') : task.note] : []), ...(!morning && task.description ? [task.description] : []), ...(!morning && safeTaskUrl(task.url) ? [`Thực hiện: ${safeTaskUrl(task.url)}`] : [])];
+    const block = ['', ...((morning || parent) && section !== nextSection ? [nextSection, ''] : []), `${i + 1}. ${String(task.title).replace(/[\r\n]+/g, ' ').slice(0, 300)}`, `${label}${at ? ` · ${at}` : ''}`, ...(task.note ? [parent ? task.note.replace('Em nhờ', 'Nhờ') : task.note] : []), ...(!morning && task.description ? [task.description] : []), ...(!morning && safeTaskUrl(task.url) ? [`Thực hiện: ${safeTaskUrl(task.url)}`] : [])];
     if (morning && (shown !== i || quoteChatCommands([...lines, ...block].join('\n')).length > 1550)) return;
     lines.push(...block); shown++; section = nextSection;
   });
   if (shown < selected.length) lines.push('', `Còn ${selected.length - shown} việc khác trong danh sách.`);
   if (morning && !parent && selected.some(task => task.source === 'sheet')) lines.push('', 'Nhắn "deadline" vào ô chat để xem việc chưa xong và mở file deadline.');
-  lines.push('', morning ? (parent ? 'Nhắn "web" vào ô chat để xem báo cáo học tập của con và mở đúng hồ sơ.' : 'Nhắn "web" vào ô chat để xem toàn bộ và mở đúng hồ sơ.') : 'Nhắn "0" vào ô chat để xem lại menu.');
+  lines.push('', morning ? (parent ? 'Nhắn "web" vào ô chat để xem báo cáo học tập của con và mở đúng hồ sơ.' : 'Nhắn "web" vào ô chat để xem toàn bộ và mở đúng hồ sơ.') : 'Nhắn 0 để xem lại menu.');
   return quoteChatCommands(lines.join('\n'));
 }
 
