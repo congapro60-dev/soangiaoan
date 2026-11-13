@@ -18,6 +18,8 @@ export interface DeadlineDeliveryPolicy {
   parentDigest?: boolean;
   /** Guardian digests go only to these ids, whatever the real-delivery flags say. Empty list means no guardian sends. */
   parentTestUserIds?: string[];
+  /** Opens guardian digests to every linked guardian. Needs the explicit server flag ZALO_DEADLINE_PARENT_ALL=true. */
+  parentAll?: boolean;
 }
 export type DeliveryReceipt = { state: 'sent' | 'rejected' | 'unknown'; code?: number };
 export type DeadlineSender = (userId: string, text: string) => Promise<DeliveryReceipt>;
@@ -27,7 +29,7 @@ export const deadlineRecipientAllowed = (policy: DeadlineDeliveryPolicy, user: s
   && (policy.testUserIds.includes(user) || policy.realDeliveryApproved === true && policy.quotaVerified === true);
 /** Student rule unchanged; guardian jobs additionally need an explicit entry in the guardian test list. */
 export const jobRecipientAllowed = (policy: DeadlineDeliveryPolicy, job: Record<string, any>): boolean =>
-  deadlineRecipientAllowed(policy, String(job.userId)) && (job.audience !== 'parent' || (policy.parentTestUserIds ?? []).includes(String(job.userId)));
+  deadlineRecipientAllowed(policy, String(job.userId)) && (job.audience !== 'parent' || policy.parentAll === true || (policy.parentTestUserIds ?? []).includes(String(job.userId)));
 const outbox = (db: Firestore, id: string) => db.collection('assistantDeadlineOutbox').doc(id);
 const snapshotRef = (db: Firestore, botId: string, classId: string, studentId: string) => db.collection('assistantDeadlineSnapshots').doc(hash([botId, classId, studentId]));
 const noticeText = (notice: DeadlineNotice) => [

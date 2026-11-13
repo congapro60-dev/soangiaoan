@@ -16,7 +16,7 @@ export const deadlineDeliveryPolicy = (env: Record<string, string | undefined> =
   enabled: env.ZALO_DEADLINE_ENABLED === 'true', botId: env.ZALO_BOT_ID || '',
   testUserIds: (env.ZALO_DEADLINE_TEST_USER_IDS || '').split(',').map(x => x.trim()).filter(Boolean),
   realDeliveryApproved: env.ZALO_DEADLINE_REAL_APPROVED === 'true', quotaVerified: env.ZALO_DEADLINE_QUOTA_VERIFIED === 'true',
-  parentDigest: env.ZALO_DEADLINE_PARENT_DIGEST === 'true',
+  parentDigest: env.ZALO_DEADLINE_PARENT_DIGEST === 'true', parentAll: env.ZALO_DEADLINE_PARENT_ALL === 'true',
   parentTestUserIds: (env.ZALO_DEADLINE_PARENT_TEST_USER_IDS || '').split(',').map(x => x.trim()).filter(Boolean),
 });
 async function records(query: Query, max = 2000): Promise<Data[]> {
@@ -76,6 +76,13 @@ export async function deadlineMenuReply(db: Firestore, classId: string, studentI
     const url = `https://docs.google.com/spreadsheets/d/${bundle.settings.spreadsheetId}/edit#gid=${bundle.settings.sheetId}`;
     return `File deadline của lớp:\n${url}\n\n${digestText(items, Date.now(), false)}`;
   } catch { return 'Chưa xác minh được danh sách deadline trên Sheet. Nhắn "0" vào ô chat để về menu. Nhờ thầy cô kiểm tra nguồn và mã HS; thông báo này chưa xác nhận em đã hoàn thành.'; }
+}
+/** Guardian "11": the full list for the linked child only. Never links the workbook. */
+export async function deadlineParentReply(db: Firestore, classId: string, studentId: string): Promise<string> {
+  try {
+    const bundle = await loadDeadlineClass(db, classId, readDeadlineSheet, true);
+    return digestText(studentReminderView(bundle, studentId), Date.now(), false, 'parent');
+  } catch { return 'Chưa xác minh được danh sách việc của con. Nhắn "0" vào ô chat để về menu. Thông báo này chưa xác nhận con đã hoàn thành.'; }
 }
 export function studentSheetDeadlineView(bundle: Bundle, studentId: string) {
   // Menu 11 follows Sheet checkboxes; web homework remains in menu 3.

@@ -52,6 +52,7 @@ export const menuText = (studentName: string, className: string, role: MenuRole 
     '9. Đổi vai trò (HS/PH/GV)',
     '10. Hướng dẫn sử dụng các tính năng',
     ...(deadlineAvailable(role, classId) ? ['11. File deadline của lớp (nhắn "deadline")'] : []),
+    ...(role === 'parent' ? ['11. Việc và bài tập của con (nhắn 11 hoặc *11#)'] : []),
     '0. Xem lại menu'].join('\n');
 
 const percent = (value: number | null): string => (value == null ? 'chưa đủ dữ liệu' : `${Math.round(value)}%`);

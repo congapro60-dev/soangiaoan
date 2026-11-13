@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { deadlineCommand } from './_assistant-deadline.js';
-import { deadlineMenuReply } from './_assistant-deadline-runtime.js';
+import { deadlineMenuReply, deadlineParentReply } from './_assistant-deadline-runtime.js';
 import { kickHomeworkReconcile } from './_assistant-homework-sheet.js';
 import { issueWebHandoff, confirmWebHandoff } from './_assistant-web-handoff.js';
 import { homeworkGroupsContext, loadGroupHomework, groupHomeworkSummary } from './_classroom-group-homework.js';
@@ -290,6 +290,7 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
   if (role === 'parent' || role === 'student') {
     const classId = String(linkedActor.classId ?? ''); const studentId = String(linkedActor.studentId ?? '');
     if (!classId || !studentId) return MENU_REPLIES.noData;
+    message = message.trim().replace(/^\*(\d{1,2})#$/, '$1'); // USSD-style "*11#" is the same as "11".
     if (/^(tổ|to|theo dõi tổ|theo doi to)$/i.test(message.trim().normalize('NFC'))) {
       if (role !== 'student') { await sendStyled(token, chatId, 'Chức năng này dành cho tổ trưởng đã được thầy cô phân công.'); return ''; }
       try {
@@ -337,12 +338,16 @@ async function dispatch(token: string, botId: string, userId: string, chatId: st
       const n = Number(message.trim());
       const picked = await pickAssignmentByNumber(botId, userId, classId, studentId, n, role);
       // "11" outside the pending list is the deadline menu where it is enabled; it must not be consumed here.
-      const menuEleven = picked === PICK_MISS && n === 11 && deadlineAvailable(role, classId);
+      const menuEleven = picked === PICK_MISS && n === 11 && (deadlineAvailable(role, classId) || role === 'parent');
       if (picked !== null && !menuEleven) { await sendStyled(token, chatId, picked); return ''; }
     }
     // Upload numbers win over menu 11; deadline never mutates a photo session.
     if (role === 'student' && (message.trim() === '11' || deadlineCommand(message))) {
       await sendStyled(token, chatId, deadlineAvailable(role, classId) ? await deadlineMenuReply(getAdminDb(), classId, studentId) : MENU_REPLIES.invalid, false);
+      return '';
+    }
+    if (role === 'parent' && message.trim() === '11') {
+      await sendStyled(token, chatId, await deadlineParentReply(getAdminDb(), classId, studentId), false);
       return '';
     }
     // Cancellation must precede menu aliases such as "hủy".

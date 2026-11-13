@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { digestText, digestWindow, stripLinks, type DeadlineItem } from '../_assistant-deadline';
 import { validateDeadlineConfig } from '../_assistant-deadline-config';
 import { deadlineDeliveryPolicy, deadlineDispatchEligible, deadlineTargets, digestStillValid } from '../_assistant-deadline-runtime';
-import { enqueueDeadlineDigest } from '../_assistant-deadline-notify';
+import { enqueueDeadlineDigest, jobRecipientAllowed } from '../_assistant-deadline-notify';
 import { readDeadlineSheet } from '../_assistant-deadline-sheet';
 
 // Regression tests for the 2026-11-10 review findings that still applied to the current code.
@@ -69,14 +69,25 @@ describe('Sheets read mask (sheet-1)', () => {
 });
 
 describe('guardian digest wording (PH digest)', () => {
-  it('addresses the child and never shows student commands, the workbook or the student-only note', () => {
-    const text = digestText(items, at('07:30'), true, 'parent');
+  it('is short: 2 nearest deadlines, 2 newest web assignments, the rest behind number 11', () => {
+    const many: DeadlineItem[] = [
+      ...[1, 2, 3].map(n => ({ id: 'sheet:t' + n, source: 'sheet' as const, title: 'Deadline ' + n, dueAt: '2026-11-1' + n + 'T10:00:00+07:00', url: '', status: 'missing' as const })),
+      ...[1, 2, 3].map(n => ({ id: 'a' + n, assignmentId: 'a' + n, title: 'Bài ' + n, dueAt: '', url: '', status: 'missing' as const, createdAt: '2026-11-0' + n + 'T00:00:00Z' })),
+    ];
+    const text = digestText(many, at('07:30'), true, 'parent');
     expect(text).toContain('VIỆC CỦA CON HÔM NAY');
-    expect(text).toContain('báo cáo học tập của con');
+    expect(text).toContain('Deadline 1'); expect(text).toContain('Deadline 2'); expect(text).not.toContain('Deadline 3');
+    expect(text).toContain('Bài 3'); expect(text).toContain('Bài 2'); expect(text).not.toContain('Bài 1');
+    expect(text).toContain('Còn 2 việc khác');
+    expect(text).toContain('*11#'); expect(text).toContain('toàn bộ việc của con');
     expect(text).not.toContain('VIỆC CỦA EM');
-    expect(text).not.toContain('"deadline"');
+    expect(text.length).toBeLessThan(700);
+  });
+  it('full guardian list is addressed to the child and never links the workbook', () => {
+    const text = digestText(items, at('07:30'), false, 'parent');
+    expect(text).toContain('TOÀN BỘ VIỆC CỦA CON');
     expect(text).not.toContain('Em nhờ');
-    expect(text).toContain('Nhờ thầy cô đối chiếu');
+    expect(text).not.toContain('docs.google.com');
   });
   it('keeps the student digest wording unchanged', () => {
     const text = digestText(items, at('07:30'), true);
@@ -182,5 +193,21 @@ describe('guardian test gate (PARENT_TEST_USER_IDS)', () => {
     const job = { ...base, linkId: 'p2', userId: 'pu2', botId: 'bot', audience: 'parent', nextAt: 0, attempts: 0, createdAt: at('07:10') };
     expect(deadlineDispatchEligible(job, targets, { ...real, parentTestUserIds: [] }, at('07:20'))).toBe(false);
     expect(deadlineDispatchEligible(job, targets, { ...real, parentTestUserIds: ['pu2'] }, at('07:20'))).toBe(true);
+  });
+});
+
+describe('guardian open-to-all flag (PARENT_ALL)', () => {
+  it('opens guardian digests to every guardian only with the explicit flag', () => {
+    const policy = { enabled: true, botId: 'bot', testUserIds: [] as string[], realDeliveryApproved: true, quotaVerified: true, parentTestUserIds: [] as string[] };
+    expect(jobRecipientAllowed(policy, { userId: 'pu9', audience: 'parent' })).toBe(false);
+    expect(jobRecipientAllowed({ ...policy, parentAll: true }, { userId: 'pu9', audience: 'parent' })).toBe(true);
+    expect(deadlineDeliveryPolicy({ ZALO_DEADLINE_PARENT_ALL: 'true' }).parentAll).toBe(true);
+    expect(deadlineDeliveryPolicy({}).parentAll).toBe(false);
+  });
+  it('each guardian digest is built from the linked child only', () => {
+    const only = (id: string): DeadlineItem[] => [{ id: 'sheet:' + id, source: 'sheet', title: 'Việc của ' + id, dueAt: '2026-11-13T10:00:00+07:00', url: '', status: 'missing' }];
+    const a = digestText(only('A'), at('07:30'), true, 'parent'), b = digestText(only('B'), at('07:30'), true, 'parent');
+    expect(a).toContain('Việc của A'); expect(a).not.toContain('Việc của B');
+    expect(b).toContain('Việc của B'); expect(b).not.toContain('Việc của A');
   });
 });

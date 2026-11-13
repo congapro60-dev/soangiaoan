@@ -28,6 +28,8 @@ export interface DeadlineItem {
   note?: string;
   description?: string;
   assignmentId?: string;
+  /** Web assignments only: used to pick "newest" for the short guardian digest. */
+  createdAt?: string;
 }
 export interface SheetTaskRow {
   id: string;
@@ -131,7 +133,7 @@ export function deadlineTasksForStudent(config: DeadlineConfig, studentCode: str
       || !task.optional && task.studentCodes.length && !task.studentCodes.includes(studentCode)) continue;
     const row = sheet.find(item => item.id === task.id && item.studentCode === studentCode);
     if (!row || row.complete && !task.assignmentId) continue;
-    const assignment = task.assignmentId && assignments.find(item => item.id === task.assignmentId);
+    const assignment: Data | undefined = task.assignmentId ? assignments.find(item => item.id === task.assignmentId) : undefined;
     if (task.assignmentId && (!assignment || !applies(assignment, studentId))) continue;
     let state = task.assignmentId ? submissionState(submissions, task.assignmentId) : 'missing';
     if (state === 'done') continue;
@@ -141,13 +143,14 @@ export function deadlineTasksForStudent(config: DeadlineConfig, studentCode: str
     result.set(id, { id, source: 'sheet', title: row.title, dueAt: row.dueAt, url: safeTaskUrl(row.url), status: state,
       ...(assignment ? { description: stripLinks(String(assignment.description || ''), '[mở qua web]').slice(0, 2000) } : {}),
       ...(conflict ? { note: 'Bảng đã đánh dấu hoàn thành; web chưa ghi nhận bài nộp. Em nhờ thầy cô đối chiếu.' } : {}),
-      ...(task.assignmentId ? { assignmentId: task.assignmentId } : {}) });
+      ...(task.assignmentId ? { assignmentId: task.assignmentId } : {}), ...(assignment?.createdAt ? { createdAt: String(assignment.createdAt) } : {}) });
   }
   for (const assignment of assignments) {
     if (!applies(assignment, studentId) || configured.has(assignment.id)) continue;
     const state = submissionState(submissions, assignment.id);
     if (state !== 'done') result.set(assignment.id, { id: assignment.id, assignmentId: assignment.id, title: String(assignment.title || 'Bài tập'), dueAt: dueTime(assignment.dueAt), url: '', status: state,
-      description: stripLinks(String(assignment.description || ''), '[mở qua web]').slice(0, 2000) });
+      description: stripLinks(String(assignment.description || ''), '[mở qua web]').slice(0, 2000),
+      ...(assignment.createdAt ? { createdAt: String(assignment.createdAt) } : {}) });
   }
   return [...result.values()].sort((a, b) => (a.dueAt || '9999').localeCompare(b.dueAt || '9999') || a.id.localeCompare(b.id));
 }
@@ -161,13 +164,30 @@ export const digestWindow = (now: number): boolean => {
 };
 /** Teacher-authored text may contain any link form; recipients see a placeholder, never a raw URL. */
 export const stripLinks = (value: string, placeholder: string): string => value.replace(/(?:https?:\/\/|www\.)\S+/gi, placeholder);
+const shortWhen = (iso: string) => iso ? new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(iso)) : '';
+/** Short guardian digest: the 2 nearest sheet deadlines and the 2 newest web assignments; the rest is behind the number 11. */
+function guardianMorningText(tasks: DeadlineItem[], now: number): string {
+  const today = vietnamDate(now);
+  const label = (t: DeadlineItem) => t.status === 'review' ? 'cần kiểm tra/bổ sung' : !t.dueAt ? 'chưa có hạn'
+    : vietnamDate(Date.parse(t.dueAt)) < today ? 'quá hạn' : vietnamDate(Date.parse(t.dueAt)) === today ? 'hạn hôm nay' : 'sắp đến hạn';
+  const sheet = tasks.filter(t => t.source === 'sheet').slice(0, 2);
+  const web = tasks.filter(t => t.source !== 'sheet').sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))).slice(0, 2);
+  const block = (title: string, list: DeadlineItem[]) => list.length ? ['', title, ...list.flatMap((t, i) => [`${i + 1}. ${String(t.title).replace(/[\r\n]+/g, ' ').slice(0, 120)}`, `${label(t)}${t.dueAt ? ` · ${shortWhen(t.dueAt)}` : ''}`])] : [];
+  const rest = tasks.length - sheet.length - web.length;
+  return quoteChatCommands([`VIỆC CỦA CON HÔM NAY · ${today.split('-').reverse().join('/')}`,
+    ...(tasks.length ? [] : ['', 'Hôm nay con không có việc tồn đọng hoặc sắp đến hạn.']),
+    ...block('DEADLINE GẦN NHẤT', sheet), ...block('BÀI TẬP MỚI NHẤT', web),
+    ...(rest > 0 ? ['', `Còn ${rest} việc khác.`] : []),
+    '', 'Nhắn 11 (hoặc *11#) để xem toàn bộ việc của con.', 'Nhắn 0 để xem menu.'].join('\n'));
+}
 export function digestText(tasks: DeadlineItem[], now: number, morning: boolean, audience: DigestAudience = 'student'): string {
   const parent = audience === 'parent';
+  if (parent && morning) return guardianMorningText(tasks, now);
   const today = vietnamDate(now), last = vietnamDate(now + 3 * 86400_000);
   const selected = morning ? tasks.filter(task => task.source === 'sheet' || task.status === 'review' || !task.dueAt || vietnamDate(Date.parse(task.dueAt)) <= last)
     .sort((a, b) => Number(b.source === 'sheet') - Number(a.source === 'sheet')) : tasks;
-  const lines = [morning ? `${parent ? 'VIỆC CỦA CON' : 'VIỆC CỦA EM'} HÔM NAY · ${today.split('-').reverse().join('/')}` : 'DEADLINE TRÊN SHEET'];
-  if (!selected.length) lines.push(morning ? (parent ? 'Hôm nay con không có việc tồn đọng hoặc sắp đến hạn.' : 'Hôm nay em không có việc tồn đọng hoặc sắp đến hạn.') : 'Em không còn việc cần làm trong danh sách đã công bố.');
+  const lines = [morning ? `${parent ? 'VIỆC CỦA CON' : 'VIỆC CỦA EM'} HÔM NAY · ${today.split('-').reverse().join('/')}` : parent ? 'TOÀN BỘ VIỆC CỦA CON' : 'DEADLINE TRÊN SHEET'];
+  if (!selected.length) lines.push(morning ? 'Hôm nay em không có việc tồn đọng hoặc sắp đến hạn.' : parent ? 'Con không còn việc cần làm trong danh sách đã công bố.' : 'Em không còn việc cần làm trong danh sách đã công bố.');
   let shown = 0, section = '';
   selected.forEach((task, i) => {
     const day = task.dueAt ? vietnamDate(Date.parse(task.dueAt)) : '';
