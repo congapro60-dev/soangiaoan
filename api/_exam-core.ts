@@ -32,7 +32,9 @@ let adminDb: ReturnType<typeof getFirestore> | null = null;
 
 export const getAdminDb = () => {
   if (adminDb) return adminDb;
-  if (!getApps().length) {
+  // Chỉ xét app MẶC ĐỊNH: trên Cloud Run mọi hàm chung một tiến trình, app có tên (vd. bộ kiểm tra sức khoẻ)
+  // không được làm app mặc định bị bỏ qua khởi tạo.
+  if (!getApps().some(app => app.name === '[DEFAULT]')) {
     const serviceAccount = parseServiceAccount();
     if (!serviceAccount) {
       throw new Error('Missing Firebase Admin service account environment variables');

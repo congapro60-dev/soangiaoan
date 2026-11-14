@@ -13,11 +13,11 @@ const m = vi.hoisted(() => ({
   set: vi.fn(),
 }));
 
-vi.mock('firebase-admin/app', () => ({ cert: vi.fn(), getApps: () => [{}], initializeApp: vi.fn() }));
+vi.mock('firebase-admin/app', () => ({ cert: vi.fn(), getApps: () => [{ name: '[DEFAULT]' }], initializeApp: vi.fn() }));
 vi.mock('firebase-admin/auth', () => ({ getAuth: () => ({ verifyIdToken: async () => ({ uid: 'gv-sim', email: 'gv@example.com' }) }) }));
 vi.mock('firebase-admin/firestore', () => ({
   FieldValue: { serverTimestamp: () => 'ts' },
-  getFirestore: () => ({ collection: () => ({ doc: () => ({ get: async () => ({ exists: false }), set: m.set }) }) }),
+  getFirestore: () => ({ settings: () => undefined, collection: () => ({ doc: () => ({ get: async () => ({ exists: false }), set: m.set }) }) }),
 }));
 vi.mock('../_ai-usage.js', () => ({
   acquireCallHoldWaiting: m.acquireCallHoldWaiting,

@@ -43,13 +43,13 @@ const adminFakes = vi.hoisted(() => {
 
 vi.mock('firebase-admin/app', () => ({
   cert: vi.fn(),
-  getApps: () => [{}],
+  getApps: () => [{ name: '[DEFAULT]' }],
   initializeApp: vi.fn(),
 }));
 vi.mock('firebase-admin/auth', () => ({ getAuth: () => ({ verifyIdToken: adminFakes.verifyIdToken }) }));
 vi.mock('firebase-admin/firestore', () => ({
   FieldValue: { serverTimestamp: vi.fn(() => ({ __type: 'serverTimestamp' })) },
-  getFirestore: () => adminFakes.db,
+  getFirestore: () => Object.assign(adminFakes.db, { settings: () => undefined }),
 }));
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
