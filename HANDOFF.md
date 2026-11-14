@@ -188,3 +188,5 @@ Danh sách bài nộp hiện `9.129999999999999/10`: `coerceHomeworkGrade` (và 
 - Đã cấu hình: miền Cloud Run trong Firebase Auth authorized domains + referrer của Browser key.
 - Lưu ý: `chayNgam` (waitUntil) không có trên Cloud Run → chấm chờ xong mới trả lời; CPU chỉ cấp trong lúc có request.
 - Còn chờ: khoá AI/SePay/Zalo do chủ dự án nhập; webhook SePay và Zalo phải trỏ sang địa chỉ mới; link cũ gửi HS/PH cần đổi.
+- Khoá (14/11): Vercel chặn cả build nên không xuất được khoá cũ. Vilao + xKiro chép từ 9router trên máy chủ dự án (khoá "Vilao60 riêng" — cùng ví Vilao); Gemini lấy khoá "Gemini Developer API key" của dự án Firebase; cron secret + SEPAY_WEBHOOK_KEY tạo mới. PShare (khoá chết 401), OpenCode, Zalo bot: CHƯA có trên Cloud Run.
+- Đã kiểm: cron auto-grade qua GitHub Actions trả `{"approved":0,"graded":0,"failed":0,"remaining":0}`. Chưa kiểm: chấm một bài thật bằng AI trên Cloud Run.
