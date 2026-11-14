@@ -88,7 +88,9 @@ export const probeFirebaseAdmin = async (env: NodeJS.ProcessEnv = process.env): 
   }
 
   try {
-    const admin = await import('firebase-admin');
+    // Node ESM (Cloud Run) để namespace trong `default`; bundler của Vercel trộn sẵn ra ngoài.
+    const imported = await import('firebase-admin');
+    const admin = ((imported as unknown as { apps?: unknown }).apps ? imported : imported.default) as typeof imported.default;
     const appName = '__health_probe__';
     const existingApp = admin.apps.find(app => app?.name === appName);
     const app = existingApp || admin.initializeApp({

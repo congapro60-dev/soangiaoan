@@ -13,7 +13,9 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:rules": "firebase emulators:exec --only firestore,storage \"vitest run --config vitest.rules.config.ts\"",
-    "test:pilot": "firebase emulators:exec --only firestore,auth \"vitest run --config vitest.pilot.config.ts\""
+    "test:pilot": "firebase emulators:exec --only firestore,auth \"vitest run --config vitest.pilot.config.ts\"",
+    "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=server-dist/index.mjs",
+    "build:cloudrun": "npm run build && npm run build:server"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.89.0",

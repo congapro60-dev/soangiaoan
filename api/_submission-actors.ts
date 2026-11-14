@@ -152,7 +152,7 @@ const filesInput = (input: unknown): Array<{ name: string; mimeType: string; siz
     return { name, mimeType, size };
   });
 };
-const uploadOrigin = (value: unknown): string => { const allowed = ['https://giaoandewey.vercel.app', ...[process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL].filter(Boolean).map(host => `https://${host}`)]; const candidate = text(value); if (allowed.includes(candidate) || process.env.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(candidate)) return candidate; return allowed[0]; };
+const uploadOrigin = (value: unknown): string => { const allowed = [process.env.APP_ORIGIN?.replace(/\/+$/, '') || 'https://giaoandewey.vercel.app', 'https://giaoandewey.vercel.app', ...[process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL].filter(Boolean).map(host => `https://${host}`)]; const candidate = text(value); if (allowed.includes(candidate) || process.env.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(candidate)) return candidate; return allowed[0]; };
 const grantOwner = (grant: Data, actor: ActorContext, assignmentId: string | null, purpose: string) => grant.role === actor.role && grant.uid === (actor.uid || '') && grant.studentId === actor.studentId && grant.classId === actor.classId && grant.teacherId === actor.teacherId && grant.assignmentId === assignmentId && grant.purpose === purpose && grant.pinRevision === (actor.pinRevision || '') && grant.expiresAt > Date.now() && grant.consumed !== true;
 export const prepareActorFiles = async (db: Db, body: Data, actor: ActorContext, assignmentId: string | null, purpose = 'submission') => {
   const bucket = getAdminStorage();

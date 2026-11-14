@@ -7,7 +7,7 @@ import {
 import { SEPAY_BANKS } from '../../../lib/admin/aiWallet';
 import { nenAnhBaiLam } from '../../../utils/imageCompress';
 
-const WEBHOOK_URL = 'https://giaoandewey.vercel.app/api/classroom?hook=sepay';
+const WEBHOOK_URL = `${(typeof window !== 'undefined' && !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname) ? window.location.origin : 'https://giaoandewey.vercel.app')}/api/classroom?hook=sepay`;
 const QR_MAX_BYTES = 1_500_000;
 
 const card = 'rounded-3xl border border-slate-100 bg-white p-5 shadow-sm';

@@ -57,3 +57,4 @@ manus huong dan/
 
 # Sinh lúc build từ extension/ssm-bridge (scripts/pack-ssm-bridge.mjs) — không commit bản zip.
 public/downloads/ssm-bridge.zip
+server-dist/

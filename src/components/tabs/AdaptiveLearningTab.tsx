@@ -152,7 +152,8 @@ const isRenderableLesson = (lesson: AdaptiveLesson | undefined | null): lesson i
   && Array.isArray(lesson.objectives) && lesson.objectives.length > 0
 );
 
-const PRODUCTION_STUDENT_PORTAL_ORIGIN = 'https://giaoandewey.vercel.app';
+// Địa chỉ web đang chạy (Cloud Run hoặc Vercel); máy dev thì dùng bản production cho QR.
+const PRODUCTION_STUDENT_PORTAL_ORIGIN = (typeof window !== 'undefined' && !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname) ? window.location.origin : 'https://giaoandewey.vercel.app');
 
 interface RealStudentDashboardRow {
   progressId: string;
@@ -994,7 +995,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
               </div>
               <p className="mt-4 text-sm font-black text-slate-800">Quét để vào học</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-                QR luôn dùng domain production đúng: <span className="font-black text-blue-700">giaoandewey.vercel.app</span>
+                QR luôn dùng domain production đúng: <span className="font-black text-blue-700">{PRODUCTION_STUDENT_PORTAL_ORIGIN.replace(/^https?:\/\//, '')}</span>
               </p>
             </div>
 

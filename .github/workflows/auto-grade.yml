@@ -28,7 +28,7 @@ jobs:
           for i in $(seq 1 20); do
             out=$(curl -sS -X POST --max-time 75 \
               -H "Authorization: Bearer $SECRET" \
-              "https://giaoandewey.vercel.app/api/grade-homework?cron=auto" || echo '{"error":"curl"}')
+              "${{ vars.APP_URL || 'https://giaoandewey.vercel.app' }}/api/grade-homework?cron=auto" || echo '{"error":"curl"}')
             echo "Luot $i: $out"
             case "$out" in
               *'"remaining":0'*) break ;;

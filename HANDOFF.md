@@ -178,3 +178,13 @@ Danh sách bài nộp hiện `9.129999999999999/10`: `coerceHomeworkGrade` (và 
 - Sửa (`bbbd604`): lỗi này là `GeminiResponseError('provider')` có chữ rõ; trần lớp chưa cuối tăng theo số ảnh (tối đa chừa 20 giây cho lớp sau). 1–4 ảnh giữ 120 giây.
 - Đã kiểm: 68 test PASS, tsc sạch, deploy READY, chấm lại cả hai bài trên web đều ra điểm (Nam Phong 6,75/10 bằng model chính, chờ duyệt).
 - Chưa làm: chia lượt chấm theo nhóm ảnh (bỏ vì một câu có thể trải nhiều ảnh). Nếu bài lớn vẫn quá giờ thì cân nhắc.
+
+## Chuyển hosting sang Google Cloud Run (14/11/2026)
+- Lý do: Vercel Hobby khoá dự án (402 DEPLOYMENT_DISABLED) vì Fluid Active CPU 3h47m/4h trong 30 ngày; tự mở lại sau ~29 ngày. Chủ dự án chọn không nâng Pro.
+- Địa chỉ mới: https://giaoandewey-kzlwaer35a-de.a.run.app (cùng dịch vụ: https://giaoandewey-1030734458631.asia-east1.run.app). Dịch vụ `giaoandewey`, vùng asia-east1, dự án GCP smartplan-ai-14200.
+- Cách chạy: `server/index.ts` (express) phục vụ dist/ và gọi nguyên các hàm `api/*.ts` kiểu Vercel (đọc body theo Content-Type, req.query phẳng, req.cookies; `assistant` đọc luồng thô). Cùng một địa chỉ nên cookie phụ huynh vẫn cùng site; timeout 900 giây.
+- Triển khai: `python scripts/cloudrun-deploy.py` (build trên máy → Cloud Build từ Dockerfile). Khoá bí mật ở Secret Manager; nhập bằng `python scripts/cloudrun-nhap-khoa.py` (gõ ẩn, không ghi file). Vercel KHÔNG cho đọc lại khoá "Sensitive".
+- Đã đổi: APP_ORIGIN thay địa chỉ cứng (Sheet BTVN, upload origin); frontend dùng window.location.origin cho QR học sinh và URL webhook SePay; workflow cron dùng biến repo `APP_URL`; GitHub secret AUTO_GRADE_CRON_SECRET đã đổi giá trị mới (khớp Secret Manager).
+- Đã cấu hình: miền Cloud Run trong Firebase Auth authorized domains + referrer của Browser key.
+- Lưu ý: `chayNgam` (waitUntil) không có trên Cloud Run → chấm chờ xong mới trả lời; CPU chỉ cấp trong lúc có request.
+- Còn chờ: khoá AI/SePay/Zalo do chủ dự án nhập; webhook SePay và Zalo phải trỏ sang địa chỉ mới; link cũ gửi HS/PH cần đổi.
