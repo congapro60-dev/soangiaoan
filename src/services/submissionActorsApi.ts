@@ -11,7 +11,7 @@ export const actorAssignments = (credentials: SubmissionActorCredentials) => cal
 export const actorAssignmentDetail = (credentials: SubmissionActorCredentials, assignmentId: string) => call<{ assignment: StudentAssignmentView; submissions: SubmissionDoc[] }>('actorAssignmentDetail', credentials, { assignmentId });
 export const setSubmissionLock = (credentials: SubmissionActorCredentials, assignmentId: string, locked: boolean) => call<{ submissionLocked: boolean }>('setSubmissionLock', credentials, { assignmentId, locked });
 export const uploadActorEvidence = async (credentials: SubmissionActorCredentials, assignmentId: string | null, files: File[], scope: { purpose?: 'submission' | 'clarification' | 'correction' | 'hand_marked'; submissionId?: string; questionNumber?: string } = {}): Promise<string> => {
-  const grant = await call<{ uploadGrantId: string; files: { uploadUrl: string; mimeType: string }[] }>('issueSubmissionUpload', credentials, { assignmentId, ...scope, files: files.map(file => ({ name: file.name, mimeType: file.type, size: file.size })) });
+  const grant = await call<{ uploadGrantId: string; files: { uploadUrl: string; mimeType: string }[] }>('issueSubmissionUpload', credentials, { assignmentId, ...scope, uploadOrigin: window.location.origin, files: files.map(file => ({ name: file.name, mimeType: file.type, size: file.size })) });
   for (const [index, file] of files.entries()) {
     const response = await fetch(grant.files[index].uploadUrl, { method: 'PUT', headers: { 'Content-Type': grant.files[index].mimeType }, body: file });
     if (!response.ok) throw new Error('Tải ảnh chưa thành công. Chọn ảnh rồi thử lại.');

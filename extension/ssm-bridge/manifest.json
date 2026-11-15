@@ -16,7 +16,7 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["https://giaoandewey.vercel.app/*", "http://localhost:3000/*"],
+      "matches": ["https://giaoandewey-kzlwaer35a-de.a.run.app/*", "https://giaoandewey-1030734458631.asia-east1.run.app/*", "https://giaoandewey.vercel.app/*", "http://localhost:3000/*"],
       "js": ["app-relay.js"],
       "run_at": "document_start"
     }

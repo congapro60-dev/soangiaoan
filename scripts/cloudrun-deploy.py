@@ -39,6 +39,15 @@ def existing_secrets() -> set[str]:
     return {item['name'].rsplit('/', 1)[-1] for item in json.loads(out)}
 
 
+def service_aliases(primary: str) -> str:
+    r = subprocess.run([GCLOUD, 'run', 'services', 'describe', SERVICE, '--region', REGION, '--project', PROJECT, '--format=json'], capture_output=True)
+    try:
+        urls = json.loads(json.loads(r.stdout)['metadata']['annotations'].get('run.googleapis.com/urls', '[]'))
+    except Exception:
+        urls = []
+    return ';'.join(u for u in urls if u != primary)
+
+
 def service_url() -> str:
     r = subprocess.run([GCLOUD, 'run', 'services', 'describe', SERVICE, '--region', REGION, '--project', PROJECT, '--format=value(status.url)'],
                        capture_output=True, text=True)
@@ -56,6 +65,9 @@ def main() -> None:
     url = service_url()
     if url:
         env['APP_ORIGIN'] = url
+        aliases = service_aliases(url)
+        if aliases:
+            env['APP_ORIGIN_ALIASES'] = aliases
     run([GCLOUD, 'run', 'deploy', SERVICE, '--source', '.', '--region', REGION, '--project', PROJECT,
          '--allow-unauthenticated', '--cpu', '1', '--memory', '1Gi', '--concurrency', '40',
          '--timeout', '900', '--min-instances', '0', '--max-instances', '4', '--cpu-boost',

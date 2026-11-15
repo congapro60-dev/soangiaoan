@@ -153,12 +153,12 @@ export const PaymentAccountsSection = () => {
 
         <div className="rounded-2xl bg-slate-50 p-3 text-xs font-semibold leading-5 text-slate-600">
           <p className={settings.webhookReady ? 'font-black text-emerald-700' : 'font-black text-amber-700'}>
-            {settings.webhookReady ? '✓ Máy chủ đã có khoá webhook — tiền nạp được cộng tự động.' : '⚠ Chưa có biến SEPAY_WEBHOOK_KEY trên Vercel — tiền nạp CHƯA tự cộng.'}
+            {settings.webhookReady ? '✓ Máy chủ đã có khoá webhook — tiền nạp được cộng tự động.' : '⚠ Máy chủ chưa có khoá SEPAY_WEBHOOK_KEY — tiền nạp CHƯA tự cộng.'}
           </p>
           <p className="mt-2 font-black text-slate-700">Thầy/cô tự làm (một lần):</p>
           <ol className="ml-4 list-decimal">
             <li>SePay → Tích hợp WebHooks → Thêm: sự kiện <b>Có tiền vào</b>, chọn các tài khoản trên, URL <code className="break-all">{WEBHOOK_URL}</code>, kiểu chứng thực <b>API Key</b> (tự đặt một chuỗi bí mật dài).</li>
-            <li>Vercel → Settings → Environment Variables: <code>SEPAY_WEBHOOK_KEY</code> = đúng chuỗi bí mật vừa đặt ở SePay, rồi Redeploy.</li>
+            <li>Máy chủ (Google Cloud Run, Secret Manager): <code>SEPAY_WEBHOOK_KEY</code> = đúng chuỗi bí mật vừa đặt ở SePay, rồi triển khai lại.</li>
           </ol>
           <p className="mt-2">Mã QR giáo viên thấy do web tự tạo, điền sẵn số tiền + nội dung (mã nạp SPAI…) nên tiền về là tự cộng đúng ví. Ảnh QR thầy/cô tải lên là phương án dự phòng: giáo viên quét ảnh đó phải tự gõ số tiền + nội dung. Chuyển thiếu mã → nằm ở mục “Giao dịch chưa khớp” để gán tay.</p>
         </div>

@@ -9,7 +9,7 @@
 //   để lấy token, thay vì báo lỗi "Chưa mở SSM".
 
 const API = 'https://api-ssm.edufit.vn/api/';
-const APP_ORIGINS = ['https://giaoandewey.vercel.app', 'http://localhost:3000'];
+const APP_ORIGINS = ['https://giaoandewey-kzlwaer35a-de.a.run.app', 'https://giaoandewey-1030734458631.asia-east1.run.app', 'https://giaoandewey.vercel.app', 'http://localhost:3000'];
 const MAX_BODY = 2_000_000;
 // Token cache quá 12 tiếng thì coi như cũ — thử validate trước khi dùng.
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
