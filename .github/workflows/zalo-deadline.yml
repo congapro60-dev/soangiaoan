@@ -19,13 +19,14 @@ jobs:
       - name: Goi bot xu ly thong bao va ban tin 07h Viet Nam
         env:
           ZALO_DEADLINE_CRON_SECRET: ${{ secrets.ZALO_DEADLINE_CRON_SECRET }}
+          ZALO_BOT_URL: ${{ vars.ZALO_BOT_URL || 'https://zalo-test.congapro60-devs-projects.vercel.app' }}
         shell: python
         run: |
           import json, os, urllib.parse, urllib.request
           secret = os.environ.get('ZALO_DEADLINE_CRON_SECRET', '')
           if len(secret) < 32:
               raise SystemExit('Chua cau hinh secret nhac viec Zalo')
-          endpoint = 'https://zalo-test.congapro60-devs-projects.vercel.app/api/assistant'
+          endpoint = os.environ.get('ZALO_BOT_URL', '').rstrip('/') + '/api/assistant'
           cursor, seen = '', set()
           for _ in range(20):
               query = urllib.parse.urlencode({'transport': 'deadline', 'after': cursor})

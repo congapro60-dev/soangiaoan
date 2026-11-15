@@ -190,3 +190,10 @@ Danh sách bài nộp hiện `9.129999999999999/10`: `coerceHomeworkGrade` (và 
 - Còn chờ: khoá AI/SePay/Zalo do chủ dự án nhập; webhook SePay và Zalo phải trỏ sang địa chỉ mới; link cũ gửi HS/PH cần đổi.
 - Khoá (14/11): Vercel chặn cả build nên không xuất được khoá cũ. Vilao + xKiro chép từ 9router trên máy chủ dự án (khoá "Vilao60 riêng" — cùng ví Vilao); Gemini lấy khoá "Gemini Developer API key" của dự án Firebase; cron secret + SEPAY_WEBHOOK_KEY tạo mới. PShare (khoá chết 401), OpenCode, Zalo bot: CHƯA có trên Cloud Run.
 - Đã kiểm: cron auto-grade qua GitHub Actions trả `{"approved":0,"graded":0,"failed":0,"remaining":0}`. Chưa kiểm: chấm một bài thật bằng AI trên Cloud Run.
+
+## Bot Zalo trên Cloud Run (15/11/2026)
+- Dịch vụ `spai-assistant-ph` (asia-east1): https://spai-assistant-ph-kzlwaer35a-de.a.run.app — dựng từ worktree `C:\Users\ADMIN\Downloads\spai-assistant-ph-hs` (nhánh `preview/zalo-live-test`), triển khai bằng `python scripts/cloudrun-deploy.py` trong worktree đó. Biến thường nằm ở `cloudrun-env.json` (không commit); khoá ở Secret Manager tiền tố `BOT_`.
+- Webhook Zalo đã trỏ sang Cloud Run (`node scripts/zalo-webhook-sync.cjs <file env>` → verify webhook.ok). Workflow `zalo-deadline.yml` dùng biến repo `ZALO_BOT_URL` + secret mới; gọi thử: processed 3, failed 0.
+- Khoá: token/ID Zalo lấy từ Vercel (dạng không ẩn); CRON_SECRET + ZALO_DEADLINE_CRON_SECRET tạo mới; PH_CHAT_VILAO_KEY = khoá Vilao "SmartPlan-lane2". ASSISTANT_NAME (bị ẩn trên Vercel) CHƯA đặt lại. ASSISTANT_WEB_ORIGIN = web Cloud Run mới.
+- Còn chờ chủ dự án: xác nhận đăng ký model `glm-5.3-flash` vào khoá SmartPlan-lane2 trên Vilao (hộp cảnh báo billing) — chưa có thì bot chat trả 403; ví Vilao còn ~14.000 ₫; 3 model bfly trong khoá chờ xác nhận giá mới (tăng ~100 lần).
+- Không tạo Cloud Scheduler: bản tin 07:00 đi qua poller GitHub 5 phút/lần như trước.
