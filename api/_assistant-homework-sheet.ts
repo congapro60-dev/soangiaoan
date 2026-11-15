@@ -48,7 +48,7 @@ export async function readHomeworkSnapshot(config: HomeworkSheetConfig, token: s
 
 export async function writeHomeworkBtvn(config: HomeworkSheetConfig, view: GroupHomeworkView, origin: string, token = homeworkWriteToken, beforeWrite?: () => Promise<void>) {
   if (!validConfig(config)) throw new Error('Tab BTVN chưa được phê duyệt.');
-  if (origin !== 'https://giaoandewey.vercel.app') throw new Error('Địa chỉ web BTVN chưa hợp lệ.');
+  if (origin !== (process.env.APP_ORIGIN || 'https://giaoandewey.vercel.app').replace(/\/+$/, '')) throw new Error('Địa chỉ web BTVN chưa hợp lệ.');
   const access = await token(), source = await readHomeworkSnapshot(config, access);
   const plan = planSheetSync({ snapshot: source.snapshot, assignments: view.assignments,
     roster: view.students.map(s => ({ studentId: s.id, name: s.name })), receiptOnly: true,
@@ -128,7 +128,7 @@ export async function syncHomeworkSheet(db: Firestore, classId: string, catchUp 
       || approved.sheetId !== taken.config.sheetId || approved.sheetTitle !== taken.config.sheetTitle) throw new Error('Nguồn BTVN chưa được phê duyệt cho đúng lớp và tab.');
     const namespace = String(cls.teacherId || taken.config.teacherId);
     const view = await loadHomework(db, classId, namespace);
-    const counts = await writeHomeworkBtvn(taken.config as HomeworkSheetConfig, view, 'https://giaoandewey.vercel.app', homeworkWriteToken, async () => {
+    const counts = await writeHomeworkBtvn(taken.config as HomeworkSheetConfig, view, (process.env.APP_ORIGIN || 'https://giaoandewey.vercel.app').replace(/\/+$/, ''), homeworkWriteToken, async () => {
       await db.runTransaction(async tx => {
         const [s, c, liveClass, approved] = await Promise.all([tx.get(ref), tx.get(cfg), tx.get(db.collection('classes').doc(classId)), tx.get(db.collection('assistantHomeworkSources').doc(classId))]);
         if (s.data()?.lease !== lease || s.data()!.leaseUntil <= Date.now() || fingerprint(c.data()) !== fingerprint(taken.config)

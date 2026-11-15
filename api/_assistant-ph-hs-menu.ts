@@ -114,7 +114,8 @@ export const MENU_HINT = 'Nhắn 0 để xem lại menu.';
  * PH → cổng phụ huynh /ph/<mã lớp>; HS → cổng học sinh /lop/<mã lớp>. Vào bằng mã lớp + PIN,
  * giống hệt cách liên kết bot — không cần tài khoản.
  */
-export const WEB_PORTAL_BASE = 'https://giaoandewey.vercel.app';
+// Web chính: Cloud Run đặt APP_ORIGIN (Vercel bị khoá từ 14/11/2026); mặc định giữ địa chỉ cũ cho test.
+export const WEB_PORTAL_BASE = (process.env.APP_ORIGIN || 'https://giaoandewey.vercel.app').replace(/\/+$/, '');
 export const webLinkText = (role: MenuRole, joinCode: string): string => (role === 'student'
   ? [`Nộp bài / làm bài tập trên web:`,
     `${WEB_PORTAL_BASE}/lop/${joinCode}`,

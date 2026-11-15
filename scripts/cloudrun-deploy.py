@@ -64,7 +64,7 @@ def main() -> None:
         print('Chưa có khoá (bỏ qua):', ', '.join(missing))
     env = dict(PLAIN_ENV)
     url = service_url()
-    if url:
+    if url and 'APP_ORIGIN' not in env:
         env['APP_ORIGIN'] = url
     run([GCLOUD, 'run', 'deploy', SERVICE, '--source', '.', '--region', REGION, '--project', PROJECT,
          '--allow-unauthenticated', '--cpu', '1', '--memory', '1Gi', '--concurrency', '40',
@@ -72,7 +72,7 @@ def main() -> None:
          '--set-env-vars', ','.join(f'{k}={v}' for k, v in env.items()),
          '--set-secrets', ','.join(secrets), '--quiet'])
     url = service_url()
-    if url and env.get('APP_ORIGIN') != url:
+    if url and 'APP_ORIGIN' not in PLAIN_ENV and env.get('APP_ORIGIN') != url:
         # Lần đầu chưa biết địa chỉ: gắn APP_ORIGIN sau khi dịch vụ đã có URL.
         run([GCLOUD, 'run', 'services', 'update', SERVICE, '--region', REGION, '--project', PROJECT,
              '--update-env-vars', f'APP_ORIGIN={url}', '--quiet'])
