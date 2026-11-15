@@ -197,3 +197,6 @@ Danh sách bài nộp hiện `9.129999999999999/10`: `coerceHomeworkGrade` (và 
 - Khoá: token/ID Zalo lấy từ Vercel (dạng không ẩn); CRON_SECRET + ZALO_DEADLINE_CRON_SECRET tạo mới; PH_CHAT_VILAO_KEY = khoá Vilao "SmartPlan-lane2". ASSISTANT_NAME (bị ẩn trên Vercel) CHƯA đặt lại. ASSISTANT_WEB_ORIGIN = web Cloud Run mới.
 - Còn chờ chủ dự án: xác nhận đăng ký model `glm-5.3-flash` vào khoá SmartPlan-lane2 trên Vilao (hộp cảnh báo billing) — chưa có thì bot chat trả 403; ví Vilao còn ~14.000 ₫; 3 model bfly trong khoá chờ xác nhận giá mới (tăng ~100 lần).
 - Không tạo Cloud Scheduler: bản tin 07:00 đi qua poller GitHub 5 phút/lần như trước.
+- QA bot 15/11 23:18–23:27 (Zalo thật, vai PH Minh Khôi rồi trả về GV): menu 0/2/7/11, lệnh `web` → link Cloud Run → xác nhận `mở web <mã>` trong chat → web mở cổng PH (dừng ở bước đặt PIN lần đầu, không đặt); hỏi đáp AI trả lời được (glm-5.3-flash đã đăng ký vào khoá lane2). Sửa `e615afc`: link chuẩn trong câu trả lời AI còn là giaoandewey.vercel.app → dùng APP_ORIGIN; ảnh công thức dùng PUBLIC_BASE_URL = URL bot.
+- Chưa kiểm trên Cloud Run: HS đăng nhập PIN + nộp ảnh thật; PH xem báo cáo sau khi nhập PIN; nộp ảnh qua bot (mục 8). Log từ 14/11 02:20 UTC: 0 lỗi 5xx nhưng mới có 2 IP (chưa có HS thật vì chưa gửi link mới).
+- SePay: webhook #59302 vẫn trỏ Vercel; cần chủ dự án dán khoá `SEPAY_WEBHOOK_KEY` và lưu.
