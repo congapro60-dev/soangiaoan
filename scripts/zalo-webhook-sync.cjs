@@ -26,7 +26,8 @@ if (process.argv[2] && fs.existsSync(process.argv[2])) {
 const get = k => { const m = new RegExp(`^${k}=(.+)$`, 'm').exec(envText); return m ? m[1].trim().replace(/^["']|["']$/g, '') : ''; };
 const token = get('ZALO_BOT_TOKEN');
 const secret = get('ZALO_BOT_WEBHOOK_SECRET');
-const url = 'https://zalo-test.congapro60-devs-projects.vercel.app/api/assistant?transport=zalo_bot';
+// Mặc định là dịch vụ Cloud Run (từ 15/11/2026, Vercel bị khoá); đổi bằng biến ZALO_WEBHOOK_BASE.
+const url = (process.env.ZALO_WEBHOOK_BASE || 'https://spai-assistant-ph-kzlwaer35a-de.a.run.app').replace(/\/+$/, '') + '/api/assistant?transport=zalo_bot';
 const ORIGIN = 'https://bot-api.zaloplatforms.com';
 const call = async (path, body) => {
   const res = await fetch(`${ORIGIN}/bot${encodeURIComponent(token)}${path}`, {
