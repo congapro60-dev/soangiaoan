@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    { "source": "/(.*)", "destination": "https://giaoandewey-kzlwaer35a-de.a.run.app/$1", "permanent": false }
+  ]
+}
