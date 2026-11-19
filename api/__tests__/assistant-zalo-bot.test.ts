@@ -548,7 +548,7 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     vi.mocked(hasLiveAssignmentSession).mockResolvedValueOnce(true); vi.mocked(hasPhotoSubmissionIntent).mockResolvedValueOnce(true);
     const result = await request(imageEvent('https://photo.zalo/abc.jpg'));
     expect(result.code).toBe(200);
-    expect(photoReceivedReply).toHaveBeenCalledWith('bot-1', 'user-1', 'https://photo.zalo/abc.jpg', expect.objectContaining({ classId: 'c', studentId: 's', role: 'student' }));
+    expect(photoReceivedReply).toHaveBeenCalledWith('bot-1', 'user-1', 'https://photo.zalo/abc.jpg', expect.objectContaining({ classId: 'c', studentId: 's', role: 'student' }), expect.any(Number));
     expect(JSON.parse(sent()[0][1].body).text).toBe('PHOTO_OK');
   });
   it('ảnh dạng object {url} và {attach_url} đều đọc được URL', async () => {
@@ -556,16 +556,16 @@ describe('việc 4 — HS nộp bài bằng ảnh qua bot', () => {
     vi.mocked(hasLiveAssignmentSession).mockResolvedValue(true);
     vi.mocked(hasPhotoSubmissionIntent).mockResolvedValue(true);
     await request(imageEvent({ url: 'https://photo.zalo/u1.jpg' }, 'image-2'));
-    expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u1.jpg', expect.objectContaining({ studentId: 's' }));
+    expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u1.jpg', expect.objectContaining({ studentId: 's' }), expect.any(Number));
     await request(imageEvent({ attach_url: 'https://photo.zalo/u2.jpg' }, 'image-3'));
-    expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u2.jpg', expect.objectContaining({ studentId: 's' }));
+    expect(photoReceivedReply).toHaveBeenLastCalledWith('bot-1', 'user-1', 'https://photo.zalo/u2.jpg', expect.objectContaining({ studentId: 's' }), expect.any(Number));
   });
   it('official photo_url payload is treated as submission image', async () => {
     mockStudent(); vi.mocked(hasLiveAssignmentSession).mockResolvedValueOnce(true); vi.mocked(hasPhotoSubmissionIntent).mockResolvedValueOnce(true);
     const body = imageEvent(undefined, 'photo-url-field');
     const msg = body.result.message as any; delete msg.photo; msg.photo_url = 'https://photo.zalo/official.jpg';
     expect((await request(body)).code).toBe(200);
-    expect(photoReceivedReply).toHaveBeenCalledWith('bot-1','user-1','https://photo.zalo/official.jpg', expect.objectContaining({ studentId: 's' }));
+    expect(photoReceivedReply).toHaveBeenCalledWith('bot-1','user-1','https://photo.zalo/official.jpg', expect.objectContaining({ studentId: 's' }), expect.any(Number));
   });
   it('photo while choosing an assignment stays in submission flow without solver', async () => {
     mockStudent(); vi.mocked(hasPhotoSubmissionIntent).mockResolvedValueOnce(true);

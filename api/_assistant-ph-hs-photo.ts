@@ -76,7 +76,8 @@ export interface PhotoSessionData {
   assignmentId: string;
   assignmentTitle: string;
   expiresAt: number;
-  photos: Array<{ url: string; name: string; mimeType: string; size: number }>;
+  /** `sentAt` = giờ HS gửi ảnh theo Zalo; ảnh tải xong không theo thứ tự gửi nên phải sắp lại theo mốc này. */
+  photos: Array<{ url: string; name: string; mimeType: string; size: number; sentAt?: number }>;
   /** Vai trò người gửi ảnh: 'student' (chính học sinh) hoặc 'parent' (phụ huynh nộp hộ con). */
   role?: 'student' | 'parent';
   /** Nộp hộ: bài nộp tính cho bạn cùng lớp này; người gửi thật ghi ở `submittedBy` + `assistBy`. */
@@ -697,7 +698,13 @@ export const hasExpiredAssignmentSession = async (botId: string, userId: string)
  * Nhận 1 ảnh từ Zalo: tải về (URL tạm thời), đẩy Storage `accepted-homework/` + download token —
  * URL đúng format web nên `gradeOneSubmission` và GV xem trên web dùng như ảnh nộp thường.
  */
-export const photoReceivedReply = async (botId: string, userId: string, photoUrl: string, actor?: PhotoActorScope): Promise<string> => {
+/** Sắp ảnh theo giờ gửi (ổn định với ảnh cũ không có mốc) và đặt lại tên zalo-01, zalo-02… theo thứ tự mới. */
+export const sortPhotosBySentAt = <T extends { name: string; mimeType: string; sentAt?: number }>(photos: T[]): T[] =>
+  photos.map((photo, index) => ({ photo, index, at: Number.isFinite(photo.sentAt) ? Number(photo.sentAt) : -Infinity }))
+    .sort((a, b) => (a.at === b.at ? a.index - b.index : a.at < b.at ? -1 : 1))
+    .map(({ photo }, i) => ({ ...photo, name: `zalo-${String(i + 1).padStart(2, '0')}.${photo.mimeType.split('/')[1] || 'jpg'}` }));
+
+export const photoReceivedReply = async (botId: string, userId: string, photoUrl: string, actor?: PhotoActorScope, sentAt?: number): Promise<string> => {
   const session = await liveSession(botId, userId);
   if (!session) return PHOTO_REPLIES.noSession;
   if (!samePhotoScope(session.data, actor)) return scopeWarning;
@@ -761,7 +768,9 @@ export const photoReceivedReply = async (botId: string, userId: string, photoUrl
     if (!samePhotoScope(current, actor) || !await currentPhotoActor(tx, actor)) return scopeWarning;
     if (current.pendingUploads?.[imageId] !== reservedAt) return 'Lượt tải ảnh này đã hết hạn. Em gửi lại ảnh nhé.';
     if (current.photos.length >= MAX_PHOTOS) return PHOTO_REPLIES.max;
-    const photos = [...current.photos, { url, name: `zalo-${String(current.photos.length + 1).padStart(2, '0')}.${mimeType.split('/')[1] || 'jpg'}`, mimeType, size: buffer.byteLength }];
+    // Lỗi thật 18/11: các ảnh tới cùng lúc và tải xong lệch nhau nên lưu sai thứ tự HS gửi.
+    // Sắp theo giờ gửi của Zalo (ảnh cũ chưa có mốc giữ chỗ cũ), rồi đánh số lại tên tệp.
+    const photos = sortPhotosBySentAt([...current.photos, { url, name: '', mimeType, size: buffer.byteLength, sentAt: Number.isFinite(sentAt) ? Number(sentAt) : reservedAt }]);
     const pendingUploads = { ...current.pendingUploads };
     delete pendingUploads[imageId];
     tx.update(ref, { photos, pendingUploads, receivedImages: [...(current.receivedImages ?? []), imageId], expiresAt: Date.now() + SESSION_MS });

@@ -18,16 +18,17 @@ import gradeHomework from '../api/grade-homework.js';
 import renderWord from '../api/render-word.js';
 import firebaseAdminHealth from '../api/health/firebase-admin.js';
 import { getAdminDb } from '../api/_exam-core.js';
+import { runHoldingBackground } from './background.js';
 
 type Handler = (req: never, res: never) => unknown;
 
 /** `bodyParser: false` (assistant): hàm tự đọc luồng thô để kiểm chữ ký webhook. */
-const routes: Array<[string, Handler, { rawStream?: boolean; query?: Record<string, string> }]> = [
+const routes: Array<[string, Handler, { rawStream?: boolean; query?: Record<string, string>; holdBackground?: boolean }]> = [
   ['adaptive-progress', adaptiveProgress as Handler, {}],
   ['ai-relay', aiRelay as Handler, {}],
-  ['assistant', assistant as Handler, { rawStream: true }],
+  ['assistant', assistant as Handler, { rawStream: true, holdBackground: true }],
   // vercel.json: /api/deadline-digest → /api/assistant?transport=deadline (Cloud Scheduler gọi 07:00 VN).
-  ['deadline-digest', assistant as Handler, { rawStream: true, query: { transport: 'deadline' } }],
+  ['deadline-digest', assistant as Handler, { rawStream: true, query: { transport: 'deadline' }, holdBackground: true }],
   ['classroom', classroom as Handler, {}],
   ['exam', exam as Handler, {}],
   ['export-lesson', exportLesson as Handler, {}],
@@ -94,7 +95,9 @@ for (const [name, handler, options] of routes) {
         const raw = await readBody(req);
         Object.defineProperty(req, 'body', { value: parseBody(raw, String(req.headers['content-type'] || '')), writable: true, configurable: true });
       }
-      await (handler as (req: Request, res: Response) => unknown)(req, res);
+      const call = async () => (handler as (req: Request, res: Response) => unknown)(req, res);
+      if (options.holdBackground) await runHoldingBackground(res, call);
+      else await call();
     } catch (error) {
       next(error);
     }

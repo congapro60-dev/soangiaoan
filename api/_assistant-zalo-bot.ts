@@ -160,7 +160,7 @@ const chooseAndOpen = async (
  * Trước đây mọi ảnh đều đi đường (a) nên HS gửi đề nhờ giải lại nhận câu về dữ liệu báo cáo.
  * Trả '' khi hàm ĐÃ tự gửi tin (nhánh giải đề), ngược lại trả nội dung để caller gửi.
  */
-const dispatchPhotoMessage = async (token: string, botId: string, userId: string, chatId: string, photoUrl: string, caption = ''): Promise<string> => {
+const dispatchPhotoMessage = async (token: string, botId: string, userId: string, chatId: string, photoUrl: string, caption = '', sentAt?: number): Promise<string> => {
   const linked = await resolveAnyActor(botId, userId, chatId);
   // HS hay gửi ảnh bài làm trước cả khi liên kết — im lặng khiến bot có vẻ "chết".
   if (!linked) return (await canReplyToStranger(getAdminDb(), botId, userId)) ? STRANGER_HINT : '';
@@ -170,7 +170,7 @@ const dispatchPhotoMessage = async (token: string, botId: string, userId: string
   const classId = String((linked as any).classId ?? ''); const studentId = String((linked as any).studentId ?? '');
   if (!classId || !studentId) return MENU_REPLIES.noData;
   // (a) Đang nộp bài → giữ nguyên luồng nhận ảnh bài làm.
-  if (await hasPhotoSubmissionIntent(botId, userId)) return photoReceivedReply(botId, userId, photoUrl, { classId, studentId, role, linkId: linked.linkId });
+  if (await hasPhotoSubmissionIntent(botId, userId)) return photoReceivedReply(botId, userId, photoUrl, { classId, studentId, role, linkId: linked.linkId }, sentAt);
   // (a2) Phiên nộp vừa hết hạn (HS làm bài lâu) → nhắc chọn lại bài, KHÔNG đem ảnh đi giải đề
   // (sự cố 3–4/11: ảnh bài làm bị coi là đề nhờ giải nên web không có bài nộp nào).
   if (await hasExpiredAssignmentSession(botId, userId)) return PHOTO_REPLIES.expiredSession;
@@ -682,7 +682,7 @@ export async function handleZaloBotWebhook(req: VercelRequest, res: VercelRespon
   try {
     if (isImageEvent) {
       // Ảnh HS gửi: nội dung do hệ tự dựng → gửi sendStyled (không qua output() che nội dung).
-      reply = await dispatchPhotoMessage(token, botId, senderId, chatId, photoUrl, msgText);
+      reply = await dispatchPhotoMessage(token, botId, senderId, chatId, photoUrl, msgText, msgDate);
       if (reply) await sendStyled(token, chatId, reply);
       res.status(200).json({ ok: true }); return true;
     }
