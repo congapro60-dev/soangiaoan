@@ -303,3 +303,23 @@ describe('G4 — callUtilityVision đi qua chuỗi dự phòng', () => {
     expect(getGradingChain().map(a => a.name)).toEqual([`gemini/${GRADING_MODEL}`]);
   });
 });
+
+describe('câu lỗi nhà cung cấp lọt vào nội dung (lỗi thật 19/11)', () => {
+  it('Vilao trả "Upstream timeout" với HTTP 200 thì chuyển lớp kế, không coi là JSON hỏng', async () => {
+    stubEnv({ GRADING_VILAO_API_KEY: 'k-vilao', GRADING_XKIRO_API_KEY: 'k-xkiro', GRADING_GEMINI_API_KEY: '', GEMINI_API_KEY: '' });
+    const fetchMock = vi.fn(async (url: string) => (
+      String(url).includes('api.xkiro.com') ? okResponse('{"score":8}') : okResponse('Upstream timeout, please retry')
+    ));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(await callGradingVision('prompt', [], {})).toBe('{"score":8}');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+  it('nhận diện đúng câu lỗi, không bắt nhầm kết quả thật', async () => {
+    const { looksLikeUpstreamError } = await import('../_grading-core.js');
+    expect(looksLikeUpstreamError('Upstream timeout')).toBe(true);
+    expect(looksLikeUpstreamError('Bad Gateway')).toBe(true);
+    expect(looksLikeUpstreamError('{"score": 8, "feedback": "Upstream ok"}')).toBe(false);
+    expect(looksLikeUpstreamError('Bài làm tốt')).toBe(false);
+  });
+});

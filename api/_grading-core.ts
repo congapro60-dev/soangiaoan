@@ -726,7 +726,19 @@ const callOpenAiCompatibleVisionHeld = async (
   if (!text.trim()) {
     throw new GeminiResponseError('empty', `Kênh rẻ không trả về chữ nào${choice?.finish_reason ? ` (dừng vì ${choice.finish_reason})` : ''}.`);
   }
+  // Lỗi thật 19/11: Vilao trả HTTP 200 nhưng nội dung là câu lỗi của nhà cung cấp phía trên
+  // ("Upstream t…") thay cho JSON điểm. Coi là lỗi kênh để chuỗi chuyển lớp kế, không phải lỗi JSON.
+  if (looksLikeUpstreamError(text)) {
+    throw new GeminiResponseError('provider', `Kênh rẻ trả câu lỗi thay cho kết quả: ${text.trim().slice(0, 80)}`);
+  }
   return text;
+};
+
+/** Câu lỗi gateway/nhà cung cấp lọt vào phần nội dung (ngắn, không có JSON). */
+export const looksLikeUpstreamError = (text: string): boolean => {
+  const head = text.trim().slice(0, 300);
+  return head.length < 300 && !/[{[]/.test(head)
+    && /^(upstream\b|bad gateway|gateway time-?out|service (temporarily )?unavailable|internal server error|request timed out|rate limit)/i.test(head);
 };
 
 export interface GradingAdapter {
