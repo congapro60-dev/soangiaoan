@@ -493,7 +493,7 @@ export const revisionReply = async (
     const choices = [];
     for (const row of attempts) {
       const assignment = (await db().collection('assignments').doc(row.assignmentId!).get()).data();
-      choices.push(`${choices.length + 1} — ${String(assignment?.title ?? 'Bài đã nộp')} (${row.status})`);
+      choices.push(`${choices.length + 1} — ${String(assignment?.title ?? 'Bài đã nộp')} (${submissionStatusLabel(row.status)})`);
     }
     const blocked = await db().runTransaction(async tx => {
       const ref = db().collection(SESSIONS).doc(sessionId(botId, userId));
@@ -623,9 +623,26 @@ export const openSessionReply = (
  * Câu xác nhận đã nhận 1 ảnh — hàm THUẦN (dùng chung cho production và ví dụ).
  * Cho biết số ảnh đã nhận, dung lượng, và còn được gửi mấy ảnh.
  */
+/** Trạng thái bài nộp cho HS/PH đọc (QA 19/11: danh sách nộp lại hiện "(error)", "(graded)"). */
+export const submissionStatusLabel = (status: unknown): string => {
+  switch (String(status ?? '')) {
+    case 'graded': return 'đã chấm';
+    case 'grading': return 'đang chấm';
+    case 'submitted': return 'chờ chấm';
+    case 'error': return 'chưa chấm được';
+    case 'teacher_review': case 'pending_review': return 'chờ thầy cô duyệt';
+    default: return 'đã nộp';
+  }
+};
+
+/** Dung lượng dễ đọc: dưới 1 MB ghi KB (QA 19/11: ảnh nhỏ hiện "0.0MB"). */
+export const photoSizeText = (bytes: number): string => (bytes >= 1024 * 1024
+  ? `${(bytes / 1024 / 1024).toFixed(1).replace('.', ',')} MB`
+  : `${Math.max(1, Math.round(bytes / 1024))} KB`);
+
 export const photoAcceptedReply = (count: number, bytes: number): string => {
   const remaining = MAX_PHOTOS - count;
-  return [`✅ Đã nhận ảnh ${count}/${MAX_PHOTOS} (${(bytes / 1024 / 1024).toFixed(1)}MB).`,
+  return [`✅ Đã nhận ảnh ${count}/${MAX_PHOTOS} (${photoSizeText(bytes)}).`,
     remaining > 0
       ? `📤 Có thể gửi thêm tối đa ${remaining} ảnh; đủ bài thì nhắn: xong.`
       : '📤 Nhắn: xong để máy chấm.',

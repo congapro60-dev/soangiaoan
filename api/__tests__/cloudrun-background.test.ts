@@ -51,3 +51,15 @@ describe('thứ tự ảnh nộp qua bot', () => {
     expect(photos.map(p => p.name)).toEqual(['zalo-01.jpeg', 'zalo-02.png', 'zalo-03.jpeg']);
   });
 });
+
+describe('chữ hiển thị trong luồng nộp ảnh (QA 19/11)', () => {
+  it('trạng thái bài nộp bằng tiếng Việt và dung lượng ảnh nhỏ ghi KB', async () => {
+    const { submissionStatusLabel, photoSizeText, photoAcceptedReply } = await import('../_assistant-ph-hs-photo');
+    expect(['graded', 'error', 'grading', 'submitted', 'teacher_review', 'lạ'].map(submissionStatusLabel))
+      .toEqual(['đã chấm', 'chưa chấm được', 'đang chấm', 'chờ chấm', 'chờ thầy cô duyệt', 'đã nộp']);
+    expect(photoSizeText(36_544)).toBe('36 KB');
+    expect(photoSizeText(2_621_440)).toBe('2,5 MB');
+    expect(photoAcceptedReply(1, 36_544)).toContain('(36 KB)');
+    expect(photoAcceptedReply(1, 36_544)).not.toContain('0.0MB');
+  });
+});
