@@ -1,5 +1,7 @@
 # Zalo deadline option A — implementation checkpoint, 2026-11-09
 
+> STATUS 2026-11-22 (supersedes window/scheduler notes below): morning digest window is 07:00–11:59 Vietnam time (`digestWindow`), guardians get a short digest (2 sheet deadlines + 2 newest web tasks, full list via `11`/`*11#`), `ZALO_DEADLINE_PARENT_ALL=true`. Hosting moved from Vercel to Cloud Run on 14/11; the Vercel `schedules` entry no longer runs. Current trigger is only the GitHub poller (`zalo-deadline.yml`, repo variable `ZALO_BOT_URL`), which fires every few hours, so the digest goes out on the first poll inside the window, not exactly at 07:00. A Cloud Scheduler job calling `/api/deadline-digest` at 07:00 Asia/Ho_Chi_Minh is not provisioned yet.
+>
 > CURRENT AUTHORITY — 2026-11-10: owner requested publication now ("Bạn xuất bản đi, cloud hết quota rồi, tẹo báo cáo nó QA lại sau"). This supersedes the historical no-commit/no-deploy and Claude-before-commit gates below. Publish only the bot project after local gates; automatic sends stay OFF. No live student message, Sheet edit/sharing, source approval provisioning, scheduler activation, main merge or push is included. Claude QA follows publication.
 
 Owner directly confirmed option A in this thread. Checkout: `C:/Users/ADMIN/Downloads/spai-assistant-ph-hs`, branch `preview/zalo-live-test`, baseline `1a6c17a1164191488e15e72bf3f6d99b89c3e374`.
