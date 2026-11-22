@@ -26,6 +26,8 @@ PLAIN_ENV = {
     'ZALO_DEADLINE_ENABLED': 'false',
     'ZALO_DEADLINE_QUOTA_VERIFIED': 'false',
     'ZALO_DEADLINE_REAL_APPROVED': 'false',
+    # 22/11: chib/gemini-3.8-flash trên Vilao "không khả dụng" -> chấm bài trả rỗng; cùng model bot đang chạy.
+    'GRADING_VILAO_MODEL': 'spd/gemini-3.8-flash-high',
 }
 
 
