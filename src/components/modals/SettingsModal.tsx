@@ -30,6 +30,8 @@ import { glmWalletNotice, vendorWalletHint } from '../../lib/ai/aiModeView';
 import { EffortPicker } from '../features/settings/EffortPicker';
 import { GeminiKeysField } from '../features/settings/GeminiKeysField';
 import { editingKeysPatch, keyRowsOf } from '../../lib/geminiKeyRing';
+import { KeyRotationCard, OwnKeysField, ownKeyRowsOf, ownKeysPatch } from '../features/settings/OwnKeysField';
+import { SINGLE_KEY_FIELD } from '../../lib/ownKeyRotation';
 import { auth } from '../../lib/firebase';
 import { cancelTelegramLinkCode, createTelegramLinkCode, listChannelLinks, revokeTelegramLink, type LinkSummary } from '../../services/telegramLinkService';
 
@@ -389,6 +391,12 @@ export const SettingsModal = ({
                             rows={keyRowsOf(data.settings)}
                             onChange={rows => setData(prev => ({ ...prev, settings: { ...prev.settings, ...editingKeysPatch(rows) } }))}
                           />
+                        ) : activeTab in SINGLE_KEY_FIELD ? (
+                          <OwnKeysField
+                            label={providerStyle.label}
+                            rows={ownKeyRowsOf(data.settings, activeTab as keyof typeof SINGLE_KEY_FIELD)}
+                            onChange={rows => setData(prev => ({ ...prev, settings: { ...prev.settings, ...ownKeysPatch(prev.settings, activeTab as keyof typeof SINGLE_KEY_FIELD, rows) } }))}
+                          />
                         ) : (
                           <div className="relative">
                             <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -415,6 +423,11 @@ export const SettingsModal = ({
                     )}
                   </div>
 
+                  {activeTab !== 'vercel-gateway' && activeTab !== 'openai-compatible' && (
+                    <div className="mt-4">
+                      <KeyRotationCard settings={data.settings} onChange={patch => setData(prev => ({ ...prev, settings: { ...prev.settings, ...patch } }))} />
+                    </div>
+                  )}
                   {activeTab !== 'vercel-gateway' && <div className="mt-4"><ProviderGuideCard provider={activeTab} /></div>}
                 </section>
                 <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">

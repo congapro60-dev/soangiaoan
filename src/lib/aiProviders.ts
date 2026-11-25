@@ -8,6 +8,7 @@ import { CLAUDE_MODELS as TRACKER_CLAUDE_MODELS, DEEPSEEK_MODELS as TRACKER_DEEP
 import type { ApiProvider } from '../config/apiLimits';
 import type { AppData } from '../types';
 import { callVercelGateway, SERVER_MANAGED_API_KEY, streamVercelGateway } from './vercelGateway';
+import { withKeyRotation } from './ownKeyRotation';
 import { VERCEL_AI_GATEWAY_MODEL } from './vercelGatewayConfig';
 
 type Settings = AppData['settings'];
@@ -225,7 +226,11 @@ const recordEstimatedUsage = (provider: ApiProvider, model: string, prompt: stri
   });
 };
 
-async function callAIOnceDirect(prompt: string, settings: Settings): Promise<RawResult> {
+/** Gọi một lượt qua khoá riêng, tự xoay khoá cùng hãng (và sang hãng khác nếu giáo viên bật) khi khoá hết hạn mức. */
+const callAIOnceDirect = (prompt: string, settings: Settings): Promise<RawResult> =>
+  withKeyRotation(settings, attempt => callAIOnceDirectSingle(prompt, attempt));
+
+async function callAIOnceDirectSingle(prompt: string, settings: Settings): Promise<RawResult> {
   const provider = settings.selectedProvider ?? 'gemini';
   assertOwnApiKey(settings);
 
@@ -487,7 +492,14 @@ export async function callAIWithVision(
   }
 }
 
-async function callAIWithVisionDirect(
+const callAIWithVisionDirect = (
+  prompt: string,
+  imageDataUrls: string | string[],
+  settings: Settings,
+  opts?: { thinkingBudget?: number; maxOutputTokens?: number }
+): Promise<string> => withKeyRotation(settings, attempt => callAIWithVisionDirectSingle(prompt, imageDataUrls, attempt, opts));
+
+async function callAIWithVisionDirectSingle(
   prompt: string,
   imageDataUrls: string | string[],
   settings: Settings,
@@ -773,6 +785,22 @@ export async function callAIStream(
 }
 
 async function callAIStreamDirect(
+  prompt: string,
+  settings: Settings,
+  onChunk: (chunk: string) => void,
+  modelOverride?: string
+): Promise<void> {
+  // Đã hiện chữ thì không đổi khoá/hãng nữa (nội dung sẽ lặp). Model ép riêng chỉ áp cho hãng đang chọn.
+  let emitted = false;
+  return withKeyRotation(
+    settings,
+    attempt => callAIStreamDirectSingle(prompt, attempt, chunk => { emitted = true; onChunk(chunk); },
+      attempt.selectedProvider === settings.selectedProvider ? modelOverride : undefined),
+    { canRotate: () => !emitted },
+  );
+}
+
+async function callAIStreamDirectSingle(
   prompt: string,
   settings: Settings,
   onChunk: (chunk: string) => void,

@@ -13,11 +13,15 @@ export const GEMINI_RUNTIME_MODELS = [
   'gemini-3.1-pro-preview',
   'gemini-3-flash-preview',
   'gemini-3.5-flash-lite',
+  'gemini-3.1-flash-lite',
   'gemini-2.5-pro',
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
   // Cuối danh sách: thứ tự là chuỗi dự phòng nên model đắt, chỉ gói trả phí không được đứng ngay sau mặc định.
   'gemini-4-argon',
+  'gemini-4-carbon',
+  'gemini-4-hydrogen',
+  'gemini-4-neon',
 ];
 
 // Backward-compatible alias used by existing callers.

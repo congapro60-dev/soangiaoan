@@ -276,6 +276,15 @@ export interface AppData {
     geminiApiKey: string;
     /** Nhiều khoá Gemini (mỗi tài khoản Google một khoá) để gom hạn mức miễn phí; `geminiApiKey` luôn là khoá đầu tiên. Chỉ lưu trong trình duyệt. */
     geminiApiKeys?: string[];
+    /** Nhiều khoá cho các hãng khác (mỗi tài khoản một khoá) để tự xoay khi một khoá hết hạn mức. Chỉ lưu trong trình duyệt. */
+    ownApiKeys?: Partial<Record<'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'vilao', string[]>>;
+    /** Tự chuyển sang hãng khác khi hết sạch khoá của hãng đang chọn (mặc định tắt). */
+    keyRotation?: {
+      crossProvider?: boolean;
+      order?: string[];
+      /** Model dùng khi chạy dự phòng ở từng hãng (không đặt thì dùng model mặc định của hãng). */
+      models?: Partial<Record<string, string>>;
+    };
     claudeApiKey: string;
     openaiApiKey: string;
     selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'vercel-gateway' | 'vilao';

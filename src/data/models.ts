@@ -25,12 +25,17 @@ export const GEMINI_MODELS: ProviderModel[] = [
   // Chung chi dung de hien muc da dung trong Cai dat, khong anh huong luc goi API.
   // Gemini 4 Argon: model flagship (ai.google.dev/gemini-api/docs/models, tra 2026-10-16), chỉ có ở gói trả phí. Giới hạn rpd/tpm/rpm CHƯA XÁC MINH — lấy tạm như 3.1 Pro, chỉ để hiện trong Cài đặt.
   { id: 'gemini-4-argon', name: 'Gemini 4 Argon', contextWindow: 1_000_000, rpdLimit: 50, tpmLimit: 32_000, rpmLimit: 2, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship', 'tracker'] },
+  // 25/11/2026: thêm theo GET /v1beta/models (khoá dự án). Giới hạn CHƯA XÁC MINH — lấy tạm như 4 Argon / 3.5 Flash-Lite.
+  { id: 'gemini-4-carbon', name: 'Gemini 4 Carbon', contextWindow: 1_000_000, rpdLimit: 50, tpmLimit: 32_000, rpmLimit: 2, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship', 'tracker'] },
+  { id: 'gemini-4-hydrogen', name: 'Gemini 4 Hydrogen', contextWindow: 1_000_000, rpdLimit: 50, tpmLimit: 32_000, rpmLimit: 2, isLatest: true, tags: ['reasoning', 'vision', 'tracker'] },
+  { id: 'gemini-4-neon', name: 'Gemini 4 Neon', contextWindow: 1_000_000, rpdLimit: 50, tpmLimit: 32_000, rpmLimit: 2, isLatest: true, tags: ['reasoning', 'vision', 'tracker'] },
   { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 1_000_000, rpmLimit: 30, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship', 'tracker'] },
   { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['reasoning', 'vision', 'coding', 'tracker'] },
   { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['reasoning', 'vision', 'coding', 'tracker'] },
   { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['reasoning', 'vision', 'coding', 'tracker'] },
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview', contextWindow: 1_000_000, rpdLimit: 50, tpmLimit: 32_000, rpmLimit: 2, isPreview: true, tags: ['reasoning', 'vision', '1M-ctx', 'preview', 'tracker'] },
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', contextWindow: 1_000_000, rpdLimit: 1_500, tpmLimit: 500_000, rpmLimit: 15, isPreview: true, tags: ['fast', 'vision', 'cheap', 'preview', 'tracker'] },
+  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite', contextWindow: 1_000_000, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['fast', 'vision', 'cheap', 'tracker'] },
   { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite', contextWindow: 1_000_000, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['fast', 'vision', 'cheap', 'tracker'] },
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', contextWindow: 1_000_000, rpdLimit: 50, tpmLimit: 32_000, rpmLimit: 5, tags: ['reasoning', 'vision', 'coding', 'generateContent'] },
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', contextWindow: 1_048_576, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 15, tags: ['fast', 'vision', 'cheap', 'generateContent'] },
@@ -42,15 +47,22 @@ export const GEMINI_MODELS: ProviderModel[] = [
 // chỉ dùng để hiện thanh "đã dùng" trong Cài đặt, không ảnh hưởng lúc gọi API.
 // Model còn lưu trong cài đặt cũ nhưng không còn ở đây vẫn được gọi bình thường (id được dùng nguyên văn).
 export const CLAUDE_MODELS: ProviderModel[] = [
+  // 25/11/2026: thêm Fable 5.2 và Haiku 5.5 (model hiện hành của Anthropic).
+  { id: 'claude-fable-5-2', name: 'Claude Fable 5.2', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'premium', '1M-ctx'] },
   { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5', contextWindow: 1_000_000, rpdLimit: 2_000, tpmLimit: 200_000, rpmLimit: 50, isLatest: true, tags: ['fast', 'reasoning', 'vision', 'coding', '1M-ctx'] },
   { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', contextWindow: 1_000_000, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship', '1M-ctx'] },
-  { id: 'claude-fable-5-1', name: 'Claude Fable 5.1', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'premium', '1M-ctx'] },
+  { id: 'claude-fable-5-1', name: 'Claude Fable 5.1', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 100_000, rpmLimit: 50, tags: ['reasoning', 'vision', 'premium', '1M-ctx'] },
+  { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5', contextWindow: 200_000, rpdLimit: 5_000, tpmLimit: 400_000, rpmLimit: 50, isLatest: true, tags: ['fast', 'vision', 'cheap'] },
   { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', contextWindow: 200_000, rpdLimit: 5_000, tpmLimit: 400_000, rpmLimit: 50, tags: ['fast', 'vision', 'cheap'] },
   { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', contextWindow: 1_000_000, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 50, tags: ['legacy', 'reasoning', 'vision', 'coding', '1M-ctx'] },
   { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', contextWindow: 1_000_000, rpdLimit: 2_000, tpmLimit: 200_000, rpmLimit: 50, tags: ['legacy', 'fast', 'vision', 'coding', '1M-ctx'] },
 ];
 
 export const OPENAI_MODELS: ProviderModel[] = [
+  // 25/11/2026: thêm GPT-6.2 Sol / 6.2 Astra / 6.1 Terra (danh sách model đang bán, đối chiếu qua xKiro).
+  { id: 'gpt-6.2-sol', name: 'GPT-6.2 Sol', contextWindow: 1_050_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 100, isLatest: true, tags: ['reasoning', 'vision', 'coding'] },
+  { id: 'gpt-6.2-astra', name: 'GPT-6.2 Astra', contextWindow: 1_050_000, rpdLimit: 200, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'premium'] },
+  { id: 'gpt-6.1-terra', name: 'GPT-6.1 Terra', contextWindow: 1_050_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 100, tags: ['reasoning', 'vision', 'coding'] },
   { id: 'gpt-6.1-sol', name: 'GPT-6.1 Sol', contextWindow: 1_050_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 100, isLatest: true, tags: ['reasoning', 'vision', 'coding'] },
   { id: 'gpt-6-luna', name: 'GPT-6 Luna', contextWindow: 1_050_000, rpdLimit: 2_000, tpmLimit: 500_000, rpmLimit: 500, isLatest: true, tags: ['fast', 'vision', 'cheap'] },
   { id: 'gpt-6-astra', name: 'GPT-6 Astra', contextWindow: 1_050_000, rpdLimit: 200, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'premium'] },
