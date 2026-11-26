@@ -212,3 +212,8 @@ Danh sách bài nộp hiện `9.129999999999999/10`: `coerceHomeworkGrade` (và 
 - 26/11: khoá Vilao RIÊNG trên máy chủ (`teacherAiKeys.vilaoKey`, mục "AI của tôi", kiểm bằng GET /models). Chủ dự án chọn để khoá Vilao/NVIDIA/OpenAI-compatible phía trình duyệt TIẾP TỤC đồng bộ Firebase (không sửa).
 - Sửa rò rỉ: giáo viên/học sinh dùng KHOÁ RIÊNG trước đây vẫn được lớp Vilao/xKiro chấm bằng khoá CHUNG mà không trừ ví. Nay `callOpenAiCompatibleVision`: source 'own' → lớp Vilao chạy bằng `choice.vilaoKey` (bỏ tiền tố nhà bán), lớp khác ném `SkipTierError`; lớp Gemini bỏ qua khi khoá riêng không có Gemini. `runChain` không gác lớp với SkipTierError. Bot (`spai-assistant-ph-hs`) có bản sao code cũ — đã báo luồng bot.
 - 26/11 phí dịch vụ ví: giá trừ ví = giá hãng × (1 + markupPct%), `adminSettings/billing.markupPct` (mặc định 20, Quản trị → Cài đặt tính tiền, 0–200). `aiUsage` ghi thêm `costVnd` (giá hãng) + `markupPct`; `grossVnd` giờ là GIÁ BÁN. Sao kê tháng Quản trị có cột "Giá hãng" và "Lãi" (lượt cũ không có costVnd coi giá hãng = giá bán). Màn "AI của tôi" ghi rõ "+20% phí dịch vụ". Nhắc ví thấp/hết có nút "Nạp ngay (QR)" mở TopupDialog. Nhóm quản trị (exempt) vẫn không bị trừ.
+
+## 26/11/2026 — Chấm bài lỗi hàng loạt (web + bot)
+- Nguyên nhân: Vilao 423 SUBSCRIPTION_PENDING_CONFIRMATION (đổi giá gemini-3.8-flash-high / gemini-4-argon, chủ máy phải xác nhận trong Vilao → API Keys); Gemini dự án 402 "prepayment credits depleted" (nạp ở ai.studio/projects); xkiro bỏ google/gemini-3.8-flash (404).
+- Sửa: GRADING_XKIRO_MODEL=openai/gpt-6.1-terra (web + bot), bot thêm secret GRADING_XKIRO_API_KEY. Commit 16ea2b3 (web), c01b786 (bot).
+- Cũng lên web: hướng dẫn GV tự tạo bot Zalo trong Cài đặt (fbe8814).
