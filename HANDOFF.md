@@ -213,7 +213,13 @@ Danh sách bài nộp hiện `9.129999999999999/10`: `coerceHomeworkGrade` (và 
 - Sửa rò rỉ: giáo viên/học sinh dùng KHOÁ RIÊNG trước đây vẫn được lớp Vilao/xKiro chấm bằng khoá CHUNG mà không trừ ví. Nay `callOpenAiCompatibleVision`: source 'own' → lớp Vilao chạy bằng `choice.vilaoKey` (bỏ tiền tố nhà bán), lớp khác ném `SkipTierError`; lớp Gemini bỏ qua khi khoá riêng không có Gemini. `runChain` không gác lớp với SkipTierError. Bot (`spai-assistant-ph-hs`) có bản sao code cũ — đã báo luồng bot.
 - 26/11 phí dịch vụ ví: giá trừ ví = giá hãng × (1 + markupPct%), `adminSettings/billing.markupPct` (mặc định 20, Quản trị → Cài đặt tính tiền, 0–200). `aiUsage` ghi thêm `costVnd` (giá hãng) + `markupPct`; `grossVnd` giờ là GIÁ BÁN. Sao kê tháng Quản trị có cột "Giá hãng" và "Lãi" (lượt cũ không có costVnd coi giá hãng = giá bán). Màn "AI của tôi" ghi rõ "+20% phí dịch vụ". Nhắc ví thấp/hết có nút "Nạp ngay (QR)" mở TopupDialog. Nhóm quản trị (exempt) vẫn không bị trừ.
 
-## 26/11/2026 — Chấm bài lỗi hàng loạt (web + bot)
-- Nguyên nhân: Vilao 423 SUBSCRIPTION_PENDING_CONFIRMATION (đổi giá gemini-3.8-flash-high / gemini-4-argon, chủ máy phải xác nhận trong Vilao → API Keys); Gemini dự án 402 "prepayment credits depleted" (nạp ở ai.studio/projects); xkiro bỏ google/gemini-3.8-flash (404).
-- Sửa: GRADING_XKIRO_MODEL=openai/gpt-6.1-terra (web + bot), bot thêm secret GRADING_XKIRO_API_KEY. Commit 16ea2b3 (web), c01b786 (bot).
-- Cũng lên web: hướng dẫn GV tự tạo bot Zalo trong Cài đặt (fbe8814).
+## 26/11/2026 — Chấm bài lỗi hàng loạt (web + bot) — đã xử lý dứt điểm
+- Nguyên nhân: (1) Vilao đổi giá model -high (423, chủ máy đã xác nhận); (2) Gemini dự án hết tiền trả trước (402, CHƯA nạp);
+  (3) bản gemini-3.8-flash-high viết 13–33 nghìn token/bài → 2–6 phút, trần cũ 120–300s cắt mất; (4) khoá Gemini riêng của
+  chủ dự án hết tiền: lớp Vilao bị bỏ qua và 402 không được nhận là hỏng.
+- Sửa: model chính `bfly/gemini-3.8-flash` (bài thật 30–72s), dự phòng `GRADING_VILAO_BACKUP_MODELS=spd/gemini-3.8-flash-high`,
+  rồi deepseek, rồi Gemini trực tiếp. Trần hàm 840s, ngân sách 780s, mỗi lớp Vilao 300s, khoá chết 15 phút, tắt requestTimeout
+  của Node. 402 = exhausted; khoá riêng hỏng → khoá chung → thử lại lớp Vilao vừa bỏ qua. Bỏ hẳn xKiro.
+- Canh khoá: bot `?transport=ai-watch` (GitHub `.github/workflows/ai-watch.yml` mỗi giờ) thử từng kênh, nhắn Zalo chủ máy khi cần
+  xử lý; gợi ý người bán Vilao rẻ hơn mỗi ngày (bảng giá công khai `vilao.ai/api/v1/llm/marketplace/models`).
+- Đã chấm lại 24 bài lỗi (không duyệt). Bài 18/11 `f7ef18bc` ra 0/10 — cần GV xem tay.
