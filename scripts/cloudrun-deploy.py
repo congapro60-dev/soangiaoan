@@ -26,10 +26,11 @@ PLAIN_ENV = {
     'ZALO_DEADLINE_ENABLED': 'false',
     'ZALO_DEADLINE_QUOTA_VERIFIED': 'false',
     'ZALO_DEADLINE_REAL_APPROVED': 'false',
-    # 22/11: chib/gemini-3.8-flash trên Vilao "không khả dụng" -> chấm bài trả rỗng; cùng model bot đang chạy.
-    'GRADING_VILAO_MODEL': 'spd/gemini-3.8-flash-high',
+    # 26/11: bản -high viết 13–33 nghìn token/bài, quá 5 phút với bài nhiều câu; đo bài thật: bfly/gemini-3.8-flash
+    # (bản thường) xong trong 70s, 9,6 nghìn token. spd -high để dự phòng.
+    'GRADING_VILAO_MODEL': 'bfly/gemini-3.8-flash',
     # 26/11: người bán Gemini dự phòng (đã gắn vào khoá chấm bài trên vilao.ai). Nhiều model cách nhau ';'.
-    'GRADING_VILAO_BACKUP_MODELS': 'jet/gemini-3.8-flash-high',
+    'GRADING_VILAO_BACKUP_MODELS': 'spd/gemini-3.8-flash-high',
     # 26/11: bỏ hẳn xKiro (chủ máy chốt) — model GPT/GLM quá giờ với bài thật.
 }
 

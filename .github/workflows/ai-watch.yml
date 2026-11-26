@@ -1,0 +1,37 @@
+name: Canh khoa AI cham bai
+
+# Moi gio: bot thu tung kenh AI cham bai + doc bang gia Vilao; kenh hong vi viec chu may phai lam
+# (Vilao doi gia, Gemini het tien tra truoc, vi het tien) thi nhan Zalo cho chu may ngay (26/11/2026).
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ai-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Goi bot canh khoa AI
+        env:
+          ZALO_DEADLINE_CRON_SECRET: ${{ secrets.ZALO_DEADLINE_CRON_SECRET }}
+          ZALO_BOT_URL: ${{ vars.ZALO_BOT_URL }}
+        shell: python
+        run: |
+          import json, os, urllib.request
+          secret = os.environ.get('ZALO_DEADLINE_CRON_SECRET', '')
+          base = os.environ.get('ZALO_BOT_URL', '').rstrip('/')
+          if len(secret) < 32 or not base:
+              raise SystemExit('Chua cau hinh secret hoac ZALO_BOT_URL')
+          request = urllib.request.Request(base + '/api/assistant?transport=ai-watch', headers={'Authorization': 'Bearer ' + secret})
+          try:
+              with urllib.request.urlopen(request, timeout=240) as response:
+                  print(json.dumps(json.load(response), ensure_ascii=False))
+          except Exception as error:
+              raise SystemExit('Khong chay duoc luot canh khoa AI: ' + type(error).__name__)
