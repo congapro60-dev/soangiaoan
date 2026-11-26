@@ -1,3 +1,4 @@
+import { BulkPasteKeys, KeyPoolSummary, KeyStatusChip } from './KeyPoolTools';
 import { ArrowUp, LockKeyhole, Plus, Shuffle, Trash2 } from 'lucide-react';
 import type { AppData } from '../../../types';
 import { MAX_OWN_GEMINI_KEYS } from '../../../lib/geminiKeyRing';
@@ -47,6 +48,7 @@ export const OwnKeysField = ({ label, rows, onChange }: FieldProps) => {
               className="w-full rounded-2xl border border-slate-200 bg-blue-50/40 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-4 focus:ring-blue-100"
             />
           </div>
+          <KeyStatusChip value={row} />
           {rows.length > 1 && (
             <button
               type="button"
@@ -68,6 +70,10 @@ export const OwnKeysField = ({ label, rows, onChange }: FieldProps) => {
           <Plus className="h-3.5 w-3.5" /> Thêm khoá {label} khác
         </button>
       )}
+      <div className="flex flex-wrap items-center gap-2">
+        <BulkPasteKeys rows={rows} onChange={onChange} label={label} />
+        <KeyPoolSummary rows={rows} />
+      </div>
       <p className="text-[11px] font-medium leading-4 text-slate-400">
         {filled > 1 ? `Đang có ${filled} khoá. ` : ''}Có nhiều khoá (nhiều tài khoản) thì dán thêm. Khoá nào hết hạn mức, hết tiền nạp hoặc bị thu hồi, web tự đổi sang khoá kế tiếp.
       </p>

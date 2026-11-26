@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { GeminiKeysField } from './GeminiKeysField';
+import { MAX_OWN_GEMINI_KEYS } from '../../../lib/geminiKeyRing';
 
 describe('GeminiKeysField', () => {
   it('một khoá: không có nút xoá; có nút thêm, cảnh báo hạng miễn phí + dữ liệu học sinh + điều khoản; ô là kiểu mật khẩu', () => {
@@ -17,7 +18,7 @@ describe('GeminiKeysField', () => {
     const html = renderToStaticMarkup(<GeminiKeysField rows={rows} onChange={() => undefined} />);
     expect(html).toContain('Đang có 2 khoá');
     expect(html.match(/Xoá khoá Gemini/g)).toHaveLength(3);
-    const full = renderToStaticMarkup(<GeminiKeysField rows={Array.from({ length: 10 }, (_, i) => `k${i}`)} onChange={() => undefined} />);
+    const full = renderToStaticMarkup(<GeminiKeysField rows={Array.from({ length: MAX_OWN_GEMINI_KEYS }, (_, i) => `k${i}`)} onChange={() => undefined} />);
     expect(full).not.toContain('Thêm khoá Gemini');
   });
 });

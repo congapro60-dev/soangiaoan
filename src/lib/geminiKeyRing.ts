@@ -9,7 +9,7 @@
 import { cooldownMsFor } from './admin/geminiKeyPool';
 import { isOwnKeyFailure } from './ai/aiModeStore';
 
-export const MAX_OWN_GEMINI_KEYS = 10;
+export const MAX_OWN_GEMINI_KEYS = 30;
 const REST_STORAGE_KEY = 'smartplan:gemini-key-rest:v1';
 const INVALID_REST_MS = 6 * 60 * 60 * 1000;
 
@@ -63,6 +63,15 @@ const readRest = (): RestMap => {
 const writeRest = (map: RestMap): void => {
   try { window.localStorage.setItem(REST_STORAGE_KEY, JSON.stringify(map)); } catch { /* chế độ riêng tư: chỉ mất nhớ nghỉ giữa các lần mở trang */ }
 };
+
+/** Khoá đang nghỉ tới lúc nào (ms) — 0 nếu sẵn sàng. Chỉ để hiện trạng thái trong Cài đặt. */
+export const keyRestUntil = (key: string, now: number = Date.now()): number => {
+  const until = readRest()[fingerprint(String(key ?? '').trim())] ?? 0;
+  return until > now ? until : 0;
+};
+
+/** Tách chuỗi dán nhiều khoá: mỗi dòng một khoá, hoặc ngăn bằng dấu phẩy / chấm phẩy / khoảng trắng. */
+export const splitPastedKeys = (text: string): string[] => normalizeKeys(String(text ?? '').split(/[\s,;]+/));
 
 /** Nghỉ bao lâu sau lỗi của khoá: sai/bị thu hồi → 6 giờ; còn lại theo thân lỗi (hạn mức ngày, `retryDelay`…). */
 export const restMsForError = (error: unknown, now: number): number => {
