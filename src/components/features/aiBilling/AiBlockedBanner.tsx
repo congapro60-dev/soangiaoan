@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { getAiKeyStatus, type AiKeyStatus } from '../../../lib/ai/aiBillingApi';
 import { aiBannerMessage } from '../../../lib/ai/aiBanner';
+import { TopupDialog } from './TopupDialog';
 
 const DISMISS_KEY = 'aiBannerDismissed';
 
@@ -20,6 +21,7 @@ const wasDismissed = (): boolean => {
 export const AiBlockedBanner = ({ onOpen }: { onOpen: () => void }) => {
   const [status, setStatus] = useState<AiKeyStatus | null>(null);
   const [dismissed, setDismissed] = useState(wasDismissed);
+  const [topupOpen, setTopupOpen] = useState(false);
 
   useEffect(() => {
     getAiKeyStatus().then(setStatus).catch(() => setStatus(null));
@@ -38,8 +40,12 @@ export const AiBlockedBanner = ({ onOpen }: { onOpen: () => void }) => {
       <p className={`flex items-center gap-2 text-sm font-bold ${message.urgent ? 'text-amber-900' : 'text-indigo-900'}`}><AlertTriangle className="h-4 w-4 shrink-0" /> {message.text}</p>
       <div className="flex gap-2">
         <button type="button" onClick={dismiss} className="rounded-xl px-3 py-2 text-xs font-black text-slate-500 hover:bg-white/70">Để sau</button>
+        {message.topup && status && (
+          <button type="button" onClick={() => setTopupOpen(true)} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white hover:bg-emerald-700">Nạp ngay (QR)</button>
+        )}
         <button type="button" onClick={onOpen} className={`rounded-xl px-3 py-2 text-xs font-black text-white ${message.urgent ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}>Mở Chi phí AI</button>
       </div>
+      {topupOpen && status && <TopupDialog status={status} onClose={() => setTopupOpen(false)} onUpdated={setStatus} />}
     </div>
   );
 };

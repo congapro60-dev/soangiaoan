@@ -47,8 +47,8 @@ describe('ví AI + mã giảm giá', () => {
   });
 
   it('tiền một lượt: gốc làm tròn đồng, trừ ví sau giảm; mã 100% thì 0đ', () => {
-    expect(chargeForCall(0.0234, 26_190, null)).toEqual({ grossVnd: 613, discountPct: 0, voucherCode: null, chargeVnd: 613 });
-    expect(chargeForCall(0.0234, 26_190, { ...voucher, percent: 30, code: 'GIAM30' })).toEqual({ grossVnd: 613, discountPct: 30, voucherCode: 'GIAM30', chargeVnd: 429 });
+    expect(chargeForCall(0.0234, 26_190, null)).toEqual({ costVnd: 613, markupPct: 0, grossVnd: 613, discountPct: 0, voucherCode: null, chargeVnd: 613 });
+    expect(chargeForCall(0.0234, 26_190, { ...voucher, percent: 30, code: 'GIAM30' })).toEqual({ costVnd: 613, markupPct: 0, grossVnd: 613, discountPct: 30, voucherCode: 'GIAM30', chargeVnd: 429 });
     expect(chargeForCall(0.0234, 26_190, voucher).chargeVnd).toBe(0);
   });
 
@@ -107,5 +107,28 @@ describe('tài khoản nhận tiền nạp', () => {
     expect(settings.activeId).toBe('a');
     expect(activePaymentAccount(settings)?.bank).toBe('MBBank');
     expect(activePaymentAccount(normalizePaymentSettings(undefined))).toBeNull();
+  });
+});
+
+describe('phí dịch vụ (lãi) khi trừ ví', () => {
+  it('giá bán = giá hãng × (1 + %); giảm giá áp trên giá bán; ghi giá hãng để Quản trị tính lãi', async () => {
+    const { chargeForCall } = await import('./aiWallet');
+    // 0,001 USD × 26.000 = 26đ giá hãng; +20% = 31,2 → 31đ.
+    const c = chargeForCall(0.001, 26_000, null, 20);
+    expect(c).toMatchObject({ costVnd: 26, markupPct: 20, grossVnd: 31, chargeVnd: 31 });
+    const v = chargeForCall(0.01, 26_000, { code: 'GIAM50', percent: 50 } as never, 20);
+    expect(v.grossVnd).toBe(312);
+    expect(v.chargeVnd).toBe(156);
+    expect(chargeForCall(0.01, 26_000, null).chargeVnd).toBe(260);
+  });
+
+  it('% lãi ngoài 0–200 hoặc không phải số → về mặc định 20', async () => {
+    const { normalizeMarkupPct, DEFAULT_MARKUP_PCT } = await import('./aiWallet');
+    expect(DEFAULT_MARKUP_PCT).toBe(20);
+    expect(normalizeMarkupPct(35)).toBe(35);
+    expect(normalizeMarkupPct(0)).toBe(0);
+    expect(normalizeMarkupPct(-1)).toBe(20);
+    expect(normalizeMarkupPct('abc')).toBe(20);
+    expect(normalizeMarkupPct(undefined)).toBe(20);
   });
 });

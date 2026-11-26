@@ -196,6 +196,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
         )}
         <p className="mt-3 text-[11px] font-semibold leading-4 text-slate-400">
           {walletScopeText(status.relayVendors)}
+          {typeof status.markupPct === 'number' && status.markupPct > 0 && !status.exempt && ` Giá trừ ví = giá hãng AI tính (quy theo tỷ giá ${vnd(status.usdVnd)}/USD) + ${status.markupPct}% phí dịch vụ.`}
         </p>
       </div>
 

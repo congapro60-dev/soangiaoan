@@ -35,6 +35,8 @@ export interface AdminBillingSettings {
   /** Tổng Google thực thu (VNĐ) cho giai đoạn TRƯỚC bộ đếm — chủ dự án nhập từ AI Studio. */
   preMeteringVnd: number;
   preMeteringNote: string;
+  /** % lãi cộng trên giá hãng khi trừ ví giáo viên. */
+  markupPct: number;
   updatedAt?: string;
 }
 
@@ -43,6 +45,7 @@ const DEFAULT_SETTINGS: AdminBillingSettings = {
   usdVndNote: 'Vietcombank bán ra 24/09/2026',
   preMeteringVnd: 0,
   preMeteringNote: '',
+  markupPct: 20,
 };
 
 const requireAdmin = async (body: Body, res: VercelResponse): Promise<{ uid: string; email: string } | null> => {
@@ -173,6 +176,8 @@ const handleUsage = async (db: Db, body: Body, res: VercelResponse) => {
 const handleSaveSettings = async (db: Db, body: Body, res: VercelResponse) => {
   const usdVnd = Number(body.usdVnd);
   const preMeteringVnd = Number(body.preMeteringVnd);
+  const markupPct = body.markupPct === undefined ? 20 : Number(body.markupPct);
+  if (!Number.isFinite(markupPct) || markupPct < 0 || markupPct > 200) return res.status(422).json({ error: '% lãi phải từ 0 đến 200.' });
   if (!Number.isFinite(usdVnd) || usdVnd < 10_000 || usdVnd > 100_000) return res.status(422).json({ error: 'Tỷ giá không hợp lệ.' });
   if (!Number.isFinite(preMeteringVnd) || preMeteringVnd < 0 || preMeteringVnd > 1_000_000_000) {
     return res.status(422).json({ error: 'Tổng tiền trước bộ đếm không hợp lệ.' });
@@ -182,6 +187,7 @@ const handleSaveSettings = async (db: Db, body: Body, res: VercelResponse) => {
     usdVndNote: String(body.usdVndNote || '').slice(0, 200),
     preMeteringVnd: Math.round(preMeteringVnd),
     preMeteringNote: String(body.preMeteringNote || '').slice(0, 300),
+    markupPct: Math.round(markupPct * 10) / 10,
     updatedAt: new Date().toISOString(),
   };
   await db.doc(ADMIN_SETTINGS_DOC).set(settings);

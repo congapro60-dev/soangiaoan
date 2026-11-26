@@ -262,16 +262,17 @@ export const AiBillingAdminPanel = ({ teachers }: { teachers: Teacher[] }) => {
         </div>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead><tr className="text-[10px] font-black uppercase text-slate-400"><th className="py-1 pr-2">Giáo viên</th><th className="py-1 pr-2 text-right">Lượt</th><th className="py-1 pr-2 text-right">Giá gốc</th><th className="py-1 pr-2 text-right">Trừ ví</th><th className="py-1 pr-2 text-right">Nạp</th><th className="py-1 text-right">Điều chỉnh</th></tr></thead>
+            <thead><tr className="text-[10px] font-black uppercase text-slate-400"><th className="py-1 pr-2">Giáo viên</th><th className="py-1 pr-2 text-right">Lượt</th><th className="py-1 pr-2 text-right">Giá hãng</th><th className="py-1 pr-2 text-right">Trừ ví</th><th className="py-1 pr-2 text-right">Lãi</th><th className="py-1 pr-2 text-right">Nạp</th><th className="py-1 text-right">Điều chỉnh</th></tr></thead>
             <tbody>
-              {!overview && <tr><td colSpan={6} className="py-2 text-slate-400">Đang tổng hợp…</td></tr>}
-              {overview?.length === 0 && <tr><td colSpan={6} className="py-2 text-slate-400">Tháng này chưa có lượt tính tiền, nạp hay điều chỉnh nào.</td></tr>}
+              {!overview && <tr><td colSpan={7} className="py-2 text-slate-400">Đang tổng hợp…</td></tr>}
+              {overview?.length === 0 && <tr><td colSpan={7} className="py-2 text-slate-400">Tháng này chưa có lượt tính tiền, nạp hay điều chỉnh nào.</td></tr>}
               {overview?.map(r => (
                 <tr key={r.uid} onClick={() => setStatementUid(r.uid)} className={`cursor-pointer border-t border-slate-100 hover:bg-indigo-50 ${statementUid === r.uid ? 'bg-indigo-50' : ''}`}>
                   <td className="py-1 pr-2 font-semibold">{r.email || emailOf(r.uid)}</td>
                   <td className="py-1 pr-2 text-right">{r.calls}</td>
-                  <td className="py-1 pr-2 text-right">{vnd(r.grossVnd)}</td>
+                  <td className="py-1 pr-2 text-right">{vnd(r.costVnd ?? r.grossVnd)}</td>
                   <td className="py-1 pr-2 text-right font-black">{vnd(r.chargeVnd)}</td>
+                  <td className="py-1 pr-2 text-right text-indigo-700">{vnd(r.chargeVnd - (r.costVnd ?? r.grossVnd))}</td>
                   <td className="py-1 pr-2 text-right text-emerald-700">{vnd(r.topupVnd)}</td>
                   <td className="py-1 text-right">{vnd(r.adjustVnd)}</td>
                 </tr>

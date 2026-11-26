@@ -207,6 +207,11 @@ export const AdminTab = () => {
                   <input value={settings.usdVndNote} onChange={e => setSettings({ ...settings, usdVndNote: e.target.value })} placeholder="Ghi chú nguồn tỷ giá" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs" />
                 </div>
                 <div className="space-y-2">
+                  <label className="block text-xs font-black text-slate-600">Phí dịch vụ cộng trên giá hãng khi trừ ví (%)</label>
+                  <input type="number" min={0} max={200} step={1} value={settings.markupPct ?? 20} onChange={e => setSettings({ ...settings, markupPct: Number(e.target.value) })} className="w-32 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />
+                  <p className="text-[11px] font-semibold text-slate-500">Giá trừ ví = giá hãng (theo tỷ giá) × (1 + %). Áp cho lượt dùng SAU khi lưu; lượt cũ giữ nguyên. Tài khoản trong nhóm không bị trừ.</p>
+                </div>
+                <div className="space-y-2">
                   <label className="block text-xs font-black text-slate-600">Tổng Google thực thu TRƯỚC {overview.meteringStartDay} (VNĐ, xem AI Studio → Spend)</label>
                   <input type="number" value={settings.preMeteringVnd} onChange={e => setSettings({ ...settings, preMeteringVnd: Number(e.target.value) })} className="w-48 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />
                   <input value={settings.preMeteringNote} onChange={e => setSettings({ ...settings, preMeteringNote: e.target.value })} placeholder="VD: AI Studio, project Albot, 27/06–23/09/2026" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs" />

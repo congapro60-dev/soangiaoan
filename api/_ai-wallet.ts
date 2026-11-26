@@ -32,6 +32,7 @@ import {
   type PaymentSettings,
   type VoucherDef,
   type VoucherRedemption,
+  normalizeMarkupPct,
 } from '../src/lib/admin/aiWallet.js';
 
 type Db = FirebaseFirestore.Firestore;
@@ -50,6 +51,12 @@ const today = (): string => vnDate(new Date()).day;
 const nowIso = (): string => new Date().toISOString();
 
 /** Tỷ giá chủ dự án đặt trong Quản trị (VCB bán ra) — dùng quy giá từng lượt ra VNĐ lúc dùng. */
+/** % lãi cộng trên giá hãng khi trừ ví (Quản trị → Cài đặt tính tiền), mặc định 20%. */
+export const loadMarkupPct = async (db: Db): Promise<number> => {
+  const snap = await db.collection('adminSettings').doc('billing').get().catch(() => null);
+  return normalizeMarkupPct(snap?.exists ? snap.data()?.markupPct : undefined);
+};
+
 export const loadUsdVnd = async (db: Db): Promise<number> => {
   const snap = await db.collection('adminSettings').doc('billing').get().catch(() => null);
   const rate = Number(snap?.exists ? snap.data()?.usdVnd : NaN);
@@ -158,14 +165,15 @@ export const ensureWallet = async (db: Db, uid: string, email: string): Promise<
 
 export interface BillingPlan {
   usdVnd: number;
+  markupPct: number;
   voucher: VoucherRedemption | null;
 }
 
 /** Được dùng khoá chung lượt này không (còn số dư, hoặc mã 100% đang hiệu lực) + cách tính tiền. */
 export const billingPlanFor = async (db: Db, uid: string): Promise<BillingPlan | null> => {
-  const [wallet, redemptions, usdVnd] = await Promise.all([loadWallet(db, uid), loadRedemptions(db, uid), loadUsdVnd(db)]);
+  const [wallet, redemptions, usdVnd, markupPct] = await Promise.all([loadWallet(db, uid), loadRedemptions(db, uid), loadUsdVnd(db), loadMarkupPct(db)]);
   const voucher = bestActiveVoucher(redemptions, today());
-  return canAffordUsage(wallet.balanceVnd, voucher) ? { usdVnd, voucher } : null;
+  return canAffordUsage(wallet.balanceVnd, voucher) ? { usdVnd, markupPct, voucher } : null;
 };
 
 // ── Webhook SePay ─────────────────────────────────────────────────────────────

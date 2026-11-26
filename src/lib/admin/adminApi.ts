@@ -34,6 +34,8 @@ export interface AdminBillingSettings {
   usdVndNote: string;
   preMeteringVnd: number;
   preMeteringNote: string;
+  /** % lãi cộng trên giá hãng khi trừ ví giáo viên (mặc định 20). */
+  markupPct?: number;
   updatedAt?: string;
 }
 

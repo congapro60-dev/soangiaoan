@@ -5,6 +5,8 @@ export interface AiBannerMessage {
   text: string;
   /** Có việc đang bị chặn (bài chờ / hết tiền) — tô đậm hơn. */
   urgent: boolean;
+  /** Ví hết / sắp hết: hiện nút "Nạp ngay" mở mã QR. */
+  topup?: boolean;
 }
 
 /** Ví dưới mức này thì nhắc nạp thêm. */
@@ -38,8 +40,9 @@ export const aiBannerMessage = (status: AiKeyStatus): AiBannerMessage | null => 
     return {
       text: ownKeyOk && status.mode === 'both' ? 'Ví AI đã hết tiền — khi khoá riêng hết lượt, AI sẽ tạm dừng.' : 'Ví AI đã hết tiền — chấm bài bằng AI sẽ tạm dừng.',
       urgent: true,
+      topup: true,
     };
   }
-  if (status.balanceVnd < LOW_BALANCE_VND) return { text: `Ví AI còn ${vnd(status.balanceVnd)} — nên nạp thêm.`, urgent: false };
+  if (status.balanceVnd < LOW_BALANCE_VND) return { text: `Ví AI còn ${vnd(status.balanceVnd)} — nên nạp thêm để AI không dừng giữa chừng.`, urgent: false, topup: true };
   return null;
 };

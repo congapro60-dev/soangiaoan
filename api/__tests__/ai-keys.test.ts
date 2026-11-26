@@ -120,7 +120,7 @@ describe('khoá AI + trần chi tiêu', () => {
   });
 
   it('chạm trần tự đặt thì dừng (kể cả khi chưa bật kiểm soát)', async () => {
-    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000, markupPct: 20 };
     h.store['teacherAiKeys/gv-nhom'] = { monthlyCapVnd: 20_000 };
     h.store[`aiSpend/gv-nhom_${month}`] = { costUsd: 0.5, calls: 10 };
     expect((await inRequest('gv-nhom', () => ensureGeminiKey(OWNER_KEY))).source).toBe('shared');
@@ -132,7 +132,7 @@ describe('khoá AI + trần chi tiêu', () => {
 
   it('khoá riêng bị Google báo hết hạn mức: đã đồng ý thì tự chuyển khoá chung (tính phí, cộng sổ); chưa thì chặn', async () => {
     h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
-    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000, markupPct: 20 };
     h.store['teacherAiKeys/gv-ngoai'] = { geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true } };
     h.store['aiWallets/gv-ngoai'] = { balanceVnd: 50_000 };
     const fetchMock = vi.fn(async (url: string) => (String(url).includes(encodeURIComponent(OWN_KEY))
@@ -148,13 +148,13 @@ describe('khoá AI + trần chi tiêu', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(h.store['teacherAiKeys/gv-ngoai']).toMatchObject({ keyStatus: 'exhausted' });
     const usage = Object.entries(h.store).find(([p]) => p.startsWith('aiUsage/'))?.[1];
-    // 1.000.000 token vào × $0.75/1M × 26.000 = 19.500đ, không mã giảm giá → trừ đủ
-    expect(usage).toMatchObject({ keySource: 'owner_consent', keyOwnerUid: 'gv-ngoai', usdVnd: 26_000, grossVnd: 19_500, discountPct: 0, chargeVnd: 19_500 });
-    expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBe(30_500);
+    // 1.000.000 token vào × $0.75/1M × 26.000 = 19.500đ giá hãng; +20% phí dịch vụ = 23.400đ, không mã giảm giá → trừ đủ
+    expect(usage).toMatchObject({ keySource: 'owner_consent', keyOwnerUid: 'gv-ngoai', usdVnd: 26_000, costVnd: 19_500, markupPct: 20, grossVnd: 23_400, discountPct: 0, chargeVnd: 23_400 });
+    expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBe(26_600);
     expect(h.store[`aiSpend/gv-ngoai_${month}`]).toMatchObject({ calls: 1 });
     expect(h.store[`aiSpend/gv-ngoai_${month}`].costUsd).toBeCloseTo(0.75, 6);
     // Cùng lượt đó cũng được cộng vào ô của NGÀY (giờ VN) để chip Header hiện "hôm nay"
-    expect(h.store[`aiSpend/gv-ngoai_${month}`].days[day]).toMatchObject({ calls: 1, chargeVnd: 19_500 });
+    expect(h.store[`aiSpend/gv-ngoai_${month}`].days[day]).toMatchObject({ calls: 1, chargeVnd: 23_400 });
     expect(h.store[`aiSpend/gv-ngoai_${month}`].days[day].costUsd).toBeCloseTo(0.75, 6);
 
     // Chưa đồng ý: khoá "hết" đang trong thời gian nghỉ → chặn ngay, không gọi Google
@@ -195,7 +195,7 @@ describe('khoá AI + trần chi tiêu', () => {
     const ok = (input: number) => ({ ok: true, status: 200, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'ok' }] } }], usageMetadata: usageOf(input) }) });
     const setup = (balanceVnd: number, key: DocData = {}) => {
       h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
-      h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+      h.store['adminSettings/billing'] = { usdVnd: 26_000, markupPct: 0 };
       h.store['teacherAiKeys/gv-ngoai'] = { consent: { accepted: true }, mode: 'wallet', ...key };
       h.store['aiWallets/gv-ngoai'] = { balanceVnd };
     };
@@ -294,7 +294,7 @@ describe('khoá AI + trần chi tiêu', () => {
 
   it('QA F1: đã bật kiểm soát mà đọc hồ sơ khoá bị lỗi thì ĐÓNG CỬA — người trong nhóm chọn "chỉ khoá riêng" không bị trừ ví trái ý', async () => {
     h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: ['gv-nhom'], exemptUids: [] };
-    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000, markupPct: 0 };
     h.store['aiWallets/gv-nhom'] = { balanceVnd: 50_000 };
     h.store['teacherAiKeys/gv-nhom'] = { mode: 'own' };
     h.failPaths = ['teacherAiKeys/'];
@@ -308,7 +308,7 @@ describe('khoá AI + trần chi tiêu', () => {
 
   it('QA F4: MỘT hạn chót cho cả lượt — lần gọi lại sau khi khoá riêng hỏng chỉ được dùng phần thời gian còn lại', async () => {
     h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
-    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000, markupPct: 0 };
     h.store['teacherAiKeys/gv-ngoai'] = { geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true }, mode: 'both' };
     h.store['aiWallets/gv-ngoai'] = { balanceVnd: 50_000 };
     const timeouts: number[] = [];
@@ -334,7 +334,7 @@ describe('khoá AI + trần chi tiêu', () => {
       await handleAiKeyAction(fakeDb() as never, { idToken: 't', action: 'aiKeyStatus' }, res);
       return res.payload;
     };
-    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000, markupPct: 0 };
     h.store[`aiSpend/gv-ngoai_${month}`] = {
       costUsd: 3, calls: 9, chargeVnd: 78_000,
       days: { [day]: { costUsd: 0.5, calls: 2, chargeVnd: 13_000 }, '2000-01-01': { costUsd: 2.5, calls: 7, chargeVnd: 65_000 } },
@@ -357,7 +357,7 @@ describe('khoá AI + trần chi tiêu', () => {
     };
     const setup = (keyDoc: DocData, access: DocData = { enabled: true, sharedUids: [], exemptUids: [] }) => {
       h.store['adminSettings/aiAccess'] = access;
-      h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+      h.store['adminSettings/billing'] = { usdVnd: 26_000, markupPct: 0 };
       h.store['aiWallets/gv-ngoai'] = { balanceVnd: 50_000 };
       h.store['teacherAiKeys/gv-ngoai'] = keyDoc;
     };

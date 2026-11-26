@@ -58,7 +58,7 @@ export interface AiKeyChoice {
   source: AiKeySource;
   ownerUid: string | null;
   /** Có trừ ví trả trước không (null = không trừ: chưa bật kiểm soát / khoá riêng / chủ dự án). */
-  billing?: { usdVnd: number; voucher: VoucherRedemption | null; /** Trần tháng giáo viên tự đặt (VNĐ), để kiểm cùng lúc với giữ chỗ tiền. */ capVnd?: number | null } | null;
+  billing?: { usdVnd: number; /** % lãi cộng trên giá hãng (vắng = 0, dữ liệu cũ). */ markupPct?: number; voucher: VoucherRedemption | null; /** Trần tháng giáo viên tự đặt (VNĐ), để kiểm cùng lúc với giữ chỗ tiền. */ capVnd?: number | null } | null;
   /** Khoá RIÊNG của học sinh (`studentAiKeys/{id}`), source = 'own': em tự trả Google, không tính cho thầy cô. */
   studentKeyId?: string;
   /** Khoá VILAO riêng của giáo viên (source = 'own'): lớp chấm Vilao chạy bằng khoá này thay khoá chung. */
@@ -366,7 +366,7 @@ export const recordAiUsage = async (
     if (billable) warnUnpriced(model, priced, choice);
     const costUsd = priced ?? 0;
     // Ví trả trước: lượt này bị trừ bao nhiêu — ghi luôn giá gốc, tỷ giá, % giảm để sao kê tự giải thích.
-    const charge = billable && choice?.billing ? chargeForCall(costUsd, choice.billing.usdVnd, choice.billing.voucher) : null;
+    const charge = billable && choice?.billing ? chargeForCall(costUsd, choice.billing.usdVnd, choice.billing.voucher, choice.billing.markupPct ?? 0) : null;
     if (charge && choice?.billing) {
       Object.assign(record, { costUsd, usdVnd: choice.billing.usdVnd, ...charge });
     }
@@ -421,7 +421,7 @@ export const recordImageUsage = async (
     const priced = billable ? costUsdOfImage(model, String(record.day), images) : null;
     if (billable) warnUnpriced(model, priced, choice);
     const costUsd = priced ?? 0;
-    const charge = billable && choice?.billing ? chargeForCall(costUsd, choice.billing.usdVnd, choice.billing.voucher) : null;
+    const charge = billable && choice?.billing ? chargeForCall(costUsd, choice.billing.usdVnd, choice.billing.voucher, choice.billing.markupPct ?? 0) : null;
     if (charge && choice?.billing) {
       Object.assign(record, { costUsd, usdVnd: choice.billing.usdVnd, ...charge });
     }

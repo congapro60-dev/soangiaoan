@@ -77,8 +77,19 @@ export const bestActiveVoucher = (redemptions: readonly VoucherRedemption[], tod
     .filter(r => r.validFrom <= today && today <= r.validTo)
     .sort((a, b) => b.percent - a.percent)[0] ?? null;
 
+/** Lãi chủ dự án cộng trên giá hãng khi trừ ví (%), mặc định 20%; đặt ở Quản trị → Cài đặt tính tiền. */
+export const DEFAULT_MARKUP_PCT = 20;
+export const normalizeMarkupPct = (value: unknown): number => {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 && n <= 200 ? Math.round(n * 10) / 10 : DEFAULT_MARKUP_PCT;
+};
+
 export interface UsageCharge {
-  /** Giá gốc của lượt (VNĐ, làm tròn). */
+  /** Giá hãng tính cho lượt, chưa cộng lãi (VNĐ, làm tròn) — để Quản trị thấy lãi. */
+  costVnd: number;
+  /** % lãi đã cộng. */
+  markupPct: number;
+  /** Giá bán của lượt = giá hãng + lãi, trước giảm giá (VNĐ, làm tròn). */
   grossVnd: number;
   discountPct: number;
   voucherCode: string | null;
@@ -87,10 +98,14 @@ export interface UsageCharge {
 }
 
 /** Tiền một lượt: gốc = USD × tỷ giá (làm tròn đồng); trừ ví = gốc × (100 − %giảm)/100 (làm tròn đồng). */
-export const chargeForCall = (costUsd: number, usdVnd: number, voucher: VoucherRedemption | null): UsageCharge => {
-  const grossVnd = Math.round(Math.max(0, costUsd) * usdVnd);
+export const chargeForCall = (costUsd: number, usdVnd: number, voucher: VoucherRedemption | null, markupPct = 0): UsageCharge => {
+  const baseVnd = Math.max(0, costUsd) * usdVnd;
+  const pct = Math.max(0, markupPct);
+  const grossVnd = Math.round(baseVnd * (1 + pct / 100));
   const discountPct = voucher ? Math.min(100, Math.max(0, voucher.percent)) : 0;
   return {
+    costVnd: Math.round(baseVnd),
+    markupPct: pct,
     grossVnd,
     discountPct,
     voucherCode: voucher?.code ?? null,

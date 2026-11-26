@@ -212,8 +212,8 @@ export const monthOverview = async (db: Db, month: string): Promise<Record<strin
     db.collection(AI_TOPUPS_COL).where('month', '==', month).get(),
     db.collection(AI_ADJUSTMENTS_COL).where('month', '==', month).get(),
   ]);
-  const rows = new Map<string, { uid: string; calls: number; grossVnd: number; chargeVnd: number; topupVnd: number; adjustVnd: number }>();
-  const row = (uid: string) => rows.get(uid) ?? rows.set(uid, { uid, calls: 0, grossVnd: 0, chargeVnd: 0, topupVnd: 0, adjustVnd: 0 }).get(uid)!;
+  const rows = new Map<string, { uid: string; calls: number; costVnd: number; grossVnd: number; chargeVnd: number; topupVnd: number; adjustVnd: number }>();
+  const row = (uid: string) => rows.get(uid) ?? rows.set(uid, { uid, calls: 0, costVnd: 0, grossVnd: 0, chargeVnd: 0, topupVnd: 0, adjustVnd: 0 }).get(uid)!;
   for (const doc of usageSnap.docs) {
     const d = doc.data();
     if (typeof d.chargeVnd !== 'number' || typeof d.keyOwnerUid !== 'string') continue;
@@ -221,6 +221,8 @@ export const monthOverview = async (db: Db, month: string): Promise<Record<strin
     r.calls += 1;
     r.grossVnd += num(d.grossVnd);
     r.chargeVnd += num(d.chargeVnd);
+    // Lượt cũ (trước khi có phí dịch vụ) không ghi costVnd: giá hãng = giá bán.
+    r.costVnd += typeof d.costVnd === 'number' ? d.costVnd : num(d.grossVnd);
   }
   for (const doc of topupSnap.docs) row(String(doc.data().uid)).topupVnd += num(doc.data().amountVnd);
   for (const doc of adjustSnap.docs) row(String(doc.data().uid)).adjustVnd += num(doc.data().amountVnd);

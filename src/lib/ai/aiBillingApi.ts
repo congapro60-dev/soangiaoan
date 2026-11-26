@@ -32,6 +32,8 @@ export interface AiKeyStatus {
   todayVnd: number;
   todayCalls: number;
   usdVnd: number;
+  /** % phí dịch vụ cộng trên giá hãng khi trừ ví (vắng = bản máy chủ cũ). */
+  markupPct?: number;
   capVnd: number | null;
   gateEnabled: boolean;
   shared: boolean;
@@ -190,6 +192,8 @@ export interface MonthOverviewRow {
   uid: string;
   email: string;
   calls: number;
+  /** Giá hãng AI tính (chưa cộng phí dịch vụ). */
+  costVnd?: number;
   grossVnd: number;
   chargeVnd: number;
   topupVnd: number;

@@ -14,7 +14,7 @@ import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb } from './_exam-core.js';
 import { AI_SPEND_COL, aiSpendDocId, currentAiUsageContext, vnDate, type AiKeyChoice } from './_ai-usage.js';
-import { billingPlanFor, loadUsdVnd, redeemVoucher, walletView } from './_ai-wallet.js';
+import { billingPlanFor, loadMarkupPct, loadUsdVnd, redeemVoucher, walletView } from './_ai-wallet.js';
 import {
   AI_KEY_MODES,
   blockReasonText,
@@ -407,13 +407,14 @@ const probeGeminiKey = async (key: string): Promise<{ ok: true } | { ok: false; 
 
 const statusPayload = async (db: Db, uid: string, email: string): Promise<Record<string, unknown>> => {
   const { day, month } = vnDate(new Date());
-  const [access, keyDoc, blocked, spend, usdVnd, wallet] = await Promise.all([
+  const [access, keyDoc, blocked, spend, usdVnd, wallet, markupPct] = await Promise.all([
     loadAiAccess(db),
     loadKeyDoc(db, uid),
     db.collection('submissions').where('teacherId', '==', uid).where('aiBlocked', '==', true).get(),
     monthSpend(db, uid, month, day),
     loadUsdVnd(db),
     walletView(db, uid, email),
+    loadMarkupPct(db),
   ]);
   const exemptAccount = await isExemptUid(access, uid);
   const testing = exemptAccount && keyDoc?.testCharge === true;
@@ -435,6 +436,8 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     todayVnd: charged ? spend.today.chargeVnd : usdToVndRounded(spend.today.costUsd, usdVnd),
     todayCalls: spend.today.calls,
     usdVnd,
+    /** % phí dịch vụ cộng trên giá hãng khi trừ ví. */
+    markupPct,
     capVnd: typeof keyDoc?.monthlyCapVnd === 'number' && keyDoc.monthlyCapVnd > 0 ? keyDoc.monthlyCapVnd : null,
     gateEnabled: access.enabled,
     shared: await isSharedUid(access, uid),
