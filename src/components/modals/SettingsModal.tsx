@@ -34,6 +34,7 @@ import { KeyRotationCard, OwnKeysField, ownKeyRowsOf, ownKeysPatch } from '../fe
 import { SINGLE_KEY_FIELD } from '../../lib/ownKeyRotation';
 import { auth } from '../../lib/firebase';
 import { cancelTelegramLinkCode, createTelegramLinkCode, listChannelLinks, revokeTelegramLink, type LinkSummary } from '../../services/telegramLinkService';
+import { ZaloBotSelfGuide } from '../features/settings/ZaloBotSelfGuide';
 
 const DRIVE_FOLDER_FIELDS: { key: DriveFolderKey; label: string }[] = [
   { key: 'tdsG10', label: 'TDS · Lớp 10' },
@@ -638,6 +639,7 @@ export const SettingsModal = ({
                   </div>
                   {linkCode ? <div className="mt-4 flex flex-wrap items-center gap-2"><code className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold tracking-widest text-slate-800">{linkCode.code}</code><button type="button" className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white" onClick={() => navigator.clipboard.writeText(linkCode.code).then(() => showToast('Đã chép mã liên kết'))}>Copy</button><button type="button" className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { await cancelTelegramLinkCode(auth.currentUser, linkCode.linkId); setLinkCode(null); showToast('Đã thu hồi mã liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể thu hồi mã'); } finally { setLinkBusy(false); } }}>Thu hồi</button></div> : <button type="button" className="mt-4 rounded-xl bg-[var(--dewey-blue)] px-4 py-2 text-sm font-bold text-white" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { setLinkCode(await createTelegramLinkCode(auth.currentUser)); showToast('Đã tạo mã liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể tạo mã'); } finally { setLinkBusy(false); } }}>{linkBusy ? 'Đang tạo…' : 'Tạo mã liên kết'}</button>}
                 </section>
+                <ZaloBotSelfGuide />
               </div>
             </div>
 
