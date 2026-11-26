@@ -234,7 +234,7 @@ process.env.GRADING_GEMINI_API_KEY = OWNER_KEY;
 
   it('đã bật kiểm soát + đã đồng ý + chọn "chỉ ví web": dùng khoá chung dù có khoá riêng, TRỪ VÍ đúng giá, cộng "hôm nay"', async () => {
     h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
-    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000, markupPct: 0 };
     h.store['aiWallets/gv-1'] = { balanceVnd: 50_000 };
     h.store['teacherAiKeys/gv-1'] = { geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true }, mode: 'wallet' };
         const fetchMock = vilaoOk();
@@ -359,7 +359,7 @@ describe('relay cho Claude / ChatGPT (ví web trả cho hãng khác Gemini)', ()
     vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: text }, finish_reason: finish }], usage }) }));
   const wallet = (mode: string, extra: DocData = {}) => {
     h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
-    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000, markupPct: 0 };
     h.store['aiWallets/gv-1'] = { balanceVnd: 50_000 };
     h.store['teacherAiKeys/gv-1'] = { consent: { accepted: true }, mode, ...extra };
   };
