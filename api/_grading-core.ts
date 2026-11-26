@@ -896,7 +896,8 @@ export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): Gra
     chain.push({
       name: `xkiro/${xkiroOptions.model}`,
       tier: 're',
-      maxMs: 60_000,
+      // 26/11: model GPT trên xKiro chấm bài 3 trang mất 75–85 giây (đo thật); 60 giây cắt mất lượt chấm.
+      maxMs: 150_000,
       call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, xkiroKey, { ...xkiroOptions, ...options }, segment, { provider: 'xkiro', model: `xkiro/${xkiroOptions.model}` }),
     });
   }
