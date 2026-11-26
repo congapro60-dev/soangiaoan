@@ -177,3 +177,43 @@ describe('chuỗi chấm Vilao/xKiro — ghi sổ + giữ chỗ + trừ ví như
     expect(Object.keys(h.store).some(p => p.startsWith('aiWallets/'))).toBe(false);
   });
 });
+
+/** Giáo viên dùng KHOÁ RIÊNG: không được chạy bằng khoá chung của chủ dự án. */
+const asOwnKeyTeacher = <T,>(fn: () => Promise<T>, extra: { key?: string; vilaoKey?: string } = {}): Promise<T> => {
+  const context = createAiUsageContext('t', 'gradeHomework', { classId: 'lop-1' }, async () => ({ uid: 'gv-2', email: 'gv2@x.vn', anonymous: false }));
+  context.keyChoice = { key: extra.key ?? '', source: 'own', ownerUid: 'gv-2', billing: null, ...(extra.vilaoKey ? { vilaoKey: extra.vilaoKey } : {}) };
+  return runWithAiUsage(context, fn);
+};
+
+describe('khoá riêng không dùng khoá chung của chủ dự án', () => {
+  it('có khoá Vilao riêng: lớp Vilao chạy bằng khoá đó, bỏ tiền tố nhà bán', async () => {
+    vi.stubEnv('GRADING_VILAO_MODEL', 'spd/gemini-3.8-flash-high');
+    const fetchMock = vilaoOk();
+    vi.stubGlobal('fetch', fetchMock);
+    await asOwnKeyTeacher(() => callGradingVision('p', [], { timeoutMs: 60_000 }), { vilaoKey: 'sk-rieng-cua-gv' });
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string>; body: string }];
+    expect(init.headers.Authorization).toBe('Bearer sk-rieng-cua-gv');
+    expect(JSON.parse(init.body).model).toBe('gemini-3.8-flash-high');
+    vi.unstubAllGlobals();
+  });
+
+  it('chỉ có khoá Gemini riêng: bỏ qua lớp Vilao khoá chung, chấm bằng khoá Gemini của giáo viên', async () => {
+    const urls: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      urls.push(String(url));
+      return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ text: '{"score":8}' }] }, finishReason: 'STOP' }], usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 1 } }) };
+    }));
+    await asOwnKeyTeacher(() => callGradingVision('p', [], { timeoutMs: 60_000 }), { key: 'AIza-rieng' });
+    expect(urls.some(u => u.includes('vilao'))).toBe(false);
+    expect(urls.some(u => u.includes('key=AIza-rieng'))).toBe(true);
+    vi.unstubAllGlobals();
+  });
+
+  it('khoá Vilao riêng hỏng không gác lớp Vilao của mọi người', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 401, text: async () => 'invalid key', json: async () => ({}) })));
+    await asOwnKeyTeacher(() => callGradingVision('p', [], { timeoutMs: 60_000 }), { vilaoKey: 'sk-hong' }).catch(() => undefined);
+    const { orderByHealth, getGradingChain } = await import('../_grading-core.js');
+    expect(orderByHealth(getGradingChain())[0].name).toMatch(/^vilao\//);
+    vi.unstubAllGlobals();
+  });
+});

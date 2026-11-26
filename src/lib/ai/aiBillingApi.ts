@@ -37,6 +37,9 @@ export interface AiKeyStatus {
   shared: boolean;
   hasKey: boolean;
   last4: string;
+  /** Khoá Vilao riêng (máy chủ chấm bài bằng khoá này cho chính giáo viên). */
+  hasVilaoKey?: boolean;
+  vilaoLast4?: string;
   keyStatus: 'ok' | 'exhausted' | 'invalid' | null;
   keyStatusAt: string | null;
   consent: boolean;
@@ -59,8 +62,8 @@ export interface AiKeyStatus {
 }
 
 export const getAiKeyStatus = (options: { quiet?: boolean } = {}) => call<AiKeyStatus>({ action: 'aiKeyStatus' }, options.quiet);
-export const saveAiKey = (key: string) => call<AiKeyStatus>({ action: 'saveAiKey', key });
-export const deleteAiKey = () => call<AiKeyStatus>({ action: 'deleteAiKey' });
+export const saveAiKey = (key: string, provider?: 'vilao') => call<AiKeyStatus>({ action: 'saveAiKey', key, ...(provider ? { provider } : {}) });
+export const deleteAiKey = (provider?: 'vilao') => call<AiKeyStatus>({ action: 'deleteAiKey', ...(provider ? { provider } : {}) });
 /** `accepted` = giáo viên đã tích đồng ý tính phí (bắt buộc lần đầu chọn ví/cả hai, trừ người trong nhóm). */
 export const setAiMode = (mode: AiKeyMode, accepted = false) => call<AiKeyStatus>({ action: 'setAiMode', mode, ...(accepted ? { accepted: true } : {}) });
 /** Chủ dự án bật/tắt "Thử trừ ví": bị tính tiền như giáo viên thường để tự kiểm thử. Người khác gọi thì máy chủ trả 403. */

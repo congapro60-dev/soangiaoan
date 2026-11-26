@@ -47,6 +47,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [keyInput, setKeyInput] = useState('');
+  const [vilaoInput, setVilaoInput] = useState('');
   const [voucherInput, setVoucherInput] = useState('');
   const [capInput, setCapInput] = useState('');
   const [pendingMode, setPendingMode] = useState<AiKeyMode | null>(null);
@@ -232,6 +233,23 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
               className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-black text-white hover:bg-slate-900 disabled:opacity-50">
               {busy === 'key' && <Loader2 className="h-3.5 w-3.5 animate-spin" />} {status.hasKey ? 'Thay khoá' : 'Lưu khoá'}
             </button>
+          </div>
+          <div className="mt-3 border-t border-slate-100 pt-3">
+            <p className="text-xs font-black text-slate-700">Khoá Vilao riêng (tuỳ chọn)</p>
+            <p className="mt-0.5 text-[11px] font-semibold leading-4 text-slate-500">Có tài khoản Vilao thì dán khoá (sk-…). Máy chủ chấm bài cho lớp của thầy/cô bằng khoá này, tiền trừ ở ví Vilao của thầy/cô, không trừ ví web. Khoá cần đăng ký model gemini-3.8-flash trên Vilao.</p>
+            {status.hasVilaoKey ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                <span className="font-mono font-black text-slate-800">…{status.vilaoLast4}</span>
+                <button type="button" disabled={Boolean(busy)} onClick={() => void run('delvilao', () => deleteAiKey('vilao'), 'Đã gỡ khoá Vilao riêng.')} className="rounded-lg px-2 py-1 text-xs font-black text-slate-500 hover:bg-slate-100">Gỡ khoá</button>
+              </div>
+            ) : null}
+            <div className="mt-2 flex flex-wrap gap-2">
+              <input value={vilaoInput} onChange={event => setVilaoInput(event.target.value)} placeholder="Dán khoá Vilao sk-…" type="password" autoComplete="off" className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold outline-none focus:border-indigo-400" />
+              <button type="button" disabled={!vilaoInput.trim() || Boolean(busy)} onClick={() => void run('vilao', () => saveAiKey(vilaoInput, 'vilao'), 'Đã lưu khoá Vilao riêng (máy chủ giữ, không hiện lại).').then(() => setVilaoInput(''))}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-black text-white hover:bg-slate-900 disabled:opacity-50">
+                {busy === 'vilao' && <Loader2 className="h-3.5 w-3.5 animate-spin" />} {status.hasVilaoKey ? 'Thay khoá' : 'Lưu khoá'}
+              </button>
+            </div>
           </div>
         </section>
 

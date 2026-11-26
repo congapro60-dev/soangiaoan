@@ -20,7 +20,8 @@ export const aiBannerMessage = (status: AiKeyStatus): AiBannerMessage | null => 
   if (blocked > 0) return { text: `Có ${blocked} bài học sinh đang chờ chấm vì AI tạm dừng.`, urgent: true };
   if (!status.gateEnabled || status.exempt) return null;
 
-  const ownKeyOk = status.hasKey && status.keyStatus === 'ok';
+  // Khoá Vilao riêng cũng là khoá riêng hợp lệ: người chỉ có khoá Vilao không bị nhắc "cần khoá".
+  const ownKeyOk = (status.hasKey && status.keyStatus === 'ok') || Boolean(status.hasVilaoKey);
   // Chế độ "chỉ khoá riêng" mà khoá không dùng được → AI dừng; nhắc sửa khoá hoặc chuyển sang ví web.
   if (status.mode === 'own' && !ownKeyOk) {
     return {

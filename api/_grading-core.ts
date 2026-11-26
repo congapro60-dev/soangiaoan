@@ -354,6 +354,8 @@ const callGeminiRawHeld = async (
 
   // Khoá theo request: nhóm dùng khoá chung / khoá riêng của giáo viên / khoá chung đã đồng ý tính phí.
   let keyChoice = await ensureGeminiKey(apiKey);
+  // Giáo viên chỉ có khoá Vilao riêng (không có khoá Gemini riêng): lớp Gemini không có khoá để chạy → bỏ qua lớp.
+  if (keyChoice.source === 'own' && !keyChoice.key) throw new SkipTierError('Chưa có khoá Gemini riêng.');
   let res: Response;
   // MỘT hạn chót cho cả lượt (kể cả lần gọi lại sau khi khoá riêng hỏng): mỗi lần gọi chỉ được dùng phần thời gian còn lại,
   // nếu không hai lần cộng lại vượt trần thời gian của hàm và Vercel giết hàm giữa chừng (QA F4).
@@ -633,6 +635,15 @@ const nhoiSegment = (
  * `meter` (các lớp của chuỗi chấm): cùng luật khoá/ví/trần như lớp Gemini — chọn người chịu phí, giữ chỗ tiền trước
  * khi gọi, ghi lượt + trừ ví khi có phản hồi (kể cả bị cắt), trả lại phần giữ khi lượt hỏng trước bước đó.
  */
+/**
+ * Lớp chấm này không áp cho người gọi (vd: giáo viên dùng khoá riêng → lớp chạy bằng khoá CHUNG phải bỏ qua),
+ * hoặc khoá RIÊNG của giáo viên hỏng ở lớp này. Không phải lỗi của nguồn: chuỗi chấm thử lớp kế, KHÔNG gác lớp
+ * (cầu dao dùng chung cho mọi người).
+ */
+export class SkipTierError extends Error {
+  constructor(message: string) { super(message); this.name = 'SkipTierError'; }
+}
+
 export const callOpenAiCompatibleVision = async (
   prompt: string,
   images: InlineImage[],
@@ -646,6 +657,16 @@ export const callOpenAiCompatibleVision = async (
   if (meter) {
     // Khoá dự phòng là khoá GEMINI: lựa chọn được cache cho cả request, lớp Google phía sau dùng lại `choice.key`.
     const choice = await ensureGeminiKey(process.env.GRADING_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '');
+    // Khoá riêng: KHÔNG chạy bằng khoá chung của chủ dự án. Vilao + có khoá Vilao riêng → chạy bằng khoá đó; còn lại bỏ qua lớp.
+    if (choice.source === 'own') {
+      if (meter.provider !== 'vilao' || !choice.vilaoKey) throw new SkipTierError('Lớp này dùng khoá chung — giáo viên đang dùng khoá riêng.');
+      try {
+        return await callOpenAiCompatibleVisionHeld(prompt, images, choice.vilaoKey, { ...options, model: ownVilaoModel(options.model) }, deadline, hold, segment, meter);
+      } catch (error) {
+        // Mọi lỗi của khoá RIÊNG chỉ làm bỏ qua lớp này — không được gác lớp chấm chung của mọi người.
+        throw new SkipTierError(`Khoá Vilao riêng chưa chấm được: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);
+      }
+    }
     const held = await acquireCallHoldWaiting(choice, deadline);
     if (held.ok === false && held.reason === 'timeout') {
       throw new GeminiResponseError('provider', 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại sau ít phút.');
@@ -662,6 +683,9 @@ export const callOpenAiCompatibleVision = async (
     }
   }
 };
+
+/** Khoá Vilao riêng không đăng ký đúng nhà bán của chủ dự án (vd `spd/…`): bỏ tiền tố, Vilao tự chọn nhà bán khoá đó đã mua. */
+const ownVilaoModel = (model: string): string => model.replace(/^[a-z0-9]+\//i, '');
 
 const callOpenAiCompatibleVisionHeld = async (
   prompt: string,
@@ -997,6 +1021,11 @@ const runChain = async (
     } catch (error) {
       // Bị chặn vì khoá/ví/trần của người chịu phí: lớp kế cùng luật, thử tiếp chỉ tốn thời gian.
       if (error instanceof AiKeyRequiredError) throw error;
+      if (error instanceof SkipTierError) {
+        // Không phải nguồn hỏng: không gác lớp. Giữ lỗi khoá riêng (nếu có) để báo đúng lí do khi hết lớp.
+        if (!lastError || /Khoá Vilao riêng/.test(error.message)) lastError = error;
+        continue;
+      }
       lastError = error;
       markDown(adapter.name);
       console.warn(`[grading-chain] ${adapter.name} hỏng, gác ${COOLDOWN_MS / 60_000} phút, thử lớp kế: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);

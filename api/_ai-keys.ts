@@ -58,6 +58,9 @@ export interface AiAccessSettings {
 
 interface TeacherKeyDoc {
   geminiKey?: string;
+  /** Khoá Vilao riêng (sk-…): máy chủ chấm bằng khoá này cho CHÍNH giáo viên, không dùng cho ai khác. */
+  vilaoKey?: string;
+  vilaoLast4?: string;
   last4?: string;
   keyStatus?: AiKeyStatus;
   keyStatusAt?: string;
@@ -295,12 +298,12 @@ export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: b
   const decision = decideAiKey({
     gateEnabled: true,
     isShared: await isSharedUid(access, ownerUid),
-    ownKey: !options.vendor && keyDoc?.geminiKey ? { status: keyDoc.keyStatus ?? 'ok', statusAt: keyDoc.keyStatusAt } : null,
+    ownKey: !options.vendor && (keyDoc?.geminiKey || keyDoc?.vilaoKey) ? { status: keyDoc?.geminiKey ? keyDoc.keyStatus ?? 'ok' : 'ok', statusAt: keyDoc?.keyStatusAt } : null,
     consent: keyDoc?.consent?.accepted === true,
     mode: keyDoc?.mode,
   });
   if (decision.use === 'blocked') throw new AiKeyRequiredError(decision.reason, ownerUid);
-  if (decision.use === 'own') return (context.keyChoice = { key: String(keyDoc?.geminiKey), source: 'own', ownerUid, billing: null });
+  if (decision.use === 'own') return (context.keyChoice = { key: String(keyDoc?.geminiKey || ''), source: 'own', ownerUid, billing: null, ...(keyDoc?.vilaoKey ? { vilaoKey: keyDoc.vilaoKey } : {}) });
   const billing = withCap(await billingFor(db, access, ownerUid, keyDoc), keyDoc);
   await assertUnderCap(db, ownerUid, keyDoc, Boolean(billing));
   return (context.keyChoice = { key: fallbackKey, source: decision.use, ownerUid, billing });
@@ -437,6 +440,8 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     shared: await isSharedUid(access, uid),
     hasKey: Boolean(keyDoc?.geminiKey),
     last4: keyDoc?.last4 ?? '',
+    hasVilaoKey: Boolean(keyDoc?.vilaoKey),
+    vilaoLast4: keyDoc?.vilaoLast4 ?? '',
     keyStatus: keyDoc?.geminiKey ? keyDoc.keyStatus ?? 'ok' : null,
     keyStatusAt: keyDoc?.keyStatusAt ?? null,
     /** Hãng khác Gemini mà ví web trả được (đã cấu hình khoá trên máy chủ). */
@@ -451,6 +456,20 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
   };
 };
 
+/** Thử khoá Vilao bằng GET /models (không tốn tiền): khoá phải còn sống và đã đăng ký ít nhất một model chấm được ảnh. */
+const probeVilaoKey = async (key: string): Promise<{ ok: true } | { ok: false; message: string }> => {
+  try {
+    const res = await fetch(`${process.env.GRADING_VILAO_BASE_URL?.trim() || 'https://api.vilao.ai/v1'}/models`, { headers: { Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(15_000) });
+    if (res.status === 401 || res.status === 403) return { ok: false, message: 'Vilao từ chối khoá này (sai hoặc đã bị thu hồi).' };
+    if (!res.ok) return { ok: false, message: `Chưa kiểm được khoá với Vilao (HTTP ${res.status}). Thử lại sau ít phút.` };
+    const ids = ((await res.json()) as { data?: { id?: string }[] }).data?.map(m => String(m.id || '')) ?? [];
+    if (!ids.some(id => /gemini|deepseek/i.test(id))) return { ok: false, message: 'Khoá chưa đăng ký model chấm được ảnh. Vào Vilao → API Keys → Thêm model, đăng ký gemini-3.8-flash rồi lưu lại.' };
+    return { ok: true };
+  } catch {
+    return { ok: false, message: 'Không kết nối được Vilao để kiểm khoá. Thử lại sau ít phút.' };
+  }
+};
+
 export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
   const action = String(body.action || '');
   if (!['aiKeyStatus', 'saveAiKey', 'deleteAiKey', 'setAiConsent', 'setAiMode', 'setAiSpendCap', 'redeemVoucher', 'setAiTestCharge'].includes(action)) return false;
@@ -462,7 +481,21 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
   const ref = db.collection(TEACHER_AI_KEYS_COL).doc(me.uid);
   const now = new Date().toISOString();
 
-  if (action === 'saveAiKey') {
+  if (action === 'saveAiKey' && body.provider === 'vilao') {
+    const key = typeof body.key === 'string' ? body.key.trim() : '';
+    if (!/^sk-[A-Za-z0-9_-]{20,}$/.test(key)) {
+      res.status(422).json({ error: 'Khoá chưa đúng dạng. Khoá Vilao lấy ở vilao.ai → Console → API Keys, bắt đầu bằng "sk-".' });
+      return true;
+    }
+    const probe = await probeVilaoKey(key);
+    if (probe.ok === false) {
+      res.status(422).json({ error: probe.message });
+      return true;
+    }
+    await ref.set({ uid: me.uid, email: me.email, vilaoKey: key, vilaoLast4: maskKey(key), updatedAt: now }, { merge: true });
+  } else if (action === 'deleteAiKey' && body.provider === 'vilao') {
+    await ref.set({ uid: me.uid, vilaoKey: '', vilaoLast4: '', updatedAt: now }, { merge: true });
+  } else if (action === 'saveAiKey') {
     const key = typeof body.key === 'string' ? body.key.trim() : '';
     if (!looksLikeGeminiKey(key)) {
       res.status(422).json({ error: 'Khoá chưa đúng dạng. Khoá Gemini lấy ở aistudio.google.com, bắt đầu bằng "AIza" hoặc "AQ.".' });

@@ -61,6 +61,8 @@ export interface AiKeyChoice {
   billing?: { usdVnd: number; voucher: VoucherRedemption | null; /** Trần tháng giáo viên tự đặt (VNĐ), để kiểm cùng lúc với giữ chỗ tiền. */ capVnd?: number | null } | null;
   /** Khoá RIÊNG của học sinh (`studentAiKeys/{id}`), source = 'own': em tự trả Google, không tính cho thầy cô. */
   studentKeyId?: string;
+  /** Khoá VILAO riêng của giáo viên (source = 'own'): lớp chấm Vilao chạy bằng khoá này thay khoá chung. */
+  vilaoKey?: string;
 }
 
 export interface AiTokenCounts {
