@@ -888,13 +888,13 @@ export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): Gra
       model: process.env.GRADING_VILAO_MODEL?.trim() || 'gemini-3.8-flash',
       reasoningEffort: 'none',
     };
-    // 26/11: trần 240s/lớp (bài 4 ảnh thật mất 59–160s; trần 120s cũ cắt mất lượt khi người bán chậm).
+    // 26/11: trần 300s/lớp — bài nhiều câu khiến model viết 13–33 nghìn token (2–6 phút); trần 120s cũ cắt mất lượt.
     const vilaoModels = [vilaoOptions.model, ...vilaoBackupModels()];
     for (const model of vilaoModels) {
       chain.push({
         name: `vilao/${model}`,
         tier: 're',
-        maxMs: 240_000,
+        maxMs: 300_000,
         call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...vilaoOptions, model, ...options }, segment, { provider: 'vilao', model: `vilao/${model}` }),
       });
     }

@@ -75,8 +75,9 @@ describe('getGradingChain — thứ tự lớp dự phòng', () => {
       'vilao/deepseek-v4.1-flash',
       expect.stringMatching(/^gemini\//),
     ]);
-    // Bài 4 ảnh thật mất 59–160s ở một lớp: trần mỗi lớp Vilao 240s.
-    expect(chain.slice(0, 3).every(a => a.maxMs === 240_000)).toBe(true);
+    // Bài nhiều câu mất 2–6 phút ở một lớp: người bán Gemini 300s, deepseek 240s.
+    expect(chain.slice(0, 2).every(a => a.maxMs === 300_000)).toBe(true);
+    expect(chain[2].maxMs).toBe(240_000);
   });
 
   it('thiếu key xKiro thì chuỗi bỏ lớp đó, không vỡ', () => {

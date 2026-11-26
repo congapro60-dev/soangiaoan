@@ -281,7 +281,7 @@ describe('practice set/attempt privacy and persistence', () => {
     }));
   });
 
-  it('submitPractice cho retry attempt grading đã stale (quá 11 phút)', async () => {
+  it('submitPractice cho retry attempt grading đã stale (quá 15 phút)', async () => {
     const db = seedStudentDb();
     db.state.practiceSets = {
       'set-1': {
@@ -301,7 +301,7 @@ describe('practice set/attempt privacy and persistence', () => {
       'attempt-stale': {
         id: 'attempt-stale', setId: 'set-1', studentId: 'student-1', classId: 'class-1', teacherId: 'teacher-1',
         answers: { q1: 'x = 2' }, status: 'grading', evidenceType: 'practice',
-        createdAt: '2026-08-24T10:00:00.000Z', updatedAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
+        createdAt: '2026-08-24T10:00:00.000Z', updatedAt: new Date(Date.now() - 16 * 60 * 1000).toISOString(),
       },
     };
     initializeAdmin.mockReturnValue(db);

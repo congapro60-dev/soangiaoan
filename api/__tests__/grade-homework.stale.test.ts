@@ -90,7 +90,7 @@ describe('gradeAssignment · stale grading recovery', () => {
       submissions: {
         'stale-1': {
           assignmentId: 'assignment-1', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1',
-          status: 'grading', updatedAt: new Date(now - 11 * 60 * 1000).toISOString(), fileUrls: [],
+          status: 'grading', updatedAt: new Date(now - 16 * 60 * 1000).toISOString(), fileUrls: [],
         },
         'fresh-1': {
           assignmentId: 'assignment-1', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-2',
@@ -112,7 +112,7 @@ describe('gradeAssignment · stale grading recovery', () => {
     expect(state.jsonBody).toEqual({ graded: 0, failed: 0, recovered: 1, remaining: 1 });
   });
 
-  it('khoá 3 phút tuổi vẫn là khoá TƯƠI — hàm chấm được sống tới 300s nên worker có thể còn chạy', async () => {
+  it('khoá 3 phút tuổi vẫn là khoá TƯƠI — hàm chấm được sống tới 840s nên worker có thể còn chạy', async () => {
     const now = Date.now();
     const db = makeDb({
       assignments: {
@@ -134,7 +134,7 @@ describe('gradeAssignment · stale grading recovery', () => {
     expect(db.state.submissions['dang-chay-1']).toMatchObject({ status: 'grading' });
   });
 
-  it('khoá chết sau 11 phút đã được gỡ — không bắt lớp treo "Đang chấm" mãi', async () => {
+  it('khoá chết sau 15 phút đã được gỡ — không bắt lớp treo "Đang chấm" mãi', async () => {
     const now = Date.now();
     const db = makeDb({
       assignments: {
@@ -143,8 +143,8 @@ describe('gradeAssignment · stale grading recovery', () => {
       submissions: {
         'chet-1': {
           assignmentId: 'assignment-1', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1',
-          // Hàm chấm bị Vercel giết ở 300s, nên khoá 7 phút tuổi chắc chắn là khoá chết.
-          status: 'grading', updatedAt: new Date(now - 12 * 60 * 1000).toISOString(), fileUrls: [],
+          // Hàm chấm dừng ở 840s, nên khoá 16 phút tuổi chắc chắn là khoá chết.
+          status: 'grading', updatedAt: new Date(now - 16 * 60 * 1000).toISOString(), fileUrls: [],
         },
       },
     });
