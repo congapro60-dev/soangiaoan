@@ -18,7 +18,7 @@ NPM = 'npm.cmd' if sys.platform == 'win32' else 'npm'
 
 SECRET_NAMES = [
     'FIREBASE_SERVICE_ACCOUNT_KEY', 'AUTO_GRADE_CRON_SECRET',
-    'GRADING_VILAO_API_KEY', 'GRADING_XKIRO_API_KEY', 'TEXT_PSHARE_API_KEY', 'TEXT_OPENCODE_API_KEY',
+    'GRADING_VILAO_API_KEY', 'TEXT_PSHARE_API_KEY', 'TEXT_OPENCODE_API_KEY',
     'DEEPSEEK_FALLBACK_KEYS', 'GEMINI_API_KEY', 'GRADING_GEMINI_API_KEY', 'SEPAY_WEBHOOK_KEY',
     'ZALO_BOT_ID', 'ZALO_BOT_TOKEN', 'ZALO_BOT_WEBHOOK_SECRET', 'ZALO_BOT_ALLOWED_IDS',
 ]
@@ -28,8 +28,7 @@ PLAIN_ENV = {
     'ZALO_DEADLINE_REAL_APPROVED': 'false',
     # 22/11: chib/gemini-3.8-flash trên Vilao "không khả dụng" -> chấm bài trả rỗng; cùng model bot đang chạy.
     'GRADING_VILAO_MODEL': 'spd/gemini-3.8-flash-high',
-    # 26/11: xkiro bỏ google/gemini-3.8-flash (404); gpt-6.1-terra đọc ảnh đúng (thử 26/11). Vilao chờ chủ máy xác nhận giá mới (423).
-    'GRADING_XKIRO_MODEL': 'z-ai/glm-5v-turbo;openai/gpt-6.1-terra',
+    # 26/11: bỏ hẳn xKiro (chủ máy chốt) — model GPT/GLM quá giờ với bài thật.
 }
 
 
