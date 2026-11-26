@@ -888,18 +888,19 @@ export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): Gra
   }
   const xkiroKey = process.env.GRADING_XKIRO_API_KEY?.trim();
   if (xkiroKey) {
-    const xkiroOptions: OpenAiVisionOptions = {
-      baseUrl: process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1',
-      // 30/10/2026: bỏ qwen3.8-max:free — đo trên 54 bài GHKI quá giờ 5/6 lượt. Dùng Gemini Flash (trừ gói xKiro).
-      model: process.env.GRADING_XKIRO_MODEL?.trim() || 'google/gemini-3.8-flash',
-    };
-    chain.push({
-      name: `xkiro/${xkiroOptions.model}`,
-      tier: 're',
-      // 26/11: model GPT trên xKiro chấm bài 3 trang mất 75–85 giây (đo thật); 60 giây cắt mất lượt chấm.
-      maxMs: 150_000,
-      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, xkiroKey, { ...xkiroOptions, ...options }, segment, { provider: 'xkiro', model: `xkiro/${xkiroOptions.model}` }),
-    });
+    // 30/10/2026: bỏ qwen3.8-max:free — đo trên 54 bài GHKI quá giờ 5/6 lượt.
+    // 26/11: GRADING_XKIRO_MODEL nhận nhiều model cách nhau dấu chấm phẩy — model đầu quá tải (503) thì thử model kế.
+    const xkiroModels = (process.env.GRADING_XKIRO_MODEL?.trim() || 'google/gemini-3.8-flash').split(/[;,]/).map(m => m.trim()).filter(Boolean);
+    for (const model of xkiroModels) {
+      const xkiroOptions: OpenAiVisionOptions = { baseUrl: process.env.GRADING_XKIRO_BASE_URL?.trim() || 'https://api.xkiro.com/v1', model };
+      chain.push({
+        name: `xkiro/${model}`,
+        tier: 're',
+        // 26/11: model GPT trên xKiro chấm bài 3 trang mất 75–85 giây (đo thật); 60 giây cắt mất lượt chấm.
+        maxMs: 150_000,
+        call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, xkiroKey, { ...xkiroOptions, ...options }, segment, { provider: 'xkiro', model: `xkiro/${model}` }),
+      });
+    }
   }
   if (vilaoKey) {
     // Đo 30/10/2026: hai nhà bán Gemini khác trên Vilao (Codely, Butterfly) quá giờ 10/11 lượt, xKiro Gemini
