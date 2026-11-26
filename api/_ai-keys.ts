@@ -303,10 +303,15 @@ export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: b
     mode: keyDoc?.mode,
   });
   if (decision.use === 'blocked') throw new AiKeyRequiredError(decision.reason, ownerUid);
-  if (decision.use === 'own') return (context.keyChoice = { key: String(keyDoc?.geminiKey || ''), source: 'own', ownerUid, billing: null, ...(keyDoc?.vilaoKey ? { vilaoKey: keyDoc.vilaoKey } : {}) });
+  // Hướng B (26/11): lượt có dữ liệu học sinh không đi qua khoá Gemini riêng (có thể là bản miễn phí) khi giáo viên được
+  // dùng khoá chung / ví ("cả hai" hoặc nhóm chủ dự án). Khoá Vilao riêng (trả phí) vẫn dùng như cũ.
+  const skipOwnGemini = decision.use === 'own' && context.studentData === true && !keyDoc?.vilaoKey
+    && effectiveAiMode({ mode: keyDoc?.mode, isShared: await isSharedUid(access, ownerUid), consent: keyDoc?.consent?.accepted === true }) === 'both';
+  if (decision.use === 'own' && !skipOwnGemini) return (context.keyChoice = { key: String(keyDoc?.geminiKey || ''), source: 'own', ownerUid, billing: null, ...(keyDoc?.vilaoKey ? { vilaoKey: keyDoc.vilaoKey } : {}) });
   const billing = withCap(await billingFor(db, access, ownerUid, keyDoc), keyDoc);
   await assertUnderCap(db, ownerUid, keyDoc, Boolean(billing));
-  return (context.keyChoice = { key: fallbackKey, source: decision.use, ownerUid, billing });
+  const source = decision.use === 'own' ? (await isSharedUid(access, ownerUid) ? 'shared' : 'owner_consent') : decision.use;
+  return (context.keyChoice = { key: fallbackKey, source, ownerUid, billing });
 };
 
 /**

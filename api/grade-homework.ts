@@ -2374,6 +2374,7 @@ const handleAutoGradeSweep = async (req: VercelRequest, res: VercelResponse) => 
       // Mỗi bài một ngữ cảnh đếm token riêng: tiền tính cho giáo viên chủ bài, sao kê ghi đúng lớp/bài/em.
       const usage = createAiUsageContext(null, 'autoGrade', { submissionId: submission.id, classId, assignmentId, studentId: submission.studentId },
         async () => ({ uid: null, email: null, anonymous: false }));
+      usage.studentData = true;
       try {
         const result = await runWithAiUsage(usage, async () => {
           setAiKeyOwner(submission.teacherId);
@@ -2427,6 +2428,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const result = await runGradingRefreshItem(db, String(readBody(req).jobId || ''), async (submission, _assignment, bypassDailyQuota) => {
         const usage = createAiUsageContext(null, 'teacherRefresh', { submissionId: submission.id, classId: submission.classId, assignmentId: submission.assignmentId },
           async () => ({ uid: submission.teacherId, email: null, anonymous: false }));
+        usage.studentData = true;
         return runWithAiUsage(usage, async () => {
           setAiKeyOwner(submission.teacherId);
           try {
@@ -2458,6 +2460,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // kèm người gọi + mã lớp/bài. Gateway gửi token qua header Bearer thay vì body.
   const usageToken = action === 'aiGateway' ? getBearerToken(req.headers.authorization) : body.idToken;
   const usageContext = createAiUsageContext(usageToken, action, body as Record<string, unknown>);
+  usageContext.studentData = true; // mọi việc ở đây chạm bài làm/điểm học sinh (hướng B, 26/11)
   return runWithAiUsage(usageContext, () => dispatchGradeHomework(req, res, body, action));
 }
 

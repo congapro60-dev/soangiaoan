@@ -50,6 +50,11 @@ export interface AiUsageContext {
   keyOwnerUid?: string | null;
   /** Khoá đã chọn cho request này (xem `_ai-keys.ts`); cache để mọi lượt gọi trong request dùng chung. */
   keyChoice?: AiKeyChoice | null;
+  /**
+   * Lượt AI có dữ liệu học sinh (ảnh bài làm, tên, điểm). Chủ máy chốt 26/11 (hướng B): khoá Gemini RIÊNG của giáo viên
+   * (có thể là bản miễn phí — Google được dùng dữ liệu) không dùng cho lượt này khi giáo viên được dùng khoá chung/ví.
+   */
+  studentData?: boolean;
 }
 
 /** Khoá Gemini dùng cho một request + nguồn của nó — nguồn quyết định lượt đó có vào bảng kê không. */
