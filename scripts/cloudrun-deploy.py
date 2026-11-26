@@ -30,7 +30,7 @@ PLAIN_ENV = {
     # (bản thường) xong trong 70s, 9,6 nghìn token. spd -high để dự phòng.
     'GRADING_VILAO_MODEL': 'bfly/gemini-3.8-flash',
     # 26/11: người bán Gemini dự phòng (đã gắn vào khoá chấm bài trên vilao.ai). Nhiều model cách nhau ';'.
-    'GRADING_VILAO_BACKUP_MODELS': 'spd/gemini-3.8-flash-high',
+    'GRADING_VILAO_BACKUP_MODELS': 'pca/gemini-4-hydrogen;spd/gemini-3.8-flash-high',  # 26/11: Hydrogen cùng điểm, chậm/dài hơn → dự phòng
     # 26/11: bỏ hẳn xKiro (chủ máy chốt) — model GPT/GLM quá giờ với bài thật.
 }
 
