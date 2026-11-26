@@ -29,7 +29,7 @@ PLAIN_ENV = {
     # 22/11: chib/gemini-3.8-flash trên Vilao "không khả dụng" -> chấm bài trả rỗng; cùng model bot đang chạy.
     'GRADING_VILAO_MODEL': 'spd/gemini-3.8-flash-high',
     # 26/11: xkiro bỏ google/gemini-3.8-flash (404); gpt-6.1-terra đọc ảnh đúng (thử 26/11). Vilao chờ chủ máy xác nhận giá mới (423).
-    'GRADING_XKIRO_MODEL': 'openai/gpt-6.1-terra;z-ai/glm-5v-turbo',
+    'GRADING_XKIRO_MODEL': 'z-ai/glm-5v-turbo;openai/gpt-6.1-terra',
 }
 
 
