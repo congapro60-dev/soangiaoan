@@ -2,7 +2,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
 import { acquireCallHoldWaiting, currentAiUsageContext, geminiUsageCounts, openAiUsageCounts, recordAiUsage, releaseWalletHold, type AiProvider } from './_ai-usage.js';
-import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { AiKeyRequiredError, ensureGeminiKey, MAX_SERVER_GEMINI_KEYS, onOwnKeyFailure } from './_ai-keys.js';
 import { pickFromPool, reportPoolKeyFailure, reportPoolKeySuccess, type PooledKey } from './_gemini-key-pool.js';
 import { POOL_MAX_TRIES_PER_CALL } from '../src/lib/admin/geminiKeyPool.js';
 import { getAdminDb } from './_exam-core.js';
@@ -440,7 +440,8 @@ const callGeminiRawHeld = async (
         continue;
       }
     }
-    if (res.ok || keyChoice.source !== 'own' || attempt > 0) break;
+    // Khoá riêng: thử lần lượt các khoá của giáo viên (xoay vòng), tối đa MAX_SERVER_GEMINI_KEYS lần đổi khoá.
+    if (res.ok || keyChoice.source !== 'own' || attempt >= MAX_SERVER_GEMINI_KEYS) break;
     // Khoá RIÊNG của giáo viên bị từ chối vì chính khoá (hết hạn mức / hỏng): ghi lại, rồi hoặc chuyển
     // sang khoá chung (đã đồng ý tính phí) và gọi lại MỘT lần, hoặc ném AiKeyRequiredError.
     const detail = await res.clone().text().catch(() => '');

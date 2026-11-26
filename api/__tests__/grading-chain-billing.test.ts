@@ -233,6 +233,24 @@ describe('khoá riêng không dùng khoá chung của chủ dự án', () => {
     vi.unstubAllGlobals();
   });
 
+  it('nhiều khoá Gemini riêng: khoá 1 hết tiền (402) → khoá 2 chấm ngay trong lượt, không sang ví (26/11)', async () => {
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: ['gv-2'], sharedEmails: [], exemptUids: ['gv-2'] };
+    h.store['teacherAiKeys/gv-2'] = { geminiKey: 'AIza-mot', mode: 'both', extraGeminiKeys: [{ key: 'AIza-hai', last4: 'hai', keyStatus: 'ok' }] };
+    const used: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      const u = String(url);
+      if (u.includes('vilao')) throw new Error('không được gọi Vilao khi còn khoá riêng');
+      used.push(u.includes('AIza-mot') ? 'mot' : u.includes('AIza-hai') ? 'hai' : 'khac');
+      if (u.includes('AIza-mot')) { const body = '{"error":{"code":402}}'; return { ok: false, status: 402, text: async () => body, clone() { return this; }, json: async () => JSON.parse(body) }; }
+      return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ text: '{"score":7}' }] }, finishReason: 'STOP' }], usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 1 } }) };
+    }));
+    const out = await asOwnKeyTeacher(() => callGradingVision('p', [], { timeoutMs: 60_000 }), { key: 'AIza-mot' });
+    expect(out).toBe('{"score":7}');
+    expect(used).toEqual(['mot', 'hai']);
+    expect(h.store['teacherAiKeys/gv-2'].keyStatus).toBe('exhausted');
+    vi.unstubAllGlobals();
+  });
+
   it('khoá Vilao riêng hỏng không gác lớp Vilao của mọi người', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 401, text: async () => 'invalid key', json: async () => ({}) })));
     await asOwnKeyTeacher(() => callGradingVision('p', [], { timeoutMs: 60_000 }), { vilaoKey: 'sk-hong' }).catch(() => undefined);

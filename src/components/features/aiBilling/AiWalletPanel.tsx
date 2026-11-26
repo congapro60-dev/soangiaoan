@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 're
 import { KeyRound, Loader2, QrCode, RefreshCw, Ticket, Wallet } from 'lucide-react';
 import {
   deleteAiKey,
+  deleteGeminiKeyByLast4,
   getAiKeyStatus,
+  saveAiKeys,
+  setGradeWithWallet,
   redeemAiVoucher,
   saveAiKey,
   setAiMode,
@@ -17,11 +20,22 @@ import { gradeOneSubmission } from '../../../services/gradingApi';
 import { PRICE_SOURCES } from '../../../lib/admin/aiPricing';
 import { vnd, monthLabel } from '../../../lib/ai/statementPrintDoc';
 import { TopupDialog } from './TopupDialog';
+import { planKeySync, readSyncedLast4, writeSyncedLast4 } from '../../../lib/ai/aiKeySync';
 
 interface Props {
   /** Bản gọn trong hộp "AI đang tạm dừng": ẩn phần cách tính + chấm lại bài chờ. */
   compact?: boolean;
   onStatus?: (status: AiKeyStatus) => void;
+  /**
+   * 'full' (mặc định, hộp "AI đang tạm dừng"): như cũ.
+   * 'wallet' (trang Chi phí AI): chỉ chuyện tiền — ví, nạp, mã, trần, sao kê.
+   * 'source' (Cài đặt → AI): AI chạy bằng gì, khoá trên máy chủ, công tắc chấm bằng ví, khoá Vilao (nâng cao).
+   */
+  view?: 'full' | 'wallet' | 'source';
+  /** Chỉ view 'source': khoá Gemini đang có trong Cài đặt — tự đồng bộ lên máy chủ để chấm bài cũng dùng được. */
+  localGeminiKeys?: string[];
+  /** Chỉ view 'wallet': mở Cài đặt (thẻ AI). */
+  onOpenSettings?: () => void;
 }
 
 const errorText = (error: unknown): string => (error instanceof Error ? error.message : 'Có lỗi, thử lại sau.');
@@ -41,7 +55,9 @@ const StateBadge = ({ state }: { state: SourceState }) => (
  * "AI của tôi": chọn dùng khoá riêng, ví web hay cả hai; mỗi nguồn một thẻ (khoá Gemini riêng · ví web gồm số dư, nạp QR,
  * mã giảm giá, trần tháng); bài học sinh đang chờ vì AI tạm dừng; và cách tính tiền (công khai).
  */
-export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
+export const AiWalletPanel = ({ compact = false, onStatus, view = 'full', localGeminiKeys, onOpenSettings }: Props) => {
+  const showSource = view !== 'wallet';
+  const showWallet = view !== 'source';
   const [status, setStatus] = useState<AiKeyStatus | null>(null);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -65,6 +81,24 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
   useEffect(() => {
     getAiKeyStatus().then(apply).catch(err => setError(errorText(err)));
   }, [apply]);
+
+  // Cài đặt: khoá Gemini dán ở ô Cài đặt tự lên máy chủ (đợi gõ xong 1,5 giây). Lỗi (khoá sai…) hiện ngay dưới đây.
+  const [syncNote, setSyncNote] = useState('');
+  const localKeysSig = (localGeminiKeys ?? []).join('|');
+  const serverSig = (status?.geminiKeys ?? []).map(k => k.last4).join('|');
+  useEffect(() => {
+    if (view !== 'source' || !status) return;
+    const plan = planKeySync(localGeminiKeys ?? [], (status.geminiKeys ?? []).map(k => k.last4), readSyncedLast4());
+    if (!plan.needed) return;
+    const timer = window.setTimeout(() => {
+      setSyncNote('Đang lưu khoá lên máy chủ để dùng cả cho chấm bài…');
+      saveAiKeys(plan.keys, plan.keepLast4)
+        .then(next => { writeSyncedLast4(plan.keys); apply(next); setSyncNote('Đã lưu: khoá này dùng cho cả soạn bài và chấm bài.'); })
+        .catch(err => setSyncNote(`Chưa lưu được lên máy chủ: ${errorText(err)}`));
+    }, 1500);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, localKeysSig, serverSig]);
 
   const run = async (label: string, work: () => Promise<AiKeyStatus>, done?: string) => {
     setBusy(label);
@@ -134,7 +168,15 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
 
   return (
     <div className="space-y-4">
-      {status.canTestCharge && (
+      {view === 'wallet' && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4">
+          <p className="text-sm font-semibold text-slate-700">
+            AI đang chạy bằng: <b>{options.find(o => o.id === status.mode)?.title ?? status.mode}</b>. Đổi cách chạy hoặc dán khoá AI ở <b>Cài đặt → AI</b>.
+          </p>
+          {onOpenSettings && <button type="button" onClick={onOpenSettings} className="rounded-xl bg-indigo-600 px-3 py-2 text-xs font-black text-white hover:bg-indigo-700">Mở Cài đặt AI</button>}
+        </div>
+      )}
+      {showWallet && status.canTestCharge && (
         <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-900">
           <input
             type="checkbox"
@@ -149,11 +191,11 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
           </span>
         </label>
       )}
-      {!status.gateEnabled && (
+      {showWallet && !status.gateEnabled && (
         <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">Web chưa bật tính phí: mọi lượt AI dùng khoá chung hiện đều miễn phí, ví chưa bị trừ. Lựa chọn bên dưới có hiệu lực khi web bật tính phí.</p>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      {showSource && <div className="rounded-2xl border border-slate-200 bg-white p-4">
         <p className="text-sm font-black text-slate-900">AI của thầy/cô chạy bằng gì?</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Nguồn khoá AI">
           {options.map((option, index) => {
@@ -198,12 +240,12 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
           {walletScopeText(status.relayVendors)}
           {typeof status.markupPct === 'number' && status.markupPct > 0 && !status.exempt && ` Giá trừ ví = giá hãng AI tính (quy theo tỷ giá ${vnd(status.usdVnd)}/USD) + ${status.markupPct}% phí dịch vụ.`}
         </p>
-      </div>
+      </div>}
 
       {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{error}</p>}
       {notice && <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">{notice}</p>}
 
-      {!compact && status.blockedSubmissionIds.length > 0 && (
+      {!compact && view !== 'source' && status.blockedSubmissionIds.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <p className="text-sm font-bold text-amber-900">Có {status.blockedSubmissionIds.length} bài học sinh đang chờ chấm vì AI tạm dừng.</p>
           <button type="button" disabled={Boolean(regrade)} onClick={() => void regradeBlocked()} className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-3 py-2 text-xs font-black text-white hover:bg-amber-700 disabled:opacity-60">
@@ -212,12 +254,17 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
         </div>
       )}
 
-      <div className="grid gap-3 lg:grid-cols-2">
-        <section className={cardClass(states.own)}>
+      <div className={`grid gap-3 ${showSource && showWallet ? 'lg:grid-cols-2' : ''}`}>
+        {showSource && <section className={cardClass(states.own)}>
           <div className="flex items-center justify-between gap-2">
             <p className="flex items-center gap-2 text-sm font-black text-slate-900"><KeyRound className="h-4 w-4" /> Khoá Gemini riêng</p>
             <StateBadge state={states.own} />
           </div>
+          {view === 'source' ? (
+            <SourceKeys status={status} busy={busy} syncNote={syncNote} hasLocalKeys={(localGeminiKeys ?? []).some(k => k.trim())}
+              onRemove={last4 => void run('delkey', () => deleteGeminiKeyByLast4(last4), `Đã gỡ khoá …${last4}.`)}
+              onToggleWallet={on => void run('gww', () => setGradeWithWallet(on), on ? 'Bài làm học sinh sẽ chấm bằng AI của web.' : 'Bài làm học sinh chấm theo cách chạy đã chọn ở trên.')} />
+          ) : <>
           <p className="mt-1 text-xs font-semibold text-slate-500">Lấy miễn phí ở aistudio.google.com. Khoá lưu trên máy chủ, không hiện lại; thầy/cô tự trả Google, không trừ ví.</p>
           {status.hasKey && keyPill ? (
             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
@@ -235,8 +282,9 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
               {busy === 'key' && <Loader2 className="h-3.5 w-3.5 animate-spin" />} {status.hasKey ? 'Thay khoá' : 'Lưu khoá'}
             </button>
           </div>
-          <div className="mt-3 border-t border-slate-100 pt-3">
-            <p className="text-xs font-black text-slate-700">Khoá Vilao riêng (tuỳ chọn)</p>
+          </>}
+          <details className="mt-3 border-t border-slate-100 pt-3" open={view !== 'source' || Boolean(status.hasVilaoKey)}>
+            <summary className="cursor-pointer text-xs font-black text-slate-700">{view === 'source' ? 'Nâng cao · ' : ''}Khoá Vilao riêng (tuỳ chọn)</summary>
             <p className="mt-0.5 text-[11px] font-semibold leading-4 text-slate-500">Có tài khoản Vilao thì dán khoá (sk-…). Máy chủ chấm bài cho lớp của thầy/cô bằng khoá này, tiền trừ ở ví Vilao của thầy/cô, không trừ ví web. Khoá cần đăng ký model gemini-3.8-flash trên Vilao.</p>
             {status.hasVilaoKey ? (
               <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
@@ -251,10 +299,10 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
                 {busy === 'vilao' && <Loader2 className="h-3.5 w-3.5 animate-spin" />} {status.hasVilaoKey ? 'Thay khoá' : 'Lưu khoá'}
               </button>
             </div>
-          </div>
-        </section>
+          </details>
+        </section>}
 
-        <section className={cardClass(states.wallet)}>
+        {showWallet && <section className={cardClass(states.wallet)}>
           <div className="flex items-center justify-between gap-2">
             <p className="flex items-center gap-2 text-sm font-black text-slate-900"><Wallet className="h-4 w-4" /> Ví web</p>
             <StateBadge state={states.wallet} />
@@ -302,10 +350,10 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
               {status.capVnd && <button type="button" disabled={Boolean(busy)} onClick={() => void run('cap', () => setAiSpendCap(null), 'Đã bỏ trần.')} className="rounded-lg px-3 py-1.5 text-xs font-black text-slate-500 hover:bg-slate-100">Bỏ trần</button>}
             </div>
           </div>
-        </section>
+        </section>}
       </div>
 
-      {!compact && (
+      {!compact && showWallet && (
         <details className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs font-semibold leading-6 text-slate-600">
           <summary className="cursor-pointer text-sm font-black text-slate-800">Cách tính tiền (công khai)</summary>
           <ul className="mt-2 list-disc space-y-1 pl-5">
@@ -318,6 +366,54 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
       )}
 
       {showTopup && <TopupDialog status={status} onClose={() => setShowTopup(false)} onUpdated={apply} />}
+    </div>
+  );
+};
+
+const SOURCE_PILL = {
+  ok: { text: 'Đang dùng được', className: 'bg-emerald-50 text-emerald-700' },
+  exhausted: { text: 'Đang nghỉ (hết hạn mức)', className: 'bg-amber-50 text-amber-700' },
+  invalid: { text: 'Khoá hỏng', className: 'bg-rose-50 text-rose-700' },
+} as const;
+
+const hhmm = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '');
+
+/** Cài đặt → AI: khoá trên máy chủ (dùng cho chấm bài) + công tắc chấm bài bằng AI của web. Khoá dán ở ô "Khoá Gemini" bên dưới. */
+const SourceKeys = ({ status, busy, syncNote, hasLocalKeys, onRemove, onToggleWallet }: {
+  status: AiKeyStatus; busy: string; syncNote: string; hasLocalKeys: boolean;
+  onRemove: (last4: string) => void; onToggleWallet: (on: boolean) => void;
+}) => {
+  const keys = status.geminiKeys ?? (status.hasKey ? [{ last4: status.last4, status: status.keyStatus ?? 'ok', usable: status.keyStatus !== 'invalid', retryAt: null }] : []);
+  return (
+    <div className="mt-1 space-y-2">
+      <p className="text-xs font-semibold leading-5 text-slate-500">
+        Dán khoá ở ô <b>Khoá Gemini</b> phía dưới (lấy ở aistudio.google.com). Web dùng khoá đó cho mọi việc, kể cả chấm bài; khoá hết hạn mức thì nghỉ 60 phút và tự chuyển sang khoá kế.
+      </p>
+      {keys.length > 0 ? (
+        <ul className="space-y-1">
+          {keys.map(k => (
+            <li key={k.last4} className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-mono font-black text-slate-800">…{k.last4}</span>
+              <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${SOURCE_PILL[k.status].className}`}>
+                {SOURCE_PILL[k.status].text}{k.status === 'exhausted' && k.retryAt ? ` · dùng lại lúc ${hhmm(k.retryAt)}` : ''}
+              </span>
+              <button type="button" disabled={Boolean(busy)} onClick={() => onRemove(k.last4)} className="rounded-lg px-2 py-1 text-xs font-black text-slate-500 hover:bg-slate-100">Gỡ</button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs font-bold text-slate-400">{hasLocalKeys ? 'Đang lưu khoá…' : 'Chưa có khoá riêng.'}</p>
+      )}
+      {syncNote && <p className="text-[11px] font-semibold text-slate-500">{syncNote}</p>}
+      <p className="rounded-lg bg-amber-50 px-2 py-1.5 text-[11px] font-semibold leading-4 text-amber-800">
+        Khoá Google miễn phí: Google có thể dùng dữ liệu gửi lên (kể cả ảnh bài làm) để cải thiện sản phẩm, và hạn mức thấp. Lớp đông hoặc cần bảo mật thì nên dùng khoá đã bật thanh toán hoặc ví web.
+      </p>
+      {status.mode === 'both' && (
+        <label className="flex cursor-pointer items-start gap-2 text-xs font-semibold leading-5 text-slate-700">
+          <input type="checkbox" className="mt-1" checked={Boolean(status.gradeWithWallet)} disabled={Boolean(busy)} onChange={e => onToggleWallet(e.target.checked)} />
+          <span><b>Bài làm học sinh luôn chấm bằng AI của web</b> (trừ ví). Khoá riêng chỉ dùng cho soạn bài, tạo đề.</span>
+        </label>
+      )}
     </div>
   );
 };

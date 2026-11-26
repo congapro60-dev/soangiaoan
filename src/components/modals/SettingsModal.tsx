@@ -29,12 +29,13 @@ import { useAiModeSnapshot } from '../../lib/ai/aiModeStore';
 import { glmWalletNotice, vendorWalletHint } from '../../lib/ai/aiModeView';
 import { EffortPicker } from '../features/settings/EffortPicker';
 import { GeminiKeysField } from '../features/settings/GeminiKeysField';
-import { editingKeysPatch, keyRowsOf } from '../../lib/geminiKeyRing';
+import { editingKeysPatch, geminiKeysOf, keyRowsOf } from '../../lib/geminiKeyRing';
 import { KeyRotationCard, OwnKeysField, ownKeyRowsOf, ownKeysPatch } from '../features/settings/OwnKeysField';
 import { SINGLE_KEY_FIELD } from '../../lib/ownKeyRotation';
 import { auth } from '../../lib/firebase';
 import { cancelTelegramLinkCode, createTelegramLinkCode, listChannelLinks, revokeTelegramLink, type LinkSummary } from '../../services/telegramLinkService';
 import { ZaloBotSelfGuide } from '../features/settings/ZaloBotSelfGuide';
+import { AiWalletPanel } from '../features/aiBilling/AiWalletPanel';
 
 const DRIVE_FOLDER_FIELDS: { key: DriveFolderKey; label: string }[] = [
   { key: 'tdsG10', label: 'TDS · Lớp 10' },
@@ -152,6 +153,8 @@ export const SettingsModal = ({
     ? (rawProvider as Provider)
     : 'gemini';
   const [activeTab, setActiveTab] = useState<Provider>(currentProvider);
+  /** Thẻ của Cài đặt (26/11): AI · Kết nối · Chia sẻ — gom mọi thứ về AI vào một chỗ. */
+  const [settingsTab, setSettingsTab] = useState<'ai' | 'connect' | 'share'>('ai');
 
   useEffect(() => {
     if (!isOpen || !auth.currentUser) return;
@@ -324,6 +327,15 @@ export const SettingsModal = ({
               </aside>
 
               <div className="min-h-0 space-y-5 p-5 sm:p-7">
+                <div role="tablist" aria-label="Nhóm cài đặt" className="flex flex-wrap gap-2 rounded-2xl bg-slate-100 p-1">
+                  {([['ai', 'AI'], ['connect', 'Kết nối (Drive, Zalo)'], ['share', 'Chia sẻ']] as const).map(([id, label]) => (
+                    <button key={id} type="button" role="tab" aria-selected={settingsTab === id} onClick={() => setSettingsTab(id)}
+                      className={cn('flex-1 rounded-xl px-4 py-2 text-sm font-bold transition', settingsTab === id ? 'bg-white text-[var(--dewey-blue)] shadow-sm' : 'text-slate-600 hover:text-slate-900')}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {settingsTab === 'share' && (
                 <section className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
                   <div className="mb-4"><h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Chia sẻ lớp / giáo án với giáo viên</h4><p className="mt-1 text-sm text-slate-500">Cấp quyền theo Firebase UID. Mặc định riêng tư; quyền ghi chưa mở thao tác trợ lý.</p></div>
                   <div className="grid gap-2 md:grid-cols-2">
@@ -336,10 +348,16 @@ export const SettingsModal = ({
                   <button type="button" disabled={shareBusy || shareExpiryInvalid || !shareResource || !granteeUid.trim()} onClick={async () => { setShareBusy(true); try { await shareRequest('createShare', { resourceType: shareType, resourceId: shareResource, granteeUid: granteeUid.trim(), role: shareRole, ...(shareExpiryMillis === undefined ? {} : { expiresAt: shareExpiryMillis }) }); setShares((await shareRequest('listShares')).shares || []); setGranteeUid(''); setShareExpiresAt(''); showToast('Đã chia sẻ'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể chia sẻ'); } finally { setShareBusy(false); } }} className="mt-3 rounded-xl bg-[var(--dewey-blue)] px-4 py-2 text-sm font-bold text-white">Chia sẻ</button>
                   <div className="mt-4 space-y-2">{shares.map(share => { const expiry = typeof share.expiresAt === 'number' && Number.isFinite(share.expiresAt) ? share.expiresAt : undefined; const expired = expiry !== undefined && expiry <= Date.now(); return <div key={share.shareId} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs"><span>{share.resourceType}: {share.resourceId} · {share.granteeUid} · {share.role} · {expired ? 'Hết hạn' : share.status}{expiry !== undefined && ` · ${new Date(expiry).toLocaleString('vi-VN')}`}</span>{share.status === 'active' && !expired && <button type="button" disabled={shareBusy} onClick={async () => { setShareBusy(true); try { await shareRequest('revokeShare', { shareId: share.shareId }); setShares((await shareRequest('listShares')).shares || []); showToast('Đã thu hồi chia sẻ'); } catch { showToast('Không thể thu hồi chia sẻ'); } finally { setShareBusy(false); } }} className="font-bold text-red-600">Thu hồi</button>}</div>; })}</div>
                 </section>
+                )}
+                {settingsTab === 'ai' && (<>
+                <section className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
+                  <h4 className="mb-3 font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Cách AI chạy</h4>
+                  <AiWalletPanel view="source" localGeminiKeys={geminiKeysOf(data.settings)} />
+                </section>
                 <section className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Nền tảng AI đang dùng</h4>
+                      <h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Khoá AI của tôi và hãng AI đang dùng</h4>
                       <p className="mt-1 text-sm text-slate-500">{activeTab === 'vercel-gateway' ? 'GLM 5.2 dùng kết nối server Vercel; key không được lưu trong trình duyệt.' : 'Chọn provider và nhập API key tương ứng. Dữ liệu được lưu cục bộ trong trình duyệt.'}</p>
                     </div>
                     <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold text-[var(--dewey-blue)]">{providerName(activeTab)}</span>
@@ -410,14 +428,18 @@ export const SettingsModal = ({
                             />
                           </div>
                         )}
-                        <p className="text-[11px] font-medium text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
+                        <p className="text-[11px] font-medium text-slate-400">
+                          {activeTab === 'gemini'
+                            ? 'Khoá Gemini lưu trong trình duyệt và trên máy chủ (để chấm bài cũng dùng được); không bao giờ hiện lại đầy đủ.'
+                            : 'API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.'}
+                        </p>
                         {/* Dẫn sang mục "AI của tôi" — nơi giáo viên chọn nguồn khoá (khoá riêng / ví web / cả hai).
                             Cần có câu này ở MỌI hãng: để trống ô khoá KHÔNG phải bắt buộc đi mua key riêng (bẫy
                             10/2026: giáo viên tưởng phải mua key Google rồi dán key trả phí vào, trong khi ví web
                             của web đã sẵn sàng trừ tiền theo mức dùng), mà cũng KHÔNG phải "không cần quan tâm" —
                             nguồn khoá và cách tính tiền do giáo viên chọn ở mục "AI của tôi". */}
                         <p className="text-[11px] font-semibold leading-4 text-slate-500">
-                          Không nhập khoá riêng thì dùng khoá của web, trừ theo mức dùng — chọn “Khoá riêng”, “Ví web” hoặc “Cả hai” ở mục <b>AI của tôi</b>.
+                          Không nhập khoá riêng thì dùng AI của web, trừ ví theo mức dùng — chọn cách chạy ở mục <b>Cách AI chạy</b> phía trên.
                         </p>
                         {walletHint && <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-[11px] font-semibold leading-4 text-emerald-700">{walletHint}</p>}
                       </>
@@ -425,9 +447,10 @@ export const SettingsModal = ({
                   </div>
 
                   {activeTab !== 'vercel-gateway' && activeTab !== 'openai-compatible' && (
-                    <div className="mt-4">
-                      <KeyRotationCard settings={data.settings} onChange={patch => setData(prev => ({ ...prev, settings: { ...prev.settings, ...patch } }))} />
-                    </div>
+                    <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      <summary className="cursor-pointer text-sm font-bold text-slate-700">Nâng cao · tự chuyển sang hãng khác khi hết khoá</summary>
+                      <div className="mt-3"><KeyRotationCard settings={data.settings} onChange={patch => setData(prev => ({ ...prev, settings: { ...prev.settings, ...patch } }))} /></div>
+                    </details>
                   )}
                   {activeTab !== 'vercel-gateway' && <div className="mt-4"><ProviderGuideCard provider={activeTab} /></div>}
                 </section>
@@ -594,6 +617,8 @@ export const SettingsModal = ({
                   </div>
                 </section>
 
+                </>)}
+                {settingsTab === 'connect' && (<>
                 <section className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[var(--dewey-blue)]"><Database className="h-5 w-5" /></div>
@@ -640,6 +665,7 @@ export const SettingsModal = ({
                   {linkCode ? <div className="mt-4 flex flex-wrap items-center gap-2"><code className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold tracking-widest text-slate-800">{linkCode.code}</code><button type="button" className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white" onClick={() => navigator.clipboard.writeText(linkCode.code).then(() => showToast('Đã chép mã liên kết'))}>Copy</button><button type="button" className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { await cancelTelegramLinkCode(auth.currentUser, linkCode.linkId); setLinkCode(null); showToast('Đã thu hồi mã liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể thu hồi mã'); } finally { setLinkBusy(false); } }}>Thu hồi</button></div> : <button type="button" className="mt-4 rounded-xl bg-[var(--dewey-blue)] px-4 py-2 text-sm font-bold text-white" disabled={linkBusy} onClick={async () => { if (!auth.currentUser) return; setLinkBusy(true); try { setLinkCode(await createTelegramLinkCode(auth.currentUser)); showToast('Đã tạo mã liên kết'); } catch (error) { showToast(error instanceof Error ? error.message : 'Không thể tạo mã'); } finally { setLinkBusy(false); } }}>{linkBusy ? 'Đang tạo…' : 'Tạo mã liên kết'}</button>}
                 </section>
                 <ZaloBotSelfGuide />
+                </>)}
               </div>
             </div>
 

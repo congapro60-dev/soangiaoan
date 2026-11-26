@@ -44,6 +44,10 @@ export interface AiKeyStatus {
   vilaoLast4?: string;
   keyStatus: 'ok' | 'exhausted' | 'invalid' | null;
   keyStatusAt: string | null;
+  /** Mọi khoá Gemini riêng trên máy chủ (4 ký tự cuối + trạng thái). Máy chủ cũ không gửi. */
+  geminiKeys?: Array<{ last4: string; status: 'ok' | 'exhausted' | 'invalid'; usable: boolean; retryAt: string | null }>;
+  /** Công tắc "Bài làm học sinh luôn chấm bằng AI của web". */
+  gradeWithWallet?: boolean;
   consent: boolean;
   consentAt: string | null;
   /** Nguồn khoá THỰC SỰ áp dụng: chỉ khoá riêng / chỉ ví web / cả hai (khoá riêng trước). */
@@ -66,6 +70,11 @@ export interface AiKeyStatus {
 export const getAiKeyStatus = (options: { quiet?: boolean } = {}) => call<AiKeyStatus>({ action: 'aiKeyStatus' }, options.quiet);
 export const saveAiKey = (key: string, provider?: 'vilao') => call<AiKeyStatus>({ action: 'saveAiKey', key, ...(provider ? { provider } : {}) });
 export const deleteAiKey = (provider?: 'vilao') => call<AiKeyStatus>({ action: 'deleteAiKey', ...(provider ? { provider } : {}) });
+/** Gỡ đúng một khoá Gemini trên máy chủ (theo 4 ký tự cuối). */
+export const deleteGeminiKeyByLast4 = (last4: string) => call<AiKeyStatus>({ action: 'deleteAiKey', last4 });
+/** Đồng bộ danh sách khoá Gemini của Cài đặt lên máy chủ; `keepLast4` = khoá chỉ có trên máy chủ cần giữ. */
+export const saveAiKeys = (keys: string[], keepLast4: string[] = []) => call<AiKeyStatus>({ action: 'saveAiKeys', keys, keepLast4 });
+export const setGradeWithWallet = (enabled: boolean) => call<AiKeyStatus>({ action: 'setGradeWithWallet', enabled });
 /** `accepted` = giáo viên đã tích đồng ý tính phí (bắt buộc lần đầu chọn ví/cả hai, trừ người trong nhóm). */
 export const setAiMode = (mode: AiKeyMode, accepted = false) => call<AiKeyStatus>({ action: 'setAiMode', mode, ...(accepted ? { accepted: true } : {}) });
 /** Chủ dự án bật/tắt "Thử trừ ví": bị tính tiền như giáo viên thường để tự kiểm thử. Người khác gọi thì máy chủ trả 403. */

@@ -50,10 +50,7 @@ export interface AiUsageContext {
   keyOwnerUid?: string | null;
   /** Khoá đã chọn cho request này (xem `_ai-keys.ts`); cache để mọi lượt gọi trong request dùng chung. */
   keyChoice?: AiKeyChoice | null;
-  /**
-   * Lượt AI có dữ liệu học sinh (ảnh bài làm, tên, điểm). Chủ máy chốt 26/11 (hướng B): khoá Gemini RIÊNG của giáo viên
-   * (có thể là bản miễn phí — Google được dùng dữ liệu) không dùng cho lượt này khi giáo viên được dùng khoá chung/ví.
-   */
+  /** Lượt AI có dữ liệu học sinh (ảnh bài làm, tên, điểm): giáo viên bật "chấm bằng AI của web" thì lượt này dùng ví. */
   studentData?: boolean;
 }
 
@@ -68,6 +65,8 @@ export interface AiKeyChoice {
   studentKeyId?: string;
   /** Khoá VILAO riêng của giáo viên (source = 'own'): lớp chấm Vilao chạy bằng khoá này thay khoá chung. */
   vilaoKey?: string;
+  /** Vị trí khoá Gemini riêng đang dùng (0 = `geminiKey`, i = `extraGeminiKeys[i-1]`) — để đánh dấu đúng khoá khi hỏng. */
+  ownKeyIndex?: number;
 }
 
 export interface AiTokenCounts {

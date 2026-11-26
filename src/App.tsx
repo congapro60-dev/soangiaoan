@@ -604,7 +604,7 @@ export default function App() {
             )}
 
             {activeTab === 'chat' && <ChatTab {...chat} isLoading={isLoading} />}
-            {activeTab === 'aiBilling' && <AiBillingTab user={user} />}
+            {activeTab === 'aiBilling' && <AiBillingTab user={user} onOpenSettings={() => setIsSettingsOpen(true)} />}
             {activeTab === 'admin' && isAdmin && <AdminTab />}
           </AnimatePresence>
           </Suspense>

@@ -119,20 +119,33 @@ describe('khoá AI + trần chi tiêu', () => {
     expect(await inRequest('gv-nhom', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: OWN_KEY, source: 'own', billing: null });
   });
 
-  it('hướng B (26/11): lượt có dữ liệu học sinh không dùng khoá Gemini riêng khi GV được dùng khoá chung; GV chỉ có khoá riêng vẫn dùng khoá riêng', async () => {
+  it('nhiều khoá Gemini riêng: chạy khoá đầu dùng được; khoá đang nghỉ thì bỏ qua; hết sạch thì "cả hai" sang ví, "chỉ khoá riêng" chặn', async () => {
+    const KEY2 = 'AIza' + 'c'.repeat(35);
+    const recent = new Date().toISOString();
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: ['gv-nhom'], exemptUids: ['gv-nhom'] };
+    h.store['teacherAiKeys/gv-nhom'] = { geminiKey: OWN_KEY, keyStatus: 'exhausted', keyStatusAt: recent, extraGeminiKeys: [{ key: KEY2, last4: 'cccc', keyStatus: 'ok' }], mode: 'both' };
+    expect(await inRequest('gv-nhom', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: KEY2, source: 'own', ownKeyIndex: 1 });
+    h.store['teacherAiKeys/gv-nhom'].extraGeminiKeys[0].keyStatus = 'invalid';
+    expect(await inRequest('gv-nhom', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: OWNER_KEY, source: 'shared' });
+    h.store['teacherAiKeys/gv-ngoai'] = { geminiKey: OWN_KEY, keyStatus: 'exhausted', keyStatusAt: recent, extraGeminiKeys: [{ key: KEY2, last4: 'cccc', keyStatus: 'exhausted', keyStatusAt: recent }], mode: 'own' };
+    await expect(inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).rejects.toMatchObject({ reason: 'exhausted' });
+    // Hết 60 phút nghỉ: khoá đầu tự quay lại.
+    h.store['teacherAiKeys/gv-ngoai'].keyStatusAt = new Date(Date.now() - 61 * 60_000).toISOString();
+    expect(await inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: OWN_KEY, ownKeyIndex: 0 });
+  });
+
+  it('công tắc "chấm bằng AI của web": chỉ lượt có dữ liệu học sinh dùng ví; tắt (mặc định) thì khoá riêng chấm như thường', async () => {
     h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: ['gv-nhom'], exemptUids: ['gv-nhom'] };
     h.store['teacherAiKeys/gv-nhom'] = { geminiKey: OWN_KEY, keyStatus: 'ok', mode: 'both' };
-    h.store['teacherAiKeys/gv-ngoai'] = { geminiKey: OWN_KEY, keyStatus: 'ok' };
     const studentRun = <T>(owner: string, fn: () => Promise<T>) => {
       const ctx = createAiUsageContext('t', 'gradeOne', {}, async () => ({ uid: owner, email: `${owner}@x.vn`, anonymous: false }));
       ctx.studentData = true;
       return runWithAiUsage(ctx, async () => { setAiKeyOwner(owner); return fn(); });
     };
+    expect(await studentRun('gv-nhom', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: OWN_KEY, source: 'own' });
+    h.store['teacherAiKeys/gv-nhom'].gradeWithWallet = true;
     expect(await studentRun('gv-nhom', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: OWNER_KEY, source: 'shared' });
-    // Việc không có dữ liệu học sinh (soạn giáo án): khoá riêng vẫn chạy trước.
     expect(await inRequest('gv-nhom', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: OWN_KEY, source: 'own' });
-    // GV ngoài nhóm, chưa đồng ý trả phí: khoá riêng là đường duy nhất → giữ nguyên.
-    expect(await studentRun('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: OWN_KEY, source: 'own' });
   });
 
   it('chạm trần tự đặt thì dừng (kể cả khi chưa bật kiểm soát)', async () => {

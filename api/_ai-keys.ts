@@ -72,7 +72,30 @@ interface TeacherKeyDoc {
   monthlyCapVnd?: number | null;
   /** Chỉ chủ dự án: bật để bị tính tiền như giáo viên thường (kiểm thử ví bằng chính tài khoản của mình). */
   testCharge?: boolean;
+  /** Khoá Gemini thứ 2, 3… (khoá 1 vẫn là `geminiKey` để tương thích). Mỗi khoá có trạng thái riêng, tự xoay vòng (26/11). */
+  extraGeminiKeys?: ExtraGeminiKey[];
+  /** Công tắc "Bài làm học sinh luôn chấm bằng AI của web": lượt có dữ liệu học sinh dùng ví thay khoá riêng (26/11). */
+  gradeWithWallet?: boolean;
 }
+
+interface ExtraGeminiKey { key: string; last4: string; keyStatus?: AiKeyStatus; keyStatusAt?: string; keyStatusMessage?: string }
+
+/** Tối đa khoá Gemini riêng lưu trên máy chủ cho một giáo viên. */
+export const MAX_SERVER_GEMINI_KEYS = 10;
+
+/** Danh sách khoá Gemini riêng theo thứ tự ưu tiên: index 0 = `geminiKey`, index i = `extraGeminiKeys[i-1]`. */
+export const ownGeminiKeysOf = (doc: TeacherKeyDoc | null): Array<{ index: number; key: string; last4: string; status: AiKeyStatus; statusAt?: string }> => {
+  if (!doc) return [];
+  const list = [
+    { index: 0, key: String(doc.geminiKey || ''), last4: doc.last4 ?? '', status: doc.keyStatus ?? 'ok', statusAt: doc.keyStatusAt },
+    ...(doc.extraGeminiKeys ?? []).map((k, i) => ({ index: i + 1, key: String(k.key || ''), last4: k.last4 ?? '', status: k.keyStatus ?? 'ok', statusAt: k.keyStatusAt })),
+  ];
+  return list.filter(k => k.key);
+};
+
+/** Khoá đầu tiên đang dùng được (khoá hết hạn mức nghỉ 60 phút rồi tự quay lại). */
+export const firstUsableOwnGeminiKey = (doc: TeacherKeyDoc | null, now = Date.now()) =>
+  ownGeminiKeysOf(doc).find(k => ownKeyUsable({ status: k.status, statusAt: k.statusAt }, now)) ?? null;
 
 const strings = (value: unknown): string[] => (Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []);
 
@@ -295,22 +318,30 @@ export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: b
   }
   if (!ownerUid) throw new AiKeyRequiredError('no_key', null);
 
+  const isShared = await isSharedUid(access, ownerUid);
+  const geminiKeys = ownGeminiKeysOf(keyDoc);
+  const usable = firstUsableOwnGeminiKey(keyDoc);
+  // Có nhiều khoá: còn một khoá dùng được là "khoá riêng dùng được"; hết sạch thì báo theo khoá đầu (hết hạn mức / hỏng).
+  const ownKey = options.vendor || (!geminiKeys.length && !keyDoc?.vilaoKey) ? null
+    : usable || keyDoc?.vilaoKey ? { status: 'ok' as const }
+      : { status: geminiKeys.every(k => k.status === 'invalid') ? 'invalid' as const : 'exhausted' as const, statusAt: geminiKeys.find(k => k.status !== 'invalid')?.statusAt };
   const decision = decideAiKey({
     gateEnabled: true,
-    isShared: await isSharedUid(access, ownerUid),
-    ownKey: !options.vendor && (keyDoc?.geminiKey || keyDoc?.vilaoKey) ? { status: keyDoc?.geminiKey ? keyDoc.keyStatus ?? 'ok' : 'ok', statusAt: keyDoc?.keyStatusAt } : null,
+    isShared,
+    ownKey,
     consent: keyDoc?.consent?.accepted === true,
     mode: keyDoc?.mode,
   });
   if (decision.use === 'blocked') throw new AiKeyRequiredError(decision.reason, ownerUid);
-  // Hướng B (26/11): lượt có dữ liệu học sinh không đi qua khoá Gemini riêng (có thể là bản miễn phí) khi giáo viên được
-  // dùng khoá chung / ví ("cả hai" hoặc nhóm chủ dự án). Khoá Vilao riêng (trả phí) vẫn dùng như cũ.
-  const skipOwnGemini = decision.use === 'own' && context.studentData === true && !keyDoc?.vilaoKey
-    && effectiveAiMode({ mode: keyDoc?.mode, isShared: await isSharedUid(access, ownerUid), consent: keyDoc?.consent?.accepted === true }) === 'both';
-  if (decision.use === 'own' && !skipOwnGemini) return (context.keyChoice = { key: String(keyDoc?.geminiKey || ''), source: 'own', ownerUid, billing: null, ...(keyDoc?.vilaoKey ? { vilaoKey: keyDoc.vilaoKey } : {}) });
+  // Công tắc của giáo viên (mặc định tắt): bài làm học sinh luôn chấm bằng AI của web — chỉ khi chế độ cho phép dùng ví.
+  const walletForStudentData = decision.use === 'own' && context.studentData === true && keyDoc?.gradeWithWallet === true
+    && effectiveAiMode({ mode: keyDoc?.mode, isShared, consent: keyDoc?.consent?.accepted === true }) === 'both';
+  if (decision.use === 'own' && !walletForStudentData) {
+    return (context.keyChoice = { key: usable?.key ?? '', source: 'own', ownerUid, billing: null, ...(usable ? { ownKeyIndex: usable.index } : {}), ...(keyDoc?.vilaoKey ? { vilaoKey: keyDoc.vilaoKey } : {}) });
+  }
   const billing = withCap(await billingFor(db, access, ownerUid, keyDoc), keyDoc);
   await assertUnderCap(db, ownerUid, keyDoc, Boolean(billing));
-  const source = decision.use === 'own' ? (await isSharedUid(access, ownerUid) ? 'shared' : 'owner_consent') : decision.use;
+  const source = decision.use === 'own' ? (isShared ? 'shared' : 'owner_consent') : decision.use;
   return (context.keyChoice = { key: fallbackKey, source, ownerUid, billing });
 };
 
@@ -333,12 +364,31 @@ export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, 
   const uid = choice.ownerUid;
   if (!uid) throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', null);
   const db = getAdminDb();
-  await db.collection(TEACHER_AI_KEYS_COL).doc(uid).set({
-    keyStatus: status,
-    keyStatusAt: new Date().toISOString(),
-    keyStatusMessage: detail.slice(0, 300),
-  }, { merge: true });
+  const ref = db.collection(TEACHER_AI_KEYS_COL).doc(uid);
+  const at = new Date().toISOString();
+  const index = choice.ownKeyIndex ?? 0;
+  if (index === 0) {
+    await ref.set({ keyStatus: status, keyStatusAt: at, keyStatusMessage: detail.slice(0, 300) }, { merge: true });
+  } else {
+    // Khoá thứ 2 trở đi: đánh dấu đúng khoá vừa hỏng (đọc-sửa-ghi trong giao dịch để lượt song song không ghi đè nhau).
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      const extras = [...((snap.data() as TeacherKeyDoc | undefined)?.extraGeminiKeys ?? [])];
+      if (extras[index - 1] && extras[index - 1].key === choice.key) {
+        extras[index - 1] = { ...extras[index - 1], keyStatus: status, keyStatusAt: at, keyStatusMessage: detail.slice(0, 300) };
+        tx.set(ref, { extraGeminiKeys: extras }, { merge: true });
+      }
+    });
+  }
   const [keyDoc, access] = await Promise.all([loadKeyDoc(db, uid), loadAiAccess(db)]);
+  // Còn khoá riêng khác dùng được → chạy tiếp bằng khoá đó ngay trong lượt này (xoay vòng), chưa đụng tới ví.
+  const nextOwn = firstUsableOwnGeminiKey(keyDoc);
+  if (nextOwn && nextOwn.key !== choice.key) {
+    const own: AiKeyChoice = { key: nextOwn.key, source: 'own', ownerUid: uid, billing: null, ownKeyIndex: nextOwn.index, ...(keyDoc?.vilaoKey ? { vilaoKey: keyDoc.vilaoKey } : {}) };
+    const context = currentAiUsageContext();
+    if (context) context.keyChoice = own;
+    return own;
+  }
   const isShared = await isSharedUid(access, uid);
   // Chỉ chế độ "cả hai" mới được chuyển sang ví khi khoá riêng hỏng; "chỉ khoá riêng" thì chặn dù đã đồng ý tính phí.
   if (effectiveAiMode({ mode: keyDoc?.mode, isShared, consent: keyDoc?.consent?.accepted === true }) !== 'both') {
@@ -446,8 +496,16 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     capVnd: typeof keyDoc?.monthlyCapVnd === 'number' && keyDoc.monthlyCapVnd > 0 ? keyDoc.monthlyCapVnd : null,
     gateEnabled: access.enabled,
     shared: await isSharedUid(access, uid),
-    hasKey: Boolean(keyDoc?.geminiKey),
+    hasKey: ownGeminiKeysOf(keyDoc).length > 0,
     last4: keyDoc?.last4 ?? '',
+    /** Mọi khoá Gemini riêng trên máy chủ (không bao giờ trả khoá thật) + trạng thái từng khoá. */
+    geminiKeys: ownGeminiKeysOf(keyDoc).map(k => ({
+      last4: k.last4,
+      status: k.status,
+      usable: ownKeyUsable({ status: k.status, statusAt: k.statusAt }),
+      retryAt: k.status === 'exhausted' && Number.isFinite(Date.parse(k.statusAt || '')) ? new Date(Date.parse(k.statusAt || '') + EXHAUSTED_COOLDOWN_MS).toISOString() : null,
+    })),
+    gradeWithWallet: keyDoc?.gradeWithWallet === true,
     hasVilaoKey: Boolean(keyDoc?.vilaoKey),
     vilaoLast4: keyDoc?.vilaoLast4 ?? '',
     keyStatus: keyDoc?.geminiKey ? keyDoc.keyStatus ?? 'ok' : null,
@@ -480,7 +538,7 @@ const probeVilaoKey = async (key: string): Promise<{ ok: true } | { ok: false; m
 
 export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
   const action = String(body.action || '');
-  if (!['aiKeyStatus', 'saveAiKey', 'deleteAiKey', 'setAiConsent', 'setAiMode', 'setAiSpendCap', 'redeemVoucher', 'setAiTestCharge'].includes(action)) return false;
+  if (!['aiKeyStatus', 'saveAiKey', 'saveAiKeys', 'deleteAiKey', 'setAiConsent', 'setAiMode', 'setAiSpendCap', 'redeemVoucher', 'setAiTestCharge', 'setGradeWithWallet'].includes(action)) return false;
   const me = await teacherIdentity(body);
   if (!me) {
     res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
@@ -515,8 +573,56 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
       return true;
     }
     await ref.set({ uid: me.uid, email: me.email, geminiKey: key, last4: maskKey(key), keyStatus: 'ok', keyStatusAt: now, keyStatusMessage: '', updatedAt: now }, { merge: true });
+  } else if (action === 'saveAiKeys') {
+    // Cả danh sách khoá Gemini (Cài đặt → AI). Khoá đã có giữ nguyên trạng thái; khoá mới được kiểm với Google trước khi lưu.
+    const raw = Array.isArray(body.keys) ? body.keys : [];
+    const current0 = ownGeminiKeysOf(await loadKeyDoc(db, me.uid));
+    // Khoá chỉ có trên máy chủ (trình duyệt không biết khoá thật) mà giáo viên chưa gỡ: giữ lại, xếp sau khoá trình duyệt.
+    const keepLast4 = new Set((Array.isArray(body.keepLast4) ? body.keepLast4 : []).map(v => String(v)));
+    const kept = current0.filter(k => keepLast4.has(k.last4)).map(k => k.key);
+    const keys = [...new Set([...raw.map(k => String(k ?? '').trim()).filter(Boolean), ...kept])];
+    if (keys.length > MAX_SERVER_GEMINI_KEYS) {
+      res.status(422).json({ error: `Tối đa ${MAX_SERVER_GEMINI_KEYS} khoá Gemini.` });
+      return true;
+    }
+    const bad = keys.find(k => !looksLikeGeminiKey(k));
+    if (bad) {
+      res.status(422).json({ error: `Khoá …${maskKey(bad)} chưa đúng dạng. Khoá Gemini lấy ở aistudio.google.com, bắt đầu bằng "AIza" hoặc "AQ.".` });
+      return true;
+    }
+    const known = new Map(current0.map(k => [k.key, k]));
+    for (const key of keys.filter(k => !known.has(k))) {
+      const probe = await probeGeminiKey(key);
+      if (probe.ok === false) {
+        res.status(422).json({ error: `Khoá …${maskKey(key)}: ${probe.message}` });
+        return true;
+      }
+    }
+    const entry = (key: string) => {
+      const old = known.get(key);
+      return { key, last4: maskKey(key), keyStatus: old?.status ?? 'ok', keyStatusAt: old?.statusAt ?? now };
+    };
+    const [first, ...rest] = keys.map(entry);
+    await ref.set({
+      uid: me.uid, email: me.email,
+      geminiKey: first?.key ?? '', last4: first?.last4 ?? '', keyStatus: first?.keyStatus ?? 'ok', keyStatusAt: first?.keyStatusAt ?? now, keyStatusMessage: '',
+      extraGeminiKeys: rest.map(k => ({ key: k.key, last4: k.last4, keyStatus: k.keyStatus, keyStatusAt: k.keyStatusAt })),
+      updatedAt: now,
+    }, { merge: true });
+  } else if (action === 'setGradeWithWallet') {
+    await ref.set({ uid: me.uid, email: me.email, gradeWithWallet: body.enabled === true, updatedAt: now }, { merge: true });
+  } else if (action === 'deleteAiKey' && typeof body.last4 === 'string' && body.last4) {
+    // Gỡ đúng một khoá (theo 4 ký tự cuối), các khoá còn lại giữ nguyên thứ tự và trạng thái.
+    const rest = ownGeminiKeysOf(await loadKeyDoc(db, me.uid)).filter(k => k.last4 !== body.last4);
+    const [first, ...others] = rest;
+    await ref.set({
+      uid: me.uid,
+      geminiKey: first?.key ?? '', last4: first?.last4 ?? '', keyStatus: first?.status ?? 'ok', keyStatusAt: first?.statusAt ?? now,
+      extraGeminiKeys: others.map(k => ({ key: k.key, last4: k.last4, keyStatus: k.status, ...(k.statusAt ? { keyStatusAt: k.statusAt } : {}) })),
+      updatedAt: now,
+    }, { merge: true });
   } else if (action === 'deleteAiKey') {
-    await ref.set({ uid: me.uid, geminiKey: '', last4: '', keyStatus: 'ok', keyStatusAt: now, updatedAt: now }, { merge: true });
+    await ref.set({ uid: me.uid, geminiKey: '', last4: '', keyStatus: 'ok', keyStatusAt: now, extraGeminiKeys: [], updatedAt: now }, { merge: true });
   } else if (action === 'setAiSpendCap') {
     // null / 0 = bỏ trần. Trần do CHÍNH giáo viên đặt — giống ngân sách của Google Cloud.
     const cap = body.capVnd === null ? 0 : Math.round(Number(body.capVnd));
