@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { AsyncLocalStorage } from 'node:async_hooks';
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
-import { acquireCallHoldWaiting, geminiUsageCounts, openAiUsageCounts, recordAiUsage, releaseWalletHold, type AiProvider } from './_ai-usage.js';
+import { acquireCallHoldWaiting, currentAiUsageContext, geminiUsageCounts, openAiUsageCounts, recordAiUsage, releaseWalletHold, type AiProvider } from './_ai-usage.js';
 import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
 import { pickFromPool, reportPoolKeyFailure, reportPoolKeySuccess, type PooledKey } from './_gemini-key-pool.js';
 import { POOL_MAX_TRIES_PER_CALL } from '../src/lib/admin/geminiKeyPool.js';
@@ -1017,7 +1017,12 @@ const runChain = async (
   let lastError: unknown;
   const deadline = options.timeoutMs === undefined ? null : Date.now() + options.timeoutMs;
   const ordered = orderByHealth(chain);
-  for (const [index, adapter] of ordered.entries()) {
+  // Lớp bị bỏ qua vì giáo viên đang dùng khoá RIÊNG. Khoá riêng hỏng giữa chừng (vd Gemini hết tiền trả trước) mà hệ đã chuyển
+  // sang khoá chung (nhóm chủ dự án / đã đồng ý trả phí) thì các lớp này phải được thử lại — trước đây chuỗi đã đi qua chúng
+  // nên bài báo lỗi dù Vilao vẫn chạy tốt (sự cố 26/11).
+  const skipped: GradingAdapter[] = [];
+  for (let index = 0; index < ordered.length; index++) {
+    const adapter = ordered[index];
     const remainingMs = deadline === null ? null : deadline - Date.now();
     if (remainingMs !== null && remainingMs <= 0) throw new GeminiResponseError('provider', 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).');
     // Lớp chưa phải cuối chỉ được tiêu tối đa `maxMs`: nguồn miễn phí treo không được ăn hết giờ của lớp trả phí phía sau.
@@ -1040,11 +1045,17 @@ const runChain = async (
       if (error instanceof SkipTierError) {
         // Không phải nguồn hỏng: không gác lớp. Giữ lỗi khoá riêng (nếu có) để báo đúng lí do khi hết lớp.
         if (!lastError || /Khoá Vilao riêng/.test(error.message)) lastError = error;
+        skipped.push(adapter);
         continue;
       }
       lastError = error;
       markDown(adapter.name);
       console.warn(`[grading-chain] ${adapter.name} hỏng, gác ${COOLDOWN_MS / 60_000} phút, thử lớp kế: ${error instanceof Error ? error.message : 'lỗi không rõ'}`);
+      const choice = currentAiUsageContext()?.keyChoice;
+      if (skipped.length > 0 && choice && choice.source !== 'own') {
+        ordered.splice(index + 1, 0, ...skipped.splice(0));
+        console.info('[grading-chain] khoá riêng hỏng, đã chuyển sang khoá chung — thử lại các lớp vừa bỏ qua');
+      }
     }
   }
   throw lastError;

@@ -78,6 +78,8 @@ describe('chọn khoá AI', () => {
 
   it('chỉ lỗi CỦA KHOÁ mới tính là hết/hỏng; quá tải hay lỗi máy chủ Google thì không', () => {
     expect(classifyGeminiKeyFailure(429, '{"error":{"status":"RESOURCE_EXHAUSTED"}}')).toBe('exhausted');
+    // 26/11: dự án hết tiền trả trước → khoá coi như hết hạn mức (chuyển sang khoá chung nếu được phép).
+    expect(classifyGeminiKeyFailure(402, '{"error":{"code":402,"message":"Your prepayment credits are depleted."}}')).toBe('exhausted');
     expect(classifyGeminiKeyFailure(400, '{"error":{"message":"API key not valid. Please pass a valid API key.","status":"INVALID_ARGUMENT","details":[{"reason":"API_KEY_INVALID"}]}}')).toBe('invalid');
     expect(classifyGeminiKeyFailure(403, '{"error":{"status":"PERMISSION_DENIED","message":"billing not enabled"}}')).toBe('invalid');
     expect(classifyGeminiKeyFailure(400, '{"error":{"message":"Invalid JSON payload"}}')).toBeNull();

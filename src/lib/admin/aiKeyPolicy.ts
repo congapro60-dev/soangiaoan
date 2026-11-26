@@ -78,6 +78,8 @@ export const decideAiKey = ({ gateEnabled, isShared, ownKey, consent, mode, now 
 export const classifyGeminiKeyFailure = (httpStatus: number, body: string): AiKeyStatus | null => {
   const text = String(body || '');
   if (httpStatus === 429) return 'exhausted';
+  // 402 "prepayment credits are depleted": dự án của khoá hết tiền trả trước — khoá không chạy tới khi nạp (sự cố 26/11).
+  if (httpStatus === 402) return 'exhausted';
   if (httpStatus === 403 && /RESOURCE_EXHAUSTED|quota/i.test(text)) return 'exhausted';
   if (httpStatus === 401) return 'invalid';
   if (httpStatus === 400 && /API_KEY_INVALID|API key not valid|API key expired/i.test(text)) return 'invalid';

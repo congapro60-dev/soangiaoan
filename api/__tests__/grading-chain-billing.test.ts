@@ -30,6 +30,8 @@ const fakeDb = () => {
       return result;
     },
     collection: (col: string) => ({
+      // Truy vấn (sổ chi tiêu tháng…) trả rỗng — đủ cho các luồng chọn khoá trong test này.
+      where: function where(): any { return { where, limit: where, get: async () => ({ docs: [], empty: true, size: 0 }) }; },
       doc: (id: string) => docRef(`${col}/${id}`),
       add: async (d: DocData) => { h.store[`${col}/auto${Object.keys(h.store).length}`] = d; },
     }),
@@ -206,6 +208,28 @@ describe('khoá riêng không dùng khoá chung của chủ dự án', () => {
     await asOwnKeyTeacher(() => callGradingVision('p', [], { timeoutMs: 60_000 }), { key: 'AIza-rieng' });
     expect(urls.some(u => u.includes('vilao'))).toBe(false);
     expect(urls.some(u => u.includes('key=AIza-rieng'))).toBe(true);
+    vi.unstubAllGlobals();
+  });
+
+  it('khoá Gemini riêng hết tiền (402) → chuyển sang khoá chung → THỬ LẠI lớp Vilao vừa bỏ qua (sự cố 26/11)', async () => {
+    // Chủ dự án: nhóm dùng chung, chế độ "cả hai", có khoá Gemini riêng đã cạn tiền trả trước.
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: ['gv-2'], sharedEmails: [], exemptUids: ['gv-2'] };
+    h.store['teacherAiKeys/gv-2'] = { geminiKey: 'AIza-rieng', mode: 'both' };
+    const urls: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      urls.push(String(url));
+      if (String(url).includes('vilao')) return { ok: true, status: 200, json: async () => ({ choices: [{ finish_reason: 'stop', message: { content: '{"score":9}' } }], usage: { prompt_tokens: 10, completion_tokens: 10 } }) };
+      const body = '{"error":{"code":402,"message":"Your prepayment credits are depleted."}}';
+      return { ok: false, status: 402, text: async () => body, clone() { return this; }, json: async () => JSON.parse(body) };
+    }));
+    const out = await asOwnKeyTeacher(() => callGradingVision('p', [], { timeoutMs: 60_000 }), { key: 'AIza-rieng' });
+    expect(out).toBe('{"score":9}');
+    // Thứ tự: bỏ qua Vilao (đang dùng khoá riêng) → Gemini riêng 402 → Vilao khoá chung chấm được.
+    const firstGemini = urls.findIndex(u => u.includes('generativelanguage'));
+    const vilaoAfter = urls.findIndex((u, i) => i > firstGemini && u.includes('vilao'));
+    expect(firstGemini).toBeGreaterThanOrEqual(0);
+    expect(vilaoAfter).toBeGreaterThan(firstGemini);
+    expect(h.store['teacherAiKeys/gv-2'].keyStatus).toBe('exhausted');
     vi.unstubAllGlobals();
   });
 
