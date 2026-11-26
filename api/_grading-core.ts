@@ -865,6 +865,15 @@ export const listBenchmarkModels = async (): Promise<Record<'vilao' | 'xkiro' | 
   return { vilao, xkiro, pshare, opencode };
 };
 
+/**
+ * Người bán Gemini DỰ PHÒNG trên Vilao (cùng khoá chấm bài), thử ngay sau người bán chính.
+ * 26/11/2026: người bán chính đổi giá (423 chờ xác nhận) / chậm thì cả lớp lỗi — nay có người bán khác cùng model chạy thay.
+ * Model phải được gắn vào khoá trên vilao.ai trước. Nhiều model cách nhau dấu chấm phẩy (dấu phẩy là phân cách biến của gcloud).
+ */
+export const vilaoBackupModels = (env: NodeJS.ProcessEnv = process.env): string[] =>
+  (env.GRADING_VILAO_BACKUP_MODELS ?? '').split(/[;,]/).map(m => m.trim()).filter(Boolean)
+    .filter(m => m !== (env.GRADING_VILAO_MODEL?.trim() || 'gemini-3.8-flash'));
+
 export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): GradingAdapter[] => {
   const forced = forcedChain.getStore();
   if (forced) return forced;
@@ -879,12 +888,16 @@ export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): Gra
       model: process.env.GRADING_VILAO_MODEL?.trim() || 'gemini-3.8-flash',
       reasoningEffort: 'none',
     };
-    chain.push({
-      name: `vilao/${vilaoOptions.model}`,
-      tier: 're',
-      maxMs: 120_000,
-      call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...vilaoOptions, ...options }, segment, { provider: 'vilao', model: `vilao/${vilaoOptions.model}` }),
-    });
+    // 26/11: trần 240s/lớp (bài 4 ảnh thật mất 59–160s; trần 120s cũ cắt mất lượt khi người bán chậm).
+    const vilaoModels = [vilaoOptions.model, ...vilaoBackupModels()];
+    for (const model of vilaoModels) {
+      chain.push({
+        name: `vilao/${model}`,
+        tier: 're',
+        maxMs: 240_000,
+        call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...vilaoOptions, model, ...options }, segment, { provider: 'vilao', model: `vilao/${model}` }),
+      });
+    }
   }
   const xkiroKey = process.env.GRADING_XKIRO_API_KEY?.trim();
   if (xkiroKey) {
@@ -911,7 +924,8 @@ export const getGradingChain = (variant: 'grading' | 'utility' = 'grading'): Gra
       name: `vilao/${fallback.model}`,
       tier: 're',
       lowerQuality: true,
-      maxMs: 120_000,
+      // deepseek trả lời kèm suy nghĩ dài: bài 4 ảnh thật mất ~92s (đo 26/11).
+      maxMs: 240_000,
       call: (prompt, images, options, segment) => callOpenAiCompatibleVision(prompt, images, vilaoKey, { ...fallback, ...options }, segment, { provider: 'vilao', model: `vilao/${fallback.model}` }),
     });
   }

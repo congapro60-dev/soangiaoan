@@ -21,7 +21,7 @@ describe('tự chấm + tự duyệt sau 60 phút', () => {
       sub('qua-han', 'A', ago(61)),
       sub('moi-nop', 'B', ago(30)),
       sub('loi', 'C', ago(120), { status: 'error' }),
-      sub('khoa-chet', 'D', ago(90), { status: 'grading', updatedAt: ago(10) }),
+      sub('khoa-chet', 'D', ago(90), { status: 'grading', updatedAt: ago(12) }),
       sub('dang-cham', 'E', ago(90), { status: 'grading', updatedAt: ago(0.5) }),
     ], NOW);
     expect(plan.toGrade.map(s => s.id).sort()).toEqual(['khoa-chet', 'qua-han']);

@@ -134,7 +134,7 @@ describe('gradeAssignment · stale grading recovery', () => {
     expect(db.state.submissions['dang-chay-1']).toMatchObject({ status: 'grading' });
   });
 
-  it('khoá chết sau 6 phút đã được gỡ — không bắt lớp treo "Đang chấm" tới 10 phút', async () => {
+  it('khoá chết sau 11 phút đã được gỡ — không bắt lớp treo "Đang chấm" mãi', async () => {
     const now = Date.now();
     const db = makeDb({
       assignments: {
@@ -144,7 +144,7 @@ describe('gradeAssignment · stale grading recovery', () => {
         'chet-1': {
           assignmentId: 'assignment-1', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1',
           // Hàm chấm bị Vercel giết ở 300s, nên khoá 7 phút tuổi chắc chắn là khoá chết.
-          status: 'grading', updatedAt: new Date(now - 7 * 60 * 1000).toISOString(), fileUrls: [],
+          status: 'grading', updatedAt: new Date(now - 12 * 60 * 1000).toISOString(), fileUrls: [],
         },
       },
     });

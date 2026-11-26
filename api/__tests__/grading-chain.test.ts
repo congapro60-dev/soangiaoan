@@ -57,6 +57,28 @@ describe('getGradingChain — thứ tự lớp dự phòng', () => {
     expect(getGradingChain().find(a => a.name === 'vilao/deepseek-v4.1-flash')?.lowerQuality).toBe(true);
   });
 
+  it('người bán Gemini dự phòng trên Vilao chạy ngay sau người bán chính, trước deepseek (26/11)', () => {
+    stubEnv({
+      GRADING_VILAO_API_KEY: 'k-vilao',
+      GRADING_VILAO_MODEL: 'spd/gemini-3.8-flash-high',
+      GRADING_VILAO_BACKUP_MODELS: 'jet/gemini-3.8-flash-high; spd/gemini-3.8-flash-high',
+      GRADING_XKIRO_API_KEY: '',
+      GRADING_GEMINI_API_KEY: 'k-gem',
+      GEMINI_API_KEY: '',
+    });
+
+    const chain = getGradingChain();
+
+    expect(chain.map(a => a.name)).toEqual([
+      'vilao/spd/gemini-3.8-flash-high',
+      'vilao/jet/gemini-3.8-flash-high',
+      'vilao/deepseek-v4.1-flash',
+      expect.stringMatching(/^gemini\//),
+    ]);
+    // Bài 4 ảnh thật mất 59–160s ở một lớp: trần mỗi lớp Vilao 240s.
+    expect(chain.slice(0, 3).every(a => a.maxMs === 240_000)).toBe(true);
+  });
+
   it('thiếu key xKiro thì chuỗi bỏ lớp đó, không vỡ', () => {
     stubEnv({ GRADING_VILAO_API_KEY: 'k-vilao', GRADING_XKIRO_API_KEY: '', GRADING_GEMINI_API_KEY: 'k-gem', GEMINI_API_KEY: '' });
 

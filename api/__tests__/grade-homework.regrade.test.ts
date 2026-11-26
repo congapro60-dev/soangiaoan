@@ -798,7 +798,7 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     let troiQua = 0;
     const thatNow = Date.now.bind(Date);
     const dongHo = vi.spyOn(Date, 'now').mockImplementation(() => thatNow() + troiQua);
-    h.fetch = vi.fn(async () => { troiQua += 60_000; return makeGeminiResponse(validGradeJson(7)); });
+    h.fetch = vi.fn(async () => { troiQua += 120_000; return makeGeminiResponse(validGradeJson(7)); });
     vi.stubGlobal('fetch', h.fetch);
 
     const result = await call({ action: 'gradeAssignment', assignmentId: 'asg-1' });

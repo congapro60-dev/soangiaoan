@@ -28,6 +28,8 @@ PLAIN_ENV = {
     'ZALO_DEADLINE_REAL_APPROVED': 'false',
     # 22/11: chib/gemini-3.8-flash trên Vilao "không khả dụng" -> chấm bài trả rỗng; cùng model bot đang chạy.
     'GRADING_VILAO_MODEL': 'spd/gemini-3.8-flash-high',
+    # 26/11: người bán Gemini dự phòng (đã gắn vào khoá chấm bài trên vilao.ai). Nhiều model cách nhau ';'.
+    'GRADING_VILAO_BACKUP_MODELS': 'jet/gemini-3.8-flash-high',
     # 26/11: bỏ hẳn xKiro (chủ máy chốt) — model GPT/GLM quá giờ với bài thật.
 }
 

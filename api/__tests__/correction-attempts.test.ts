@@ -54,7 +54,7 @@ describe('correction practice attempts are independent from official evidence', 
  });
  it('recalculates the model budget after key and quota preparation', async () => {
   const attempt = (await save(await grant())).payload.attempt;
-  const start = Date.now(); let now = start; const clock = vi.spyOn(Date, 'now').mockImplementation(() => now); h.afterQuota = () => { now = start + 260000; };
+  const start = Date.now(); let now = start; const clock = vi.spyOn(Date, 'now').mockImplementation(() => now); h.afterQuota = () => { now = start + 560000; };
   vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, headers: { get: () => 'image/jpeg' }, arrayBuffer: async () => new Uint8Array([1,2,3]).buffer })));
   const result = { status: 0 }; const res = { status(code: number) { result.status = code; return res; }, json() { return res; } };
   try {

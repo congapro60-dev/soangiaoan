@@ -397,7 +397,7 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
       if (calls === 1) { now += 90000; return makeGeminiResponse(JSON.stringify({ questions: [{ questionNumber: 'Phần I – Câu 1', content: 'Tính 1+1', expectedAnswer: 'C' }] })); }
       return makeGeminiResponse(JSON.stringify({ questions: [{ questionNumber: 'Phần I – Câu 1', workedSolution: 'Ta cộng hai số: $1+1=2$. Vì vậy chọn C.', status: 'ready' }] }));
     });
-    try { expect((await call({ action: 'prepareWorkedSolutions', assignmentId: 'kt-1', examCode: '1202' })).statusCode).toBe(200); expect(timeout.mock.calls[0][0]).toBe(120000); expect(timeout.mock.calls[1][0]).toBeLessThanOrEqual(195000); }
+    try { expect((await call({ action: 'prepareWorkedSolutions', assignmentId: 'kt-1', examCode: '1202' })).statusCode).toBe(200); expect(timeout.mock.calls[0][0]).toBe(120000); expect(timeout.mock.calls[1][0]).toBeLessThanOrEqual(480000); }
     finally { clock.mockRestore(); timeout.mockRestore(); }
   });
 

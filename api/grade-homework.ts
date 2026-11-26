@@ -154,10 +154,10 @@ const BATCH_SIZE = 2;
  * Hàm chấm bị Vercel giết ở `maxDuration` (300s), nên không worker LÀNH nào giữ khoá quá chừng đó:
  * khoá PHẢI cũ hơn trần này, nếu không một worker còn sống bị giành khoá giữa chừng. Để 10 phút như
  * trước là bài nộp treo "Đang chấm" gần cả buổi rồi mới có ai gỡ được — đúng cảnh cả lớp kẹt từ 20h.
- * Sáu phút = trần 5 phút + 1 phút dự phòng. Phải khớp `STALE_GRADING_MS` ở `submissionSelection.ts`
+ * 11 phút = trần 10 phút + 1 phút dự phòng. Phải khớp `STALE_GRADING_MS` ở `submissionSelection.ts`
  * (bản sao phía trình duyệt); test khoá cả hai và quan hệ với `maxDuration`.
  */
-export const STALE_GRADING_MS = 6 * 60 * 1000;
+export const STALE_GRADING_MS = 11 * 60 * 1000;
 const isStaleGradingTimestamp = (updatedAt: unknown, nowMs = Date.now()): boolean => {
   const timestamp = Date.parse(String(updatedAt || ''));
   return !Number.isFinite(timestamp) || nowMs - timestamp > STALE_GRADING_MS;
@@ -235,10 +235,11 @@ const UNCERTAIN_READ_MESSAGE = 'AI đọc chưa rõ bài này nên chưa chấm 
 const SAFE_GRADING_ERROR_MESSAGE = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
 const SYSTEM_GRADING_ERROR_MESSAGE = 'Chấm bài chưa thành công vì lỗi hệ thống. Bài và ảnh vẫn được giữ nguyên. Thầy/cô chấm lại sau ít phút hoặc sửa điểm bằng tay.';
 /**
- * Khai tường minh thay vì dựa default của Vercel. PHẢI khớp `functions["api/grade-homework.ts"].maxDuration`
- * trong vercel.json (test khoá). Gói hiện tại chạy được hàm 300s (`api/ai-relay.ts` đã chạy ở mức này).
+ * Trần một lượt gọi hàm chấm. PHẢI khớp `functions["api/grade-homework.ts"].maxDuration` trong vercel.json (test khoá).
+ * 26/11/2026: chạy trên Cloud Run (timeout dịch vụ 900s) → nâng 300s lên 600s. Bài 4 ảnh thật mất 59–160s ở một lớp AI;
+ * trần 300s cũ khiến chỉ một lớp chậm là cả lượt chấm báo "AI xử lý quá lâu".
  */
-export const maxDuration = 300;
+export const maxDuration = 600;
 const FUNCTION_MAX_MS = maxDuration * 1000;
 /**
  * Ngân sách cho MỘT bài: hết ngân sách là dừng và mở khoá, thay vì để Vercel giết hàm.
@@ -247,7 +248,7 @@ const FUNCTION_MAX_MS = maxDuration * 1000;
  * (xác thực, tải ảnh đề/đáp án, tối đa ~12s) và SAU khi chấm (ghi Firestore, trả lời client).
  * 45s cũ làm bài viết tay nhiều ảnh hết giờ dù Gemini vẫn đang trả lời đúng.
  */
-export const GRADING_BUDGET_MS = 240_000;
+export const GRADING_BUDGET_MS = 480_000;
 /** Biên an toàn cuối: không bắt đầu một bài mới khi phần giờ còn lại không chứa trọn ngân sách + biên này. */
 const FINISH_MARGIN_MS = 15_000;
 /** Các lượt gọi AI đơn lẻ khác (không phải chấm một bài) vẫn giữ trần 45s như trước. */

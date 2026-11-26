@@ -116,4 +116,6 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 const port = Number(process.env.PORT || 8080);
-app.listen(port, () => console.info(`[server] nghe cổng ${port}`));
+const server = app.listen(port, () => console.info(`[server] nghe cổng ${port}`));
+// Node mặc định cắt yêu cầu sau 300s (requestTimeout) — lượt chấm bài dài bị cắt dù Cloud Run cho tới 900s (26/11).
+server.requestTimeout = 0;
