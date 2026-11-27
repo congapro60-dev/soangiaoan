@@ -26,11 +26,11 @@ PLAIN_ENV = {
     'ZALO_DEADLINE_ENABLED': 'false',
     'ZALO_DEADLINE_QUOTA_VERIFIED': 'false',
     'ZALO_DEADLINE_REAL_APPROVED': 'false',
-    # 26/11: bản -high viết 13–33 nghìn token/bài, quá 5 phút với bài nhiều câu; đo bài thật: bfly/gemini-3.8-flash
-    # (bản thường) xong trong 70s, 9,6 nghìn token. spd -high để dự phòng.
-    'GRADING_VILAO_MODEL': 'bfly/gemini-3.8-flash',
+    # 27/11: chọn theo số liệu 7 ngày trên Vilao: spd -high thành công 97,6% (điểm kiểm thử 80) nên làm chính;
+    # bfly đang chờ xác nhận giá (tăng 100 lần, từ chối mọi yêu cầu); jet chỉ 40% nên bỏ; pca 87,5% làm dự phòng khác nhà cung cấp.
+    'GRADING_VILAO_MODEL': 'spd/gemini-3.8-flash-high',
     # 26/11: người bán Gemini dự phòng (đã gắn vào khoá chấm bài trên vilao.ai). Nhiều model cách nhau ';'.
-    'GRADING_VILAO_BACKUP_MODELS': 'pca/gemini-4-hydrogen;spd/gemini-3.8-flash-high',  # 26/11: Hydrogen cùng điểm, chậm/dài hơn → dự phòng
+    'GRADING_VILAO_BACKUP_MODELS': 'pca/gemini-4-hydrogen',
     # 26/11: bỏ hẳn xKiro (chủ máy chốt) — model GPT/GLM quá giờ với bài thật.
 }
 
