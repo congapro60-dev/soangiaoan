@@ -993,3 +993,12 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-11-04 — Kiểm tra nhanh phải có đủ dữ kiện
 - Sai: câu hỏi yêu cầu so sánh độ dời và quãng đường nhưng không nêu tọa độ; cột ghi bảng vẫn có đáp số, nên học sinh không thể tự giải.
 - Luật: với mỗi câu kiểm tra, đối chiếu đầu vào ở cột hoạt động với phép tính/đáp án ở cột ghi bảng; thiếu một dữ kiện thì bổ sung đề, không chỉ để đáp số.
+
+## 2026-11-26 — Chấm bài lỗi hàng loạt: một nguồn hỏng kéo cả lớp
+- Sai: chỉ xem lỗi hiển thị ("Gemini báo lỗi 402") rồi sửa một chỗ. Một buổi có 4 nguyên nhân chồng nhau: model đổi giá chờ xác nhận (423), dự án hết tiền trả trước (402), model -high quá dài so với trần thời gian, khoá riêng hết tiền làm bỏ qua cả lớp dự phòng.
+- Luật: khi báo lỗi chấm bài, đếm lại theo từng lớp trong nhật ký `[grading-chain]` và `aiUsage` trước khi sửa. Mỗi lớp phải có một lý do riêng.
+- Luật: mọi lỗi do chủ tài khoản phải xử lý (đổi giá, nạp tiền, thu hồi khoá) phải báo chủ máy trước khi bài bị lỗi, không để phát hiện qua giáo viên. Bộ canh `?transport=ai-watch` làm việc này mỗi giờ.
+- Luật: không kết luận model "tốt" hay "tệ" từ một lần thử. Đo bằng `adminBenchmarkGrade` trên bài thật (đầu ra token, thời gian) rồi mới đổi chuỗi.
+- Luật: khi khoá riêng hỏng, phải thử lại các lớp đã bị bỏ qua vì khoá riêng (xem `grading-chain-billing.test.ts`). Test đã tái hiện đúng lỗi này.
+- Bẫy: Node mặc định cắt request sau 300 giây (`requestTimeout`). Cloud Run cho tới 900 giây, nên phải tắt ở `server/index.ts`.
+- Bẫy: test ghim các mốc thời gian (STALE, BUDGET, maxDuration) rải rác ở nhiều file. Đổi một hằng số phải chạy lại cả bộ test, không chỉ file liên quan.
