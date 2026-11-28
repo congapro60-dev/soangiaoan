@@ -2,6 +2,12 @@
 
 > Cập nhật: 05/11/2026 — **NGHIỆM THU HOÀN TẤT 24 BÀI TUẦN 18: ĐÃ XỬ LÝ TRIỆT ĐỂ 100% (39 FINDINGS + 2 LỖI KỸ THUẬT T01/T02) TỪ CODEX AUDIT — 218/218 BÀI TOÁN 10–12 ĐẠT CHUẨN V8.8 MASTER TEACHER**
 
+## Sửa 5 bài web Toán — 28/11 (Codex sửa, Claude gộp và đăng)
+- Bài sửa: 10-14-110, 10-17-129 (khớp lõi đã kiểm g10-p110/g10-p129); 10-16-122 (thay parabol sai bằng tối ưu ràng buộc tuyến tính); 10-17-128 (thay phương trình chứa căn sai bằng mệnh đề, tập hợp, khoảng); 12-18-131 (bỏ phần HK2: mặt phẳng, mặt cầu, tích có hướng).
+- File: `src/data/liveLessonPackages/banToan-w11-batch2.snapshot.json`, `src/lib/liveLesson/v4/week11Batch2Catalog.ts`, 5 test `tests/lesson*Correction.test.ts`, báo cáo `tasks/fix-five-web-lessons-report.md`.
+- Nhánh gốc của Codex `codex/fix-five-web-lessons` dựa trên `codex/lesson-core-integration` (27 commit chưa vào main), nên chỉ chép phần nội dung bài lên nhánh `fix/five-web-lessons-main` từ origin/main; phần hash guard của nhánh tích hợp không mang theo.
+- Đã kiểm: 9 file test (5 test sửa bài + 4 test live lesson v4) 568/568 đạt; `npm run build` đạt.
+
 ## Điểm hiển thị 9,1299999999 → làm tròn 2 chữ số — 06/11 (Claude)
 Danh sách bài nộp hiện `9.129999999999999/10`: `coerceHomeworkGrade` (và `parsePracticeAssessment`) cộng điểm từng câu mà không làm tròn → sai số số thực. Sửa nguồn: `roundScore` (`src/lib/classroom/scoreFormat.ts`, 2 chữ số — giữ điểm lẻ 4,85 / 3,25 thầy cô cho) áp ở hai chỗ cộng điểm; hiển thị: `formatScore` ở danh sách bài nộp, báo cáo HS, cổng HS, xem ảnh bài, bài online. Bài ĐÃ chấm có số xấu trong Firestore chỉ được sửa ở màn hình (chưa ghi lại dữ liệu); chấm lại hoặc GV sửa tay thì lưu số sạch. Chủ dự án hỏi làm tròn 1 chữ số thập phân: chưa đổi vì sẽ làm 4,85 → 4,9, 3,25 → 3,3 (điểm thầy cô đã duyệt) — chờ quyết định.
 

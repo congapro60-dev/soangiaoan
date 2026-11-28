@@ -4551,70 +4551,244 @@
       "grade": 10,
       "week": 14,
       "period": 110,
-      "title": "Tự chọn: Chứng minh vuông góc bằng tích vô hướng",
+      "title": "Tự chọn: Tích vô hướng, góc và độ dài tổng vectơ",
       "kind": "practice",
       "lessonType": "practice",
-      "focus": "Kỹ thuật dùng tích vô hướng để chứng minh hai đường thẳng vuông góc",
+      "focus": "Tính tích vô hướng từ tọa độ, tìm góc bằng cos và tính độ dài tổng hai vectơ",
       "formulas": [
-        "d_1 \\perp d_2 \\iff \\vec{u}_1 \\cdot \\vec{u}_2 = 0"
+        "\\vec u\\cdot\\vec v=x_1x_2+y_1y_2",
+        "\\cos\\theta=\\frac{\\vec u\\cdot\\vec v}{|\\vec u||\\vec v|},\\ \\vec u,\\vec v\\ne\\vec 0",
+        "|\\vec u+\\vec v|^2=|\\vec u|^2+2\\vec u\\cdot\\vec v+|\\vec v|^2"
       ],
-      "boardKnowledge": "Phương pháp vectơ: Đưa quan hệ hình học về đẳng thức vectơ. Để chứng minh XY \\perp ZT, tính \\vec{XY} \\cdot \\vec{ZT} = 0.",
+      "boardKnowledge": [
+        "$\\vec u\\cdot\\vec v=x_1x_2+y_1y_2$.",
+        "$\\cos\\theta=\\dfrac{\\vec u\\cdot\\vec v}{|\\vec u||\\vec v|}$ với $\\vec u,\\vec v\\ne\\vec 0$.",
+        "$|\\vec u+\\vec v|^2=|\\vec u|^2+2\\vec u\\cdot\\vec v+|\\vec v|^2$."
+      ],
       "examples": [
         {
-          "question": "Cho hình vuông ABCD, M là trung điểm CD, N là điểm trên BC sao cho BN = BC/4. Chứng minh AM \\perp MN.",
-          "solution": "Gán tọa độ A(0;4), B(4;4), C(4;0), D(0;0) hoặc phân tích vectơ theo hai cạnh hình vuông."
+          "question": "Với $\\vec u=(1;0)$, $\\vec v=(1;1)$, tính tích vô hướng, hai độ dài, cos góc rồi suy ra góc.",
+          "solution": "$\\vec u\\cdot\\vec v=1$; $|\\vec u|=1$; $|\\vec v|=\\sqrt2$; $\\cos\\theta=\\frac{1}{\\sqrt2}$ nên $\\theta=45^\\circ$.",
+          "tdsQuote": "với u=(1;0), v=(1;1), HS tính tích, hai độ dài, cos góc rồi suy ra góc",
+          "origin": "source",
+          "reviewRequired": false
         },
         {
-          "question": "Cho tam giác ABC có đường cao AH, trung tuyến AM. Khi nào AH \\perp AM?",
-          "solution": "Khi tam giác ABC cân tại A (đường cao trùng đường trung tuyến)."
+          "question": "Biết $|\\vec u|=2$, $|\\vec v|=3$, góc giữa hai vectơ bằng $60^\\circ$. Tính $\\vec u\\cdot\\vec v$.",
+          "solution": "$\\vec u\\cdot\\vec v=2\\cdot 3\\cdot\\cos 60^\\circ=3$.",
+          "tdsQuote": "u·v=2·3·cos60°=3",
+          "origin": "source",
+          "reviewRequired": false
         }
       ],
       "exercises": [
         {
-          "level": "NB",
-          "question": "Nêu điều kiện để hai đường thẳng có vectơ chỉ phương \\vec{u}_1, \\vec{u}_2 vuông góc.",
-          "answer": "\\vec{u}_1 \\cdot \\vec{u}_2 = 0."
+          "id": "m1",
+          "question": "Với $\\vec u=(2;-1)$, $\\vec v=(-3;4)$, tính $\\vec u\\cdot\\vec v$ và xét dấu để dự đoán góc.",
+          "answer": "$\\vec u\\cdot\\vec v=2\\cdot(-3)+(-1)\\cdot 4=-10<0$; hai vectơ khác $\\vec 0$ nên góc lớn hơn $90^\\circ$.",
+          "tdsQuote": "với u=(2;−1), v=(−3;4), HS tính u·v và xét dấu để dự đoán góc",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Với $\\vec u=(2;-1)$, $\\vec v=(-3;4)$, tính $\\vec u\\cdot\\vec v$.",
+            "answer": -10
+          },
+          "hints": [
+            "Nhân hoành với hoành, tung với tung rồi cộng; giữ dấu từng tọa độ."
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "must"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "NB"
         },
         {
-          "level": "NB",
-          "question": "Cho \\vec{u}=(2; 1). Tìm một vectơ vuông góc với \\vec{u}.",
-          "answer": "\\vec{v}=(-1; 2) hoặc (1; -2)."
+          "id": "m2",
+          "question": "Cho $A(3;-1)$, $B(2;10)$. Tính $\\overrightarrow{AO}\\cdot\\overrightarrow{OB}$ và dùng dấu tích để nhận xét góc.",
+          "answer": "$\\overrightarrow{AO}=(-3;1)$, $\\overrightarrow{OB}=(2;10)$; tích bằng $(-3)\\cdot 2+1\\cdot 10=4>0$ nên góc nhỏ hơn $90^\\circ$.",
+          "tdsQuote": "A(3;−1), B(2;10). Tính AO·OB và dùng dấu tích để nhận xét góc.",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Cho $A(3;-1)$, $B(2;10)$. Tính $\\overrightarrow{AO}\\cdot\\overrightarrow{OB}$.",
+            "answer": 4
+          },
+          "hints": [
+            "Viết tọa độ $\\overrightarrow{AO}$ và $\\overrightarrow{OB}$ trước; chú ý chiều của vectơ."
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "must"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "NB"
         },
         {
-          "level": "TH",
-          "question": "Chứng minh trong tam giác đều, đường trung tuyến vuông góc với cạnh đáy tương ứng.",
-          "answer": "\\vec{AM}\\cdot\\vec{BC} = 0,5(\\vec{AB}+\\vec{AC})(\\vec{AC}-\\vec{AB}) = 0,5(b^2-c^2) = 0."
+          "id": "s1",
+          "question": "Cho $A(1;1)$, $B(2;4)$, $C(10;-2)$. Tính $\\overrightarrow{AB}\\cdot\\overrightarrow{AC}$ và kết luận về tam giác $ABC$.",
+          "answer": "$\\overrightarrow{AB}=(1;3)$, $\\overrightarrow{AC}=(9;-3)$; tích bằng $9-9=0$; tam giác vuông tại $A$.",
+          "tdsQuote": "A(1;1), B(2;4), C(10;−2). Tính AB·AC và kết luận về tam giác ABC.",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Cho $A(1;1)$, $B(2;4)$, $C(10;-2)$. Tính $\\overrightarrow{AB}\\cdot\\overrightarrow{AC}$.",
+            "answer": 0
+          },
+          "hints": [
+            "Tích vô hướng bằng 0 với hai vectơ khác $\\vec 0$ nói gì về góc?"
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "should"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "TH"
         },
         {
-          "level": "TH",
-          "question": "Cho tam giác ABC vuông tại A. Gọi M là trung điểm BC. Chứng minh \\vec{MA}\\cdot\\vec{MB} = -MA^2.",
-          "answer": "Vì M là tâm đường tròn ngoại tiếp nên MA = MB = MC và \\vec{MB}=-\\vec{MC}."
+          "id": "s2",
+          "question": "Với $\\vec a=(4;3)$, $\\vec b=(1;7)$, tính tích vô hướng, hai độ dài và góc giữa hai vectơ.",
+          "answer": "$\\vec a\\cdot\\vec b=25$; $|\\vec a|=5$; $|\\vec b|=5\\sqrt2$; $\\cos\\theta=\\frac{25}{25\\sqrt2}=\\frac{1}{\\sqrt2}$ nên $\\theta=45^\\circ$.",
+          "tdsQuote": "với a=(4;3), b=(1;7), HS tính tích vô hướng, hai độ dài và cos góc",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Với $\\vec a=(4;3)$, $\\vec b=(1;7)$, tính số đo góc giữa hai vectơ (độ).",
+            "answer": 45
+          },
+          "hints": [
+            "Tính tích và hai độ dài trước; thay vào công thức $\\cos\\theta$."
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "should"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "TH"
         },
         {
-          "level": "VD",
-          "question": "Cho hình thang vuông ABCD tại A và D. AB=a, AD=a, CD=2a. Chứng minh AC \\perp BC.",
-          "answer": "Chọn hệ trục tọa độ: A(0;a), D(0;0), C(2a;0), B(a;a). \\vec{AC}=(2a;-a), \\vec{BC}=(a;-a) \\implies tích = 2a^2 + a^2 \\neq 0 (kiểm tra lại số liệu)."
+          "id": "c1",
+          "question": "Biết $|\\vec u|=2$, $|\\vec v|=3$, góc giữa hai vectơ bằng $60^\\circ$. Tính $|\\vec u+\\vec v|$; giải thích hệ số 2 trước tích vô hướng.",
+          "answer": "$|\\vec u+\\vec v|^2=4+2\\cdot 3+9=19$ nên $|\\vec u+\\vec v|=\\sqrt{19}$. Hệ số 2 đến từ hai tích chéo khi bình phương tổng.",
+          "tdsQuote": "|u+v|²=|u|²+2u·v+|v|²=4+6+9=19 ⇒ |u+v|=√19",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Biết $|\\vec u|=2$, $|\\vec v|=3$, góc giữa hai vectơ bằng $60^\\circ$. Tính $|\\vec u+\\vec v|^2$.",
+            "answer": 19
+          },
+          "hints": [
+            "Khai triển $(\\vec u+\\vec v)^2$; đừng bỏ hệ số 2."
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "could"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "VD"
         },
         {
-          "level": "VD",
-          "question": "Chứng minh định lý Pythagore đảo bằng tích vô hướng.",
-          "answer": "BC^2 = (AC-AB)^2 = AC^2 + AB^2 - 2AB.AC. Nếu BC^2 = AB^2 + AC^2 thì AB.AC = 0 \\implies vuông."
+          "id": "c2",
+          "question": "Biết $|\\vec u|=3$, $|\\vec v|=4$, góc giữa hai vectơ bằng $120^\\circ$. Tính $\\vec u\\cdot\\vec v$ và $|\\vec u+\\vec v|$.",
+          "answer": "$\\vec u\\cdot\\vec v=-6$; $|\\vec u+\\vec v|^2=9-12+16=13$; $|\\vec u+\\vec v|=\\sqrt{13}$.",
+          "tdsQuote": "|u|=3, |v|=4, góc(u,v)=120°. Tính u·v và |u+v|.",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Biết $|\\vec u|=3$, $|\\vec v|=4$, góc giữa hai vectơ bằng $120^\\circ$. Tính $|\\vec u+\\vec v|^2$.",
+            "answer": 13
+          },
+          "hints": [
+            "$\\cos 120^\\circ$ âm nên tích vô hướng âm."
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "could"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "VD"
         }
       ],
       "quick": [
         {
-          "question": "Phương pháp vectơ có cần vẽ hình chính xác từng milimet không?",
-          "solution": "Không, chỉ cần đúng bản chất liên kết các vectơ."
+          "question": "Hình vuông $ABCD$ cạnh $a$. Tính $\\overrightarrow{AB}\\cdot\\overrightarrow{AD}$.",
+          "solution": "$\\overrightarrow{AB}\\cdot\\overrightarrow{AD}=0$ vì hai cạnh vuông góc.",
+          "tdsQuote": "AB·AD=0",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Hình vuông $ABCD$ cạnh $a$. Tính $\\overrightarrow{AB}\\cdot\\overrightarrow{AD}$.",
+            "answer": 0
+          },
+          "alignment": {
+            "objectiveIds": [
+              "must"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false
         },
         {
-          "question": "Tích vô hướng bằng 0 có suy ra một trong hai vectơ bằng 0 không?",
-          "solution": "Không nhất thiết, có thể hai vectơ khác 0 nhưng vuông góc."
+          "question": "Hình vuông $ABCD$ cạnh $a$. Khai triển $\\overrightarrow{AB}\\cdot(\\overrightarrow{AB}+\\overrightarrow{AD})$.",
+          "solution": "$\\overrightarrow{AB}\\cdot(\\overrightarrow{AB}+\\overrightarrow{AD})=|\\overrightarrow{AB}|^2+\\overrightarrow{AB}\\cdot\\overrightarrow{AD}=a^2$.",
+          "tdsQuote": "AB·(AB+AD)=|AB|²+AB·AD=a²",
+          "auto": {
+            "kind": "choice",
+            "prompt": "Hình vuông $ABCD$ cạnh $a$. Giá trị của $\\overrightarrow{AB}\\cdot(\\overrightarrow{AB}+\\overrightarrow{AD})$ là",
+            "options": [
+              {
+                "id": "o1",
+                "label": "$a^2$"
+              },
+              {
+                "id": "o2",
+                "label": "$0$"
+              },
+              {
+                "id": "o3",
+                "label": "$2a^2$"
+              },
+              {
+                "id": "o4",
+                "label": "$a$"
+              }
+            ],
+            "answer": "o1"
+          },
+          "alignment": {
+            "objectiveIds": [
+              "must"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false
         }
       ],
       "mistakes": [
-        "Chọn sai cặp vectơ cơ sở khi phân tích.",
-        "Nhầm giữa vectơ vuông góc và vectơ cùng phương.",
-        "Tính sai dấu của tích vô hướng khi khai triển."
+        "Sai dấu tọa độ khi nhân.",
+        "Quên mẫu số trong công thức cos.",
+        "Bỏ hệ số 2 khi khai triển độ dài tổng."
       ],
       "selfChoice": true,
       "timelineKey": "gateD78"
@@ -7790,72 +7964,72 @@
       "grade": 10,
       "week": 16,
       "period": 122,
-      "title": "Ôn tập HK1: Hàm số bậc hai và đồ thị",
+      "title": "Ôn tập cuối HK1: Hệ bất phương trình và tối ưu trên miền nghiệm",
       "kind": "practice",
       "lessonType": "practice",
-      "focus": "Tập xác định, bảng biến thiên, đỉnh parabol và ứng dụng thực tế của hàm số bậc hai",
+      "focus": "Lập hệ bất phương trình, đọc miền nghiệm và tối ưu số nguyên",
       "formulas": [
-        "y = ax^2 + bx + c (a \\ne 0)",
-        "I\\left(-\\frac{b}{2a}; -\\frac{\\Delta}{4a}\\right)",
-        "x = -\\frac{b}{2a}"
+        "12x+20y\\le240,\\ x\\ge2y,\\ x,y\\in\\mathbb{Z}_{\\ge0}",
+        "12x+20y\\ge44y\\Rightarrow y\\le\\frac{60}{11}\\Rightarrow y\\le5",
+        "y=5\\Rightarrow (x,y)\\in\\{(10;5),(11;5)\\}"
       ],
-      "boardKnowledge": "Parabol y = ax² + bx + c: Đỉnh I(-b/(2a); -Δ/(4a)), trục đối xứng x = -b/(2a). a > 0 bề lõm hướng lên (đạt min); a < 0 bề lõm hướng xuống (đạt max).",
+      "boardKnowledge": "Mô hình: dữ kiện → hệ bất phương trình → miền nghiệm → phương án nguyên → cận trên và phương án đạt.",
       "examples": [
         {
-          "question": "Tìm tọa độ đỉnh và trục đối xứng của parabol y = x^2 - 4x + 3.",
-          "solution": "Đỉnh I(2; -1), trục đối xứng x = 2."
+          "question": "Nhà sách dùng không quá 240 nghìn mua x quyển vở giá 12 nghìn và y cây bút giá 20 nghìn; số vở ít nhất gấp đôi số bút. Lập hệ và kiểm tra phương án (8;4).",
+          "solution": "Hệ: 12x+20y≤240, x≥2y, x,y∈ℤ≥0. Với (8;4): 176≤240 và 8≥8 nên phương án thuộc miền nghiệm."
         },
         {
-          "question": "Tìm giá trị nhỏ nhất của y = 2x^2 - 8x + 1 trên đoạn [0; 3].",
-          "solution": "Đỉnh x = 2 thuộc [0; 3]. y(0)=1, y(2)=-7, y(3)=-5. Min = -7 tại x = 2."
+          "question": "Với hệ 12x+20y≤240, x≥2y, x,y nguyên không âm, tìm y lớn nhất và mọi phương án đạt.",
+          "solution": "12x+20y≥44y nên y≤60/11<6, do y nguyên y≤5. Với y=5, x=10 hoặc 11; vậy y lớn nhất là 5, đạt tại (10;5) và (11;5)."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Trục đối xứng của parabol y = ax^2 + bx + c là đường thẳng nào?",
-          "answer": "x = -b / (2a)."
+          "question": "Từ điều kiện “không quá 240 nghìn” cần viết dấu nào trong bất phương trình tiền?",
+          "answer": "12x+20y≤240."
         },
         {
           "level": "NB",
-          "question": "Khi a > 0 thì hàm số đồng biến trên khoảng nào?",
-          "answer": "(-b/(2a); +∞)."
+          "question": "Điều kiện “số vở ít nhất gấp đôi số bút” được viết thế nào?",
+          "answer": "x≥2y."
         },
         {
           "level": "TH",
-          "question": "Xác định parabol y = ax^2 + 2x - 3 đi qua điểm A(1; 1).",
-          "answer": "1 = a + 2 - 3 ⇔ a = 2. Vậy y = 2x^2 + 2x - 3."
+          "question": "Kiểm tra (8;4) có thuộc hệ 12x+20y≤240, x≥2y, x,y∈ℤ≥0 không.",
+          "answer": "Có: 176≤240 và 8≥8."
         },
         {
           "level": "TH",
-          "question": "Tìm khoảng nghịch biến của hàm số y = -x^2 + 6x - 5.",
-          "answer": "(3; +∞) (vì a = -1 < 0, đỉnh x = 3)."
+          "question": "Từ x≥2y và 12x+20y≤240, suy ra cận trên nào của y?",
+          "answer": "12x+20y≥44y, nên 44y≤240 và y≤60/11; vì y nguyên, y≤5."
         },
         {
           "level": "VD",
-          "question": "Một cổng chào hình parabol có chiều rộng 6m và chiều cao 4,5m. Tính chiều cao cổng tại điểm cách mép cổng 1m.",
-          "answer": "Lập phương trình parabol y = -0,5 x^2 + 4,5. Tại x = 2 (cách mép 1m): y = -0,5(4) + 4,5 = 2,5m."
+          "question": "Nêu mọi phương án có y=5 trong hệ trên.",
+          "answer": "(10;5) và (11;5); (12;5) bị loại vì chi 244 nghìn."
         },
         {
           "level": "VD",
-          "question": "Tìm m để phương trình x^2 - 2x + m = 0 có hai nghiệm phân biệt lớn hơn 1.",
-          "answer": "Δ' > 0, S/2 > 1, f(1) > 0 ⇔ 1 - m > 0, 1 > 1 (vô nghiệm)."
+          "question": "Đổi ngân sách thành 200 nghìn. Tìm y lớn nhất và mọi phương án đạt.",
+          "answer": "44y≤200 nên y≤4; y=4 đạt tại (8;4), (9;4), (10;4)."
         }
       ],
       "quick": [
         {
-          "question": "Giao điểm của parabol với trục tung Oy có tọa độ gì?",
-          "solution": "(0; c)."
+          "question": "Phương án (8;5) có thuộc hệ ngân sách 200 nghìn, x≥2y không?",
+          "solution": "Không: dù 196≤200 nhưng 8<10 nên vi phạm x≥2y."
         },
         {
-          "question": "Nếu parabol không cắt trục Ox thì biệt thức Δ mang dấu gì?",
-          "solution": "Δ < 0."
+          "question": "Với ngân sách 224 nghìn, y lớn nhất là bao nhiêu và phương án nào đạt?",
+          "solution": "44y≤224 nên y≤5; (10;5) và (11;5) đạt, còn (12;5) vượt ngân sách."
         }
       ],
       "mistakes": [
-        "Nhầm hoành độ đỉnh là b/(2a) thay vì -b/(2a).",
-        "Quên kiểm tra hoành độ đỉnh có nằm trong đoạn [a; b] khi tìm min, max.",
-        "Nhầm lẫn hướng bề lõm khi a âm."
+        "Chỉ kiểm điều kiện tiền mà quên điều kiện x≥2y.",
+        "Suy ra y≤5 nhưng không đưa ra phương án đạt.",
+        "Làm tròn nghiệm thực thành nghiệm nguyên mà không kiểm lại toàn bộ hệ."
       ],
       "selfChoice": false,
       "timelineKey": "gateD78"
@@ -9360,71 +9534,72 @@
       "grade": 10,
       "week": 17,
       "period": 128,
-      "title": "Ôn tập HK1: Phương trình quy về phương trình bậc hai",
+      "title": "Ôn tập HK1: Mệnh đề, tập hợp và khoảng",
       "kind": "practice",
       "lessonType": "practice",
-      "focus": "Phương trình chứa căn dạng √(f(x)) = √(g(x)) và √(f(x)) = ax + b, phương pháp bình phương và đặt ẩn phụ",
+      "focus": "Phủ định mệnh đề, phép giao và hiệu khoảng, điều kiện tham số của tập con",
       "formulas": [
-        "\\sqrt{f(x)} = \\sqrt{g(x)} \\iff f(x) = g(x) \\text{ và } f(x) \\ge 0",
-        "\\sqrt{f(x)} = ax + b \\iff ax + b \\ge 0 \\text{ và } f(x) = (ax + b)^2"
+        "¬(∀x∈A, P(x)) ⇔ ∃x∈A: ¬P(x)",
+        "A∩B và A\\\\B phải xét đúng đầu mút đóng/mở",
+        "C_m=(m;m+2)⊆(-1;4) ⇔ -1≤m≤2"
       ],
-      "boardKnowledge": "Trọng tâm: Điều kiện không âm trước khi bình phương; Thử lại nghiệm vào phương trình gốc để loại nghiệm ngoại lai sinh ra do phép biến đổi hệ quả.",
+      "boardKnowledge": "Mệnh đề: đổi ∀ thành ∃ và phủ định vị từ. Khoảng: vẽ trục số, giữ đúng đầu mút. Tập con: mọi điểm của tập thứ nhất phải thuộc tập thứ hai.",
       "examples": [
         {
-          "question": "Giải phương trình: \\sqrt{2x^2 - 3} = \\sqrt{x - 1}.",
-          "solution": "Điều kiện x - 1 >= 0 ⇔ x >= 1. Phương trình tương đương 2x^2 - 3 = x - 1 ⇔ 2x^2 - x - 2 = 0 ⇔ x = (1 ± \\sqrt{17})/4. Đối chiếu điều kiện loại nghiệm âm, nhận x = (1 + \\sqrt{17})/4."
+          "question": "Phủ định mệnh đề Q: “∀x∈ℤ, 7\\mid(3x+1)”.",
+          "solution": "¬Q: “∃x∈ℤ sao cho 7\\nmid(3x+1)”. Chẳng hạn x=0 cho 7\\nmid1, nên Q sai."
         },
         {
-          "question": "Giải phương trình: \\sqrt{x^2 - 4x + 3} = x - 1.",
-          "solution": "Điều kiện x - 1 >= 0 ⇔ x >= 1. Bình phương hai vế: x^2 - 4x + 3 = x^2 - 2x + 1 ⇔ 2x = 2 ⇔ x = 1 (thoả mãn)."
+          "question": "Cho A=[-1;3), B=(1;5]. Tìm A∩B và A\\\\B.",
+          "solution": "A∩B=(1;3); A\\\\B=[-1;1]. Điểm 1 thuộc A nhưng không thuộc B nên được giữ trong A\\\\B."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Phép bình phương hai vế của một phương trình khi hai vế chưa cùng dấu là phép biến đổi gì?",
-          "answer": "Là phép biến đổi hệ quả (có thể làm xuất hiện nghiệm ngoại lai)."
+          "question": "Phủ định mệnh đề “∀x∈ℝ, P(x)” theo lượng từ nào?",
+          "answer": "∃x∈ℝ sao cho ¬P(x)."
         },
         {
           "level": "NB",
-          "question": "Điều kiện tương đương của phương trình \\sqrt{A} = B là gì?",
-          "answer": "B >= 0 và A = B^2."
+          "question": "Phủ định mệnh đề “∃x∈ℤ, P(x)” là gì?",
+          "answer": "∀x∈ℤ, ¬P(x)."
         },
         {
           "level": "TH",
-          "question": "Giải phương trình: \\sqrt{3x - 2} = 4.",
-          "answer": "3x - 2 = 16 ⇔ 3x = 18 ⇔ x = 6."
+          "question": "Với A=[-1;3), B=(1;5], tìm A∩B.",
+          "answer": "(1;3)."
         },
         {
           "level": "TH",
-          "question": "Tìm số nghiệm của phương trình \\sqrt{x - 1} = -2.",
-          "answer": "Phương trình vô nghiệm vì vế trái luôn không âm trong khi vế phải âm."
+          "question": "Với A=[-1;3), B=(1;5], tìm A\\\\B.",
+          "answer": "[-1;1]."
         },
         {
           "level": "VD",
-          "question": "Giải phương trình: \\sqrt{x^2 - 3x + 2} = \\sqrt{2x - 4}.",
-          "answer": "Điều kiện 2x - 4 >= 0 ⇔ x >= 2. x^2 - 3x + 2 = 2x - 4 ⇔ x^2 - 5x + 6 = 0 ⇔ x = 2 hoặc x = 3 (cả hai đều thoả mãn)."
+          "question": "Tìm m để C_m=(m;m+2) là tập con của (-1;4).",
+          "answer": "-1≤m≤2."
         },
         {
           "level": "VD",
-          "question": "Tìm m để phương trình \\sqrt{x - 1} = x - m có nghiệm.",
-          "answer": "Đặt t = \\sqrt{x-1} >= 0, phương trình trở thành t^2 - t + 1 - m = 0 có nghiệm t >= 0 ⇔ m >= 3/4."
+          "question": "Tìm m để [m;m+2) là tập con của (-1;4).",
+          "answer": "-1<m≤2."
         }
       ],
       "quick": [
         {
-          "question": "Tại sao khi giải \\sqrt{f(x)} = \\sqrt{g(x)} chỉ cần đặt điều kiện cho một trong hai vế?",
-          "solution": "Vì khi f(x) = g(x), chỉ cần một vế không âm thì vế còn lại tự động không âm."
+          "question": "Mệnh đề “∀x∈ℤ, 7\\mid(3x+1)” đúng hay sai?",
+          "solution": "Sai; x=0 là phản ví dụ vì 7 không chia hết 1."
         },
         {
-          "question": "Bước thử lại nghiệm có bắt buộc khi giải phương trình quy về bậc hai bằng phép bình phương không?",
-          "solution": "Bắt buộc nếu không đặt điều kiện tương đương chặt chẽ ở bước đầu."
+          "question": "Vì sao C_m=(m;m+2)⊆(-1;4) cho -1≤m≤2?",
+          "solution": "Cận trái cần m≥-1, cận phải cần m+2≤4; các đầu mút đều mở nên không cần chặt hơn."
         }
       ],
       "mistakes": [
-        "Quên đặt điều kiện vế phải ax + b >= 0 trước khi bình phương.",
-        "Nhầm biến đổi tương đương với biến đổi hệ quả.",
-        "Quên thử lại nghiệm để loại bỏ nghiệm ngoại lai."
+        "Đổi ∀ thành ∃ nhưng quên phủ định mệnh đề bên trong.",
+        "Giữ nhầm đầu mút khi lấy giao hoặc hiệu hai khoảng.",
+        "Chỉ kiểm một đầu mút khi chứng minh tập con chứa tham số."
       ],
       "selfChoice": false,
       "timelineKey": "gateD78"
@@ -9434,72 +9609,259 @@
       "grade": 10,
       "week": 17,
       "period": 129,
-      "title": "Ôn tập HK1: Dấu của tam thức bậc hai và bất phương trình bậc hai",
+      "title": "Ôn tập cuối HK1: Hệ bất phương trình và tối ưu trên miền nghiệm",
       "kind": "practice",
       "lessonType": "practice",
-      "focus": "Định lý về dấu của tam thức bậc hai, giải bất phương trình bậc hai một ẩn và tìm tham số m",
+      "focus": "Kiểm đủ ràng buộc của hệ bất phương trình, tìm giá trị lớn nhất trên miền đa giác, xử lý điều kiện nguyên",
       "formulas": [
-        "f(x) = ax^2 + bx + c",
-        "\\Delta < 0 \\implies a \\cdot f(x) > 0 \\; \\forall x \\in \\mathbb{R}",
-        "f(x) > 0 \\; \\forall x \\in \\mathbb{R} \\iff a > 0 \\text{ và } \\Delta < 0"
+        "x\\ge0,\\ y\\ge0,\\ x+y\\le6,\\ x\\le4",
+        "F=2x+3y",
+        "8x+12y\\le240,\\ y\\le2x"
       ],
-      "boardKnowledge": "Quy tắc xét dấu: \"Trong trái ngoài cùng\" (khi có 2 nghiệm phân biệt); Luôn cùng dấu hệ số a (khi Δ < 0). Tìm m để f(x) > 0 với mọi x: a > 0 và Δ < 0.",
+      "boardKnowledge": [
+        "Khả thi trước; tối ưu sau: một điểm thuộc hệ khi đúng mọi dòng.",
+        "Hàm bậc nhất trên miền đa giác lồi đạt giá trị lớn nhất tại một đỉnh khả thi.",
+        "Nguyên: không làm tròn tùy ý. Cận trên cộng phương án đạt mới đủ kết luận lớn nhất."
+      ],
       "examples": [
         {
-          "question": "Xét dấu tam thức bậc hai: f(x) = -x^2 + 5x - 6.",
-          "solution": "Nghiệm x = 2, x = 3. Hệ số a = -1 < 0. f(x) > 0 trên (2; 3) (trong trái); f(x) < 0 trên (-∞; 2) và (3; +∞) (ngoài cùng)."
+          "question": "Cho $P(2;0)$ và hệ $(m-1)x+y\\le2$; $y\\ge x$. Một lời giải cho rằng $m\\le2$ thì $P$ thuộc hệ. Kiểm tra lại.",
+          "solution": "Dòng thứ nhất cho $2(m-1)\\le2\\iff m\\le2$. Dòng thứ hai cho $0\\ge2$ sai. Vậy không có $m$ để $P$ thuộc hệ.",
+          "tdsQuote": "Cho P(2;0), hệ (m−1)x+y≤2; y≥x.",
+          "origin": "source",
+          "reviewRequired": false
         },
         {
-          "question": "Tìm m để bất phương trình x^2 - 2mx + 4 > 0 nghiệm đúng với mọi x thuộc R.",
-          "solution": "Yêu cầu ⇔ a = 1 > 0 (luôn đúng) và Delta' = m^2 - 4 < 0 ⇔ -2 < m < 2."
+          "question": "Xét miền $D$: $x,y\\ge0$; $x+y\\le6$; $x\\le4$ và $F=2x+3y$. Tìm giá trị lớn nhất của $F$.",
+          "solution": "Bốn đỉnh $O(0;0)$, $A(4;0)$, $B(4;2)$, $C(0;6)$ cho $F$ lần lượt $0$, $8$, $14$, $18$. Giá trị lớn nhất là $18$ tại $C$.",
+          "tdsQuote": "Xét D: x,y≥0, x+y≤6, x≤4; F=2x+3y.",
+          "origin": "source",
+          "reviewRequired": false
         }
       ],
       "exercises": [
         {
-          "level": "NB",
-          "question": "Quy tắc xét dấu tam thức bậc hai có hai nghiệm phân biệt x1 < x2 là gì?",
-          "answer": "Trong khoảng hai nghiệm trái dấu với hệ số a, ngoài khoảng hai nghiệm cùng dấu với hệ số a."
+          "id": "m1",
+          "question": "Tìm $m$ để $(1;2)$ thuộc hệ $x+y\\le m$, $y\\ge x$. Kiểm với $m=3$.",
+          "answer": "$m\\ge3$; tại $m=3$ cả hai dòng đều đúng.",
+          "tdsQuote": "Tìm m để (1;2) thuộc x+y≤m, y≥x. Kiểm m=3.",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Tìm giá trị nhỏ nhất của $m$ để $(1;2)$ thuộc hệ $x+y\\le m$, $y\\ge x$.",
+            "answer": 3
+          },
+          "hints": [
+            "Thế tọa độ vào từng dòng; dòng không chứa $m$ cũng phải đúng."
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "must"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "NB"
         },
         {
-          "level": "NB",
-          "question": "Khi biệt thức Δ < 0 thì tam thức bậc hai ax² + bx + c có dấu như thế nào?",
-          "answer": "Luôn luôn cùng dấu với hệ số a với mọi số thực x."
+          "id": "m2",
+          "question": "Kiểm tra $O(0;0)$ có thuộc hệ $(m-1)x+y\\le2$; $y\\ge x$ không. Kết luận phụ thuộc $m$ thế nào?",
+          "answer": "$0\\le2$ và $0\\ge0$ đều đúng với mọi $m$, nên $O$ luôn thuộc hệ.",
+          "tdsQuote": "HS kiểm O(0;0): 0≤2 và 0≥0 đúng với mọi m",
+          "auto": {
+            "kind": "choice",
+            "prompt": "Điểm $O(0;0)$ thuộc hệ $(m-1)x+y\\le2$; $y\\ge x$ khi nào?",
+            "options": [
+              {
+                "id": "o1",
+                "label": "Với mọi $m$"
+              },
+              {
+                "id": "o2",
+                "label": "Chỉ khi $m\\le2$"
+              },
+              {
+                "id": "o3",
+                "label": "Không có $m$ nào"
+              }
+            ],
+            "answer": "o1"
+          },
+          "hints": [
+            "Thế $x=0$, $y=0$ rồi xem $m$ còn xuất hiện không."
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "must"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "NB"
         },
         {
-          "level": "TH",
-          "question": "Giải bất phương trình: 2x^2 - 5x + 2 <= 0.",
-          "answer": "Nghiệm của tam thức là 1/2 và 2. BPT có a = 2 > 0 nên lấy trong: 1/2 <= x <= 2."
+          "id": "s1",
+          "question": "Trên miền $D$: $x,y\\ge0$; $x+y\\le6$; $x\\le4$, tìm giá trị lớn nhất của $H=3x+y$; kiểm mọi đỉnh.",
+          "answer": "Tại $O$, $A$, $B$, $C$ giá trị lần lượt là $0$, $12$, $14$, $6$; lớn nhất là $14$ tại $B(4;2)$.",
+          "tdsQuote": "Trên D ở HĐ1, tìm max H=3x+y; kiểm mọi đỉnh.",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Trên miền $D$: $x,y\\ge0$; $x+y\\le6$; $x\\le4$, tìm giá trị lớn nhất của $H=3x+y$.",
+            "answer": 14
+          },
+          "hints": [
+            "Chỉ dùng đỉnh thuộc miền; tính $H$ ở đủ bốn đỉnh."
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "should"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "TH"
         },
         {
-          "level": "TH",
-          "question": "Tìm tập nghiệm của bất phương trình: -x^2 + 4x - 5 >= 0.",
-          "answer": "Delta' = 4 - 5 = -1 < 0, a = -1 < 0 nên f(x) luôn âm. Tập nghiệm là rỗng ∅."
+          "id": "s2",
+          "question": "Trên miền $D$: $x,y\\ge0$; $x+y\\le6$; $x\\le4$, tìm giá trị lớn nhất của $G=x+y$. Có đạt tại $(6;0)$ không?",
+          "answer": "Lớn nhất là $6$ trên cạnh $BC$; $(6;0)$ không thuộc $D$ vì vi phạm $x\\le4$.",
+          "tdsQuote": "Max G=6 trên BC; (6;0)∉D.",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Trên miền $D$: $x,y\\ge0$; $x+y\\le6$; $x\\le4$, tìm giá trị lớn nhất của $G=x+y$.",
+            "answer": 6
+          },
+          "hints": [
+            "Đừng kéo cạnh tối ưu ra ngoài miền; kiểm $x\\le4$."
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "should"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "TH"
         },
         {
-          "level": "VD",
-          "question": "Tìm m để hàm số y = \\sqrt{(m-1)x^2 - 2(m-1)x + 3} có tập xác định là R.",
-          "answer": "TH1: m = 1 ⇒ y = \\sqrt{3} xác định trên R. TH2: m ≠ 1 ⇒ m - 1 > 0 và Delta' = (m-1)^2 - 3(m-1) <= 0 ⇔ 1 < m <= 4. Kết hợp: 1 <= m <= 4."
+          "id": "c1",
+          "question": "Nhóm đặt mua $x$ ly trà giá 8 nghìn, $y$ ly cà phê giá 12 nghìn; tổng tiền không quá 240 nghìn, $y\\le2x$, $x,y$ nguyên dương. Tìm $y$ lớn nhất và nêu mọi phương án đạt.",
+          "answer": "$8x+12y\\ge16y$ nên $y\\le15$; $y=15$ đòi $x\\ge8$, tốn ít nhất 244 nghìn nên bị loại. $y=14$ có $7\\le x\\le9$. Vậy $y$ lớn nhất là 14, đạt tại $(7;14)$, $(8;14)$, $(9;14)$.",
+          "tdsQuote": "Nhóm đặt mua x ly trà giá 8 nghìn, y ly cà phê giá 12 nghìn; tổng tiền không quá 240 nghìn, y≤2x, x,y nguyên dương. Tìm y lớn nhất.",
+          "hints": [
+            "Từ $x\\ge y/2$ suy ra một cận trên của $y$; rồi thử cận đó có đạt được không."
+          ],
+          "rubric": {
+            "criteria": [
+              "Lập đúng hệ và có cận trên có căn cứ",
+              "Loại $y=15$ bằng tính toán",
+              "Nêu đủ phương án đạt"
+            ],
+            "lookFor": [
+              "$y\\le15$; $y=15$ tốn ít nhất 244 nghìn; $y=14$ với $x=7,8,9$"
+            ]
+          },
+          "alignment": {
+            "objectiveIds": [
+              "could"
+            ],
+            "cognitiveLevel": "VD",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "VD"
         },
         {
-          "level": "VD",
-          "question": "Một quả bóng được đá lên từ mặt đất với độ cao h(t) = -5t^2 + 20t (m). Trong khoảng thời gian nào quả bóng ở độ cao trên 15m?",
-          "answer": "-5t^2 + 20t > 15 ⇔ 5t^2 - 20t + 15 < 0 ⇔ 1 < t < 3 giây."
+          "id": "c2",
+          "question": "Bài đồ uống trên đổi hạn mức 240 thành 200 nghìn. Tìm mọi phương án có $y$ lớn nhất.",
+          "answer": "$16y\\le200$ nên $y\\le12$; $y=12$ có $6\\le x\\le7$. Hai phương án: $(6;12)$ và $(7;12)$.",
+          "tdsQuote": "Bài đồ uống đổi hạn mức240 thành200 nghìn. Tìm mọi phương án có y lớn nhất.",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Mua $x$ ly trà giá 8 nghìn, $y$ ly cà phê giá 12 nghìn; tổng tiền không quá 200 nghìn, $y\\le2x$, $x,y$ nguyên dương. Tìm $y$ lớn nhất.",
+            "answer": 12
+          },
+          "hints": [
+            "Cận trên phải kèm một phương án đạt được."
+          ],
+          "alignment": {
+            "objectiveIds": [
+              "could"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false,
+          "level": "VD"
         }
       ],
       "quick": [
         {
-          "question": "Khi nào cần xét trường hợp hệ số a = 0 trong bài toán tam thức bậc hai chứa tham số?",
-          "solution": "Khi hệ số a có chứa tham số m (chưa khẳng định chắc chắn là bậc hai)."
+          "question": "Giữ giá và quan hệ số ly, đổi hạn mức thành 224 nghìn. Tìm $y$ lớn nhất, nêu cận và phương án đạt.",
+          "solution": "$16y\\le224$ nên $y\\le14$; $(7;14)$ tốn đúng 224 nghìn và thỏa $y=2x$. Khi $y=14$ chỉ có $x=7$.",
+          "tdsQuote": "16y≤224 nên y≤14; (7;14) đạt224",
+          "auto": {
+            "kind": "numeric",
+            "prompt": "Mua $x$ ly trà giá 8 nghìn, $y$ ly cà phê giá 12 nghìn; tổng tiền không quá 224 nghìn, $y\\le2x$, $x,y$ nguyên dương. Tìm $y$ lớn nhất.",
+            "answer": 14
+          },
+          "alignment": {
+            "objectiveIds": [
+              "could"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false
         },
         {
-          "question": "Điều kiện để tam thức bậc hai không âm với mọi x là gì?",
-          "solution": "a > 0 và Δ <= 0."
+          "question": "Điểm $(6;0)$ có thuộc miền $D$: $x,y\\ge0$; $x+y\\le6$; $x\\le4$ không? Vì sao?",
+          "solution": "Không, vì $(6;0)$ vi phạm $x\\le4$.",
+          "tdsQuote": "(6;0) vi phạm x≤4",
+          "auto": {
+            "kind": "choice",
+            "prompt": "Điểm $(6;0)$ có thuộc miền $D$: $x,y\\ge0$; $x+y\\le6$; $x\\le4$ không?",
+            "options": [
+              {
+                "id": "o1",
+                "label": "Không, vì vi phạm $x\\le4$"
+              },
+              {
+                "id": "o2",
+                "label": "Có, vì $x+y\\le6$ đúng"
+              },
+              {
+                "id": "o3",
+                "label": "Không, vì vi phạm $x+y\\le6$"
+              }
+            ],
+            "answer": "o1"
+          },
+          "alignment": {
+            "objectiveIds": [
+              "must"
+            ],
+            "cognitiveLevel": "TH",
+            "supportRoute": "shared"
+          },
+          "origin": "source",
+          "reviewRequired": false
         }
       ],
       "mistakes": [
-        "Quên xét trường hợp a = 0 khi hệ số chứa tham số m.",
-        "Nhầm điều kiện Δ > 0 khi đề yêu cầu luôn dương hoặc luôn âm.",
-        "Không lấy dấu bằng ở Δ khi bất phương trình có dấu bằng."
+        "Chỉ kiểm dòng có $m$, bỏ dòng không chứa $m$.",
+        "Dùng điểm $(6;0)$ dù $x\\le4$.",
+        "Làm tròn nghiệm thực $(7{,}5;15)$ thành nghiệm nguyên."
       ],
       "selfChoice": false,
       "timelineKey": "gateD78"
@@ -12327,72 +12689,72 @@
       "grade": 12,
       "week": 18,
       "period": 131,
-      "title": "Ôn tập HK1: Vectơ và hệ tọa độ Oxyz trong không gian",
+      "title": "Ôn tập HK1: Vectơ và tọa độ Oxyz — Tích vô hướng và góc",
       "kind": "practice",
       "lessonType": "practice",
-      "focus": "Tọa độ điểm, vectơ, tích có hướng, tích vô hướng, phương trình mặt phẳng, phương trình mặt cầu cơ bản",
+      "focus": "Tọa độ điểm, vectơ, tích vô hướng, độ dài, góc giữa hai vectơ và khoảng cách giữa hai điểm trong không gian Oxyz",
       "formulas": [
-        "[$\\vec{u}$, $\\vec{v}$] = (y_1 z_2 - z_1 y_2; z_1 x_2 - x_1 z_2; x_1 y_2 - y_1 x_2)",
-        "(x-a)^2 + (y-b)^2 + (z-c)^2 = R^2",
-        "$\\vec{n}$ = [$\\vec{AB}$, $\\vec{AC}$]"
+        "\\vec{u}\\cdot\\vec{v} = x_1 x_2 + y_1 y_2 + z_1 z_2",
+        "\\cos(\\vec{u}, \\vec{v}) = \\frac{\\vec{u}\\cdot\\vec{v}}{|\\vec{u}||\\vec{v}|}",
+        "AB = \\sqrt{(x_B-x_A)^2 + (y_B-y_A)^2 + (z_B-z_A)^2}"
       ],
-      "boardKnowledge": "Toàn cảnh Hình học Oxyz: 1. Vectơ và các phép toán 3 chiều; 2. Tích có hướng: vectơ vuông góc với cả hai vectơ thành phần, tính diện tích tam giác và thể tích tứ diện; 3. Mặt cầu: tâm I(a; b; c) và bán kính R.",
+      "boardKnowledge": "Toàn cảnh Oxyz HK1: 1. Hệ trục Decartes 3 chiều Oxyz; 2. Tọa độ điểm và vectơ; 3. Tích vô hướng; 4. Góc giữa 2 vectơ: từ 0° đến 180°; 5. Điểm đặc biệt: trung điểm, trọng tâm tam giác, trọng tâm tứ diện.",
       "examples": [
         {
-          "question": "Cho A(1; 0; 0), B(0; 2; 0), C(0; 0; 3). Viết phương trình mặt phẳng (ABC) theo đoạn chắn.",
-          "solution": "Phương trình mặt phẳng đoạn chắn: x/1 + y/2 + z/3 = 1 ⇔ 6x + 3y + 2z - 6 = 0."
+          "question": "Cho A(1; 0; -2) và B(2; 1; -1). Tính độ dài đoạn thẳng AB và tọa độ trung điểm I của AB.",
+          "solution": "AB = \\sqrt{(2-1)^2 + (1-0)^2 + (-1+2)^2} = \\sqrt{1 + 1 + 1} = \\sqrt{3}. I = (3/2; 1/2; -3/2)."
         },
         {
-          "question": "Tìm tâm và bán kính của mặt cầu (S): x^2 + y^2 + z^2 - 2x + 4y - 6z - 2 = 0.",
-          "solution": "Tâm I(1; -2; 3). Bán kính R = \\sqrt{1^2 + (-2)^2 + 3^2 - (-2)} = \\sqrt{1 + 4 + 9 + 2} = \\sqrt{16} = 4."
+          "question": "Cho hai vectơ \\vec{a} = (1; 2; 2) và \\vec{b} = (-2; 2; -1). Tính cosin góc giữa hai vectơ.",
+          "solution": "\\vec{a}\\cdot\\vec{b} = -2 + 4 - 2 = 0 ⇒ hai vectơ vuông góc nhau, cos = 0, góc = 90°."
         }
       ],
       "exercises": [
         {
           "level": "NB",
-          "question": "Phương trình mặt cầu tâm I(a; b; c) bán kính R có dạng tổng quát là gì?",
-          "answer": "(x - a)^2 + (y - b)^2 + (z - c)^2 = R^2."
+          "question": "Vectơ đơn vị \\vec{k} trên trục Oz có tọa độ là gì?",
+          "answer": "(0; 0; 1)."
         },
         {
           "level": "NB",
-          "question": "Tích có hướng của hai vectơ cùng phương trong không gian bằng bao nhiêu?",
-          "answer": "Bằng vectơ-không: $\\vec{0} = (0; 0; 0)$."
+          "question": "Hình chiếu vuông góc của điểm M(2; -3; 5) lên trục Ox có tọa độ là gì?",
+          "answer": "(2; 0; 0)."
         },
         {
           "level": "TH",
-          "question": "Cho $\\vec{a} = (1; 2; 3)$ và $\\vec{b} = (2; -1; 1)$. Tính tích có hướng $[\\vec{a}, \\vec{b}]$.",
-          "answer": "(2(1) - 3(-1); 3(2) - 1(1); 1(-1) - 2(2)) = (5; 5; -5)."
+          "question": "Cho \\vec{u} = (2; -1; 3) và \\vec{v} = (1; 4; -2). Tính \\vec{u}\\cdot\\vec{v}.",
+          "answer": "2(1) + (-1)(4) + 3(-2) = 2 - 4 - 6 = -8."
         },
         {
           "level": "TH",
-          "question": "Viết phương trình mặt cầu có tâm I(2; -1; 3) và đi qua điểm A(2; 1; 2).",
-          "answer": "R^2 = IA^2 = 0 + 4 + 1 = 5 ⇒ (x - 2)^2 + (y + 1)^2 + (z - 3)^2 = 5."
+          "question": "Tìm m để hai vectơ \\vec{a} = (m; 2; 1) và \\vec{b} = (3; -2; 4) vuông góc nhau.",
+          "answer": "3m + 2(-2) + 1(4) = 0 ⇔ 3m = 0 ⇔ m = 0."
         },
         {
           "level": "VD",
-          "question": "Cho ba điểm A(1; 1; 0), B(0; 2; 1), C(1; 0; 2). Tính diện tích tam giác ABC.",
-          "answer": "$\\vec{AB} = (-1; 1; 1)$, $\\vec{AC} = (0; -1; 2)$. Khi đó $[\\vec{AB}, \\vec{AC}] = (3; 2; 1)$. Diện tích tam giác: $S = \\frac{1}{2} |[\\vec{AB}, \\vec{AC}]| = \\frac{\\sqrt{3^2 + 2^2 + 1^2}}{2} = \\frac{\\sqrt{14}}{2}$."
+          "question": "Cho tam giác ABC có A(1; 2; 0), B(3; 0; 1), C(0; 1; 2). Tính diện tích tam giác ABC.",
+          "answer": "Tính AB, AC và cos A từ tích vô hướng, suy ra sin A và tính S = 1/2 AB * AC * sin A = \\sqrt{35}/2."
         },
         {
           "level": "VD",
-          "question": "Một chiếc máy bay không người lái định vị tại tọa độ M(100; 200; 300) (mét). Tính khoảng cách từ máy bay đến trạm radar mặt đất đặt tại gốc O.",
-          "answer": "OM = \\sqrt{100^2 + 200^2 + 300^2} = \\sqrt{140000} = 100\\sqrt{14} ≈ 374,17 mét."
+          "question": "Một chiếc lồng đèn hình bát diện đều được gắn trong hệ tọa độ Oxyz. Tính góc tạo bởi hai sợi dây treo xuất phát từ một đỉnh.",
+          "answer": "Lập tọa độ các đỉnh rồi dùng công thức cosin góc giữa hai vectơ chỉ phương của hai sợi dây."
         }
       ],
       "quick": [
         {
-          "question": "Phương trình mặt phẳng đi qua ba điểm $A(a; 0; 0), B(0; b; 0), C(0; 0; c)$ với $a, b, c \\neq 0$ có dạng gì?",
-          "solution": "Phương trình mặt phẳng theo đoạn chắn: $\\frac{x}{a} + \\frac{y}{b} + \\frac{z}{c} = 1$ (điều kiện $a \\cdot b \\cdot c \\neq 0$)."
+          "question": "Khoảng cách từ M(x;y;z) đến gốc tọa độ O là gì?",
+          "solution": "OM=\\sqrt{x^2+y^2+z^2}."
         },
         {
-          "question": "Điều kiện để phương trình x^2 + y^2 + z^2 - 2ax - 2by - 2cz + d = 0 là phương trình mặt cầu là gì?",
-          "solution": "a^2 + b^2 + c^2 - d > 0."
+          "question": "Tọa độ trung điểm I của A(x₁;y₁;z₁), B(x₂;y₂;z₂) là gì?",
+          "solution": "I=((x₁+x₂)/2; (y₁+y₂)/2; (z₁+z₂)/2)."
         }
       ],
       "mistakes": [
-        "Nhầm công thức tích có hướng ở tọa độ y (quên dấu trừ ở định thức cấp hai).",
-        "Nhầm bán kính mặt cầu R thành R^2 trong phương trình chính tắc.",
-        "Quên đổi dấu khi xác định tọa độ tâm I từ phương trình khai triển."
+        "Nhầm công thức trọng tâm tứ diện chia 3 thay vì chia 4.",
+        "Quên dấu âm khi tính bình phương số âm trong căn khoảng cách.",
+        "Lẫn lộn giữa góc giữa hai vectơ và góc giữa hai đường thẳng."
       ],
       "selfChoice": false,
       "timelineKey": "gateD78"
@@ -13513,16 +13875,18 @@
       "libraryTitle": "Lỗi AI bịa đặt công thức cộng tọa độ khi tính cosin góc giữa hai vectơ"
     },
     "10-14-110": {
-      "key": "10-14-110",
-      "category": "Lỗi logic",
-      "wrongSolution": "Để chứng minh d1 vuông góc d2, AI chứng minh vectơ chỉ phương \\vec{u}_1 cùng phương với \\vec{u}_2.",
-      "correction": "Hai đường thẳng vuông góc khi hai vectơ chỉ phương của chúng vuông góc với nhau (\\vec{u}_1\\cdot\\vec{u}_2 = 0), không phải cùng phương.",
-      "proof": "Vectơ cùng phương chỉ ra hai đường thẳng song song hoặc trùng nhau, mâu thuẫn hoàn toàn với quan hệ vuông góc.",
-      "whyAiError": "Mô hình nhầm lẫn khái niệm quan hệ vuông góc với quan hệ song song của hai đường thẳng.",
-      "teacherPrompt": "AI nhầm điều kiện cùng phương với vuông góc. Em hãy phản biện lỗi logic và sửa lại điều kiện chứng minh vuông góc đúng.",
-      "studentProduct": "Ghi “Lỗi logic: nhầm cùng phương với vuông góc”, sửa thành u1.u2 = 0.",
-      "boardPrompt": "Muốn chứng minh hai đường thẳng vuông góc cần kiểm tra quan hệ gì giữa hai vectơ chỉ phương?",
-      "libraryTitle": "Lỗi AI nhầm lẫn điều kiện vuông góc với điều kiện song song"
+      "category": "Lỗi đại số",
+      "wrongSolution": "$|\\vec u+\\vec v|^2=|\\vec u|^2+|\\vec v|^2+\\vec u\\cdot\\vec v=4+9+3=16$.",
+      "correction": "Phải có hệ số 2: $|\\vec u+\\vec v|^2=4+2\\cdot 3+9=19$.",
+      "proof": "$(\\vec u+\\vec v)^2=\\vec u^2+\\vec u\\cdot\\vec v+\\vec v\\cdot\\vec u+\\vec v^2$, có hai tích chéo bằng nhau.",
+      "whyAiError": "Lời giải viết thiếu một tích chéo khi bình phương tổng.",
+      "teacherPrompt": "Thế dữ kiện vào lời giải này. Vì sao phải có hai tích chéo khi bình phương tổng?",
+      "studentProduct": "HS phát hiện kết quả 16 sai, sửa thành 19 và giải thích hệ số 2.",
+      "boardPrompt": "Sai: $4+9+3=16$. Đúng: $4+2\\cdot 3+9=19$. Hệ số của $\\vec u\\cdot\\vec v$ là 2.",
+      "libraryTitle": "Thiếu hệ số 2 khi bình phương tổng vectơ",
+      "tdsQuote": "Sai: 4+9+3=16",
+      "origin": "source",
+      "reviewRequired": false
     },
     "10-14-111": {
       "key": "10-14-111",
@@ -14042,15 +14406,15 @@
     },
     "10-16-122": {
       "key": "10-16-122",
-      "category": "Lỗi đại số",
-      "wrongSolution": "Xác định trục đối xứng của parabol y = 2x^2 + 4x - 1, AI tính: x = b / (2a) = 4 / 4 = 1.",
-      "correction": "Công thức tọa độ trục đối xứng của parabol y = ax^2 + bx + c là x = -b / (2a). Với a = 2, b = 4 thì x = -4 / 4 = -1. AI quên dấu trừ.",
-      "proof": "Hoành độ đỉnh parabol x_I = -b/(2a) xuất phát từ nghiệm kép của phương trình đạo hàm y' = 2ax + b = 0 ⇔ x = -b/(2a). Quên dấu trừ làm trục đối xứng bị đối xứng sai phía.",
-      "whyAiError": "Mô hình quên dấu âm trong công thức hoành độ đỉnh parabol.",
-      "teacherPrompt": "AI tính trục đối xứng ra x = 1 do thiếu dấu âm. Em hãy chỉ ra lỗi đại số trong công thức đỉnh và sửa lại phương trình trục đối xứng đúng.",
-      "studentProduct": "Ghi “Lỗi đại số: quên dấu trừ trong công thức x = -b/(2a)”, sửa thành x = -1.",
-      "boardPrompt": "Công thức xác định trục đối xứng của hàm số bậc hai y = ax² + bx + c là gì?",
-      "libraryTitle": "Lỗi AI quên dấu âm trong công thức trục đối xứng của parabol"
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "Từ 12x+20y≤240 suy ra y≤12 rồi kết luận y=12 là phương án tối ưu.",
+      "correction": "Phải dùng đồng thời x≥2y: 12x+20y≥44y, nên y≤60/11 và y≤5 vì y nguyên; sau đó phải nêu phương án đạt.",
+      "proof": "Một phương án chỉ hợp lệ khi thỏa mọi dòng của hệ. Với y=5, (10;5) và (11;5) đạt; y=6 cần ít nhất x=12, chi 264 nghìn nên không thể.",
+      "whyAiError": "Lời giải bỏ qua ràng buộc số vở ít nhất gấp đôi số bút và không kiểm phương án đạt.",
+      "teacherPrompt": "AI đã dùng đủ mọi điều kiện của hệ chưa? Hãy tìm cận trên của y rồi kiểm một phương án đạt.",
+      "studentProduct": "HS chỉ ra điều kiện bị bỏ, lập bất đẳng thức 44y≤240 và nêu đủ (10;5), (11;5).",
+      "boardPrompt": "Tối ưu nguyên cần cận trên và phương án đạt; không chỉ thử vài giá trị.",
+      "libraryTitle": "Lỗi bỏ ràng buộc khi tối ưu số nguyên"
     },
     "10-16-123": {
       "key": "10-16-123",
@@ -14294,29 +14658,29 @@
     },
     "10-17-128": {
       "key": "10-17-128",
-      "mode": "micro",
       "category": "Thiếu điều kiện",
-      "wrongSolution": "Giải √(2x - 3) = x - 3. Bình phương hai vế: 2x - 3 = x² - 6x + 9 ⇔ x² - 8x + 12 = 0 ⇔ x = 2 hoặc x = 6. Vậy phương trình có 2 nghiệm.",
-      "correction": "Điều kiện x - 3 ≥ 0 ⇔ x ≥ 3. Khi đó chỉ nhận nghiệm x = 6, loại nghiệm x = 2.",
-      "proof": "Thế x = 2 vào vế trái √(2(2)-3) = 1, vế phải 2 - 3 = -1, mà 1 ≠ -1 nên x = 2 là nghiệm ngoại lai. Chỉ có x = 6 thoả mãn.",
-      "whyAiError": "Mô hình bình phương hai vế mà quên điều kiện vế phải không âm dẫn đến nhận nghiệm ngoại lai.",
-      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: điều kiện cần thiết trước khi bình phương là gì?",
-      "studentProduct": "Phát hiện thiếu x - 3 ≥ 0, loại nghiệm x = 2 và kết luận phương trình chỉ có nghiệm duy nhất x = 6.",
-      "boardPrompt": "AI tìm ra 2 nghiệm. Hãy thử lại x = 2 vào hai vế!",
-      "libraryTitle": "Lỗi bình phương phương trình chứa căn quên điều kiện vế phải"
+      "wrongSolution": "AI kết luận A\\\\B=[-1;1) khi A=[-1;3), B=(1;5] vì bỏ qua việc 1 không thuộc B.",
+      "correction": "Vì 1∈A nhưng 1∉B nên A\\\\B=[-1;1]. Phải kiểm riêng từng đầu mút.",
+      "proof": "Hiệu A\\\\B gồm các điểm thuộc A và không thuộc B; điểm 1 thỏa đúng điều kiện đó.",
+      "whyAiError": "Mô hình đọc đầu mút mở/đóng như nhau khi thao tác trên khoảng.",
+      "teacherPrompt": "Điểm 1 thuộc B hay không? Từ đó quyết định dấu ngoặc ở A\\\\B.",
+      "studentProduct": "HS sửa A\\\\B thành [-1;1] và giải thích bằng điều kiện thuộc tập.",
+      "boardPrompt": "Đầu mút không chỉ là ký hiệu: kiểm tra điểm đó thuộc tập nào.",
+      "libraryTitle": "Lỗi đọc sai đầu mút khi lấy hiệu hai khoảng"
     },
     "10-17-129": {
-      "key": "10-17-129",
-      "mode": "micro",
-      "category": "Lỗi logic",
-      "wrongSolution": "Tìm m để x² - 2mx + 4 > 0 với mọi x ∈ R. AI giải: Δ' = m² - 4 > 0 ⇔ m < -2 hoặc m > 2.",
-      "correction": "Để tam thức bậc hai ax² + bx + c > 0 với mọi x ∈ R thì a > 0 và Δ < 0. Do đó Δ' = m² - 4 < 0 ⇔ -2 < m < 2.",
-      "proof": "Nếu m = 3 (thuộc m > 2) thì x² - 6x + 4 > 0 không đúng với mọi x (ví dụ tại x = 3 thì 9 - 18 + 4 = -5 < 0).",
-      "whyAiError": "Mô hình nhầm lẫn giữa điều kiện f(x) luôn dương (Δ < 0) với điều kiện phương trình có 2 nghiệm phân biệt (Δ > 0).",
-      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: để tam thức luôn mang dấu dương thì biệt thức Δ phải âm hay dương?",
-      "studentProduct": "Sửa điều kiện thành Δ' < 0 và suy ra tập giá trị đúng của tham số: -2 < m < 2.",
-      "boardPrompt": "AI dùng Δ > 0. Thử x = 3 khi m = 3 xem f(x) có dương không?",
-      "libraryTitle": "Lỗi nhầm điều kiện tam thức luôn dương với điều kiện có hai nghiệm phân biệt"
+      "category": "Thiếu điều kiện",
+      "wrongSolution": "Với $P(2;0)$ và hệ $(m-1)x+y\\le2$; $y\\ge x$: thay vào được $2(m-1)\\le2$ nên $m\\le2$ thì $P$ thuộc hệ.",
+      "correction": "Phải kiểm cả dòng $y\\ge x$: $0\\ge2$ sai, nên không có $m$ để $P$ thuộc hệ.",
+      "proof": "Một điểm thuộc hệ khi đúng đồng thời mọi dòng; dòng $y\\ge x$ không chứa $m$ và sai tại $P$.",
+      "whyAiError": "Lời giải chỉ kiểm dòng chứa tham số, bỏ dòng tĩnh.",
+      "teacherPrompt": "Thử riêng từng dòng. Ta kết luận về $P$ hay về mọi nghiệm của hệ?",
+      "studentProduct": "HS chỉ ra dòng bị bỏ, sửa kết luận và phân biệt điểm không thuộc hệ với hệ vô nghiệm.",
+      "boardPrompt": "$P(2;0)$: $2(m-1)\\le2\\iff m\\le2$. Nhưng $0\\ge2$ sai. Không có $m$ để $P$ thuộc hệ.",
+      "libraryTitle": "Bỏ dòng không chứa tham số khi kiểm hệ",
+      "tdsQuote": "Lời giải cho rằng m≤2 thì P thuộc hệ.",
+      "origin": "source",
+      "reviewRequired": false
     },
     "10-17-130": {
       "key": "10-17-130",
@@ -14816,14 +15180,14 @@
       "key": "12-18-131",
       "mode": "micro",
       "category": "Lỗi đại số",
-      "wrongSolution": "Tính tích có hướng của u=(1; 2; 3) và v=(2; -1; 1): ở tọa độ y học sinh lấy 1(1) - 3(2) = -5 thay vì đổi dấu thành 5.",
-      "correction": "Tọa độ y của tích có hướng mang dấu âm của định thức: y = -(x1*z2 - z1*x2) = z1*x2 - x1*z2 = 3(2) - 1(1) = 5.",
-      "proof": "Kiểm tra tính vuông góc: tích vô hướng [u, v] . u = 5(1) + 5(2) + (-5)(3) = 5 + 10 - 15 = 0 (đúng tính chất tích có hướng).",
-      "whyAiError": "Học sinh quên quy tắc đổi dấu của phần tử hàng 2 cột 1 trong ma trận phụ hợp tọa độ Oxyz.",
-      "teacherPrompt": "Hãy sửa lại phép tính tích có hướng ở tọa độ y bằng cách đổi dấu định thức con.",
-      "studentProduct": "Học sinh ghi nhớ quy tắc đổi dấu hoặc dùng Casio Menu 5 để tính đúng tích có hướng (5; 5; -5).",
-      "boardPrompt": "Tọa độ y của tích có hướng có dấu gì ở đằng trước? Em hãy tính lại thật cẩn thận!",
-      "libraryTitle": "Lỗi quên đổi dấu tọa độ tung độ khi tính tích có hướng hai vectơ Oxyz"
+      "wrongSolution": "Cho A(1; 2; 3) và B(3; 0; -1). Tính độ dài đoạn thẳng AB: AB = √((3-1)² + (0-2)² + (-1-3)²) = √(4 - 4 + 16) = √16 = 4.",
+      "correction": "Bình phương của số âm (-2)² là +4, không phải -4: AB = √(4 + 4 + 16) = √24 = 2√6.",
+      "proof": "(-2)² = (-2)·(-2) = +4. Tổng dưới căn là 4 + 4 + 16 = 24.",
+      "whyAiError": "Mô hình tính lũy thừa số âm mang dấu trừ: (yB - yA)² = (-2)² = -4.",
+      "teacherPrompt": "Hãy chỉ ra lỗi và sửa lại lời giải: bình phương của số âm (-2) dưới dấu căn bằng bao nhiêu?",
+      "studentProduct": "Sửa (-2)² = +4 và tính đúng độ dài đoạn thẳng AB = √24 = 2√6.",
+      "boardPrompt": "AI tính (-2)² = -4. Bình phương khoảng cách có thể âm không?",
+      "libraryTitle": "Lỗi tính sai bình phương số âm trong công thức khoảng cách không gian Oxyz"
     },
     "12-18-132": {
       "key": "12-18-132",
